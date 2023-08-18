@@ -1,0 +1,1225 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AutoSyncExecutionJobHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.autosync</a>
+</div>
+
+<h1>Coverage Summary for Class: AutoSyncExecutionJobHandler (com.snaplogic.snaps.autosync)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AutoSyncExecutionJobHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    7%
+  </span>
+  <span class="absValue">
+    (4/57)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    4.8%
+  </span>
+  <span class="absValue">
+    (23/476)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AutoSyncExecutionJobHandler$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">AutoSyncExecutionJobHandler$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    6.8%
+  </span>
+  <span class="absValue">
+    (4/59)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    4.8%
+  </span>
+  <span class="absValue">
+    (23/478)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022-2023, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.autosync;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.core.type.TypeReference;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.FeatureFlag;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.services.AutosyncAssetFacade;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.services.SnapiService;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snaps.autosync.cdt.NameHandler;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snaps.autosync.cdt.NameHandlerFactory;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snaps.autosync.email.AutoSyncEmailBody;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snaps.autosync.email.AutoSyncMapTemplatePlaceholders;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snaps.autosync.exception.PipelineExecutionException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snaps.autosync.model.AutoSyncSpec;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snaps.autosync.model.AutosyncAssetDTO;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snaps.autosync.model.AutosyncAssetStatsDTO;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snaps.autosync.model.DataMapper;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snaps.autosync.model.Endpoint;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snaps.autosync.model.ErrorDTO;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snaps.autosync.model.LoadType;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snaps.autosync.model.TableConfig;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snaps.autosync.model.TableDefinitionResponse;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snaps.autosync.schema_management.TargetAction;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snaps.autosync.schema_management.database.DatabaseFactory;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snaps.autosync.schema_management.database.ReconcileDatabase;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snaps.autosync.schema_management.database
+<i class="no-highlight">41</i>&nbsp;        .last_modified_record.LastModifiedResultHandler;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snaps.autosync.schema_management.database
+<i class="no-highlight">43</i>&nbsp;        .last_modified_record.LastModifiedResultHandlerFactory;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snaps.autosync.schema_management.result.ReturnStatus;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snaps.autosync.schema_management.result.SyncTableActionStatus;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snaps.autosync.service.JobStatusHandler;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snaps.autosync.utils.AutosyncAssetUtil;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snaps.autosync.utils.ErrorTableUtils;
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">52</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">53</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">54</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">55</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;import java.time.Duration;
+<i class="no-highlight">58</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">59</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">60</i>&nbsp;import java.util.List;
+<i class="no-highlight">61</i>&nbsp;import java.util.Map;
+<i class="no-highlight">62</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">63</i>&nbsp;import java.util.Set;
+<i class="no-highlight">64</i>&nbsp;import java.util.concurrent.CompletableFuture;
+<i class="no-highlight">65</i>&nbsp;import java.util.concurrent.ExecutorService;
+<i class="no-highlight">66</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">67</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.autosync.AutoSyncUtils.*;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.autosync.Messages.*;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.autosync.model.LoadType.RELOAD;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.autosync.model.LoadType.SCD2;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.autosync.model.LoadType.UPSERT;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.autosync.model.LoadType.fromString;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snaps.autosync.schema_management.Constants.*;
+<i class="no-highlight">76</i>&nbsp;import static com.snaplogic.snaps.autosync.schema_management.TargetAction.ADD_TABLE;
+<i class="no-highlight">77</i>&nbsp;import static com.snaplogic.snaps.autosync.schema_management.TargetAction.DROP_TABLE;
+<i class="no-highlight">78</i>&nbsp;import static com.snaplogic.snaps.autosync.schema_management.TargetAction.SELECT_LAST_MODIFIED;
+<i class="no-highlight">79</i>&nbsp;import static com.snaplogic.snaps.autosync.schema_management.TargetAction.TRUNCATE_TABLE;
+<i class="no-highlight">80</i>&nbsp;import static com.snaplogic.snaps.autosync.utils.AutosyncAssetUtil
+<i class="no-highlight">81</i>&nbsp;        .convertExtraParamsMapToJsonString;
+<i class="no-highlight">82</i>&nbsp;import static com.snaplogic.snaps.autosync.utils.AutosyncAssetUtil.convertExtraParamsToMap;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snaps.autosync.utils.BigQueryUtils
+<i class="no-highlight">84</i>&nbsp;        .pollWithbackoffForBigQueryDdlStatement;
+<i class="no-highlight">85</i>&nbsp;import static com.snaplogic.snaps.autosync.utils.QueryUtils.runQuery;
+<i class="no-highlight">86</i>&nbsp;import static com.snaplogic.snaps.autosync.utils.QueryUtils.truncateTargetTable;
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;/**
+<i class="no-highlight">89</i>&nbsp; * Class providing base workflow for AutoSync. This allows programmatic access to the steps
+<i class="no-highlight">90</i>&nbsp; * involved in the AutoSync process.
+<i class="no-highlight">91</i>&nbsp; *
+<i class="no-highlight">92</i>&nbsp; * @author ssaosoong
+<i class="no-highlight">93</i>&nbsp; * @author arentz
+<i class="no-highlight">94</i>&nbsp; */
+<i class="no-highlight">95</i>&nbsp;public class AutoSyncExecutionJobHandler {
+<i class="no-highlight">96</i>&nbsp;    private static final boolean BACKOFF_BIGQUERY_DDL = true;
+<b class="fc"><i class="no-highlight">97</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(AutoSyncExecutionJobHandler.class);</b>
+<i class="no-highlight">98</i>&nbsp;    @FeatureFlag(description = &quot;Number of threads in a thread pool used for concurrent executions&quot;)
+<i class="no-highlight">99</i>&nbsp;    private static final int POOL_SIZE = 5;
+<i class="no-highlight">100</i>&nbsp;    @FeatureFlag(description = &quot;Delay in seconds between each table sync operation in a multiple&quot; +
+<i class="no-highlight">101</i>&nbsp;            &quot; target table integration job&quot;)
+<i class="no-highlight">102</i>&nbsp;    private static final int DELAY = 30;
+<b class="fc"><i class="no-highlight">103</i>&nbsp;    private static final Set&lt;String&gt; FILE_TYPES_FOR_CSVFILEREADER_ENDPOINT =</b>
+<b class="fc"><i class="no-highlight">104</i>&nbsp;            ImmutableSet.of(CSV_FILE_TYPE, JSON_FILE_TYPE);</b>
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;    private final EndpointService endpointService;
+<i class="no-highlight">107</i>&nbsp;    private static final String IS_PRIMARY_KEY_COLUMN = &quot;isPrimaryKeyColumn&quot;;
+<i class="no-highlight">108</i>&nbsp;    private static final String IS_LAST_UPDATE_COLUMN = &quot;isLastUpdateColumn&quot;;
+<i class="no-highlight">109</i>&nbsp;    private static final String STATUS_START = &quot;start&quot;;
+<i class="no-highlight">110</i>&nbsp;    private static final String STATUS_COMPLETE = &quot;complete&quot;;
+<i class="no-highlight">111</i>&nbsp;    private static final String STATUS_END = &quot;end&quot;;
+<i class="no-highlight">112</i>&nbsp;    private static final String STATUS_ERROR = &quot;error&quot;;
+<i class="no-highlight">113</i>&nbsp;    private static final String STATUS_BREAKDOWN = &quot;per_table_email&quot;;
+<i class="no-highlight">114</i>&nbsp;    private static final String EMAIL_START = &quot;started&quot;;
+<i class="no-highlight">115</i>&nbsp;    private static final String EMAIL_COMPLETE = &quot;completed&quot;;
+<i class="no-highlight">116</i>&nbsp;    private static final String EMAIL_ERROR = &quot;failed&quot;;
+<i class="no-highlight">117</i>&nbsp;    private static final String TEMPLATE_START = &quot;autosync_email_start&quot;;
+<i class="no-highlight">118</i>&nbsp;    private static final String TEMPLATE_AUTOSYNC = &quot;autosync_email&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static String currentTableName;
+<i class="no-highlight">120</i>&nbsp;    private Map&lt;String, AutosyncAssetStatsDTO.TableStatsDTO&gt; integrationJobStats;
+<i class="no-highlight">121</i>&nbsp;    private AutosyncAssetStatsDTO.TableStatsDTO tableViewStats;
+<i class="no-highlight">122</i>&nbsp;    private Map&lt;String, ErrorDTO&gt; errorMap;
+<i class="no-highlight">123</i>&nbsp;    private AutosyncAssetDTO assetDTO;
+<i class="no-highlight">124</i>&nbsp;    private Map&lt;String, Object&gt; autosyncUserSettingsMap;
+<i class="no-highlight">125</i>&nbsp;    private SnapiService snapiService;
+<i class="no-highlight">126</i>&nbsp;    private final ErrorViews errorViews;
+<i class="no-highlight">127</i>&nbsp;    private AutoSyncSpec spec;
+<i class="no-highlight">128</i>&nbsp;    private String assetId;
+<i class="no-highlight">129</i>&nbsp;    private AutosyncAssetStatsDTO lastRunStatus;
+<i class="no-highlight">130</i>&nbsp;    // inject
+<i class="no-highlight">131</i>&nbsp;    private final JobStatusHandler jobStatusHandler;
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;    // inject
+<i class="no-highlight">134</i>&nbsp;    private final AutosyncAssetFacade autosyncAssetFacade;
+<i class="no-highlight">135</i>&nbsp;    private final OutputViews outputViews;
+<i class="no-highlight">136</i>&nbsp;    private final DocumentUtility documentUtility;
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;    public AutoSyncExecutionJobHandler(String assetId, SnapiService snapiService,
+<i class="no-highlight">139</i>&nbsp;                                       EndpointService endpointService,
+<i class="no-highlight">140</i>&nbsp;                                       OutputViews outputViews, ErrorViews errorViews,
+<b class="fc"><i class="no-highlight">141</i>&nbsp;                                       DocumentUtility documentUtility) {</b>
+<b class="fc"><i class="no-highlight">142</i>&nbsp;        this.assetId = assetId;</b>
+<b class="fc"><i class="no-highlight">143</i>&nbsp;        this.snapiService = snapiService;</b>
+<b class="fc"><i class="no-highlight">144</i>&nbsp;        this.autosyncAssetFacade = snapiService.createAutosyncAssetFacade();</b>
+<b class="fc"><i class="no-highlight">145</i>&nbsp;        this.jobStatusHandler = new JobStatusHandler(this.autosyncAssetFacade, assetId);</b>
+<b class="fc"><i class="no-highlight">146</i>&nbsp;        this.endpointService = endpointService;</b>
+<b class="fc"><i class="no-highlight">147</i>&nbsp;        this.outputViews = outputViews;</b>
+<b class="fc"><i class="no-highlight">148</i>&nbsp;        this.errorViews = errorViews;</b>
+<b class="fc"><i class="no-highlight">149</i>&nbsp;        this.documentUtility = documentUtility;</b>
+<i class="no-highlight">150</i>&nbsp;    }
+<i class="no-highlight">151</i>&nbsp;
+<i class="no-highlight">152</i>&nbsp;    // This method access SLDB expression files
+<i class="no-highlight">153</i>&nbsp;    public void configure() {
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        LOGGER.info(&quot;Configuration&quot;);</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        this.assetDTO =</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                AutosyncAssetUtil.convertAssetFromMap(autosyncAssetFacade.fetchAssetInfo(assetId));</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        String ownerId = this.assetDTO.getOwner().replaceAll(&quot;@&quot;, &quot;%40&quot;);</b>
+<i class="no-highlight">158</i>&nbsp;        //call the REST Get api snap to get the AutoSync user notification settings map
+<i class="no-highlight">159</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            if (this.autosyncAssetFacade != null &amp;&amp;</b>
+<i class="no-highlight">161</i>&nbsp;                    this.autosyncAssetFacade
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                            .getClass()</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                            .getMethod(&quot;fetchAutosyncUserSettingsMap&quot;,</b>
+<i class="no-highlight">164</i>&nbsp;                                    String.class, String.class) != null) {
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                this.autosyncUserSettingsMap = this.autosyncAssetFacade</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                        .fetchAutosyncUserSettingsMap(assetId, ownerId);</b>
+<i class="no-highlight">167</i>&nbsp;            } else {
+<i class="no-highlight">168</i>&nbsp;                // Handle the case when the method does not exist
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                LOGGER.error(&quot;Fetching AutoSync user notification settings method unavailable.&quot; +</b>
+<i class="no-highlight">170</i>&nbsp;                        &quot;JCC version not updated.&quot;);
+<i class="no-highlight">171</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        } catch (Exception e) {</b>
+<i class="no-highlight">173</i>&nbsp;            // Handle any other exception that may occur during the method call
+<b class="nc"><i class="no-highlight">174</i>&nbsp;            LOGGER.error(&quot;Error while fetching AutoSync user settings: &quot; + e.getMessage());</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        this.lastRunStatus = assetDTO.getStats();</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        this.spec = AutosyncAssetUtil.retrieveConfigFromAssetInfo(assetDTO);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        endpointService.configure(spec);</b>
+<i class="no-highlight">179</i>&nbsp;    }
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;    public void execute() {
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        emailUpdate(&quot;start&quot;);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        updateStatus(&quot;Start&quot;);</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        jobStatusHandler.saveStartedStats(lastRunStatus);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        List&lt;TableConfig&gt; tables = spec.getTables();</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        jobStatusHandler.setPropagateTableStatusToJobStatus(tables.size() == 1);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        ArrayList&lt;CompletableFuture&lt;Void&gt;&gt; tasks = new ArrayList&lt;&gt;(tables.size());</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        ExecutorService executor = Executors.newFixedThreadPool(POOL_SIZE);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        int idx = 0;</b>
+<i class="no-highlight">190</i>&nbsp;
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        for (TableConfig tableConfig : tables) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            int tableIdx = idx;</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            CompletableFuture&lt;Void&gt; task = CompletableFuture.runAsync(() -&gt;</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                    processTable(tableConfig, tableIdx), executor).exceptionally(e -&gt; {</b>
+<i class="no-highlight">195</i>&nbsp;                ErrorDTO errorDto;
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                Throwable cause = e.getCause();</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                if (cause instanceof PipelineExecutionException &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                        ((PipelineExecutionException) cause).getErrorDto() != null) {</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                    errorDto = ((PipelineExecutionException) cause).getErrorDto();</b>
+<i class="no-highlight">200</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                    errorDto = new ErrorDTO();</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                    errorDto.setFailure(&quot;Failed to perform AutoSync for table &quot; +</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                            tableConfig.getName());</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                    errorDto.setReason(AN_AUTO_SYNC_INTERNAL_ERROR_OCCURRED);</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                    errorDto.setResolution(CONTACT_SUPPORT);</b>
+<i class="no-highlight">206</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                LOGGER.error(&quot;Error processing table {} = {}, {}&quot;,</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                        tableConfig.getName(), errorDto, cause);</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                jobStatusHandler.updateIntermediaryStatus(tableConfig.getTableName(),</b>
+<i class="no-highlight">210</i>&nbsp;                        errorDto);
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                return null;</b>
+<i class="no-highlight">212</i>&nbsp;            });
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            idx++;</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            tasks.add(task);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        tasks.forEach(CompletableFuture::join);</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;        AutosyncAssetStatsDTO finalStats = jobStatusHandler.updateFinalStats();</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        this.integrationJobStats = finalStats.getTablesStats();</b>
+<i class="no-highlight">219</i>&nbsp;        //NOTE: show compressed view of the final stats per table
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        emailUpdate(&quot;complete&quot;);</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        LOGGER.debug(&quot;Final stats: {}&quot;, finalStats);</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        if (jobStatusHandler.hasErrors()) {</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            this.errorMap = finalStats.getTablesStats().entrySet().stream()</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                    .filter(entry -&gt; !JobStatusHandler.SUCCESS</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                            .equalsIgnoreCase(entry.getValue().getStatus()))</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                    .collect(Collectors.toMap(Map.Entry::getKey,</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                            e -&gt; Optional.ofNullable(e.getValue().getError())</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                                    .orElseGet(AutoSyncUtils::getGenericErrorDto)));</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;            LOGGER.debug(&quot;Execution Has errors = {}&quot;, errorMap);</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            outputViews.write(documentUtility.newDocument(Map.of(&quot;errors&quot;, errorMap)));</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            emailUpdate(&quot;error&quot;);</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;            for (Map.Entry&lt;String, ErrorDTO&gt; errorDTOEntry : errorMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                errorViews.write((SnapDataException) new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                        String.format(&quot;Integration failed for %s with message: %s&quot;,</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                                errorDTOEntry.getKey(),</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                                errorDTOEntry.getValue().getFailure()))</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                        .withReason(errorDTOEntry.getValue().getReason())</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                        .withResolution(errorDTOEntry.getValue().getResolution()));</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;            }</b>
+<i class="no-highlight">240</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">241</i>&nbsp;        executor.shutdown();</b>
+<i class="no-highlight">242</i>&nbsp;    }
+<i class="no-highlight">243</i>&nbsp;
+<i class="no-highlight">244</i>&nbsp;    private void setTableConfigFromLoadType(TableConfig tableConfig, LoadType loadType) {
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        switch (loadType) {</b>
+<i class="no-highlight">246</i>&nbsp;            case LOAD:
+<i class="no-highlight">247</i>&nbsp;            case APPEND:
+<i class="no-highlight">248</i>&nbsp;            case RELOAD:
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                tableConfig.setLoadMethod(RELOAD.name().toLowerCase());</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                tableConfig.setLastModifiedRecord(null);</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                break;</b>
+<i class="no-highlight">252</i>&nbsp;            case UPSERT:
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                tableConfig.setLoadMethod(UPSERT.name().toLowerCase());</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                break;</b>
+<i class="no-highlight">255</i>&nbsp;            case SCD2:
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                tableConfig.setLoadMethod(SCD2.name().toLowerCase());</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                break;</b>
+<i class="no-highlight">258</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                throw new UnsupportedOperationException(</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                        String.format(&quot;Load type: %s is not supported&quot;, loadType));</b>
+<i class="no-highlight">261</i>&nbsp;        }
+<i class="no-highlight">262</i>&nbsp;    }
+<i class="no-highlight">263</i>&nbsp;
+<i class="no-highlight">264</i>&nbsp;    private void processTable(TableConfig tableConfig, int tableIdx) {
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        LOGGER.debug(&quot;AutoSyncExecutionJobHandler: begin processTable for {}&quot;,</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                tableConfig.getTableName());</b>
+<i class="no-highlight">267</i>&nbsp;
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        delay(tableConfig, tableIdx);</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        var lastRunTblStats = lastRunStatus.getTablesStats();</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        String tableName = tableConfig.getName();</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        if (lastRunTblStats != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                lastRunTblStats.containsKey(tableName)) {</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            setLastModifiedRecord(tableConfig, lastRunTblStats.get(tableName));</b>
+<i class="no-highlight">274</i>&nbsp;        }
+<i class="no-highlight">275</i>&nbsp;        // Pipeline -- SyncTableDefinition
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        Endpoint src = spec.getSource();</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        Endpoint tgt = spec.getTarget();</b>
+<i class="no-highlight">278</i>&nbsp;
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        jobStatusHandler.updateIntermediaryStatus(tableName,</b>
+<i class="no-highlight">280</i>&nbsp;                &quot;Schema Inference Started&quot;);
+<i class="no-highlight">281</i>&nbsp;
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        LOGGER.trace(&quot;AutoSyncExecutionJobHandler: begin executing source definitions: src {},&quot; +</b>
+<i class="no-highlight">283</i>&nbsp;                &quot; tableConfig {}, path {}&quot;,
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                prettyPrint(src), prettyPrint(tableConfig), spec.getPath());</b>
+<i class="no-highlight">285</i>&nbsp;
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        if (StringUtils.equalsIgnoreCase(CSV_FILE_READER, tableConfig.getSrcDbType())) {</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            addFieldsToExtraParamsForCSVFileReaderSource(tableConfig);</b>
+<i class="no-highlight">288</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        Map&lt;String, Object&gt; tgtTableDef = endpointService.definitions(</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                tgt, tableConfig, &quot;columns&quot;, spec.getPath(), &quot;target&quot;);</b>
+<i class="no-highlight">291</i>&nbsp;        
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        boolean isTgtTableExists = isTableExist(tgtTableDef);</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        LoadType loadType = fromString(tableConfig.getLoadMethod());</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        if (!isTgtTableExists) {</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;            loadType = RELOAD;</b>
+<i class="no-highlight">296</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        setTableConfigFromLoadType(tableConfig, loadType);</b>
+<i class="no-highlight">298</i>&nbsp;
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        Map&lt;String, Object&gt; srcTableDef = endpointService.definitions(</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                src, tableConfig, &quot;columns&quot;, spec.getPath(), &quot;source&quot;);</b>
+<i class="no-highlight">301</i>&nbsp;
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        src.withPrimaryKey(getColumnNameByBooleanAttributeName(srcTableDef,</b>
+<i class="no-highlight">303</i>&nbsp;                IS_PRIMARY_KEY_COLUMN));
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        src.withLastUpdateColumn(getColumnNameByBooleanAttributeName(srcTableDef,</b>
+<i class="no-highlight">305</i>&nbsp;                IS_LAST_UPDATE_COLUMN));
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        tgt.withPrimaryKey(getColumnNameByBooleanAttributeName(tgtTableDef,</b>
+<i class="no-highlight">307</i>&nbsp;                IS_PRIMARY_KEY_COLUMN));
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        tableConfig.setLastUpdateColumn(src.getLastUpdateColumn());</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        tableConfig.setPrimaryKey(src.getPrimaryKey());</b>
+<i class="no-highlight">310</i>&nbsp;
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        DataMapper cdm = parseCDM(tgtTableDef);</b>
+<i class="no-highlight">312</i>&nbsp;
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        NameHandler nameHandler = new NameHandlerFactory()</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                .getHandler(spec.getTarget().getType(), tableConfig.isEnquoteNames(),</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                        Optional.ofNullable(cdm.getStartQuote()).orElse(&quot;&quot;),</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                        Optional.ofNullable(cdm.getEndQuote()).orElse(&quot;&quot;));</b>
+<i class="no-highlight">317</i>&nbsp;
+<b class="nc"><i class="no-highlight">318</i>&nbsp;        SchemaService schemaService = new SchemaService(jobStatusHandler, nameHandler);</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        schemaService.enquoteNames(tableConfig.isEnquoteNames());</b>
+<i class="no-highlight">320</i>&nbsp;
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        jobStatusHandler.updateIntermediaryStatus(tableName,</b>
+<i class="no-highlight">322</i>&nbsp;                &quot;Schema Inference Complete&quot;);
+<i class="no-highlight">323</i>&nbsp;
+<b class="nc"><i class="no-highlight">324</i>&nbsp;        LOGGER.info(&quot;AutoSyncExecutionJobHandler: begin syncTable for {}&quot;,</b>
+<i class="no-highlight">325</i>&nbsp;                tableName);
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData = syncTables(tableConfig, schemaService,</b>
+<i class="no-highlight">327</i>&nbsp;                endpointService, srcTableDef, tgtTableDef, spec);
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        SyncTableActionStatus actionStatus =</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                (SyncTableActionStatus) inputToSyncData.remove(1).get(&quot;actionStatus&quot;);</b>
+<i class="no-highlight">330</i>&nbsp;
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        jobStatusHandler.updateIntermediaryStatus(tableName,</b>
+<i class="no-highlight">332</i>&nbsp;                &quot;Target Data Loading Started&quot;);
+<i class="no-highlight">333</i>&nbsp;
+<b class="nc"><i class="no-highlight">334</i>&nbsp;        loadType = RELOAD.equals(fromString(tableConfig.getLoadMethod())) ? RELOAD :</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                getLoadMethod(isTgtTableExists, inputToSyncData, tgt, tableConfig, nameHandler);</b>
+<i class="no-highlight">336</i>&nbsp;
+<b class="nc"><i class="no-highlight">337</i>&nbsp;        setTableConfigFromLoadType(tableConfig, loadType);</b>
+<i class="no-highlight">338</i>&nbsp;
+<i class="no-highlight">339</i>&nbsp;        // preprocess for syncTable
+<b class="nc"><i class="no-highlight">340</i>&nbsp;        preprocessForSyncData(actionStatus, tgt, endpointService, tableConfig,</b>
+<i class="no-highlight">341</i>&nbsp;                inputToSyncData, nameHandler);
+<i class="no-highlight">342</i>&nbsp;
+<i class="no-highlight">343</i>&nbsp;        // Get org name from path.
+<b class="nc"><i class="no-highlight">344</i>&nbsp;        String orgName = spec.getPath().split(&quot;/&quot;)[0];</b>
+<i class="no-highlight">345</i>&nbsp;
+<b class="nc"><i class="no-highlight">346</i>&nbsp;        if (tableConfig.isEnableErrorTable()) {</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;            createErrorTable(tgt, tableConfig, inputToSyncData, tgtTableDef, nameHandler);</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;            createErrorIdTable(tgt, tableConfig, inputToSyncData, loadType, nameHandler);</b>
+<i class="no-highlight">349</i>&nbsp;        }
+<i class="no-highlight">350</i>&nbsp;
+<b class="nc"><i class="no-highlight">351</i>&nbsp;        Map&lt;String, Object&gt; syncDataRes = syncData(tableConfig, src, tgt, inputToSyncData,</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                spec.getPath(), orgName, nameHandler, spec.getIntegrationName());</b>
+<i class="no-highlight">353</i>&nbsp;
+<b class="nc"><i class="no-highlight">354</i>&nbsp;        Optional&lt;String&gt; latestModRecOptional = getLatestModifiedRecord(</b>
+<i class="no-highlight">355</i>&nbsp;                inputToSyncData, tgt, tableConfig, nameHandler);
+<i class="no-highlight">356</i>&nbsp;
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        this.tableViewStats =</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                getTableStatsOnSyncDataCompletion(src, syncDataRes,</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                        latestModRecOptional.orElse(null), tableConfig.getLoadMethod());</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        jobStatusHandler.updateStatsAfterSyncDataCompletion(tableName, tableViewStats);</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        currentTableName = tableName;</b>
+<i class="no-highlight">362</i>&nbsp;        // later development - once we give an option to the user
+<i class="no-highlight">363</i>&nbsp;        // to have emailing at the table level per integration job
+<i class="no-highlight">364</i>&nbsp;        //emailUpdate(&quot;per_table_email&quot;);
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        LOGGER.debug(&quot;AutoSyncExecutionJobHandler: completed processTable for {}&quot;,</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                tableConfig.getTableName());</b>
+<i class="no-highlight">367</i>&nbsp;
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        if (tableConfig.isEnableErrorTable()) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            dropErrorIdTable(tgt, tableConfig, inputToSyncData, nameHandler);</b>
+<i class="no-highlight">370</i>&nbsp;        }
+<i class="no-highlight">371</i>&nbsp;
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        updateStatus((String) syncDataRes.get(&quot;status&quot;));</b>
+<i class="no-highlight">373</i>&nbsp;    }
+<i class="no-highlight">374</i>&nbsp;
+<i class="no-highlight">375</i>&nbsp;    private DataMapper parseCDM(Map&lt;String, Object&gt; tablDef) {
+<b class="nc"><i class="no-highlight">376</i>&nbsp;        TableDefinitionResponse targetMapper =</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                OBJECT_MAPPER.convertValue(tablDef, new TypeReference&lt;&gt;() {});</b>
+<i class="no-highlight">378</i>&nbsp;
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        return targetMapper.getTableDefinitions().get(0).getCdm();</b>
+<i class="no-highlight">380</i>&nbsp;    }
+<i class="no-highlight">381</i>&nbsp;
+<i class="no-highlight">382</i>&nbsp;    private void setLastModifiedRecord(TableConfig tableConfig,
+<i class="no-highlight">383</i>&nbsp;                                       AutosyncAssetStatsDTO.TableStatsDTO startedStats) {
+<i class="no-highlight">384</i>&nbsp;
+<b class="nc"><i class="no-highlight">385</i>&nbsp;        tableConfig.setLastModifiedRecord(startedStats.getLatestModifiedRecord());</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        tableConfig.setLastUpdateColumn(startedStats.getLastUpdateColumn());</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;        tableConfig.setPrimaryKey(startedStats.getPrimaryKey());</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        LOGGER.debug(&quot;Final table config: {}&quot;, prettyPrint(tableConfig));</b>
+<i class="no-highlight">389</i>&nbsp;    }
+<i class="no-highlight">390</i>&nbsp;
+<i class="no-highlight">391</i>&nbsp;    private void createErrorTable(Endpoint tgt, TableConfig tableConfig,
+<i class="no-highlight">392</i>&nbsp;                                  List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData,
+<i class="no-highlight">393</i>&nbsp;                                  Map&lt;String, Object&gt; tgtTableDef, NameHandler nameHandler) {
+<b class="nc"><i class="no-highlight">394</i>&nbsp;        var originalPkDef = getPkDefinition(inputToSyncData);</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;        Map&lt;String, Object&gt; pkDef = new HashMap&lt;&gt;(originalPkDef);</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;        pkDef.put(&quot;isPrimaryKeyColumn&quot;, false);</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;        var lastRunDatatype = getTgtDatatype(&quot;cdt_timestamp&quot;, tgtTableDef);</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;        var stringDataType = getTgtDatatype(&quot;cdt_string&quot;, tgtTableDef);</b>
+<i class="no-highlight">399</i>&nbsp;
+<b class="nc"><i class="no-highlight">400</i>&nbsp;        var lastRunDef = Map.&lt;String, Object&gt;of(</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                &quot;columnDefinition&quot;, String.format(&quot;%s %s&quot;, &quot;last_run&quot;, lastRunDatatype),</b>
+<i class="no-highlight">402</i>&nbsp;                &quot;dataType&quot;, lastRunDatatype,
+<i class="no-highlight">403</i>&nbsp;                &quot;column&quot;, &quot;last_run&quot;,
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                &quot;isPrimaryKeyColumn&quot;, false);</b>
+<i class="no-highlight">405</i>&nbsp;
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        var integrationNameDef = Map.&lt;String, Object&gt;of(</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                &quot;columnDefinition&quot;, String.format(&quot;%s %s(255)&quot;, &quot;integration_name&quot;,</b>
+<i class="no-highlight">408</i>&nbsp;                        stringDataType),
+<i class="no-highlight">409</i>&nbsp;                &quot;dataType&quot;, stringDataType,
+<i class="no-highlight">410</i>&nbsp;                &quot;column&quot;, &quot;integration_name&quot;,
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                &quot;isPrimaryKeyColumn&quot;, false);</b>
+<i class="no-highlight">412</i>&nbsp;
+<b class="nc"><i class="no-highlight">413</i>&nbsp;        var errorTypeDef = Map.&lt;String, Object&gt;of(</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                &quot;columnDefinition&quot;, String.format(&quot;%s %s(20)&quot;, &quot;error_type&quot;, stringDataType),</b>
+<i class="no-highlight">415</i>&nbsp;                &quot;dataType&quot;, stringDataType,
+<i class="no-highlight">416</i>&nbsp;                &quot;column&quot;, &quot;error_type&quot;,
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                &quot;isPrimaryKeyColumn&quot;, false);</b>
+<i class="no-highlight">418</i>&nbsp;
+<b class="nc"><i class="no-highlight">419</i>&nbsp;        var firstErrorMsgDef = Map.&lt;String, Object&gt;of(</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                &quot;columnDefinition&quot;, String.format(&quot;%s %s(255)&quot;, &quot;first_error_msg&quot;,</b>
+<i class="no-highlight">421</i>&nbsp;                        stringDataType),
+<i class="no-highlight">422</i>&nbsp;                &quot;dataType&quot;, stringDataType,
+<i class="no-highlight">423</i>&nbsp;                &quot;column&quot;, &quot;first_error_msg&quot;,
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                &quot;isPrimaryKeyColumn&quot;, false);</b>
+<i class="no-highlight">425</i>&nbsp;
+<b class="nc"><i class="no-highlight">426</i>&nbsp;        var errorTableConfig = tableConfig.clone();</b>
+<i class="no-highlight">427</i>&nbsp;
+<b class="nc"><i class="no-highlight">428</i>&nbsp;        errorTableConfig.setTableName(ErrorTableUtils.toErrorTable(tableConfig.getTableName()));</b>
+<i class="no-highlight">429</i>&nbsp;
+<b class="nc"><i class="no-highlight">430</i>&nbsp;        endpointService.actions(tgt, ADD_TABLE.toString(), errorTableConfig,</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                List.of(pkDef, lastRunDef, integrationNameDef, errorTypeDef, firstErrorMsgDef),</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                null, &quot;target&quot;, null, spec.getPath(), null, ADD_TABLE, nameHandler);</b>
+<i class="no-highlight">433</i>&nbsp;    }
+<i class="no-highlight">434</i>&nbsp;
+<i class="no-highlight">435</i>&nbsp;    private void createErrorIdTable(Endpoint tgt, TableConfig tableConfig,
+<i class="no-highlight">436</i>&nbsp;                                    List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData, LoadType loadType,
+<i class="no-highlight">437</i>&nbsp;                                    NameHandler nameHandler) {
+<i class="no-highlight">438</i>&nbsp;
+<b class="nc"><i class="no-highlight">439</i>&nbsp;        var defsList = new ArrayList&lt;Map&lt;String, Object&gt;&gt;();</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;        var originalPkDef = getPkDefinition(inputToSyncData);</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;        Map&lt;String, Object&gt; pkDef = new HashMap&lt;&gt;(originalPkDef);</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;        pkDef.put(&quot;isPrimaryKeyColumn&quot;, false);</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;        defsList.add(pkDef);</b>
+<i class="no-highlight">444</i>&nbsp;
+<b class="nc"><i class="no-highlight">445</i>&nbsp;        if (loadType == UPSERT) {</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;            defsList.add(getValueHashDefinition(inputToSyncData));</b>
+<i class="no-highlight">447</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">448</i>&nbsp;        if (loadType == SCD2) {</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;            defsList.add(getValueHashDefinition(inputToSyncData));</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;            defsList.add(getCurrentRecordFlagDefinition(inputToSyncData));</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;            defsList.add(getEffectiveBeginTimeDefinition(inputToSyncData));</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;            defsList.add(getEffectiveEndTimeDefinition(inputToSyncData));</b>
+<i class="no-highlight">453</i>&nbsp;        }
+<i class="no-highlight">454</i>&nbsp;
+<b class="nc"><i class="no-highlight">455</i>&nbsp;        var errorTableConfig = tableConfig.clone();</b>
+<i class="no-highlight">456</i>&nbsp;
+<b class="nc"><i class="no-highlight">457</i>&nbsp;        errorTableConfig.setTableName(ErrorTableUtils.toErrorIdTable(tableConfig.getTableName()));</b>
+<i class="no-highlight">458</i>&nbsp;
+<b class="nc"><i class="no-highlight">459</i>&nbsp;        endpointService.actions(tgt, ADD_TABLE.toString(),</b>
+<i class="no-highlight">460</i>&nbsp;                errorTableConfig, defsList, null, &quot;target&quot;,
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                null, spec.getPath(), null, ADD_TABLE, nameHandler);</b>
+<i class="no-highlight">462</i>&nbsp;    }
+<i class="no-highlight">463</i>&nbsp;
+<i class="no-highlight">464</i>&nbsp;    private void dropErrorIdTable(Endpoint tgt, TableConfig tableConfig,
+<i class="no-highlight">465</i>&nbsp;                                    List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData,
+<i class="no-highlight">466</i>&nbsp;                                  NameHandler nameHandler) {
+<b class="nc"><i class="no-highlight">467</i>&nbsp;        var pkDef = getPkDefinition(inputToSyncData);</b>
+<i class="no-highlight">468</i>&nbsp;
+<b class="nc"><i class="no-highlight">469</i>&nbsp;        var errorTableConfig = tableConfig.clone();</b>
+<i class="no-highlight">470</i>&nbsp;
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        errorTableConfig.setTableName(ErrorTableUtils.toErrorIdTable(tableConfig.getTableName()));</b>
+<i class="no-highlight">472</i>&nbsp;
+<b class="nc"><i class="no-highlight">473</i>&nbsp;        endpointService.actions(tgt, DROP_TABLE.toString(),</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                errorTableConfig, List.of(pkDef), null, &quot;target&quot;,</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                null, spec.getPath(), null, DROP_TABLE, nameHandler);</b>
+<i class="no-highlight">476</i>&nbsp;    }
+<i class="no-highlight">477</i>&nbsp;
+<i class="no-highlight">478</i>&nbsp;    private Map&lt;String, Object&gt; getPkDefinition(List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData) {
+<b class="nc"><i class="no-highlight">479</i>&nbsp;        var group = (Map&lt;String, Object&gt;) inputToSyncData.get(0).get(&quot;group&quot;);</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;        return (Map&lt;String, Object&gt;) group.get(&quot;AUTOSYNC_PRIMARYKEY&quot;);</b>
+<i class="no-highlight">481</i>&nbsp;    }
+<i class="no-highlight">482</i>&nbsp;
+<i class="no-highlight">483</i>&nbsp;    private Map&lt;String, Object&gt; getValueHashDefinition(List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData) {
+<b class="nc"><i class="no-highlight">484</i>&nbsp;        var group = (Map&lt;String, Object&gt;) inputToSyncData.get(0).get(&quot;group&quot;);</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;        return (Map&lt;String, Object&gt;) group.get(&quot;AUTOSYNC_VALUEHASH&quot;);</b>
+<i class="no-highlight">486</i>&nbsp;    }
+<i class="no-highlight">487</i>&nbsp;
+<i class="no-highlight">488</i>&nbsp;    private Map&lt;String, Object&gt; getCurrentRecordFlagDefinition(
+<i class="no-highlight">489</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData) {
+<b class="nc"><i class="no-highlight">490</i>&nbsp;        var group = (Map&lt;String, Object&gt;) inputToSyncData.get(0).get(&quot;group&quot;);</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;        return (Map&lt;String, Object&gt;) group.get(&quot;AUTOSYNC_CURRENTRECORDFLAG&quot;);</b>
+<i class="no-highlight">492</i>&nbsp;    }
+<i class="no-highlight">493</i>&nbsp;
+<i class="no-highlight">494</i>&nbsp;    private Map&lt;String, Object&gt; getEffectiveEndTimeDefinition(
+<i class="no-highlight">495</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData) {
+<b class="nc"><i class="no-highlight">496</i>&nbsp;        var group = (Map&lt;String, Object&gt;) inputToSyncData.get(0).get(&quot;group&quot;);</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;        return (Map&lt;String, Object&gt;) group.get(&quot;AUTOSYNC_EFFECTIVEENDTIME&quot;);</b>
+<i class="no-highlight">498</i>&nbsp;    }
+<i class="no-highlight">499</i>&nbsp;
+<i class="no-highlight">500</i>&nbsp;    private Map&lt;String, Object&gt; getEffectiveBeginTimeDefinition(
+<i class="no-highlight">501</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData) {
+<b class="nc"><i class="no-highlight">502</i>&nbsp;        var group = (Map&lt;String, Object&gt;) inputToSyncData.get(0).get(&quot;group&quot;);</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;        return (Map&lt;String, Object&gt;) group.get(&quot;AUTOSYNC_EFFECTIVEBEGINTIME&quot;);</b>
+<i class="no-highlight">504</i>&nbsp;    }
+<i class="no-highlight">505</i>&nbsp;
+<i class="no-highlight">506</i>&nbsp;    private String getTgtDatatype(String cdtType, Map&lt;String, Object&gt; tgtTableDef) {
+<b class="nc"><i class="no-highlight">507</i>&nbsp;        var results = (List&lt;Map&lt;String, Object&gt;&gt;) tgtTableDef.get(&quot;results&quot;);</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;        var cdm = (Map&lt;String, Object&gt;) results.get(0).get(&quot;cdm&quot;);</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;        var dataTypesMap = (Map&lt;String, Object&gt;) cdm.get(&quot;mapDatatypes&quot;);</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;        return (String) dataTypesMap.get(cdtType);</b>
+<i class="no-highlight">511</i>&nbsp;    }
+<i class="no-highlight">512</i>&nbsp;
+<i class="no-highlight">513</i>&nbsp;    private void addFieldsToExtraParamsForCSVFileReaderSource(TableConfig tableConfig) {
+<b class="nc"><i class="no-highlight">514</i>&nbsp;        Map&lt;String, Object&gt; srcExtraParamMap = Optional</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;                .ofNullable(convertExtraParamsToMap(tableConfig.getSrcExtraParams()))</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;                .orElse(new HashMap&lt;&gt;());</b>
+<i class="no-highlight">517</i>&nbsp;        // Get fileType from tableName if present.
+<b class="nc"><i class="no-highlight">518</i>&nbsp;        String fileType = CSV_FILE_TYPE;</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;        String tableName = tableConfig.getTableName().trim();</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;        int index = tableName.lastIndexOf(UNDERSCORE);</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;        String fileTypeFromTableName = EMPTY_STRING;</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;        if (index &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;            fileTypeFromTableName = tableName.substring(index + UNDERSCORE.length()).toLowerCase();</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;            if (FILE_TYPES_FOR_CSVFILEREADER_ENDPOINT.contains(fileTypeFromTableName)) {</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                fileType = fileTypeFromTableName;</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                LOGGER.trace(&quot;AutoSyncExecutionJobHandler: added file type {} from tableName {}&quot;,</b>
+<i class="no-highlight">527</i>&nbsp;                        fileType, tableName);
+<i class="no-highlight">528</i>&nbsp;            }
+<i class="no-highlight">529</i>&nbsp;        }
+<i class="no-highlight">530</i>&nbsp;        // Put if not absent
+<b class="nc"><i class="no-highlight">531</i>&nbsp;        srcExtraParamMap.putIfAbsent(&quot;file_type&quot;, fileType);</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;        srcExtraParamMap.putIfAbsent(&quot;folder_path&quot;, spec.getPath());</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;        tableConfig.setSrcExtraParams(convertExtraParamsMapToJsonString(srcExtraParamMap));</b>
+<i class="no-highlight">534</i>&nbsp;    }
+<i class="no-highlight">535</i>&nbsp;
+<i class="no-highlight">536</i>&nbsp;    /**
+<i class="no-highlight">537</i>&nbsp;     * Returns a {@link Duration} of delay calculated by the index of the given table&lt;br/&gt;
+<i class="no-highlight">538</i>&nbsp;     * - 1st table will have no delay.&lt;br/&gt;
+<i class="no-highlight">539</i>&nbsp;     * - 2nd to the {@value #POOL_SIZE}th will be equal to its index times {@value #DELAY}.&lt;br/&gt;
+<i class="no-highlight">540</i>&nbsp;     * - the rest will be {@value #DELAY} seconds.
+<i class="no-highlight">541</i>&nbsp;     */
+<i class="no-highlight">542</i>&nbsp;    public static Duration calculateDelay(int tableIdx) {
+<b class="fc"><i class="no-highlight">543</i>&nbsp;        if (tableIdx &lt; POOL_SIZE) {</b>
+<b class="fc"><i class="no-highlight">544</i>&nbsp;            return Duration.ofSeconds(tableIdx * DELAY);</b>
+<i class="no-highlight">545</i>&nbsp;        }
+<b class="fc"><i class="no-highlight">546</i>&nbsp;        return Duration.ofSeconds(DELAY);</b>
+<i class="no-highlight">547</i>&nbsp;    }
+<i class="no-highlight">548</i>&nbsp;
+<i class="no-highlight">549</i>&nbsp;    /**
+<i class="no-highlight">550</i>&nbsp;     * Add a delay before each execution to avoid the same plex scheduling issue.
+<i class="no-highlight">551</i>&nbsp;     *
+<i class="no-highlight">552</i>&nbsp;     * @param tableConfig {@link TableConfig} instance
+<i class="no-highlight">553</i>&nbsp;     * @param tableIdx index of the table
+<i class="no-highlight">554</i>&nbsp;     */
+<i class="no-highlight">555</i>&nbsp;    private void delay(TableConfig tableConfig, int tableIdx) {
+<b class="nc"><i class="no-highlight">556</i>&nbsp;        String table = tableConfig.getTableName();</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;        Duration delay = calculateDelay(tableIdx);</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;        if (delay.isZero()) {</b>
+<i class="no-highlight">559</i>&nbsp;            return;
+<i class="no-highlight">560</i>&nbsp;        }
+<i class="no-highlight">561</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">562</i>&nbsp;            Thread.sleep(delay.toMillis());</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;        } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;            throw new ExecutionException(e, &quot;Interrupted before loading {}&quot;, table);</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;        LOGGER.debug(&quot;Table {}-{} started after {}s delay&quot;, tableIdx, table, delay.getSeconds());</b>
+<i class="no-highlight">567</i>&nbsp;    }
+<i class="no-highlight">568</i>&nbsp;
+<i class="no-highlight">569</i>&nbsp;    private LoadType getLoadMethod(boolean isTgtTableExists,
+<i class="no-highlight">570</i>&nbsp;                                   List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData,
+<i class="no-highlight">571</i>&nbsp;                                   Endpoint tgt,
+<i class="no-highlight">572</i>&nbsp;                                   TableConfig tableConfig,
+<i class="no-highlight">573</i>&nbsp;                                   NameHandler nameHandler) {
+<b class="nc"><i class="no-highlight">574</i>&nbsp;        if (!isTgtTableExists) {</b>
+<i class="no-highlight">575</i>&nbsp;            // target table does not exist, so do initial sync always irrespective of
+<i class="no-highlight">576</i>&nbsp;            // requested load method
+<b class="nc"><i class="no-highlight">577</i>&nbsp;            return RELOAD;</b>
+<i class="no-highlight">578</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">579</i>&nbsp;        if (tableConfig.getPrimaryKey() == null || tableConfig.getPrimaryKey().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;            return RELOAD;</b>
+<i class="no-highlight">581</i>&nbsp;        }
+<i class="no-highlight">582</i>&nbsp;
+<i class="no-highlight">583</i>&nbsp;        // target table exists, still if last modified record is not present, do
+<i class="no-highlight">584</i>&nbsp;        // initial sync always irrespective of requested load method
+<b class="nc"><i class="no-highlight">585</i>&nbsp;        return getLatestModifiedRecord(inputToSyncData, tgt, tableConfig, nameHandler)</b>
+<i class="no-highlight">586</i>&nbsp;                // we don&#39;t need to verify that requested load method is supported or not,
+<i class="no-highlight">587</i>&nbsp;                // as UI wouldn&#39;t have given an option for user to select unsupported load method
+<b class="nc"><i class="no-highlight">588</i>&nbsp;                .map(latestModifiedRecord -&gt; {</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;                    tableConfig.setLastModifiedRecord(latestModifiedRecord);</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;                    return fromString(tableConfig.getLoadMethod());</b>
+<i class="no-highlight">591</i>&nbsp;                })
+<b class="nc"><i class="no-highlight">592</i>&nbsp;                .orElse(RELOAD);</b>
+<i class="no-highlight">593</i>&nbsp;    }
+<i class="no-highlight">594</i>&nbsp;
+<i class="no-highlight">595</i>&nbsp;    private void preprocessForSyncData(SyncTableActionStatus actionStatus,
+<i class="no-highlight">596</i>&nbsp;                                       Endpoint tgt,
+<i class="no-highlight">597</i>&nbsp;                                       EndpointService endpointService,
+<i class="no-highlight">598</i>&nbsp;                                       TableConfig tableConfig,
+<i class="no-highlight">599</i>&nbsp;                                       List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData,
+<i class="no-highlight">600</i>&nbsp;                                       NameHandler nameHandler) {
+<i class="no-highlight">601</i>&nbsp;        // Truncate the target table if needed
+<b class="nc"><i class="no-highlight">602</i>&nbsp;        boolean isTruncateRun = false;</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;        if (truncateTargetNeeded(actionStatus,</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;                getPrimaryKeyForSyncData(tableConfig, inputToSyncData),</b>
+<i class="no-highlight">605</i>&nbsp;                tableConfig)) {
+<b class="nc"><i class="no-highlight">606</i>&nbsp;            Map&lt;String, Object&gt; results =</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;                    truncateTargetTable(spec, tgt, endpointService, tableConfig, nameHandler);</b>
+<b class="nc"><i class="no-highlight">608</i>&nbsp;            LOGGER.trace(&quot;AutoSyncExecutionJobHandler: result after truncating: {}&quot;,</b>
+<i class="no-highlight">609</i>&nbsp;                    results);
+<b class="nc"><i class="no-highlight">610</i>&nbsp;            isTruncateRun = true;</b>
+<i class="no-highlight">611</i>&nbsp;        }
+<i class="no-highlight">612</i>&nbsp;
+<b class="nc"><i class="no-highlight">613</i>&nbsp;        if (StringUtils.equals(tableConfig.getTgtDbType(), BIGQUERY) &amp;&amp;</b>
+<i class="no-highlight">614</i>&nbsp;                BACKOFF_BIGQUERY_DDL &amp;&amp;
+<b class="nc"><i class="no-highlight">615</i>&nbsp;                isBackoffNeeded(isTruncateRun, actionStatus)) {</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;            TargetAction actionPerformed = isTruncateRun ? TRUNCATE_TABLE : ADD_TABLE;</b>
+<b class="nc"><i class="no-highlight">617</i>&nbsp;            pollWithbackoffForBigQueryDdlStatement(</b>
+<i class="no-highlight">618</i>&nbsp;                    spec, tgt, endpointService, tableConfig, actionPerformed, nameHandler);
+<i class="no-highlight">619</i>&nbsp;        }
+<i class="no-highlight">620</i>&nbsp;    }
+<i class="no-highlight">621</i>&nbsp;
+<i class="no-highlight">622</i>&nbsp;    private boolean isBackoffNeeded(
+<i class="no-highlight">623</i>&nbsp;            boolean isTruncateRun, SyncTableActionStatus actionStatus) {
+<b class="nc"><i class="no-highlight">624</i>&nbsp;        return isTruncateRun || isAddTableActionPerformedWithSuccess(actionStatus);</b>
+<i class="no-highlight">625</i>&nbsp;    }
+<i class="no-highlight">626</i>&nbsp;
+<i class="no-highlight">627</i>&nbsp;    private boolean isTableExist(Map&lt;String, Object&gt; tgtTableDef) {
+<b class="nc"><i class="no-highlight">628</i>&nbsp;        return Optional.ofNullable(tgtTableDef)</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;                .map(e -&gt; e.get(&quot;results&quot;))</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;                .map(e -&gt; (List&lt;Map&lt;String, Object&gt;&gt;) e)</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                .map(e -&gt; e.get(0))</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;                .map(e -&gt; e.get(&quot;columns&quot;))</b>
+<b class="nc"><i class="no-highlight">633</i>&nbsp;                .isPresent();</b>
+<i class="no-highlight">634</i>&nbsp;    }
+<i class="no-highlight">635</i>&nbsp;
+<i class="no-highlight">636</i>&nbsp;    /**
+<i class="no-highlight">637</i>&nbsp;     * Returns primary key from the given tableConfig. If empty,
+<i class="no-highlight">638</i>&nbsp;     * get it from the input to SyncData pipeline.
+<i class="no-highlight">639</i>&nbsp;     *
+<i class="no-highlight">640</i>&nbsp;     * @param tableConfig     current table configuration
+<i class="no-highlight">641</i>&nbsp;     * @param inputToSyncData input docs to SyncData
+<i class="no-highlight">642</i>&nbsp;     * @return primary key string
+<i class="no-highlight">643</i>&nbsp;     */
+<i class="no-highlight">644</i>&nbsp;    private String getPrimaryKeyForSyncData(TableConfig tableConfig,
+<i class="no-highlight">645</i>&nbsp;                                            List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData) {
+<b class="nc"><i class="no-highlight">646</i>&nbsp;        String pk = tableConfig.getPrimaryKey();</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;        if (StringUtils.isBlank(pk)) {</b>
+<b class="nc"><i class="no-highlight">648</i>&nbsp;            pk = getColumnsWithFlagFromInputToSyncData(</b>
+<i class="no-highlight">649</i>&nbsp;                    inputToSyncData, IS_PRIMARY_KEY_COLUMN);
+<i class="no-highlight">650</i>&nbsp;            // Update tableConfig
+<b class="nc"><i class="no-highlight">651</i>&nbsp;            tableConfig.setPrimaryKey(pk);</b>
+<i class="no-highlight">652</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">653</i>&nbsp;        return pk;</b>
+<i class="no-highlight">654</i>&nbsp;    }
+<i class="no-highlight">655</i>&nbsp;
+<i class="no-highlight">656</i>&nbsp;    private String getColumnsWithFlagFromInputToSyncData(
+<i class="no-highlight">657</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; inputToSyncData, String flagName) {
+<b class="nc"><i class="no-highlight">658</i>&nbsp;        if (CollectionUtils.isEmpty(inputToSyncData)) {</b>
+<b class="nc"><i class="no-highlight">659</i>&nbsp;            return EMPTY_STRING;</b>
+<i class="no-highlight">660</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">661</i>&nbsp;        Map&lt;String, Object&gt; map = inputToSyncData.get(0);</b>
+<b class="nc"><i class="no-highlight">662</i>&nbsp;        if (MapUtils.isEmpty(map)) {</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;            return EMPTY_STRING;</b>
+<i class="no-highlight">664</i>&nbsp;        }
+<i class="no-highlight">665</i>&nbsp;
+<b class="nc"><i class="no-highlight">666</i>&nbsp;        Map&lt;String, Object&gt; group = (Map&lt;String, Object&gt;) map.get(&quot;group&quot;);</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;        if (MapUtils.isEmpty(map)) {</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;            return EMPTY_STRING;</b>
+<i class="no-highlight">669</i>&nbsp;        }
+<i class="no-highlight">670</i>&nbsp;
+<b class="nc"><i class="no-highlight">671</i>&nbsp;        List&lt;String&gt; pkList = group.values()</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;                .stream()</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;                .map(v -&gt; {</b>
+<b class="nc"><i class="no-highlight">674</i>&nbsp;                    Map&lt;String, Object&gt; m = (Map&lt;String, Object&gt;) v;</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                    if (m.containsKey(flagName) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">676</i>&nbsp;                            m.get(flagName) != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">677</i>&nbsp;                            (boolean) m.get(flagName)) {</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;                        return (String) m.get(&quot;column&quot;);</b>
+<i class="no-highlight">679</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">680</i>&nbsp;                    return null;</b>
+<i class="no-highlight">681</i>&nbsp;                })
+<b class="nc"><i class="no-highlight">682</i>&nbsp;                .filter(column -&gt; column != null)</b>
+<b class="nc"><i class="no-highlight">683</i>&nbsp;                .collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">684</i>&nbsp;        return String.join(&quot;,&quot;, pkList);</b>
+<i class="no-highlight">685</i>&nbsp;    }
+<i class="no-highlight">686</i>&nbsp;
+<i class="no-highlight">687</i>&nbsp;    /**
+<i class="no-highlight">688</i>&nbsp;     * Returns if TRUNCATE target table is needed.
+<i class="no-highlight">689</i>&nbsp;     * This should return false if the given &#39;loadMethod&quot; is &quot;upsert&quot; or &quot;scd2&quot;.
+<i class="no-highlight">690</i>&nbsp;     *
+<i class="no-highlight">691</i>&nbsp;     * @param actionStatus SyncTable action status
+<i class="no-highlight">692</i>&nbsp;     * @param primaryKey   primary key of the source table
+<i class="no-highlight">693</i>&nbsp;     * @param tableConfig   &quot;reload&quot;, &quot;upsert&quot;, or &quot;scd2&quot;
+<i class="no-highlight">694</i>&nbsp;     * @return boolean value
+<i class="no-highlight">695</i>&nbsp;     */
+<i class="no-highlight">696</i>&nbsp;    private boolean truncateTargetNeeded(SyncTableActionStatus actionStatus,
+<i class="no-highlight">697</i>&nbsp;                                         String primaryKey, TableConfig tableConfig) {
+<i class="no-highlight">698</i>&nbsp;
+<b class="nc"><i class="no-highlight">699</i>&nbsp;        String loadMethod = tableConfig.getLoadMethod();</b>
+<b class="nc"><i class="no-highlight">700</i>&nbsp;        String requestedLoadMethod = tableConfig.getRequestedLoadMethod();</b>
+<i class="no-highlight">701</i>&nbsp;        // We don&#39;t need TRUNCATE if the target table is created.
+<b class="nc"><i class="no-highlight">702</i>&nbsp;        if (StringUtils.equals(requestedLoadMethod, &quot;append&quot;) ||</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;                isAddTableActionPerformedWithSuccess(actionStatus)) {</b>
+<b class="nc"><i class="no-highlight">704</i>&nbsp;            return false;</b>
+<i class="no-highlight">705</i>&nbsp;        }
+<i class="no-highlight">706</i>&nbsp;
+<b class="nc"><i class="no-highlight">707</i>&nbsp;        if (StringUtils.isBlank(primaryKey) || StringUtils.isBlank(loadMethod)) {</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;            return true;</b>
+<i class="no-highlight">709</i>&nbsp;        }
+<i class="no-highlight">710</i>&nbsp;
+<b class="nc"><i class="no-highlight">711</i>&nbsp;        return StringUtils.equals(loadMethod, &quot;reload&quot;);</b>
+<i class="no-highlight">712</i>&nbsp;    }
+<i class="no-highlight">713</i>&nbsp;
+<i class="no-highlight">714</i>&nbsp;    private boolean isAddTableActionPerformedWithSuccess(SyncTableActionStatus actionStatus) {
+<b class="nc"><i class="no-highlight">715</i>&nbsp;        return actionStatus.getReturnStatus().equals(ReturnStatus.SUCCESS) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">716</i>&nbsp;                actionStatus.getTargetActions().stream()</b>
+<b class="nc"><i class="no-highlight">717</i>&nbsp;                        .anyMatch(action -&gt; action.equals(TargetAction.ADD_TABLE));</b>
+<i class="no-highlight">718</i>&nbsp;    }
+<i class="no-highlight">719</i>&nbsp;
+<i class="no-highlight">720</i>&nbsp;    // Helper method to check if the method &quot;createEmailRequest&quot; exists
+<i class="no-highlight">721</i>&nbsp;    private boolean hasCreateEmailRequestMethod(AutosyncAssetFacade autosyncAssetFacade) {
+<i class="no-highlight">722</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">723</i>&nbsp;            autosyncAssetFacade.getClass().getMethod(&quot;createEmailRequest&quot;,</b>
+<i class="no-highlight">724</i>&nbsp;                    String.class, Map.class);
+<b class="nc"><i class="no-highlight">725</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;        } catch (NoSuchMethodException e) {</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;            return false;</b>
+<i class="no-highlight">728</i>&nbsp;        }
+<i class="no-highlight">729</i>&nbsp;    }
+<i class="no-highlight">730</i>&nbsp;
+<i class="no-highlight">731</i>&nbsp;    public static boolean getUserNotificationValue(Map&lt;String, Object&gt; map,
+<i class="no-highlight">732</i>&nbsp;                                                   String identifierRun, String orgName) {
+<i class="no-highlight">733</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">734</i>&nbsp;            return Optional.ofNullable(map.get(&quot;studio&quot;))</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;                    .flatMap(studio -&gt; Optional.ofNullable(((Map&lt;?, ?&gt;) studio)</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;                            .get(&quot;orgs&quot;)))</b>
+<b class="nc"><i class="no-highlight">737</i>&nbsp;                    .flatMap(orgs -&gt; Optional.ofNullable(((Map&lt;?, ?&gt;) orgs)</b>
+<b class="nc"><i class="no-highlight">738</i>&nbsp;                            .get(orgName)))</b>
+<b class="nc"><i class="no-highlight">739</i>&nbsp;                    .flatMap(org -&gt; Optional.ofNullable(((Map&lt;?, ?&gt;) org)</b>
+<b class="nc"><i class="no-highlight">740</i>&nbsp;                            .get(&quot;autosync_notification&quot;)))</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;                    .map(notificationMap -&gt; {</b>
+<b class="nc"><i class="no-highlight">742</i>&nbsp;                        if (notificationMap instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">743</i>&nbsp;                            return Optional.ofNullable(((Map&lt;?, ?&gt;) notificationMap)</b>
+<b class="nc"><i class="no-highlight">744</i>&nbsp;                                            .get(identifierRun))</b>
+<b class="nc"><i class="no-highlight">745</i>&nbsp;                                    .map(value -&gt; {</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;                                        if (value instanceof Boolean) {</b>
+<b class="nc"><i class="no-highlight">747</i>&nbsp;                                            return (Boolean) value;</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;                                        } else if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;                                            return Boolean.parseBoolean((String) value);</b>
+<i class="no-highlight">750</i>&nbsp;                                        } else {
+<b class="nc"><i class="no-highlight">751</i>&nbsp;                                            return false;</b>
+<i class="no-highlight">752</i>&nbsp;                                        }
+<i class="no-highlight">753</i>&nbsp;                                    })
+<b class="nc"><i class="no-highlight">754</i>&nbsp;                                    .orElse(false);</b>
+<i class="no-highlight">755</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">756</i>&nbsp;                        return false;</b>
+<i class="no-highlight">757</i>&nbsp;                    })
+<b class="nc"><i class="no-highlight">758</i>&nbsp;                    .orElse(false);</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;        } catch (ClassCastException e) {</b>
+<b class="nc"><i class="no-highlight">760</i>&nbsp;            LOGGER.error(&quot;Error: Unable to retrieve user notification value.&quot;, e);</b>
+<b class="nc"><i class="no-highlight">761</i>&nbsp;            return false;</b>
+<i class="no-highlight">762</i>&nbsp;        }
+<i class="no-highlight">763</i>&nbsp;    }
+<i class="no-highlight">764</i>&nbsp;
+<i class="no-highlight">765</i>&nbsp;    private String getOrgName(String inputString) {
+<b class="nc"><i class="no-highlight">766</i>&nbsp;        String[] parts = inputString.split(&quot;/&quot;);</b>
+<i class="no-highlight">767</i>&nbsp;
+<b class="nc"><i class="no-highlight">768</i>&nbsp;        if (parts.length &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">769</i>&nbsp;            return parts[0];</b>
+<i class="no-highlight">770</i>&nbsp;        }
+<i class="no-highlight">771</i>&nbsp;        // Return empty str if no argument found
+<b class="nc"><i class="no-highlight">772</i>&nbsp;        return &quot;&quot;;</b>
+<i class="no-highlight">773</i>&nbsp;    }
+<i class="no-highlight">774</i>&nbsp;
+<i class="no-highlight">775</i>&nbsp;    protected Map&lt;String, Object&gt; createEmailData(String body,
+<i class="no-highlight">776</i>&nbsp;                                                  String pipelineName,
+<i class="no-highlight">777</i>&nbsp;                                                  String email_status,
+<i class="no-highlight">778</i>&nbsp;                                                  List&lt;String&gt; toEmail) {
+<b class="fc"><i class="no-highlight">779</i>&nbsp;        Map&lt;String, Object&gt; dataEmail = new HashMap&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">780</i>&nbsp;        dataEmail.put(&quot;body_content&quot;, body);</b>
+<b class="fc"><i class="no-highlight">781</i>&nbsp;        dataEmail.put(&quot;subject&quot;, pipelineName + &quot; &quot; + email_status);</b>
+<i class="no-highlight">782</i>&nbsp;
+<i class="no-highlight">783</i>&nbsp;        // Pass the data list to the Jinja2 template for rendering
+<b class="fc"><i class="no-highlight">784</i>&nbsp;        Map&lt;String, Object&gt; context = new HashMap&lt;&gt;();</b>
+<b class="fc"><i class="no-highlight">785</i>&nbsp;        context.put(&quot;template&quot;, TEMPLATE_AUTOSYNC);</b>
+<b class="fc"><i class="no-highlight">786</i>&nbsp;        context.put(&quot;recipients&quot;, toEmail);</b>
+<b class="fc"><i class="no-highlight">787</i>&nbsp;        context.put(&quot;data&quot;, dataEmail);</b>
+<i class="no-highlight">788</i>&nbsp;
+<b class="fc"><i class="no-highlight">789</i>&nbsp;        return context;</b>
+<i class="no-highlight">790</i>&nbsp;    }
+<i class="no-highlight">791</i>&nbsp;
+<i class="no-highlight">792</i>&nbsp;    private void emailUpdate(String message) {
+<b class="nc"><i class="no-highlight">793</i>&nbsp;        LOGGER.info(&quot;Email update: {}&quot;, message);</b>
+<i class="no-highlight">794</i>&nbsp;
+<i class="no-highlight">795</i>&nbsp;        //extract org name from path
+<b class="nc"><i class="no-highlight">796</i>&nbsp;        String org = getOrgName(spec.getPath());</b>
+<i class="no-highlight">797</i>&nbsp;
+<i class="no-highlight">798</i>&nbsp;        //get the integration job name
+<b class="nc"><i class="no-highlight">799</i>&nbsp;        String pipelineName = &quot;AutoSync &quot; + assetDTO.getName();</b>
+<i class="no-highlight">800</i>&nbsp;
+<i class="no-highlight">801</i>&nbsp;        // set user notification setting options at every level of the job integration (GET req)
+<b class="nc"><i class="no-highlight">802</i>&nbsp;        boolean start = false;</b>
+<b class="nc"><i class="no-highlight">803</i>&nbsp;        boolean end = false;</b>
+<b class="nc"><i class="no-highlight">804</i>&nbsp;        boolean error = false;</b>
+<i class="no-highlight">805</i>&nbsp;
+<i class="no-highlight">806</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">807</i>&nbsp;            if (this.autosyncUserSettingsMap != null) {</b>
+<b class="nc"><i class="no-highlight">808</i>&nbsp;                start = getUserNotificationValue(this.autosyncUserSettingsMap, STATUS_START, org);</b>
+<b class="nc"><i class="no-highlight">809</i>&nbsp;                end = getUserNotificationValue(this.autosyncUserSettingsMap, STATUS_END, org);</b>
+<b class="nc"><i class="no-highlight">810</i>&nbsp;                error = getUserNotificationValue(this.autosyncUserSettingsMap, STATUS_ERROR, org);</b>
+<i class="no-highlight">811</i>&nbsp;            } else {
+<i class="no-highlight">812</i>&nbsp;                // Handle the case when autosyncUserSettingsMap is null
+<b class="nc"><i class="no-highlight">813</i>&nbsp;                LOGGER.error(&quot;JCC version not updated&quot;);</b>
+<i class="no-highlight">814</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">815</i>&nbsp;        } catch (Exception e) {</b>
+<i class="no-highlight">816</i>&nbsp;            // Handle any other exception that may occur during the method call
+<b class="nc"><i class="no-highlight">817</i>&nbsp;            LOGGER.error(&quot;Error occurred while processing user notification settings: &quot;</b>
+<b class="nc"><i class="no-highlight">818</i>&nbsp;                    + e.getMessage());</b>
+<b class="nc"><i class="no-highlight">819</i>&nbsp;        }</b>
+<i class="no-highlight">820</i>&nbsp;
+<i class="no-highlight">821</i>&nbsp;
+<i class="no-highlight">822</i>&nbsp;        // for future development -- email notification per table in an integration job
+<b class="nc"><i class="no-highlight">823</i>&nbsp;        boolean breakdown = false;</b>
+<i class="no-highlight">824</i>&nbsp;
+<i class="no-highlight">825</i>&nbsp;        //get the owner of the integration job to receive the email notification
+<b class="nc"><i class="no-highlight">826</i>&nbsp;        List&lt;String&gt; toEmail = new ArrayList&lt;String&gt;();</b>
+<b class="nc"><i class="no-highlight">827</i>&nbsp;        toEmail.add(this.assetDTO.getOwner());</b>
+<i class="no-highlight">828</i>&nbsp;
+<i class="no-highlight">829</i>&nbsp;        //create an instance of the payload creator class for POST email service request
+<b class="nc"><i class="no-highlight">830</i>&nbsp;        AutoSyncMapTemplatePlaceholders payload = new AutoSyncMapTemplatePlaceholders();</b>
+<i class="no-highlight">831</i>&nbsp;
+<i class="no-highlight">832</i>&nbsp;        //create an instance of the html Java body email class
+<b class="nc"><i class="no-highlight">833</i>&nbsp;        AutoSyncEmailBody emailBody = new AutoSyncEmailBody();</b>
+<i class="no-highlight">834</i>&nbsp;
+<b class="nc"><i class="no-highlight">835</i>&nbsp;        switch (message) {</b>
+<i class="no-highlight">836</i>&nbsp;
+<i class="no-highlight">837</i>&nbsp;            case STATUS_START:
+<i class="no-highlight">838</i>&nbsp;
+<b class="nc"><i class="no-highlight">839</i>&nbsp;                if (!start) {</b>
+<i class="no-highlight">840</i>&nbsp;                    //return in case the user set false to get &quot;start&quot; email notification
+<i class="no-highlight">841</i>&nbsp;                    return;
+<i class="no-highlight">842</i>&nbsp;                }
+<i class="no-highlight">843</i>&nbsp;
+<i class="no-highlight">844</i>&nbsp;                // Pass the data list to the Jinja2 template for rendering
+<b class="nc"><i class="no-highlight">845</i>&nbsp;                Map&lt;String, Object&gt; templateMap =</b>
+<b class="nc"><i class="no-highlight">846</i>&nbsp;                        payload.startTemplate(spec, assetDTO, endpointService);</b>
+<b class="nc"><i class="no-highlight">847</i>&nbsp;                String templateStart = emailBody.startEmailBody(templateMap);</b>
+<i class="no-highlight">848</i>&nbsp;
+<b class="nc"><i class="no-highlight">849</i>&nbsp;                Map&lt;String, Object&gt; bodyMap =</b>
+<b class="nc"><i class="no-highlight">850</i>&nbsp;                        createEmailData(templateStart, pipelineName, EMAIL_START, toEmail);</b>
+<i class="no-highlight">851</i>&nbsp;
+<i class="no-highlight">852</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">853</i>&nbsp;                    if (this.autosyncAssetFacade != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">854</i>&nbsp;                            hasCreateEmailRequestMethod(this.autosyncAssetFacade)) {</b>
+<b class="nc"><i class="no-highlight">855</i>&nbsp;                        this.autosyncAssetFacade.createEmailRequest(</b>
+<b class="nc"><i class="no-highlight">856</i>&nbsp;                                this.assetDTO.getOrgSnodeId(), bodyMap);</b>
+<b class="nc"><i class="no-highlight">857</i>&nbsp;                        LOGGER.info(&quot;Email notification sent: start integration job&quot;);</b>
+<i class="no-highlight">858</i>&nbsp;                    } else {
+<i class="no-highlight">859</i>&nbsp;                        // Handle the case when the method does not exist
+<b class="nc"><i class="no-highlight">860</i>&nbsp;                        LOGGER.error(&quot;Create email request method unavailable.&quot;);</b>
+<i class="no-highlight">861</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">862</i>&nbsp;                } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">863</i>&nbsp;                    LOGGER.debug(&quot;Email notification failed: &quot; + e);</b>
+<b class="nc"><i class="no-highlight">864</i>&nbsp;                }</b>
+<i class="no-highlight">865</i>&nbsp;
+<b class="nc"><i class="no-highlight">866</i>&nbsp;                break;</b>
+<i class="no-highlight">867</i>&nbsp;
+<i class="no-highlight">868</i>&nbsp;            case STATUS_BREAKDOWN: //for future development of the email notification feature
+<i class="no-highlight">869</i>&nbsp;
+<b class="nc"><i class="no-highlight">870</i>&nbsp;                if (!breakdown) {</b>
+<i class="no-highlight">871</i>&nbsp;                    return;
+<i class="no-highlight">872</i>&nbsp;                }
+<i class="no-highlight">873</i>&nbsp;                break;
+<i class="no-highlight">874</i>&nbsp;
+<i class="no-highlight">875</i>&nbsp;            case STATUS_COMPLETE:
+<i class="no-highlight">876</i>&nbsp;
+<b class="nc"><i class="no-highlight">877</i>&nbsp;                if (!end) {</b>
+<i class="no-highlight">878</i>&nbsp;                    return;
+<i class="no-highlight">879</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">880</i>&nbsp;                if (jobStatusHandler.hasErrors()) {</b>
+<i class="no-highlight">881</i>&nbsp;                    return;
+<i class="no-highlight">882</i>&nbsp;                }
+<i class="no-highlight">883</i>&nbsp;
+<b class="nc"><i class="no-highlight">884</i>&nbsp;                emailBody.setIntegrationJobName(assetDTO.getName());</b>
+<b class="nc"><i class="no-highlight">885</i>&nbsp;                String body = emailBody.getSummaryStatus(integrationJobStats);</b>
+<i class="no-highlight">886</i>&nbsp;
+<b class="nc"><i class="no-highlight">887</i>&nbsp;                Map&lt;String, Object&gt; context =</b>
+<b class="nc"><i class="no-highlight">888</i>&nbsp;                        createEmailData(body, pipelineName, EMAIL_COMPLETE, toEmail);</b>
+<i class="no-highlight">889</i>&nbsp;
+<i class="no-highlight">890</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">891</i>&nbsp;                    if (this.autosyncAssetFacade != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">892</i>&nbsp;                            hasCreateEmailRequestMethod(this.autosyncAssetFacade)) {</b>
+<b class="nc"><i class="no-highlight">893</i>&nbsp;                        autosyncAssetFacade.createEmailRequest(</b>
+<b class="nc"><i class="no-highlight">894</i>&nbsp;                                this.assetDTO.getOrgSnodeId(), context);</b>
+<b class="nc"><i class="no-highlight">895</i>&nbsp;                        LOGGER.info(&quot;Email notification sent: complete integration job&quot;);</b>
+<i class="no-highlight">896</i>&nbsp;                    } else {
+<i class="no-highlight">897</i>&nbsp;                        // Handle the case when the method does not exist
+<b class="nc"><i class="no-highlight">898</i>&nbsp;                        LOGGER.error(&quot;Create email request method unavailable. &quot; +</b>
+<i class="no-highlight">899</i>&nbsp;                                &quot;JCC version not updated.&quot;);
+<i class="no-highlight">900</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">901</i>&nbsp;                } catch (Exception e) {</b>
+<i class="no-highlight">902</i>&nbsp;                    // Handle any other exception that may occur during the method call
+<b class="nc"><i class="no-highlight">903</i>&nbsp;                    LOGGER.error(&quot;Error while creating email request: &quot; + e.getMessage());</b>
+<b class="nc"><i class="no-highlight">904</i>&nbsp;                }</b>
+<i class="no-highlight">905</i>&nbsp;
+<b class="nc"><i class="no-highlight">906</i>&nbsp;                break;</b>
+<i class="no-highlight">907</i>&nbsp;
+<i class="no-highlight">908</i>&nbsp;            case STATUS_ERROR:
+<i class="no-highlight">909</i>&nbsp;
+<b class="nc"><i class="no-highlight">910</i>&nbsp;                if (!error) {</b>
+<i class="no-highlight">911</i>&nbsp;                    return;
+<i class="no-highlight">912</i>&nbsp;                }
+<i class="no-highlight">913</i>&nbsp;
+<b class="nc"><i class="no-highlight">914</i>&nbsp;                String bodyError = emailBody.generateErrorEmailBody(</b>
+<b class="nc"><i class="no-highlight">915</i>&nbsp;                        assetDTO.getName(), errorMap);</b>
+<i class="no-highlight">916</i>&nbsp;
+<b class="nc"><i class="no-highlight">917</i>&nbsp;                Map&lt;String, Object&gt; contextError =</b>
+<b class="nc"><i class="no-highlight">918</i>&nbsp;                        createEmailData(bodyError, pipelineName, EMAIL_ERROR, toEmail);</b>
+<i class="no-highlight">919</i>&nbsp;
+<i class="no-highlight">920</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">921</i>&nbsp;                    if (this.autosyncAssetFacade != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">922</i>&nbsp;                            hasCreateEmailRequestMethod(this.autosyncAssetFacade)) {</b>
+<b class="nc"><i class="no-highlight">923</i>&nbsp;                        autosyncAssetFacade.createEmailRequest(</b>
+<b class="nc"><i class="no-highlight">924</i>&nbsp;                                this.assetDTO.getOrgSnodeId(), contextError);</b>
+<b class="nc"><i class="no-highlight">925</i>&nbsp;                        LOGGER.info(&quot;Email notification sent: complete integration job&quot;);</b>
+<i class="no-highlight">926</i>&nbsp;                    } else {
+<i class="no-highlight">927</i>&nbsp;                        // Handle the case when the method does not exist
+<b class="nc"><i class="no-highlight">928</i>&nbsp;                        LOGGER.error(&quot;Create email request method unavailable. &quot; +</b>
+<i class="no-highlight">929</i>&nbsp;                                &quot;JCC version not updated.&quot;);
+<i class="no-highlight">930</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">931</i>&nbsp;                } catch (Exception e) {</b>
+<i class="no-highlight">932</i>&nbsp;                    // Handle any other exception that may occur during the method call
+<b class="nc"><i class="no-highlight">933</i>&nbsp;                    LOGGER.debug(&quot;Error acquiring integration job stats: &quot; + e);</b>
+<b class="nc"><i class="no-highlight">934</i>&nbsp;                }</b>
+<i class="no-highlight">935</i>&nbsp;
+<b class="nc"><i class="no-highlight">936</i>&nbsp;                break;</b>
+<i class="no-highlight">937</i>&nbsp;
+<i class="no-highlight">938</i>&nbsp;            default:
+<i class="no-highlight">939</i>&nbsp;                //return and don&#39;t send any email notification
+<i class="no-highlight">940</i>&nbsp;                return;
+<i class="no-highlight">941</i>&nbsp;        }
+<i class="no-highlight">942</i>&nbsp;    }
+<i class="no-highlight">943</i>&nbsp;
+<i class="no-highlight">944</i>&nbsp;    // TBD
+<i class="no-highlight">945</i>&nbsp;    private void updateStatus(String status) {
+<b class="nc"><i class="no-highlight">946</i>&nbsp;        LOGGER.info(&quot;Update status: {}&quot;, status);</b>
+<i class="no-highlight">947</i>&nbsp;    }
+<i class="no-highlight">948</i>&nbsp;
+<i class="no-highlight">949</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; syncTables(
+<i class="no-highlight">950</i>&nbsp;            TableConfig tableConfig, SchemaService schemaService,
+<i class="no-highlight">951</i>&nbsp;            EndpointService endpointService,
+<i class="no-highlight">952</i>&nbsp;            Map&lt;String, Object&gt; srcTableDefinition,
+<i class="no-highlight">953</i>&nbsp;            Map&lt;String, Object&gt; tgtTableDefinition,
+<i class="no-highlight">954</i>&nbsp;            AutoSyncSpec spec) {
+<i class="no-highlight">955</i>&nbsp;
+<b class="nc"><i class="no-highlight">956</i>&nbsp;        return schemaService.process(</b>
+<i class="no-highlight">957</i>&nbsp;                tableConfig, endpointService, srcTableDefinition,
+<i class="no-highlight">958</i>&nbsp;                tgtTableDefinition, spec);
+<i class="no-highlight">959</i>&nbsp;    }
+<i class="no-highlight">960</i>&nbsp;
+<i class="no-highlight">961</i>&nbsp;    private String getColumnNameByBooleanAttributeName(Map&lt;String, Object&gt; tableDefinition,
+<i class="no-highlight">962</i>&nbsp;                                                       String booleanAttributeName) {
+<b class="nc"><i class="no-highlight">963</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; results =</b>
+<b class="nc"><i class="no-highlight">964</i>&nbsp;                (List&lt;Map&lt;String, Object&gt;&gt;) tableDefinition.get(&quot;results&quot;);</b>
+<b class="nc"><i class="no-highlight">965</i>&nbsp;        if (CollectionUtils.isEmpty(results)) {</b>
+<b class="nc"><i class="no-highlight">966</i>&nbsp;            return EMPTY_STRING;</b>
+<i class="no-highlight">967</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">968</i>&nbsp;        Map&lt;String, Object&gt; columnsMap = results.get(0);</b>
+<b class="nc"><i class="no-highlight">969</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; columnsList =</b>
+<b class="nc"><i class="no-highlight">970</i>&nbsp;                (List&lt;Map&lt;String, Object&gt;&gt;) columnsMap.get(&quot;columns&quot;);</b>
+<b class="nc"><i class="no-highlight">971</i>&nbsp;        if (columnsList == null) {</b>
+<b class="nc"><i class="no-highlight">972</i>&nbsp;            return &quot;&quot;;</b>
+<i class="no-highlight">973</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">974</i>&nbsp;        return columnsList.stream().map(stringObjectMap -&gt; {</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;            if (stringObjectMap.containsKey(booleanAttributeName) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">976</i>&nbsp;                    stringObjectMap.get(booleanAttributeName) != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">977</i>&nbsp;                    (boolean) stringObjectMap.get(booleanAttributeName)) {</b>
+<b class="nc"><i class="no-highlight">978</i>&nbsp;                return (String) stringObjectMap.get(&quot;column&quot;);</b>
+<i class="no-highlight">979</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">980</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">981</i>&nbsp;        }).filter(column -&gt; column != null).findFirst().orElse(&quot;&quot;);</b>
+<i class="no-highlight">982</i>&nbsp;    }
+<i class="no-highlight">983</i>&nbsp;
+<i class="no-highlight">984</i>&nbsp;    private Map&lt;String, Object&gt; syncData(TableConfig tableConfig, Endpoint source,
+<i class="no-highlight">985</i>&nbsp;                                         Endpoint target, List&lt;Map&lt;String, Object&gt;&gt; moreInputItems,
+<i class="no-highlight">986</i>&nbsp;                                         String path, String orgName, NameHandler nameHandler,
+<i class="no-highlight">987</i>&nbsp;                                         String integrationName) {
+<b class="nc"><i class="no-highlight">988</i>&nbsp;        LOGGER.debug(&quot;Sync data started for: {} to {}&quot;, source.getType(), target.getType());</b>
+<i class="no-highlight">989</i>&nbsp;        // Do not use a tableLimit with Salesforce because the filter query reduces performance.
+<i class="no-highlight">990</i>&nbsp;        int tableLimit;
+<b class="nc"><i class="no-highlight">991</i>&nbsp;        if (SALESFORCE.equalsIgnoreCase(source.getType())) {</b>
+<b class="nc"><i class="no-highlight">992</i>&nbsp;            tableLimit = 0;</b>
+<b class="nc"><i class="no-highlight">993</i>&nbsp;        } else if (orgName.equalsIgnoreCase(FREE_TRIAL_ORG)) {</b>
+<b class="nc"><i class="no-highlight">994</i>&nbsp;            tableLimit = FREE_TRIAL_TABLE_LIMIT;</b>
+<i class="no-highlight">995</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">996</i>&nbsp;            tableLimit = Integer.MAX_VALUE;</b>
+<i class="no-highlight">997</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">998</i>&nbsp;        Map&lt;String, Object&gt; result =</b>
+<b class="nc"><i class="no-highlight">999</i>&nbsp;                endpointService.syncData(source, target, tableConfig, tableLimit, moreInputItems,</b>
+<i class="no-highlight">1000</i>&nbsp;                        path, nameHandler, integrationName);
+<b class="nc"><i class="no-highlight">1001</i>&nbsp;        LOGGER.debug(&quot;Sync data result {}&quot;, result);</b>
+<b class="nc"><i class="no-highlight">1002</i>&nbsp;        return result;</b>
+<i class="no-highlight">1003</i>&nbsp;    }
+<i class="no-highlight">1004</i>&nbsp;
+<i class="no-highlight">1005</i>&nbsp;    private AutosyncAssetStatsDTO.TableStatsDTO getTableStatsOnSyncDataCompletion(
+<i class="no-highlight">1006</i>&nbsp;            Endpoint source, Map&lt;String, Object&gt; result, String latestModifiedRecord,
+<i class="no-highlight">1007</i>&nbsp;            String loadMethod) {
+<b class="nc"><i class="no-highlight">1008</i>&nbsp;        AutosyncAssetStatsDTO.TableStatsDTO autosyncAssetStatsDTO =</b>
+<b class="nc"><i class="no-highlight">1009</i>&nbsp;                AutosyncAssetUtil.convertAssetStatsFromMap(result, loadMethod);</b>
+<b class="nc"><i class="no-highlight">1010</i>&nbsp;        autosyncAssetStatsDTO.setLastUpdateColumn(source.getLastUpdateColumn());</b>
+<b class="nc"><i class="no-highlight">1011</i>&nbsp;        autosyncAssetStatsDTO.setLatestModifiedRecord(latestModifiedRecord);</b>
+<b class="nc"><i class="no-highlight">1012</i>&nbsp;        autosyncAssetStatsDTO.setPrimaryKey(source.getPrimaryKey());</b>
+<b class="nc"><i class="no-highlight">1013</i>&nbsp;        return autosyncAssetStatsDTO;</b>
+<i class="no-highlight">1014</i>&nbsp;    }
+<i class="no-highlight">1015</i>&nbsp;
+<i class="no-highlight">1016</i>&nbsp;    private Optional&lt;String&gt; getLatestModifiedRecord(List&lt;Map&lt;String, Object&gt;&gt; moreInputItems,
+<i class="no-highlight">1017</i>&nbsp;                                                     Endpoint target, TableConfig tableConfig,
+<i class="no-highlight">1018</i>&nbsp;                                                     NameHandler nameHandler) {
+<b class="nc"><i class="no-highlight">1019</i>&nbsp;        return getLastUpdatedColumn(moreInputItems)</b>
+<b class="nc"><i class="no-highlight">1020</i>&nbsp;                .map(lastUpdatedColumn -&gt;</b>
+<b class="nc"><i class="no-highlight">1021</i>&nbsp;                        createLatestModifiedRecordSql(target,</b>
+<i class="no-highlight">1022</i>&nbsp;                                tableConfig, lastUpdatedColumn, nameHandler))
+<b class="nc"><i class="no-highlight">1023</i>&nbsp;                .map(getLatestModifiedRecordSql -&gt;</b>
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;                        executeLatestModifiedRecordSql(target,</b>
+<i class="no-highlight">1025</i>&nbsp;                                tableConfig, getLatestModifiedRecordSql, nameHandler))
+<b class="nc"><i class="no-highlight">1026</i>&nbsp;                .flatMap(actionsResult -&gt;</b>
+<b class="nc"><i class="no-highlight">1027</i>&nbsp;                        parseResultOfLatestModifiedRecordQuery(target, actionsResult));</b>
+<i class="no-highlight">1028</i>&nbsp;    }
+<i class="no-highlight">1029</i>&nbsp;
+<i class="no-highlight">1030</i>&nbsp;    private static Optional&lt;String&gt; parseResultOfLatestModifiedRecordQuery(
+<i class="no-highlight">1031</i>&nbsp;            Endpoint target,
+<i class="no-highlight">1032</i>&nbsp;            Map&lt;String, Object&gt; actionsResult) {
+<b class="nc"><i class="no-highlight">1033</i>&nbsp;        LastModifiedResultHandler lastModifiedResultHandler =</b>
+<i class="no-highlight">1034</i>&nbsp;                new LastModifiedResultHandlerFactory()
+<b class="nc"><i class="no-highlight">1035</i>&nbsp;                        .getHandler(target.getType());</b>
+<b class="nc"><i class="no-highlight">1036</i>&nbsp;        return lastModifiedResultHandler.handle(actionsResult);</b>
+<i class="no-highlight">1037</i>&nbsp;    }
+<i class="no-highlight">1038</i>&nbsp;
+<i class="no-highlight">1039</i>&nbsp;    private Map&lt;String, Object&gt; executeLatestModifiedRecordSql(
+<i class="no-highlight">1040</i>&nbsp;            Endpoint target,
+<i class="no-highlight">1041</i>&nbsp;            TableConfig tableConfig,
+<i class="no-highlight">1042</i>&nbsp;            String getLatestModifiedRecordSql,
+<i class="no-highlight">1043</i>&nbsp;            NameHandler nameHandler) {
+<b class="nc"><i class="no-highlight">1044</i>&nbsp;        LOGGER.debug(&quot;Action query: {}&quot;, getLatestModifiedRecordSql);</b>
+<b class="nc"><i class="no-highlight">1045</i>&nbsp;        return runQuery(spec, target, endpointService, tableConfig,</b>
+<i class="no-highlight">1046</i>&nbsp;                        getLatestModifiedRecordSql, SELECT_LAST_MODIFIED, nameHandler);
+<i class="no-highlight">1047</i>&nbsp;    }
+<i class="no-highlight">1048</i>&nbsp;
+<i class="no-highlight">1049</i>&nbsp;    private static String createLatestModifiedRecordSql(
+<i class="no-highlight">1050</i>&nbsp;            Endpoint target,
+<i class="no-highlight">1051</i>&nbsp;            TableConfig tableConfig,
+<i class="no-highlight">1052</i>&nbsp;            Map.Entry&lt;String, Map&lt;String, Object&gt;&gt; lastUpdatedColumn,
+<i class="no-highlight">1053</i>&nbsp;            NameHandler nameHandler) {
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;        ReconcileDatabase database = new DatabaseFactory()</b>
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;                .getDatabase(target.getType(), nameHandler);</b>
+<b class="nc"><i class="no-highlight">1056</i>&nbsp;        return database.getLatestModifiedRecordSql(</b>
+<b class="nc"><i class="no-highlight">1057</i>&nbsp;                target.getDatabaseName(),</b>
+<b class="nc"><i class="no-highlight">1058</i>&nbsp;                target.getSchemaName(),</b>
+<b class="nc"><i class="no-highlight">1059</i>&nbsp;                tableConfig.getTableName(),</b>
+<b class="nc"><i class="no-highlight">1060</i>&nbsp;                tableConfig.getTgtProjectId(),</b>
+<b class="nc"><i class="no-highlight">1061</i>&nbsp;                (String) lastUpdatedColumn.getValue().get(&quot;column&quot;));</b>
+<i class="no-highlight">1062</i>&nbsp;    }
+<i class="no-highlight">1063</i>&nbsp;
+<i class="no-highlight">1064</i>&nbsp;    private static Optional&lt;Map.Entry&lt;String, Map&lt;String, Object&gt;&gt;&gt; getLastUpdatedColumn(
+<i class="no-highlight">1065</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; moreInputItems) {
+<b class="nc"><i class="no-highlight">1066</i>&nbsp;        return ((Map&lt;String, Map&lt;String, Object&gt;&gt;) moreInputItems.get(0)</b>
+<b class="nc"><i class="no-highlight">1067</i>&nbsp;                .get(&quot;group&quot;))</b>
+<b class="nc"><i class="no-highlight">1068</i>&nbsp;                .entrySet()</b>
+<b class="nc"><i class="no-highlight">1069</i>&nbsp;                .stream()</b>
+<i class="no-highlight">1070</i>&nbsp;                // serviceNow definition pipeline returns nulls for FASTLOADER_PRIMARYKEY
+<b class="nc"><i class="no-highlight">1071</i>&nbsp;                .filter(e -&gt; e.getValue().get(IS_LAST_UPDATE_COLUMN) != null)</b>
+<b class="nc"><i class="no-highlight">1072</i>&nbsp;                .filter(e -&gt; (boolean) e.getValue().get(IS_LAST_UPDATE_COLUMN))</b>
+<b class="nc"><i class="no-highlight">1073</i>&nbsp;                .findFirst();</b>
+<i class="no-highlight">1074</i>&nbsp;    }
+<i class="no-highlight">1075</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2023-08-18 16:01</div>
+</div>
+</body>
+</html>

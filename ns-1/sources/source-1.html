@@ -1,0 +1,358 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AutoSyncData</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.autosync</a>
+</div>
+
+<h1>Coverage Summary for Class: AutoSyncData (com.snaplogic.snaps.autosync)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AutoSyncData</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/99)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AutoSyncData$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/100)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2023, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.autosync;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.core.type.TypeReference;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.expression.ExpressionUtil;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.expression.SnapLogicExpression;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snaps.autosync.model.ColumnDefinition;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snaps.autosync.model.DataMapper;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.util.SnapObjectMapper;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">34</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">35</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">38</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">39</i>&nbsp;import java.util.Map;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import sl.EvaluatorUtils;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;/**
+<i class="no-highlight">44</i>&nbsp; * AutoSync Data Mapper
+<i class="no-highlight">45</i>&nbsp; */
+<i class="no-highlight">46</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">47</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">48</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">49</i>&nbsp;@Category(snap = SnapCategory.FLOW)
+<i class="no-highlight">50</i>&nbsp;@General(title = &quot;AutoSyncData&quot;, purpose = &quot;SyncData&quot;)
+<i class="no-highlight">51</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<b class="nc"><i class="no-highlight">52</i>&nbsp;public class AutoSyncData extends SimpleSnap {</b>
+<i class="no-highlight">53</i>&nbsp;    @Inject
+<i class="no-highlight">54</i>&nbsp;    private SnapObjectMapper objectMapper;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;    private static final Logger LOGGER =
+<b class="nc"><i class="no-highlight">57</i>&nbsp;            LoggerFactory.getLogger(AutoSyncData.class);</b>
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;    Map&lt;String, ColumnDefinition&gt; columnDefinitionMap;
+<i class="no-highlight">60</i>&nbsp;    // Compiled expression caches for &quot;mapData&quot;
+<b class="nc"><i class="no-highlight">61</i>&nbsp;    private Map&lt;String, SnapLogicExpression&gt; srcToCdvConvertMap =</b>
+<i class="no-highlight">62</i>&nbsp;            new HashMap&lt;&gt;();
+<b class="nc"><i class="no-highlight">63</i>&nbsp;    private Map&lt;String, SnapLogicExpression&gt; cdvToTgtStringConvertMap =</b>
+<i class="no-highlight">64</i>&nbsp;            new HashMap&lt;&gt;();
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;    private Map&lt;String, ColumnDefinition&gt; getSourceToCDVMapFunc(
+<i class="no-highlight">67</i>&nbsp;            Map&lt;String, ColumnDefinition&gt; columnDefinitionMap,
+<i class="no-highlight">68</i>&nbsp;            DataMapper sourceMapper) {
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        Map&lt;String, String&gt; mapValues = sourceMapper.getMapValues();</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        Map&lt;String, String&gt; mapData = sourceMapper.getMapData();</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        Map&lt;String, ColumnDefinition&gt; results = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">72</i>&nbsp;
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        if (columnDefinitionMap != null) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            for (Map.Entry&lt;String, ColumnDefinition&gt; entry : columnDefinitionMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                String columnKey = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                ColumnDefinition convertedSchema = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                String mapFunctionType = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                String sourceType = convertedSchema.getSourceType();</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                if (convertedSchema.isDefaultCDT()) {</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                    mapFunctionType = mapValues.getOrDefault(&quot;defaultType&quot;, &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                } else if (sourceType != null &amp;&amp; mapValues.containsKey(sourceType)) {</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                    mapFunctionType = mapValues.getOrDefault(sourceType, &quot;&quot;);</b>
+<i class="no-highlight">83</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                if (!mapFunctionType.equals(&quot;&quot;) &amp;&amp; mapData.containsKey(mapFunctionType)) {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                    String mapFunction = mapData.get(mapFunctionType);</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                    SnapLogicExpression expr = ExpressionUtil.compile(mapFunction);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                    srcToCdvConvertMap.put(mapFunctionType, expr);</b>
+<i class="no-highlight">88</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                convertedSchema.setMapSourceToCDV(mapFunctionType);</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                results.put(columnKey, convertedSchema);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            }</b>
+<i class="no-highlight">92</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        return results;</b>
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    private Map&lt;String, ColumnDefinition&gt; getCDVToTargetMapFunc(
+<i class="no-highlight">97</i>&nbsp;            Map&lt;String, ColumnDefinition&gt; columnDefinitionMap,
+<i class="no-highlight">98</i>&nbsp;            DataMapper targetMapper) {
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        Map&lt;String, String&gt; mapValues = targetMapper.getMapValues();</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        Map&lt;String, String&gt; mapData = targetMapper.getMapData();</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        Map&lt;String, ColumnDefinition&gt; results = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">102</i>&nbsp;
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        if (columnDefinitionMap != null) {</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;            for (Map.Entry&lt;String, ColumnDefinition&gt; entry : columnDefinitionMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                String columnKey = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                ColumnDefinition convertedSchema = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                String mapFunctionType = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                String cdt = convertedSchema.getCdt();</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                if (mapValues.containsKey(cdt)) {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                    mapFunctionType = mapValues.get(cdt);</b>
+<i class="no-highlight">111</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                if (!mapFunctionType.equals(&quot;&quot;) &amp;&amp; mapData.containsKey(mapFunctionType)) {</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                    String mapFunction = mapData.get(mapFunctionType);</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                    SnapLogicExpression expr = ExpressionUtil.compile(mapFunction);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                    cdvToTgtStringConvertMap.put(mapFunctionType, expr);</b>
+<i class="no-highlight">116</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                convertedSchema.setMapCDVToTarget(mapFunctionType);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                results.put(columnKey, convertedSchema);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            }</b>
+<i class="no-highlight">120</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        return results;</b>
+<i class="no-highlight">122</i>&nbsp;    }
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;    private void convertSourceColumnToCDV(
+<i class="no-highlight">125</i>&nbsp;            ColumnDefinition columnDefinition, Map&lt;String, Object&gt; sourceData) {
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        String columnName = columnDefinition.getColumn();</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        String sourceColumnName = columnDefinition.getSourceColumn();</b>
+<i class="no-highlight">128</i>&nbsp;
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        if (sourceData.containsKey(sourceColumnName)) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            Object value = sourceData.get(sourceColumnName);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            Object cdv = value;</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            if (value != null) {</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                String mapFunctionType = columnDefinition.getMapSourceToCDV();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                if (StringUtils.isNotEmpty(mapFunctionType)) {</b>
+<i class="no-highlight">135</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                        SnapLogicExpression expr = srcToCdvConvertMap.get(mapFunctionType);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                        if (expr != null) {</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                            cdv = expr.evaluate(ImmutableMap.of(&quot;value&quot;, value),</b>
+<i class="no-highlight">139</i>&nbsp;                                    null, EvaluatorUtils.DEFAULT_VALUE_HANDLER);
+<i class="no-highlight">140</i>&nbsp;
+<i class="no-highlight">141</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                    } catch (Throwable throwable) {</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                        throw new ExecutionException(throwable,</b>
+<i class="no-highlight">144</i>&nbsp;                                &quot;Cannot convert value&quot;);
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                    }</b>
+<i class="no-highlight">146</i>&nbsp;                }
+<i class="no-highlight">147</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            if (!columnName.equals(sourceColumnName)) {</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                sourceData.remove(sourceColumnName);</b>
+<i class="no-highlight">150</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            sourceData.put(columnName, cdv);</b>
+<i class="no-highlight">152</i>&nbsp;        }
+<i class="no-highlight">153</i>&nbsp;    }
+<i class="no-highlight">154</i>&nbsp;
+<i class="no-highlight">155</i>&nbsp;    private void convertSourceRowToCDV(
+<i class="no-highlight">156</i>&nbsp;            Map&lt;String, ColumnDefinition&gt; columnDefinitionMap,
+<i class="no-highlight">157</i>&nbsp;            Map&lt;String, Object&gt; sourceData) {
+<i class="no-highlight">158</i>&nbsp;
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        if (columnDefinitionMap != null) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            for (Map.Entry&lt;String, ColumnDefinition&gt; entry : columnDefinitionMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                ColumnDefinition convertedSchema = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                convertSourceColumnToCDV(convertedSchema, sourceData);</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            }</b>
+<i class="no-highlight">164</i>&nbsp;        }
+<i class="no-highlight">165</i>&nbsp;    }
+<i class="no-highlight">166</i>&nbsp;
+<i class="no-highlight">167</i>&nbsp;    private void convertCDVToTargetColumn(
+<i class="no-highlight">168</i>&nbsp;            ColumnDefinition columnDefinition, Map&lt;String, Object&gt; cdvData) {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        String columnName = columnDefinition.getColumn();</b>
+<i class="no-highlight">170</i>&nbsp;
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        if (cdvData.containsKey(columnName)) {</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;            Object value = cdvData.get(columnName);</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;            if (value != null) {</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                String mapFunctionType = columnDefinition.getMapCDVToTarget();</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                if (StringUtils.isNotEmpty(mapFunctionType)) {</b>
+<i class="no-highlight">176</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                        SnapLogicExpression expr = cdvToTgtStringConvertMap.get(mapFunctionType);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                        Object targetValue = expr.evaluate(</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                                ImmutableMap.of(&quot;value&quot;, value),</b>
+<i class="no-highlight">180</i>&nbsp;                                null,
+<i class="no-highlight">181</i>&nbsp;                                EvaluatorUtils.DEFAULT_VALUE_HANDLER);
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                        cdvData.put(columnName, targetValue);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                    } catch (Throwable throwable) {</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                        throw new ExecutionException(throwable, &quot;Cannot convert value&quot;);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                    }</b>
+<i class="no-highlight">186</i>&nbsp;                }
+<i class="no-highlight">187</i>&nbsp;            }
+<i class="no-highlight">188</i>&nbsp;        }
+<i class="no-highlight">189</i>&nbsp;    }
+<i class="no-highlight">190</i>&nbsp;
+<i class="no-highlight">191</i>&nbsp;    private void convertCDVRowToTgt(Map&lt;String, ColumnDefinition&gt; columnDefinitionMap,
+<i class="no-highlight">192</i>&nbsp;                                    Map&lt;String, Object&gt; cdvData) {
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        if (columnDefinitionMap != null) {</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;            for (Map.Entry&lt;String, ColumnDefinition&gt; entry : columnDefinitionMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                ColumnDefinition convertedSchema = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                convertCDVToTargetColumn(convertedSchema, cdvData);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            }</b>
+<i class="no-highlight">198</i>&nbsp;        }
+<i class="no-highlight">199</i>&nbsp;    }
+<i class="no-highlight">200</i>&nbsp;
+<i class="no-highlight">201</i>&nbsp;    @Override
+<i class="no-highlight">202</i>&nbsp;    protected void process(Document document, String s) {
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        Map docMap = document.get(Map.class);</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        if (columnDefinitionMap == null) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            LOGGER.trace(&quot;AutoSyncData: process(): begin setting up columnDefinitionMap&quot;);</b>
+<i class="no-highlight">206</i>&nbsp;
+<b class="nc"><i class="no-highlight">207</i>&nbsp;            Map&lt;String, Object&gt; settings =</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                    objectMapper.convertValue(docMap.get(&quot;original&quot;), Map.class);</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;            DataMapper sourceMapper = objectMapper.convertValue(settings.get(&quot;srcCDM&quot;),</b>
+<i class="no-highlight">210</i>&nbsp;                    DataMapper.class);
+<b class="nc"><i class="no-highlight">211</i>&nbsp;            DataMapper targetMapper = objectMapper.convertValue(settings.get(&quot;tgtCDM&quot;),</b>
+<i class="no-highlight">212</i>&nbsp;                    DataMapper.class);
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            columnDefinitionMap = objectMapper.convertValue(</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                    settings.get(&quot;group&quot;),</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                    new TypeReference&lt;Map&lt;String, ColumnDefinition&gt;&gt;() {});</b>
+<i class="no-highlight">216</i>&nbsp;
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            columnDefinitionMap = getSourceToCDVMapFunc(columnDefinitionMap, sourceMapper);</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;            columnDefinitionMap = getCDVToTargetMapFunc(columnDefinitionMap, targetMapper);</b>
+<i class="no-highlight">219</i>&nbsp;        }
+<i class="no-highlight">220</i>&nbsp;
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        convertSourceRowToCDV(columnDefinitionMap, docMap);</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        convertCDVRowToTgt(columnDefinitionMap, docMap);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        docMap.remove(&quot;original&quot;);</b>
+<i class="no-highlight">224</i>&nbsp;
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        outputViews.write(document);</b>
+<i class="no-highlight">226</i>&nbsp;    }
+<i class="no-highlight">227</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2023-08-18 16:01</div>
+</div>
+</body>
+</html>
