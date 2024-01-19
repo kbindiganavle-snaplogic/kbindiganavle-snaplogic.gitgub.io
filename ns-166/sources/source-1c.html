@@ -1,0 +1,685 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > GroupByFields</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform</a>
+</div>
+
+<h1>Coverage Summary for Class: GroupByFields (com.snaplogic.snaps.transform)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GroupByFields</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/239)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">GroupByFields$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">GroupByFields$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/242)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.transform;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.databind.node.ObjectNode;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.EvictingQueue;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">19</i>&nbsp;import com.google.common.math.StatsAccumulator;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.ConfigurationCompatibilityProvider;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.api.FeatureFlag;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.api.LifecycleCallback;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.LifecycleEvent;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.api.Notification;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.ReconfigurationMessage;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.api.SchemaPropagator;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.api.StatusMessage;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.common.config.ReconfigurationDetailsForStateful;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.expression.JsonPathExpressionService;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.expression.JsonPathSchemaVisitor;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.jsonpath.JsonPaths;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.jsonpath.PathParser;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.jsonpath.tokens.PathToken;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.StatusReporter;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.snap.api.transform.TransformUtils;
+<i class="no-highlight">54</i>&nbsp;import com.snaplogic.snap.schema.api.ObjectSchema;
+<i class="no-highlight">55</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">56</i>&nbsp;import com.snaplogic.snap.view.DocumentOutputView;
+<i class="no-highlight">57</i>&nbsp;import com.snaplogic.snaps.transform.util.MemoryUtil;
+<i class="no-highlight">58</i>&nbsp;import com.snaplogic.snaps.transform.util.Sigmoid;
+<i class="no-highlight">59</i>&nbsp;import com.snaplogic.util.SnapObjectMapper;
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">62</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">63</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">66</i>&nbsp;import java.io.PrintWriter;
+<i class="no-highlight">67</i>&nbsp;import java.io.StringWriter;
+<i class="no-highlight">68</i>&nbsp;import java.math.BigDecimal;
+<i class="no-highlight">69</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">70</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">71</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">72</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">73</i>&nbsp;import java.util.List;
+<i class="no-highlight">74</i>&nbsp;import java.util.Map;
+<i class="no-highlight">75</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;import javax.inject.Inject;
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;import static com.google.common.math.DoubleMath.roundToBigInteger;
+<i class="no-highlight">80</i>&nbsp;import static com.google.common.math.DoubleMath.roundToInt;
+<i class="no-highlight">81</i>&nbsp;import static com.google.common.math.Stats.meanOf;
+<i class="no-highlight">82</i>&nbsp;import static com.snaplogic.snap.Utils.BYTES_PER_MB;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snap.Utils.MILLIS_IN_MINUTE;
+<i class="no-highlight">84</i>&nbsp;import static com.snaplogic.snap.Utils.MIN_THRESHOLD_MB_DEFAULT;
+<i class="no-highlight">85</i>&nbsp;import static com.snaplogic.snap.Utils.TIMEOUT_MINUTES_DEFAULT;
+<i class="no-highlight">86</i>&nbsp;import static com.snaplogic.snap.Utils.checkMemory;
+<i class="no-highlight">87</i>&nbsp;import static com.snaplogic.snap.Utils.defineMinimumMemoryProperty;
+<i class="no-highlight">88</i>&nbsp;import static com.snaplogic.snap.Utils.defineOutOfResourceTimeoutProperty;
+<i class="no-highlight">89</i>&nbsp;import static com.snaplogic.snap.Utils.initMinMemory;
+<i class="no-highlight">90</i>&nbsp;import static com.snaplogic.snap.Utils.initOutOfResourceTimeout;
+<i class="no-highlight">91</i>&nbsp;import static com.snaplogic.snaps.transform.GroupByN.TARGET_FIELD_DEFAULT;
+<i class="no-highlight">92</i>&nbsp;import static com.snaplogic.snaps.transform.GroupByN.TARGET_FIELD_PROP;
+<i class="no-highlight">93</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.*;
+<i class="no-highlight">94</i>&nbsp;import static com.snaplogic.snaps.transform.util.MemoryUtil.*;
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;import static java.lang.Math.max;
+<i class="no-highlight">97</i>&nbsp;import static java.lang.Math.min;
+<i class="no-highlight">98</i>&nbsp;import static java.math.RoundingMode.DOWN;
+<i class="no-highlight">99</i>&nbsp;import static java.math.RoundingMode.HALF_UP;
+<i class="no-highlight">100</i>&nbsp;import static java.math.RoundingMode.UNNECESSARY;
+<i class="no-highlight">101</i>&nbsp;import static java.math.RoundingMode.UP;
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;/**
+<i class="no-highlight">104</i>&nbsp; * Group By Fields Snap
+<i class="no-highlight">105</i>&nbsp; */
+<i class="no-highlight">106</i>&nbsp;@General(title = GROUP_BY_FIELDS_GROUP_LABEL, purpose = GROUP_BY_FIELDS_GROUP_DESC)
+<i class="no-highlight">107</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">108</i>&nbsp;@Outputs(min = 1, max = 2, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">109</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">110</i>&nbsp;@Category(snap = SnapCategory.TRANSFORM)
+<i class="no-highlight">111</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<b class="nc"><i class="no-highlight">112</i>&nbsp;public class GroupByFields extends SimpleSnap implements LifecycleCallback, SchemaPropagator,</b>
+<i class="no-highlight">113</i>&nbsp;        ConfigurationCompatibilityProvider {
+<i class="no-highlight">114</i>&nbsp;
+<b class="nc"><i class="no-highlight">115</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(GroupByFields.class);</b>
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;    private static final String FIELD_PROP = &quot;field&quot;;
+<i class="no-highlight">118</i>&nbsp;    private static final String FIELDS_PROP = &quot;fields&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String MEM_SENS_PROP = &quot;memorySensitivity&quot;;
+<i class="no-highlight">120</i>&nbsp;    private static final String MIN_PART_SIZE_PROP = &quot;minPartSize&quot;;
+<i class="no-highlight">121</i>&nbsp;
+<i class="no-highlight">122</i>&nbsp;    private static final String GROUP_BY = &quot;groupBy&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String PART_INFO = &quot;partInfo&quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String PART_INDEX = &quot;partIndex&quot;;
+<i class="no-highlight">125</i>&nbsp;    private static final String NUM_PARTS = &quot;numParts&quot;;
+<i class="no-highlight">126</i>&nbsp;    private static final String PART_SIZE = &quot;partSize&quot;;
+<i class="no-highlight">127</i>&nbsp;    private static final String GROUP_SIZE = &quot;groupSize&quot;;
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    private static final int MIN_PART_SIZE_MIN = 1;
+<i class="no-highlight">130</i>&nbsp;    private static final int MIN_PART_SIZE_DEFAULT = 10;
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;    @FeatureFlag(description = &quot;Coefficient A of group size sigmoid function (slope).&quot;)
+<b class="nc"><i class="no-highlight">134</i>&nbsp;    private static double SIGMOID_A = 15.0;</b>
+<i class="no-highlight">135</i>&nbsp;
+<i class="no-highlight">136</i>&nbsp;    @FeatureFlag(description = &quot;Coefficient B of group size sigmoid function (inflection point).&quot;)
+<b class="nc"><i class="no-highlight">137</i>&nbsp;    private static double SIGMOID_B = 0.33;</b>
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;    @FeatureFlag(description = &quot;Number of memory samples to compute moving average.&quot;)
+<b class="nc"><i class="no-highlight">140</i>&nbsp;    private static int NUM_MEM_SAMPLES = 1024;</b>
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;    @FeatureFlag(description = &quot;The weight of availMemDelta in computing groupSizeFraction.&quot;)
+<b class="nc"><i class="no-highlight">143</i>&nbsp;    private static double DELTA_WEIGHT = 0.4;</b>
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;    @FeatureFlag(description = &quot;The weight of standard deviation when adding to mean groupSize.&quot;)
+<b class="nc"><i class="no-highlight">146</i>&nbsp;    private static double SD_WEIGHT = 1.0;</b>
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;    @FeatureFlag(description = &quot;Update status this frequently based on output document count.&quot;)
+<b class="nc"><i class="no-highlight">149</i>&nbsp;    private static int UPDATE_STATUS_FREQUENCY = 100;</b>
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    // see Sigmoid class javadoc
+<b class="nc"><i class="no-highlight">152</i>&nbsp;    @VisibleForTesting</b>
+<i class="no-highlight">153</i>&nbsp;    Sigmoid sigmoidFunc = new Sigmoid(SIGMOID_A, SIGMOID_B);
+<i class="no-highlight">154</i>&nbsp;
+<b class="nc"><i class="no-highlight">155</i>&nbsp;    @SuppressWarnings(&quot;UnstableApiUsage&quot;)</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;    private final EvictingQueue&lt;Double&gt; availMemSamples = EvictingQueue.create(NUM_MEM_SAMPLES);</b>
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;    @Notification(message = &quot;This snap fuses multiple inputs&quot;)
+<b class="nc"><i class="no-highlight">159</i>&nbsp;    private static final ReconfigurationMessage SEPARATE_DOC_MSG = new ReconfigurationMessage();</b>
+<i class="no-highlight">160</i>&nbsp;
+<i class="no-highlight">161</i>&nbsp;    @Notification(message = &quot;Group Size: [↓ %.0f, ↑ %.0f, μ %.0f]&quot;)
+<b class="nc"><i class="no-highlight">162</i>&nbsp;    private static final StatusMessage SIMPLE_STATUS_MESSAGE = new StatusMessage();</b>
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;    @Notification(message =
+<i class="no-highlight">165</i>&nbsp;                &quot;Group Size: [↓ %.0f, ↑ %.0f, μ %.1f]&quot;
+<i class="no-highlight">166</i>&nbsp;            + &quot;, Part Size: [↓ %.0f, ↑ %.0f, μ %.1f]&quot;
+<i class="no-highlight">167</i>&nbsp;            + &quot;, Num Parts: [↓ %.0f, ↑ %.0f, μ %.1f]&quot;
+<i class="no-highlight">168</i>&nbsp;            + &quot;, Avail Mem: %.1f%% [↓ %.1f%%, ↑ %.1f%%, μ %.1f%%]&quot;
+<i class="no-highlight">169</i>&nbsp;            + &quot;, GCs: %d&quot;)
+<b class="nc"><i class="no-highlight">170</i>&nbsp;    private static final StatusMessage DYN_STATUS_MESSAGE = new StatusMessage();</b>
+<i class="no-highlight">171</i>&nbsp;
+<i class="no-highlight">172</i>&nbsp;    @Inject private SnapObjectMapper snapObjectMapper;
+<i class="no-highlight">173</i>&nbsp;    @Inject StatusReporter statusReporter;
+<i class="no-highlight">174</i>&nbsp;    @Inject MemoryUtil memoryUtil;
+<i class="no-highlight">175</i>&nbsp;
+<b class="nc"><i class="no-highlight">176</i>&nbsp;    private final List&lt;JsonPath&gt; fields = Lists.newArrayList();</b>
+<i class="no-highlight">177</i>&nbsp;    private JsonPath targetField;
+<b class="nc"><i class="no-highlight">178</i>&nbsp;    private final ArrayList&lt;Object&gt; group = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;    private boolean initialDocument = true;</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;    private Map&lt;String, Object&gt; lastGroupByValue = null;</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;    private Map&lt;String, Object&gt; currentGroupByValue = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">182</i>&nbsp;
+<i class="no-highlight">183</i>&nbsp;    private boolean dynamicMode;
+<b class="nc"><i class="no-highlight">184</i>&nbsp;    private int minPartSize = MIN_PART_SIZE_DEFAULT;</b>
+<i class="no-highlight">185</i>&nbsp;    private int gcCount;
+<i class="no-highlight">186</i>&nbsp;    private double availMem; // only used when dynamicMode is true
+<i class="no-highlight">187</i>&nbsp;
+<b class="nc"><i class="no-highlight">188</i>&nbsp;    private final StatsAccumulator groupSizeAccum = new StatsAccumulator();</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;    private final StatsAccumulator partSizeAccum = new StatsAccumulator();</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;    private final StatsAccumulator numPartsAccum = new StatsAccumulator();</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;    private final StatsAccumulator availMemAccum = new StatsAccumulator();</b>
+<i class="no-highlight">192</i>&nbsp;
+<i class="no-highlight">193</i>&nbsp;    private DocumentOutputView mainView;
+<i class="no-highlight">194</i>&nbsp;    private DocumentOutputView statsView;
+<i class="no-highlight">195</i>&nbsp;    private int checkMemoryCount;
+<i class="no-highlight">196</i>&nbsp;    private int totalDocumentCount;
+<b class="nc"><i class="no-highlight">197</i>&nbsp;    private long minMemory = MIN_THRESHOLD_MB_DEFAULT * BYTES_PER_MB;</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;    private long outOfResourceTimeoutMillis = TIMEOUT_MINUTES_DEFAULT * MILLIS_IN_MINUTE;</b>
+<i class="no-highlight">199</i>&nbsp;    @Notification(message = &quot;%s%s&quot;)
+<b class="nc"><i class="no-highlight">200</i>&nbsp;    private static final StatusMessage STATUS_MESSAGE = new StatusMessage();</b>
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;    @Override
+<i class="no-highlight">203</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        final SnapProperty fieldProp = propertyBuilder</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                .describe(FIELD_PROP, FIELD_LABEL, FIELDS_DESC)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .type(SnapType.JSONPATH)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        propertyBuilder.describe(FIELDS_PROP, FIELDS_LABEL, FIELDS_DESC)</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                .withEntry(fieldProp)</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                .describe(TARGET_FIELD_PROP, TARGET_FIELD_LABEL, TARGET_FIELD_DESC)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                .defaultValue(TARGET_FIELD_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.OFFERS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                .type(SnapType.JSONPATH)</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        propertyBuilder.describe(MEM_SENS_PROP, MEM_SENS_LABEL, MEM_SENS_DESC_GROUP_BY_FIELDS)</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                .withAllowedValues(MEM_SENS_VALS)</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                .defaultValue(MEM_SENS_NONE)</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        propertyBuilder.describe(MIN_PART_SIZE_PROP, MIN_PART_SIZE_LABEL, MIN_PART_SIZE_DESC)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                .withMinValue(MIN_PART_SIZE_MIN)</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                .defaultValue(MIN_PART_SIZE_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%s.value == &#39;%s&#39;&quot;, MEM_SENS_PROP, MEM_SENS_DYN))</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        defineMinimumMemoryProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        defineOutOfResourceTimeoutProperty(propertyBuilder, OUT_OF_MEMORY_TIMEOUT_LABEL);</b>
+<i class="no-highlight">235</i>&nbsp;    }
+<i class="no-highlight">236</i>&nbsp;
+<i class="no-highlight">237</i>&nbsp;    @Override
+<i class="no-highlight">238</i>&nbsp;    public void configure(final PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        final List&lt;Map&lt;String, Object&gt;&gt; mappingTable = propertyValues.get(FIELDS_PROP);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        for (final Map&lt;String, Object&gt; mapping : mappingTable) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            final JsonPath fieldPath = propertyValues.getJsonPathFor(mapping, FIELD_PROP);</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;            fields.add(fieldPath);</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        targetField = propertyValues.getAsJsonPath(TARGET_FIELD_PROP);</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        dynamicMode = MEM_SENS_DYN.equals(propertyValues.get(MEM_SENS_PROP));</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        if (dynamicMode) {</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;            Number minPartSizeVal = propertyValues.get(MIN_PART_SIZE_PROP);</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;            minPartSize = minPartSizeVal != null ? minPartSizeVal.intValue() : MIN_PART_SIZE_DEFAULT;</b>
+<i class="no-highlight">249</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        mainView = outputViews.first();</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        statsView = outputViews.second();</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        if (LOG.isInfoEnabled()) {</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            StringWriter sw = new StringWriter();</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;            PrintWriter pw = new PrintWriter(sw);</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;            pw.printf(&quot;configuration:\n&quot;);</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;            pw.printf(&quot; fields = %s\n&quot;, fields);</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            pw.printf(&quot; targetField = %s\n&quot;, targetField);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            pw.printf(&quot; dynamicMode = %s\n&quot;, dynamicMode);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            if (dynamicMode) {</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                pw.printf(&quot; minPartSize = %,d\n&quot;, minPartSize);</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                pw.printf(&quot; SIGMOID_A = %f\n&quot;, SIGMOID_A);</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                pw.printf(&quot; SIGMOID_B = %f\n&quot;, SIGMOID_B);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                pw.printf(&quot; NUM_MEM_SAMPLES = %d\n&quot;, NUM_MEM_SAMPLES);</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                pw.printf(&quot; DELTA_WEIGHT = %f\n&quot;, DELTA_WEIGHT);</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                pw.printf(&quot; SD_WEIGHT = %f\n&quot;, SD_WEIGHT);</b>
+<i class="no-highlight">266</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">267</i>&nbsp;            LOG.info(&quot;{}&quot;, sw.toString().trim());</b>
+<i class="no-highlight">268</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        minMemory = initMinMemory(propertyValues, errorViews);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        outOfResourceTimeoutMillis = initOutOfResourceTimeout(propertyValues, errorViews);</b>
+<i class="no-highlight">271</i>&nbsp;    }
+<i class="no-highlight">272</i>&nbsp;
+<i class="no-highlight">273</i>&nbsp;    @Override
+<i class="no-highlight">274</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">275</i>&nbsp;    protected void process(final Document document, final String inputViewName) {
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        checkMemoryCount++;</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        totalDocumentCount++;</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        if (checkMemoryCount &gt; CHECK_MEMORY_INTERVAL) {</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;            checkMemoryCount = 0;</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;            checkMemory(minMemory, outOfResourceTimeoutMillis, statusReporter, STATUS_MESSAGE,</b>
+<i class="no-highlight">281</i>&nbsp;                    LOG, totalDocumentCount);
+<i class="no-highlight">282</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        Object data = document.get();</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        if (!(data instanceof Map)) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            errorViews.write((SnapDataException) new SnapDataException(ERR_INVALID_INPUT_DATA)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                    .withReason(REASON_NOT_MAP_DATA)</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE), document);</b>
+<i class="no-highlight">288</i>&nbsp;            return;
+<i class="no-highlight">289</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        Map&lt;String, Object&gt; map = (Map&lt;String, Object&gt;) data;</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        currentGroupByValue.clear();</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        for (JsonPath field : fields) {</b>
+<i class="no-highlight">293</i>&nbsp;            Object o;
+<i class="no-highlight">294</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                o = field.read(map);</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                field.write(currentGroupByValue, o);</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;            } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                errorViews.write((SnapDataException)</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                        new SnapDataException(e, ERR_INVALID_PATH).formatWith(field.toString())</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                                .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                                .withResolution(RESOLUTION_ADDRESS_ISSUE), document);</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                continue;</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        }</b>
+<i class="no-highlight">305</i>&nbsp;        // if this is the first document through, we haven&#39;t yet established a group-by document
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        if (initialDocument) {</b>
+<i class="no-highlight">307</i>&nbsp;            // add doc to current batch
+<b class="nc"><i class="no-highlight">308</i>&nbsp;            group.add(map);</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;            initialDocument = false;</b>
+<i class="no-highlight">310</i>&nbsp;            // and establish the group-by document
+<b class="nc"><i class="no-highlight">311</i>&nbsp;            lastGroupByValue = Maps.newHashMap(currentGroupByValue);</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        } else if (currentGroupByValue.equals(lastGroupByValue)) {</b>
+<i class="no-highlight">313</i>&nbsp;            // add to batch
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            group.add(map);</b>
+<i class="no-highlight">315</i>&nbsp;        } else {
+<i class="no-highlight">316</i>&nbsp;            // batch changed, write it out then add current doc to new batch
+<i class="no-highlight">317</i>&nbsp;            // write() flushes the batch
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            write(group, lastGroupByValue);</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            group.add(map);</b>
+<i class="no-highlight">320</i>&nbsp;            // and establish the new group-by document
+<b class="nc"><i class="no-highlight">321</i>&nbsp;            lastGroupByValue = Maps.newHashMap(currentGroupByValue);</b>
+<i class="no-highlight">322</i>&nbsp;        }
+<i class="no-highlight">323</i>&nbsp;        // in any case, we&#39;re done with this doc
+<b class="nc"><i class="no-highlight">324</i>&nbsp;        document.acknowledge();</b>
+<i class="no-highlight">325</i>&nbsp;    }
+<i class="no-highlight">326</i>&nbsp;
+<i class="no-highlight">327</i>&nbsp;    @Override
+<i class="no-highlight">328</i>&nbsp;    public void handle(final LifecycleEvent event) {
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        switch (event) {</b>
+<i class="no-highlight">330</i>&nbsp;            case SUCCESS:
+<i class="no-highlight">331</i>&nbsp;                // finally, if anything remains in the group, flush it out
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                if (CollectionUtils.isNotEmpty(group)) {</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                    write(group, lastGroupByValue);</b>
+<i class="no-highlight">334</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                updateStatus();</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                if (statsView != null &amp;&amp; groupSizeAccum.count() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                    Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                    map.put(&quot;groupSize&quot;, toMap(groupSizeAccum, true));</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                    if (dynamicMode) {</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                        map.put(&quot;partSize&quot;, toMap(partSizeAccum, true));</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                        map.put(&quot;numParts&quot;, toMap(numPartsAccum, true));</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                        map.put(&quot;availMem&quot;, toMap(availMemAccum, false));</b>
+<i class="no-highlight">343</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                    statsView.write(documentUtility.newDocument(map));</b>
+<i class="no-highlight">345</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                if (statusReporter != null) {</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                    statusReporter.reset();</b>
+<i class="no-highlight">348</i>&nbsp;                }
+<i class="no-highlight">349</i>&nbsp;        }
+<i class="no-highlight">350</i>&nbsp;    }
+<i class="no-highlight">351</i>&nbsp;
+<i class="no-highlight">352</i>&nbsp;    private Map&lt;String, Object&gt; toMap(StatsAccumulator accum, boolean intType) {
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;        if (intType) {</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;            map.put(&quot;min&quot;, roundToBigInteger(accum.min(), UNNECESSARY));</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            map.put(&quot;max&quot;, roundToBigInteger(accum.max(), UNNECESSARY));</b>
+<i class="no-highlight">357</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">358</i>&nbsp;            map.put(&quot;min&quot;, BigDecimal.valueOf(accum.min()).setScale(2, HALF_UP));</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;            map.put(&quot;max&quot;, BigDecimal.valueOf(accum.max()).setScale(2, HALF_UP));</b>
+<i class="no-highlight">360</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        map.put(&quot;mean&quot;, BigDecimal.valueOf(accum.mean()).setScale(2, HALF_UP));</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        map.put(&quot;std&quot;, BigDecimal.valueOf(accum.populationStandardDeviation()).setScale(2, HALF_UP));</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        map.put(&quot;count&quot;, BigInteger.valueOf(accum.count()));</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;        if (intType) {</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;            map.put(&quot;sum&quot;, roundToBigInteger(accum.sum(), HALF_UP));</b>
+<i class="no-highlight">366</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        return map;</b>
+<i class="no-highlight">368</i>&nbsp;    }
+<i class="no-highlight">369</i>&nbsp;
+<i class="no-highlight">370</i>&nbsp;    private void write(final List&lt;Object&gt; objects, Map&lt;String, Object&gt; currentGroupedValue) {
+<i class="no-highlight">371</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">372</i>&nbsp;            int groupSize = objects.size();</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;            groupSizeAccum.add(groupSize);</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;            List&lt;Object&gt; listCopy = new ArrayList&lt;&gt;(objects);</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;            if (dynamicMode) {</b>
+<i class="no-highlight">376</i>&nbsp;                // The key metric used here: the fraction of max memory that&#39;s available.
+<i class="no-highlight">377</i>&nbsp;                // The value ranges from 0 to 1.
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                availMem = memoryUtil.availableMemoryFraction();</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                availMemAccum.add(availMem);</b>
+<i class="no-highlight">380</i>&nbsp;
+<i class="no-highlight">381</i>&nbsp;                // Calculate the moving average (MA) of availMem using memSamples, an EvictingQueue which
+<i class="no-highlight">382</i>&nbsp;                // stores the most recent NUM_MEM_SAMPLES values of availMem. Current value is added below.
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                double availMemMA = availMemSamples.isEmpty() ? availMem : meanOf(availMemSamples);</b>
+<i class="no-highlight">384</i>&nbsp;
+<i class="no-highlight">385</i>&nbsp;                // Calculate how much the current value deviates from the moving average.
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                double availMemDelta = availMem - availMemMA;</b>
+<i class="no-highlight">387</i>&nbsp;
+<i class="no-highlight">388</i>&nbsp;                // Now that we&#39;ve already used memSamples to calculate the MA, add the new sample to it.
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                availMemSamples.add(availMem);</b>
+<i class="no-highlight">390</i>&nbsp;
+<i class="no-highlight">391</i>&nbsp;                // Check whether we should trigger a garbage collection.
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                if (memoryUtil.requestGC(availMem)) {</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                    gcCount++;</b>
+<i class="no-highlight">394</i>&nbsp;                }
+<i class="no-highlight">395</i>&nbsp;
+<i class="no-highlight">396</i>&nbsp;                // Calculate the sigmoid function for the partial value for the groupSizeFraction.
+<i class="no-highlight">397</i>&nbsp;                // This value also ranges from 0 to 1.
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                double sigmoidResult = sigmoidFunc.applyAsDouble(availMem);</b>
+<i class="no-highlight">399</i>&nbsp;
+<i class="no-highlight">400</i>&nbsp;                // Calculate the groupSizeFraction by adding two components:
+<i class="no-highlight">401</i>&nbsp;                // sigmoidResult, based on the current available memory, and
+<i class="no-highlight">402</i>&nbsp;                // availMemDelta, how much the current value deviates from the moving average.
+<i class="no-highlight">403</i>&nbsp;                // Including the availMemDelta helps to dampen spikes (rapid increases/decreases).
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                double groupSizeFraction = sigmoidResult + (availMemDelta * DELTA_WEIGHT);</b>
+<i class="no-highlight">405</i>&nbsp;
+<i class="no-highlight">406</i>&nbsp;                // Set maxPartSize to the group size mean plus SD_WEIGHT standard deviations.
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                double mean = groupSizeAccum.mean();</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                double sd = groupSizeAccum.populationStandardDeviation();</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                int maxPartSize = roundToInt(mean + (sd * SD_WEIGHT), DOWN);</b>
+<i class="no-highlight">410</i>&nbsp;
+<i class="no-highlight">411</i>&nbsp;                // Multiply maxPartSize by sigmoidResult to get sizeLimit.
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                int sizeLimit = roundToInt(maxPartSize * groupSizeFraction, HALF_UP);</b>
+<i class="no-highlight">413</i>&nbsp;
+<i class="no-highlight">414</i>&nbsp;                // Constrain sizeLimit to the range [minPartSize..maxPartSize].
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                sizeLimit = max(minPartSize, min(sizeLimit, maxPartSize));</b>
+<i class="no-highlight">416</i>&nbsp;
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                int numParts = roundToInt(groupSize / (double) sizeLimit, UP);</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                numPartsAccum.add(numParts);</b>
+<i class="no-highlight">419</i>&nbsp;
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                int partSize = numParts == 1 ? groupSize : max(minPartSize, groupSize / numParts);</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                partSizeAccum.add(partSize);</b>
+<i class="no-highlight">422</i>&nbsp;
+<b class="nc"><i class="no-highlight">423</i>&nbsp;                for (int iPart = 1; iPart &lt;= numParts; iPart++) {</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                    int fromIndex = (iPart - 1) * partSize;</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;                    int toIndex = (iPart == numParts ? groupSize : fromIndex + partSize);</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                    List&lt;Object&gt; part = listCopy.subList(fromIndex, toIndex);</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                    Map&lt;String, Object&gt; data = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                    data.put(GROUP_BY, currentGroupedValue);</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                    Map&lt;String, Object&gt; partInfo = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                    partInfo.put(PART_INDEX, BigInteger.valueOf(iPart));</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                    partInfo.put(NUM_PARTS, BigInteger.valueOf(numParts));</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                    partInfo.put(PART_SIZE, BigInteger.valueOf(part.size()));</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                    partInfo.put(GROUP_SIZE, BigInteger.valueOf(groupSize));</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                    data.put(PART_INFO, partInfo);</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                    targetField.write(data, part);</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                    mainView.write(documentUtility.newDocument(data));</b>
+<i class="no-highlight">437</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">438</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                Map&lt;String, Object&gt; data = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                data.put(GROUP_BY, currentGroupedValue);</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                targetField.write(data, listCopy);</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                mainView.write(documentUtility.newDocument(data));</b>
+<i class="no-highlight">443</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">444</i>&nbsp;            if (groupSizeAccum.count() % UPDATE_STATUS_FREQUENCY == 0) {</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                updateStatus();</b>
+<i class="no-highlight">446</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">447</i>&nbsp;            objects.clear();</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;        } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;            LOG.error(ERR_WRITE_GROUP, e);</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;            errorViews.write((SnapDataException) new SnapDataException(e, ERR_WRITE_GROUP)</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE));</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;        }</b>
+<i class="no-highlight">454</i>&nbsp;    }
+<i class="no-highlight">455</i>&nbsp;
+<i class="no-highlight">456</i>&nbsp;    private void updateStatus() {
+<b class="nc"><i class="no-highlight">457</i>&nbsp;        if (groupSizeAccum.count() == 0) {</b>
+<i class="no-highlight">458</i>&nbsp;            return;
+<i class="no-highlight">459</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">460</i>&nbsp;        if (dynamicMode) {</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;            statusReporter.notify(DYN_STATUS_MESSAGE,</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                    groupSizeAccum.min(), groupSizeAccum.max(), groupSizeAccum.mean(),</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                    partSizeAccum.min(), partSizeAccum.max(), partSizeAccum.mean(),</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                    numPartsAccum.min(), numPartsAccum.max(), numPartsAccum.mean(),</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                    availMem * 100, availMemAccum.min() * 100, availMemAccum.max() * 100, availMemAccum.mean() * 100,</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                    gcCount);</b>
+<i class="no-highlight">467</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">468</i>&nbsp;            statusReporter.notify(SIMPLE_STATUS_MESSAGE,</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                    groupSizeAccum.min(), groupSizeAccum.max(), groupSizeAccum.mean());</b>
+<i class="no-highlight">470</i>&nbsp;        }
+<i class="no-highlight">471</i>&nbsp;    }
+<i class="no-highlight">472</i>&nbsp;
+<i class="no-highlight">473</i>&nbsp;    @Override
+<i class="no-highlight">474</i>&nbsp;    public void pullDownstreamInputSchema(final SchemaProvider schemaProvider, final String name,
+<i class="no-highlight">475</i>&nbsp;            final ObjectSchema downstreamSchema, final String view, final ObjectSchema
+<i class="no-highlight">476</i>&nbsp;            inputSchema) {
+<b class="nc"><i class="no-highlight">477</i>&nbsp;        TransformUtils.mergeSchemaAtPath(downstreamSchema, inputSchema, targetField);</b>
+<i class="no-highlight">478</i>&nbsp;    }
+<i class="no-highlight">479</i>&nbsp;
+<i class="no-highlight">480</i>&nbsp;    @Override
+<i class="no-highlight">481</i>&nbsp;    public void propagateUpstreamOutputSchema(final SchemaProvider schemaProvider, final String
+<i class="no-highlight">482</i>&nbsp;            name, final ObjectSchema upstreamSchema, final String view, final ObjectSchema
+<i class="no-highlight">483</i>&nbsp;            outputSchema) {
+<i class="no-highlight">484</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">485</i>&nbsp;            outputSchema.fromString(targetField.join(JsonPaths.all()), upstreamSchema.toString());</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;            ObjectSchema groupBy = schemaProvider.createSchema(SnapType.COMPOSITE, &quot;groupBy&quot;);</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;            List&lt;ObjectNode&gt; leafs = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;            ObjectNode upstreamCopy =</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                    (ObjectNode) snapObjectMapper.readTree(upstreamSchema.toString());</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            for (JsonPath field : fields) {</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                JsonPathSchemaVisitor visitor = new JsonPathSchemaVisitor(upstreamCopy);</b>
+<i class="no-highlight">492</i>&nbsp;
+<i class="no-highlight">493</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                    List&lt;PathToken&gt; tokens = PathParser.parse(field.toString(), new</b>
+<i class="no-highlight">495</i>&nbsp;                            JsonPathExpressionService());
+<i class="no-highlight">496</i>&nbsp;
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                    visitor.visit(tokens.subList(1, tokens.size()));</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                    leafs.add(visitor.getSchemaStack().pop());</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;                    LOG.warn(&quot;Unable to parse path: {}&quot;, field, e);</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;            ObjectNode outSchema = new ObjectNode(JsonNodeFactory.instance);</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;            int index = 0;</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;            for (JsonPath field : fields) {</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                JsonPathSchemaVisitor visitor = new JsonPathSchemaVisitor(outSchema);</b>
+<i class="no-highlight">507</i>&nbsp;
+<i class="no-highlight">508</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">509</i>&nbsp;                    List&lt;PathToken&gt; tokens = PathParser.parse(field.toString(), new</b>
+<i class="no-highlight">510</i>&nbsp;                            JsonPathExpressionService());
+<i class="no-highlight">511</i>&nbsp;
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                    visitor.visit(tokens.subList(1, tokens.size()));</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                    visitor.getSchemaStack().peek().setAll(leafs.get(index));</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;                } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;                    LOG.warn(&quot;Unable to parse path: {}&quot;, field, e);</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;                index += 1;</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;            groupBy.fromTree(outSchema);</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;            outputSchema.addChild(groupBy);</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;            LOG.warn(&quot;Unable to parse upstream schema&quot;, e);</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;        }</b>
+<i class="no-highlight">524</i>&nbsp;    }
+<i class="no-highlight">525</i>&nbsp;
+<i class="no-highlight">526</i>&nbsp;    @Override
+<i class="no-highlight">527</i>&nbsp;    public ReconfigurationDetails getReconfigurationDetails() {
+<b class="nc"><i class="no-highlight">528</i>&nbsp;        return new ReconfigurationDetailsForStateful() {</b>
+<i class="no-highlight">529</i>&nbsp;            @Override
+<i class="no-highlight">530</i>&nbsp;            public Optional&lt;ReconfigurationMessage&gt; singleLineage() {
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                return Optional.of(SEPARATE_DOC_MSG);</b>
+<i class="no-highlight">532</i>&nbsp;            }
+<i class="no-highlight">533</i>&nbsp;        };
+<i class="no-highlight">534</i>&nbsp;    }
+<i class="no-highlight">535</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,352 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DlpAndBqRewriteDatabaseImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt.windowfuncs_rewriter</a>
+</div>
+
+<h1>Coverage Summary for Class: DlpAndBqRewriteDatabaseImpl (com.snaplogic.snaps.elt.windowfuncs_rewriter)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DlpAndBqRewriteDatabaseImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/70)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt.windowfuncs_rewriter;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snaps.elt.utils.EltUtils;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">16</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">19</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">20</i>&nbsp;import java.util.List;
+<i class="no-highlight">21</i>&nbsp;import java.util.Locale;
+<i class="no-highlight">22</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.EMPTY_STRING;
+<i class="no-highlight">25</i>&nbsp;import static com.snaplogic.snaps.elt.windowfuncs_rewriter.RewriteConstants.*;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;/**
+<i class="no-highlight">28</i>&nbsp; * The Databricks Lakehouse Platform linear regression functions rewrite database.
+<i class="no-highlight">29</i>&nbsp; */
+<i class="no-highlight">30</i>&nbsp;public abstract class DlpAndBqRewriteDatabaseImpl implements RewriteDatabase {
+<b class="nc"><i class="no-highlight">31</i>&nbsp;    public DlpAndBqRewriteDatabaseImpl() {</b>
+<i class="no-highlight">32</i>&nbsp;    }
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;    protected abstract String getDecimalType();
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;    @Override
+<i class="no-highlight">37</i>&nbsp;    public String rewriteFormulae(String functionName,
+<i class="no-highlight">38</i>&nbsp;                                  String field1Str, String field2Str,
+<i class="no-highlight">39</i>&nbsp;                                  String inputString, String randomString,
+<i class="no-highlight">40</i>&nbsp;                                  String partitionByFieldsList) {
+<b class="nc"><i class="no-highlight">41</i>&nbsp;        String rewrittenSqlStr = EMPTY_STRING;</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;        String field1 = field1Str;</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;        String field2 = field2Str;</b>
+<i class="no-highlight">44</i>&nbsp;
+<b class="nc"><i class="no-highlight">45</i>&nbsp;        switch (functionName.toUpperCase(Locale.ROOT)) {</b>
+<i class="no-highlight">46</i>&nbsp;            case &quot;REGR_AVGX&quot;:
+<b class="nc"><i class="no-highlight">47</i>&nbsp;                rewrittenSqlStr = regrAvgxRewrite(field2);</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;                break;</b>
+<i class="no-highlight">49</i>&nbsp;            case &quot;REGR_AVGY&quot;:
+<b class="nc"><i class="no-highlight">50</i>&nbsp;                rewrittenSqlStr = regrAvgyRewrite(field1);</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;                break;</b>
+<i class="no-highlight">52</i>&nbsp;            case &quot;REGR_COUNT&quot;:
+<b class="nc"><i class="no-highlight">53</i>&nbsp;                rewrittenSqlStr = regrCountRewrite();</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;                break;</b>
+<i class="no-highlight">55</i>&nbsp;            case &quot;REGR_INTERCEPT&quot;:
+<b class="nc"><i class="no-highlight">56</i>&nbsp;                rewrittenSqlStr = regrInterceptRewrite(field1, field2);</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;                break;</b>
+<i class="no-highlight">58</i>&nbsp;            case &quot;REGR_R2&quot;:
+<b class="nc"><i class="no-highlight">59</i>&nbsp;                rewrittenSqlStr = regrR2Rewrite(</b>
+<i class="no-highlight">60</i>&nbsp;                        field1, field2, inputString, randomString, partitionByFieldsList);
+<b class="nc"><i class="no-highlight">61</i>&nbsp;                break;</b>
+<i class="no-highlight">62</i>&nbsp;            case &quot;REGR_SLOPE&quot;:
+<b class="nc"><i class="no-highlight">63</i>&nbsp;                rewrittenSqlStr = regrSlopeRewrite(field1, field2);</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;                break;</b>
+<i class="no-highlight">65</i>&nbsp;            case &quot;REGR_SXX&quot;:
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                rewrittenSqlStr = regrSxxRewrite(field2);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;                break;</b>
+<i class="no-highlight">68</i>&nbsp;            case &quot;REGR_SXY&quot;:
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                rewrittenSqlStr = regrSxyRewrite(field1, field2);</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                break;</b>
+<i class="no-highlight">71</i>&nbsp;            case &quot;REGR_SYY&quot;:
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                rewrittenSqlStr = regrSyyRewrite(field1);</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                break;</b>
+<i class="no-highlight">74</i>&nbsp;            case &quot;MODE&quot;:
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                rewrittenSqlStr = mode(partitionByFieldsList, field1, inputString, randomString);</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                break;</b>
+<i class="no-highlight">77</i>&nbsp;            case &quot;KURTOSIS&quot;:
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                rewrittenSqlStr = kurtosis(field1);</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                break;</b>
+<i class="no-highlight">80</i>&nbsp;            case &quot;SKEW&quot;:
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                rewrittenSqlStr = skew(field1);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                break;</b>
+<i class="no-highlight">83</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                EltUtils.throwInvalidFunctionException(functionName);</b>
+<i class="no-highlight">85</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        return rewrittenSqlStr;</b>
+<i class="no-highlight">87</i>&nbsp;    }
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;    /**
+<i class="no-highlight">90</i>&nbsp;     * Rewrite REGR_AVGX window function and return the rewritten SQL string.
+<i class="no-highlight">91</i>&nbsp;     */
+<i class="no-highlight">92</i>&nbsp;    protected String regrAvgxRewrite(String field2) {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        return String.format(REGR_AVGX_REWRITE_FOR_DLP_AND_BQ_NO_OVER_FMT, field2, field2);</b>
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    /**
+<i class="no-highlight">97</i>&nbsp;     * Rewrite REGR_AVGY window function and return the rewritten SQL string.
+<i class="no-highlight">98</i>&nbsp;     */
+<i class="no-highlight">99</i>&nbsp;    protected String regrAvgyRewrite(String field1) {
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        return String.format(REGR_AVGY_REWRITE_FOR_DLP_AND_BQ_NO_OVER_FMT, field1, field1);</b>
+<i class="no-highlight">101</i>&nbsp;    }
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;    /**
+<i class="no-highlight">104</i>&nbsp;     * Rewrite REGR_COUNT window function and return the rewritten SQL string.
+<i class="no-highlight">105</i>&nbsp;     */
+<i class="no-highlight">106</i>&nbsp;    protected String regrCountRewrite() {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        return REGR_COUNT_REWRITE_FOR_DLP_AND_BQ_NO_OVER_FMT;</b>
+<i class="no-highlight">108</i>&nbsp;    }
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    /**
+<i class="no-highlight">111</i>&nbsp;     * Rewrite REGR_INTERCEPT window function and return the rewritten SQL string.
+<i class="no-highlight">112</i>&nbsp;     */
+<i class="no-highlight">113</i>&nbsp;    protected String regrInterceptRewrite(String field1, String field2) {
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        return String.format(REGR_INTERCEPT_REWRITE_FOR_DLP_AND_BQ_NO_OVER_FMT,</b>
+<i class="no-highlight">115</i>&nbsp;                field1, field1, field1, field2, field1, field2, field2, field2, field2);
+<i class="no-highlight">116</i>&nbsp;    }
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;    /**
+<i class="no-highlight">119</i>&nbsp;     * Rewrite REGR_R2 window function and return the rewritten SQL string.
+<i class="no-highlight">120</i>&nbsp;     */
+<i class="no-highlight">121</i>&nbsp;    protected String regrR2Rewrite(String field1,
+<i class="no-highlight">122</i>&nbsp;                                   String field2,
+<i class="no-highlight">123</i>&nbsp;                                   String inputString,
+<i class="no-highlight">124</i>&nbsp;                                   String randomString,
+<i class="no-highlight">125</i>&nbsp;                                   String partitionByFieldsList) {
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        String exprString = EMPTY_STRING;</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        if (StringUtils.isBlank(partitionByFieldsList)) {</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;            exprString = String.format(REGR_R2_REWRITE_FOR_DLP_AND_BQ_NO_PARTITION_BY_NO_OVER_FMT,</b>
+<i class="no-highlight">129</i>&nbsp;                    field1, field1, field2, field2, field1, field2, field1, field2, field1,
+<i class="no-highlight">130</i>&nbsp;                    inputString, randomString, field1, field2);
+<i class="no-highlight">131</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            String powerSubqueryAlias = String.format(POWER_SUBQUERY_ALIAS_FMT, randomString);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            exprString = String.format(REGR_R2_REWRITE_FOR_DLP_AND_BQ_NO_OVER_FMT,</b>
+<i class="no-highlight">134</i>&nbsp;                    field1, field1, field2, field2, field1, field2, field1, field2, field1,
+<i class="no-highlight">135</i>&nbsp;                    powerSubqueryAlias, inputString, randomString, field1, field2,
+<i class="no-highlight">136</i>&nbsp;                    partitionByFieldsList, powerSubqueryAlias);
+<i class="no-highlight">137</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        return exprString;</b>
+<i class="no-highlight">139</i>&nbsp;    }
+<i class="no-highlight">140</i>&nbsp;
+<i class="no-highlight">141</i>&nbsp;    /**
+<i class="no-highlight">142</i>&nbsp;     * Rewrite REGR_SLOPE window function and return the rewritten SQL string.
+<i class="no-highlight">143</i>&nbsp;     */
+<i class="no-highlight">144</i>&nbsp;    protected String regrSlopeRewrite(String field1, String field2) {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        return String.format(REGR_SLOPE_REWRITE_FOR_DLP_AND_BQ_NO_OVER_FMT,</b>
+<i class="no-highlight">146</i>&nbsp;                field1, field2, field1, field2, field2);
+<i class="no-highlight">147</i>&nbsp;    }
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;    /**
+<i class="no-highlight">150</i>&nbsp;     * Rewrite REGR_SXX window function and return the rewritten SQL string.
+<i class="no-highlight">151</i>&nbsp;     */
+<i class="no-highlight">152</i>&nbsp;    protected String regrSxxRewrite(String field2) {
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        return String.format(REGR_SXX_REWRITE_FOR_DLP_AND_BQ_NO_OVER_FMT, field2);</b>
+<i class="no-highlight">154</i>&nbsp;    }
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;    /**
+<i class="no-highlight">157</i>&nbsp;     * Rewrite REGR_SXY window function and return the rewritten SQL string.
+<i class="no-highlight">158</i>&nbsp;     */
+<i class="no-highlight">159</i>&nbsp;    protected String regrSxyRewrite(String field1, String field2) {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        return String.format(REGR_SXY_REWRITE_FOR_DLP_AND_BQ_NO_OVER_FMT,</b>
+<i class="no-highlight">161</i>&nbsp;                field2, field1, field2, field1);
+<i class="no-highlight">162</i>&nbsp;    }
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;    /**
+<i class="no-highlight">165</i>&nbsp;     * Rewrite REGR_SYY window function and return the rewritten SQL string.
+<i class="no-highlight">166</i>&nbsp;     */
+<i class="no-highlight">167</i>&nbsp;    protected String regrSyyRewrite(String field1) {
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        return String.format(REGR_SYY_REWRITE_FOR_DLP_AND_BQ_NO_OVER_FMT, field1);</b>
+<i class="no-highlight">169</i>&nbsp;    }
+<i class="no-highlight">170</i>&nbsp;
+<i class="no-highlight">171</i>&nbsp;    protected String mode(String partitionByFieldsList, String field, String inputString,
+<i class="no-highlight">172</i>&nbsp;                          String randomString) {
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        String groupByClause = (StringUtils.isBlank(partitionByFieldsList))</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                ? String.format(&quot;GROUP BY a1.%s&quot;, field)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                : String.format(&quot;GROUP BY %s, a1.%s&quot;, partitionByFieldsList, field);</b>
+<i class="no-highlight">178</i>&nbsp;
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        String partitionByClause = (StringUtils.isBlank(partitionByFieldsList))</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                ? &quot;ORDER BY count(*) DESC&quot;</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                : String.format(&quot;PARTITION BY %s ORDER BY count(*) DESC&quot;, partitionByFieldsList);</b>
+<i class="no-highlight">182</i>&nbsp;
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        String groupByFieldsWithAliasesWithComa = StringUtils.isBlank(partitionByFieldsList)</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                ? &quot;&quot;</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                : String.format(&quot;%s,&quot;, partitionByFieldsList);</b>
+<i class="no-highlight">186</i>&nbsp;
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        String selectListClause = String.format(&quot;%s a1.%s modeValue&quot;,</b>
+<i class="no-highlight">188</i>&nbsp;                groupByFieldsWithAliasesWithComa, field);
+<i class="no-highlight">189</i>&nbsp;
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        List&lt;String&gt; partitionByFields = StringUtils.isBlank(partitionByFieldsList)</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                ? new ArrayList&lt;&gt;()</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                : Arrays.stream(StringUtils.split(partitionByFieldsList,</b>
+<i class="no-highlight">193</i>&nbsp;                        &quot;,&quot;))
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                .map(String::trim)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .collect(Collectors.toList());</b>
+<i class="no-highlight">196</i>&nbsp;
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        String whereClause = (CollectionUtils.isEmpty(partitionByFields))</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                ? &quot;&quot;</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                : String.format(&quot;AND %s&quot;, partitionByFields.stream()</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                .map(groupByField -&gt; String.format(&quot;a2.%s = %s.%s&quot;,</b>
+<i class="no-highlight">201</i>&nbsp;                        groupByField, randomString, groupByField))
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .collect(Collectors.joining(&quot; AND &quot;)));</b>
+<i class="no-highlight">203</i>&nbsp;
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        return String.format(&quot;MAX((SELECT MAX(a2.modeValue) FROM (&quot; +</b>
+<i class="no-highlight">205</i>&nbsp;                        &quot;    SELECT %s, row_number() &quot; +
+<i class="no-highlight">206</i>&nbsp;                        &quot;       OVER (%s) AS seqnum  FROM (%s) a1 WHERE a1.%s IS NOT NULL %s) a2 &quot; +
+<i class="no-highlight">207</i>&nbsp;                        &quot;       WHERE seqnum = 1 %s ))&quot;, selectListClause,
+<i class="no-highlight">208</i>&nbsp;                partitionByClause, inputString, field, groupByClause, whereClause);
+<i class="no-highlight">209</i>&nbsp;    }
+<i class="no-highlight">210</i>&nbsp;
+<i class="no-highlight">211</i>&nbsp;    protected String kurtosis(String field) {
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        String castedField = String.format(&quot;CAST(%s as %s)&quot;, field, getDecimalType());</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        return String.format(&quot;(CASE&quot; +</b>
+<i class="no-highlight">214</i>&nbsp;                        &quot; WHEN (POWER(STDDEV(%s),4) * (COUNT(%s) - 2) * &quot; +
+<i class="no-highlight">215</i>&nbsp;                        &quot;(COUNT(%s) - 1) * (COUNT(%s) - 3) = 0)&quot; +
+<i class="no-highlight">216</i>&nbsp;                        &quot;     then null&quot; +
+<i class="no-highlight">217</i>&nbsp;                        &quot; ELSE&quot; +
+<i class="no-highlight">218</i>&nbsp;                        &quot; (SUM(POWER(%s, 4))-4*SUM(POWER(%s, 3))*AVG(%s)+&quot; +
+<i class="no-highlight">219</i>&nbsp;                        &quot;6*SUM(POWER(%s, 2))*POWER(AVG(%s),2)-4*SUM(%s)*&quot; +
+<i class="no-highlight">220</i>&nbsp;                        &quot;POWER(AVG(%s),3)+COUNT(%s)*POWER(AVG(%s),4))&quot; +
+<i class="no-highlight">221</i>&nbsp;                        &quot; / POWER(STDDEV(%s),4)* COUNT(%s) *(COUNT(%s) + 1)/&quot; +
+<i class="no-highlight">222</i>&nbsp;                        &quot;(COUNT(%s) - 1)/(COUNT(%s) - 2)/(COUNT(%s) - 3)&quot; +
+<i class="no-highlight">223</i>&nbsp;                        &quot; - 3.0 * (COUNT(%s) - 1) * (COUNT(%s) - 1) / &quot; +
+<i class="no-highlight">224</i>&nbsp;                        &quot;(COUNT(%s) - 2) / (COUNT(%s) - 3) end)&quot;,
+<i class="no-highlight">225</i>&nbsp;                castedField, castedField, castedField, castedField, castedField, castedField, 
+<i class="no-highlight">226</i>&nbsp;                castedField, castedField, castedField, castedField, castedField, castedField,
+<i class="no-highlight">227</i>&nbsp;                castedField, castedField, castedField, castedField, castedField, castedField, 
+<i class="no-highlight">228</i>&nbsp;                castedField, castedField, castedField, castedField, castedField);
+<i class="no-highlight">229</i>&nbsp;    }
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;    protected String skew(String field) {
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        String castedField = String.format(&quot;CAST(%s as %s)&quot;, field, getDecimalType());</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        return String.format(&quot;CASE&quot; +</b>
+<i class="no-highlight">234</i>&nbsp;                        &quot; WHEN (((COUNT(%s) - 1) *&quot; +
+<i class="no-highlight">235</i>&nbsp;                        &quot; (COUNT(%s) - 2)) = 0)&quot; +
+<i class="no-highlight">236</i>&nbsp;                        &quot;     then null&quot; +
+<i class="no-highlight">237</i>&nbsp;                        &quot; ELSE&quot; +
+<i class="no-highlight">238</i>&nbsp;                        &quot; ((SUM(POWER(%s, 3)) - 3 * SUM(POWER(%s, 2)) * &quot; +
+<i class="no-highlight">239</i>&nbsp;                        &quot;AVG(%s) + 3 * SUM(%s) * &quot; +
+<i class="no-highlight">240</i>&nbsp;                        &quot;POWER(AVG(%s),2) - COUNT(%s) * POWER(AVG(%s),3)) / &quot; +
+<i class="no-highlight">241</i>&nbsp;                        &quot;POWER(STDDEV(%s), 3) * COUNT(%s) /&quot; +
+<i class="no-highlight">242</i>&nbsp;                        &quot; (COUNT(%s) - 1) / (COUNT(%s) - 2)) END&quot;,
+<i class="no-highlight">243</i>&nbsp;                castedField, castedField, castedField, castedField, castedField, castedField,
+<i class="no-highlight">244</i>&nbsp;                castedField, castedField, castedField, castedField, castedField, castedField,
+<i class="no-highlight">245</i>&nbsp;                castedField);
+<i class="no-highlight">246</i>&nbsp;    }
+<i class="no-highlight">247</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

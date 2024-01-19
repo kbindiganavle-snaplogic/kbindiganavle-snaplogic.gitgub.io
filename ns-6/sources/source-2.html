@@ -1,0 +1,194 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AvroToDocumentConverter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.avro</a>
+</div>
+
+<h1>Coverage Summary for Class: AvroToDocumentConverter (com.snaplogic.avro)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AvroToDocumentConverter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/43)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">7</i>&nbsp; *
+<i class="no-highlight">8</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">9</i>&nbsp; */
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.avro;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import org.apache.avro.Schema;
+<i class="no-highlight">14</i>&nbsp;import org.apache.avro.generic.GenericArray;
+<i class="no-highlight">15</i>&nbsp;import org.apache.avro.generic.GenericEnumSymbol;
+<i class="no-highlight">16</i>&nbsp;import org.apache.avro.generic.GenericFixed;
+<i class="no-highlight">17</i>&nbsp;import org.apache.avro.generic.GenericRecord;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import java.math.BigDecimal;
+<i class="no-highlight">20</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">21</i>&nbsp;import java.nio.ByteBuffer;
+<i class="no-highlight">22</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">23</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">24</i>&nbsp;import java.util.List;
+<i class="no-highlight">25</i>&nbsp;import java.util.Map;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;/**
+<i class="no-highlight">28</i>&nbsp; * Converts an Avro object such as GenericRecord to a Document/JSON-compatible object such as Map.
+<i class="no-highlight">29</i>&nbsp; * This would be used by an Avro deserializer/parser/consumer after deserializing a binary input
+<i class="no-highlight">30</i>&nbsp; * stream in Avro format to an Avro object structure.
+<i class="no-highlight">31</i>&nbsp; */
+<b class="nc"><i class="no-highlight">32</i>&nbsp;public class AvroToDocumentConverter {</b>
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;    /**
+<i class="no-highlight">35</i>&nbsp;     * Converts an Avro object to the corresponding JSON/Document-compatible type.
+<i class="no-highlight">36</i>&nbsp;     * In most cases, the root object is a compound type (record or array), so the conversion
+<i class="no-highlight">37</i>&nbsp;     * process is recursive. For example, this method will convert a GenericArray to an ArrayList
+<i class="no-highlight">38</i>&nbsp;     * and then call itself recursively to convert each element of the array.
+<i class="no-highlight">39</i>&nbsp;     * @param obj A deserialized Avro object (GenericRecord, GenericArray, etc).
+<i class="no-highlight">40</i>&nbsp;     * @return A JSON/Document-compatible object (Map, List, BigInteger, etc).
+<i class="no-highlight">41</i>&nbsp;     */
+<i class="no-highlight">42</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">43</i>&nbsp;    public Object convertAvroToDocObj(Object obj) {
+<b class="nc"><i class="no-highlight">44</i>&nbsp;        if (obj == null) {</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;        } else if (obj instanceof GenericRecord) {</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;            GenericRecord src = (GenericRecord) obj;</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;            List&lt;Schema.Field&gt; fields = src.getSchema().getFields();</b>
+<b class="nc"><i class="no-highlight">49</i>&nbsp;            Map&lt;String, Object&gt; dst = new LinkedHashMap&lt;&gt;(fields.size());</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;            for (Schema.Field field : fields) {</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;                dst.put(field.name(), convertAvroToDocObj(src.get(field.name())));</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;            return dst;</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;        } else if (obj instanceof GenericArray) {</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;            GenericArray&lt;Object&gt; src = (GenericArray&lt;Object&gt;) obj;</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;            List&lt;Object&gt; dst = new ArrayList&lt;&gt;(src.size());</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;            for (Object elem : src) {</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;                dst.add(convertAvroToDocObj(elem));</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;            return dst;</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;        } else if (obj instanceof ByteBuffer) {</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;            ByteBuffer src = (ByteBuffer) obj;</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;            byte[] dst = new byte[src.rewind().remaining()];</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;            src.get(dst);</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;            return dst;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        } else if (obj instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;            Map&lt;CharSequence, Object&gt; src = (Map&lt;CharSequence, Object&gt;) obj;</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            Map&lt;String, Object&gt; dst = new LinkedHashMap&lt;&gt;(src.size());</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;            src.forEach((key, val) -&gt; dst.put(key.toString(), convertAvroToDocObj(val)));</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;            return dst;</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        } else if (obj instanceof GenericFixed) {</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;            return ((GenericFixed) obj).bytes();</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        } else if (obj instanceof CharSequence) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            return obj.toString();</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        } else if (obj instanceof GenericEnumSymbol) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            return obj.toString();</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        } else if (obj instanceof Integer) {</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;            return BigInteger.valueOf(((Integer) obj));</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        } else if (obj instanceof Long) {</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;            return BigInteger.valueOf(((Long) obj));</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        } else if (obj instanceof Float) {</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;            return BigDecimal.valueOf(((Float) obj));</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        } else if (obj instanceof Double) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;            return BigDecimal.valueOf(((Double) obj));</b>
+<i class="no-highlight">85</i>&nbsp;        } else { // Boolean
+<b class="nc"><i class="no-highlight">86</i>&nbsp;            return obj;</b>
+<i class="no-highlight">87</i>&nbsp;        }
+<i class="no-highlight">88</i>&nbsp;    }
+<i class="no-highlight">89</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

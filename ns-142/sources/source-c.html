@@ -1,0 +1,457 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RestResponseIterator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.response</a>
+</div>
+
+<h1>Coverage Summary for Class: RestResponseIterator (com.snaplogic.snaps.salesforce.response)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RestResponseIterator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/143)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RestResponseIterator$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">RestResponseIterator$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/145)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.response;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.core.JsonProcessingException;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.core.type.TypeReference;
+<i class="no-highlight">15</i>&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.net.HttpHeaders;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.JsonFactoryModule;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snaps.salesforce.FailsafeHelper;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snaps.salesforce.common.SalesforceObjectMapper;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snaps.salesforce.request.HttpRequestHandler;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snaps.salesforce.sync.output.RestReadResult;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import org.apache.commons.codec.binary.Base64;
+<i class="no-highlight">29</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">30</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">31</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">34</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">35</i>&nbsp;import java.net.SocketException;
+<i class="no-highlight">36</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">37</i>&nbsp;import java.util.List;
+<i class="no-highlight">38</i>&nbsp;import java.util.Map;
+<i class="no-highlight">39</i>&nbsp;import java.util.Queue;
+<i class="no-highlight">40</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">43</i>&nbsp;import net.jodah.failsafe.FailsafeException;
+<i class="no-highlight">44</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.salesforce.SFReadCommon.MAX_CHUNK_SIZE;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.salesforce.SFWriteCommon.KEY_RECORDS;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceCommon.FORMAT_APPEND;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceCommon.sleep;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.salesforce.response.Messages.*;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;/**
+<i class="no-highlight">53</i>&nbsp; * Stores response data in a blocking queue and provides an iterator for REST API read-type
+<i class="no-highlight">54</i>&nbsp; * operations.
+<i class="no-highlight">55</i>&nbsp; *
+<i class="no-highlight">56</i>&nbsp; * @author psung, terry
+<i class="no-highlight">57</i>&nbsp; */
+<i class="no-highlight">58</i>&nbsp;public class RestResponseIterator extends ResponseIterator {
+<b class="nc"><i class="no-highlight">59</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(RestResponseIterator.class);</b>
+<i class="no-highlight">60</i>&nbsp;    private static final String QUERY_TAG_DONE = &quot;done&quot;;
+<i class="no-highlight">61</i>&nbsp;    private static final String QUERY_TAG_NEXT_RECORDS = &quot;nextRecordsUrl&quot;;
+<i class="no-highlight">62</i>&nbsp;    private static final String PATTERN_SERVICES = &quot;/services&quot;;
+<i class="no-highlight">63</i>&nbsp;    private static final String KEY_ATTRIBUTES = &quot;attributes&quot;;
+<i class="no-highlight">64</i>&nbsp;    private static final String CONTENT = &quot;content&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String SEARCH_RECORDS = &quot;searchRecords&quot;;
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    private static final SalesforceObjectMapper SF_OBJECT_MAPPER = new SalesforceObjectMapper();</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;    protected Queue&lt;RestReadResult&gt; restInfoQueue = Lists.newLinkedList();</b>
+<i class="no-highlight">68</i>&nbsp;    private final AbstractResponse&lt;RestReadResult&gt; restResponse;
+<b class="nc"><i class="no-highlight">69</i>&nbsp;    private InputStream inputStream = null;</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    private Iterator&lt;Map&lt;String, Object&gt;&gt; recordIterator = null;</b>
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;    public RestResponseIterator(Options options, Login loginInfo, List&lt;Object&gt; resultList,
+<i class="no-highlight">73</i>&nbsp;            AbstractResponse&lt;RestReadResult&gt; response) {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        super(options, loginInfo);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        restResponse = response;</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        for (Object object : resultList) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;            restInfoQueue.add((RestReadResult) object);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        }</b>
+<i class="no-highlight">79</i>&nbsp;    }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    @Override
+<i class="no-highlight">82</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">83</i>&nbsp;    protected void fetchResult() {
+<i class="no-highlight">84</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">85</i>&nbsp;            if (restInfoQueue.isEmpty() &amp;&amp; recordIterator == null) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                hasMoreRecords = false;</b>
+<i class="no-highlight">87</i>&nbsp;                return;
+<i class="no-highlight">88</i>&nbsp;            }
+<i class="no-highlight">89</i>&nbsp;            // read a record from input stream
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            Object object = getDataFromInputStream();</b>
+<i class="no-highlight">91</i>&nbsp;            // if the object read is null, wrap up the end of the input stream
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            if (object == null) {</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                if (!restInfoQueue.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    fetchResult();</b>
+<i class="no-highlight">95</i>&nbsp;                }
+<i class="no-highlight">96</i>&nbsp;            } else {
+<i class="no-highlight">97</i>&nbsp;                // remove &quot;attributes&quot; data from the record
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                ((Map&lt;String, Object&gt;) object).remove(KEY_ATTRIBUTES);</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                put(object);</b>
+<i class="no-highlight">100</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        } catch (JsonProcessingException e) {</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            String reason = String.format(ERR_RESPONSE_PARSING_REASON, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            throw new ExecutionException(e, ERR_RESPONSE_PARSING)</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        } catch (SocketException | InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            String reason = String.format(ERR_RESPONSE_INTERRUPTED_REASON, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            throw new ExecutionException(e, ERR_RESPONSE_INTERRUPTED)</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                    .withResolution(ERR_RESPONSE_INTERRUPTED_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;            String reason = String.format(ERR_RESPONSE_HANDLING_REASON, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            throw new ExecutionException(e, ERR_RESPONSE_HANDLING)</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        }</b>
+<i class="no-highlight">117</i>&nbsp;    }
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;    private InputStream getInputStream(RestReadResult readResult) {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        RetryPolicy retryPolicy = FailsafeHelper.newRetryPolicy(options)</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                .withMaxRetries(options.getRetries())</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .retryOn(ExecutionException.class);</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        return  Failsafe.with(retryPolicy)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .onFailedAttempt(ex -&gt; LOG.warn(&quot;Failed while getting inputStream from URL: {}, {}&quot;,</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                        readResult.getNextRecordsUrl(), ex.toString()))</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .get(context -&gt; {</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                    LOG.warn(&quot;Retry attempt: {}&quot;, context.getExecutions());</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                    return readResult.getInputStream();</b>
+<i class="no-highlight">129</i>&nbsp;                });
+<i class="no-highlight">130</i>&nbsp;    }
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;    private Map&lt;String, Object&gt; getDataFromInputStream() throws IOException, InterruptedException {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        if (recordIterator == null) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            RestReadResult readResult = restInfoQueue.poll();</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            inputStream = getInputStream(readResult);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            switch (options.getSnapName()) {</b>
+<i class="no-highlight">137</i>&nbsp;                case READ:
+<i class="no-highlight">138</i>&nbsp;                case QUERY:
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    return fetchQueryResult(readResult);</b>
+<i class="no-highlight">140</i>&nbsp;                case SEARCH:
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                    return fetchSearchResult();</b>
+<i class="no-highlight">142</i>&nbsp;                case ATTACHMENT_DOWNLOAD:
+<i class="no-highlight">143</i>&nbsp;                    // read the entire content of one batch into memory
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                    byte[] buffer = IOUtils.toByteArray(inputStream);</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                    IOUtils.closeQuietly(inputStream);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                    Map&lt;String, Object&gt; contentMap = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                    if (Base64.isBase64(buffer)) {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                        buffer = Base64.decodeBase64(buffer);</b>
+<i class="no-highlight">149</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                    contentMap.put(HttpHeaders.CONTENT_TYPE, restResponse.responseContentType);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                    contentMap.put(CONTENT, buffer);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                    return contentMap;</b>
+<i class="no-highlight">153</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                    throw new ExecutionException(ERR_UNSUPPORTED_SNAP)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                            .withReason(ERR_UNSUPPORTED_SNAP)</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                            .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<i class="no-highlight">157</i>&nbsp;            }
+<i class="no-highlight">158</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">159</i>&nbsp;            if (recordIterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                return recordIterator.next();</b>
+<i class="no-highlight">161</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                close();</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                return null;</b>
+<i class="no-highlight">164</i>&nbsp;            }
+<i class="no-highlight">165</i>&nbsp;        }
+<i class="no-highlight">166</i>&nbsp;    }
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">169</i>&nbsp;    private Map&lt;String, Object&gt; fetchQueryResult(RestReadResult restReadResult) throws IOException {
+<i class="no-highlight">170</i>&nbsp;        Map&lt;String, Object&gt; jsonMap;
+<i class="no-highlight">171</i>&nbsp;        try {
+<i class="no-highlight">172</i>&nbsp;            // get the top-level map data
+<b class="nc"><i class="no-highlight">173</i>&nbsp;            jsonMap = SF_OBJECT_MAPPER.readValue(inputStream);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            if (options.getRetries() &lt; 1) {</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                throw e;</b>
+<i class="no-highlight">177</i>&nbsp;            }
+<i class="no-highlight">178</i>&nbsp;            // retry the query execution, and then parse the query result again
+<b class="nc"><i class="no-highlight">179</i>&nbsp;            LOG.warn(&quot;Failed to parse query result, retrying to execute query in REST API, {}&quot;,</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                    e.getMessage());</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;            sleep(options.getRetryInterval(), TimeUnit.SECONDS);</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            HttpRequestHandler httpRequestHandler = restReadResult.getRestReadResponse()</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                    .getHttpRequestHandler();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;            httpRequestHandler.setDoRetry(false);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            jsonMap = retryFetchQueryResult(restReadResult);</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            httpRequestHandler.setDoRetry(true);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        }</b>
+<i class="no-highlight">188</i>&nbsp;        // if the done flag is false, there are more batches to download from Salesforce
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        boolean done = Boolean.TRUE.equals(jsonMap.get(QUERY_TAG_DONE));</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        if (!done) {</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;            String nextRecordsUrl = (String) jsonMap.get(QUERY_TAG_NEXT_RECORDS);</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            nextRecordsUrl = formatNextRecordsUrl(nextRecordsUrl);</b>
+<i class="no-highlight">193</i>&nbsp;            // input stream for next records should be opened when we are ready read the records,
+<i class="no-highlight">194</i>&nbsp;            // for the time being, add nextRecordUrl to restInfoQueue
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            RestReadResult readResult = new RestReadResult(false, 0, nextRecordsUrl, true, null,</b>
+<i class="no-highlight">196</i>&nbsp;                    (RestReadResponse) restResponse);
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            restInfoQueue.add(readResult);</b>
+<i class="no-highlight">198</i>&nbsp;        }
+<i class="no-highlight">199</i>&nbsp;        // get the iterator for the record list and return the first object
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        Object object = jsonMap.get(KEY_RECORDS);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        if (object instanceof List) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; records = (List&lt;Map&lt;String, Object&gt;&gt;) object;</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;            recordIterator = records.iterator();</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;            if (recordIterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                return recordIterator.next();</b>
+<i class="no-highlight">206</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;            LOG.debug(&quot;The &#39;records&#39; field in the SFDC response is expected to be a list of &quot; +</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                    &quot;maps, but received: {}&quot;, object == null ? &quot;null&quot; :</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                    object.getClass().getSimpleName());</b>
+<i class="no-highlight">211</i>&nbsp;        }
+<i class="no-highlight">212</i>&nbsp;        // return null if it is an empty record list
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        hasMoreRecords = false;</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        return null;</b>
+<i class="no-highlight">215</i>&nbsp;    }
+<i class="no-highlight">216</i>&nbsp;
+<i class="no-highlight">217</i>&nbsp;    private Map&lt;String, Object&gt; retryFetchQueryResult(RestReadResult readResult)
+<i class="no-highlight">218</i>&nbsp;            throws IOException {
+<i class="no-highlight">219</i>&nbsp;        try {
+<i class="no-highlight">220</i>&nbsp;            // The first try has already failed, numOfRetries should be reduced by 1.
+<b class="nc"><i class="no-highlight">221</i>&nbsp;            RetryPolicy retryPolicy = FailsafeHelper.newRetryPolicy(options)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                    .withMaxRetries(options.getRetries() - 1)</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                    .retryOn(IOException.class, ExecutionException.class);</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            return Failsafe.with(retryPolicy)</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                    .onFailedAttempt(ex -&gt; LOG.warn(&quot;Failed to execute REST API query: {}, {}&quot;,</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                            readResult.getNextRecordsUrl(), ex.toString()))</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                    .get(context -&gt; {</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                        LOG.warn(&quot;Retry attempt: {}&quot;, context.getExecutions() + 1);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                        IOUtils.closeQuietly(inputStream);</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                        RestReadResult restReadResult = new RestReadResult(false, 0,</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                                readResult.getNextRecordsUrl(), true, null,</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                                readResult.getRestReadResponse());</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                        inputStream = restReadResult.getInputStream();</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                        return SF_OBJECT_MAPPER.readValue(inputStream);</b>
+<i class="no-highlight">235</i>&nbsp;                    });
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        } catch (Throwable t) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;            Throwable t2 = t instanceof FailsafeException ? t.getCause() : t;</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;            if (t2 instanceof IOException) {</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                throw (IOException) t2;</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;            } else if (t2 instanceof ExecutionException) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                throw (ExecutionException) t2;</b>
+<i class="no-highlight">242</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            throw new IOException(t2.getMessage(), t2);</b>
+<i class="no-highlight">244</i>&nbsp;        }
+<i class="no-highlight">245</i>&nbsp;    }
+<i class="no-highlight">246</i>&nbsp;
+<i class="no-highlight">247</i>&nbsp;    private String formatNextRecordsUrl(String nextRecordsUrl) {
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        String serviceUrl = options.getServiceUrl();</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        int index = serviceUrl.indexOf(PATTERN_SERVICES);</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        return String.format(FORMAT_APPEND, serviceUrl.substring(0, index), nextRecordsUrl);</b>
+<i class="no-highlight">251</i>&nbsp;    }
+<i class="no-highlight">252</i>&nbsp;
+<i class="no-highlight">253</i>&nbsp;    /*
+<i class="no-highlight">254</i>&nbsp;     * The response data for REST API Search is a list of map records.
+<i class="no-highlight">255</i>&nbsp;     */
+<i class="no-highlight">256</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">257</i>&nbsp;    private Map&lt;String, Object&gt; fetchSearchResult() throws IOException {
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        ObjectMapper objectMapper = new ObjectMapper()</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                .registerModule(new JsonFactoryModule());</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        Object object = objectMapper.readValue(inputStream, new TypeReference&lt;Object&gt;() {});</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        if (object instanceof Map) {</b>
+<i class="no-highlight">262</i>&nbsp;            // Starting from REST API v.37, the SOSL response schema has been changed from List to
+<i class="no-highlight">263</i>&nbsp;            // Map data. The value of the key &#39;searchRecords&#39; is a List of Map data, which is the
+<i class="no-highlight">264</i>&nbsp;            // same as the schema of SOSL REST API prior to v.37.
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            Map&lt;String, Object&gt; map = (Map&lt;String, Object&gt;) object;</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            object = map.get(SEARCH_RECORDS);</b>
+<i class="no-highlight">267</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        if (object instanceof List) {</b>
+<i class="no-highlight">269</i>&nbsp;            // get the iterator for the record list and return the first object
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            recordIterator = ((List&lt;Map&lt;String, Object&gt;&gt;) object).iterator();</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            if (recordIterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                return recordIterator.next();</b>
+<i class="no-highlight">273</i>&nbsp;            }
+<i class="no-highlight">274</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">275</i>&nbsp;            throw new IOException(ERR_CANNOT_FIND_ARRAY);</b>
+<i class="no-highlight">276</i>&nbsp;        }
+<i class="no-highlight">277</i>&nbsp;        // return null if it is an empty record list
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        hasMoreRecords = false;</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        return null;</b>
+<i class="no-highlight">280</i>&nbsp;    }
+<i class="no-highlight">281</i>&nbsp;
+<i class="no-highlight">282</i>&nbsp;    public void close() {
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        close(inputStream, LOG);</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        IOUtils.closeQuietly(inputStream);</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        inputStream = null;</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        recordIterator = null;</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        hasMoreRecords = false;</b>
+<i class="no-highlight">288</i>&nbsp;    }
+<i class="no-highlight">289</i>&nbsp;
+<i class="no-highlight">290</i>&nbsp;    /**
+<i class="no-highlight">291</i>&nbsp;     * Flushes and closes input stream.
+<i class="no-highlight">292</i>&nbsp;     *
+<i class="no-highlight">293</i>&nbsp;     * @param inputStream - input stream
+<i class="no-highlight">294</i>&nbsp;     * @param logger      - logger to be used if it fails to close
+<i class="no-highlight">295</i>&nbsp;     */
+<i class="no-highlight">296</i>&nbsp;    //
+<i class="no-highlight">297</i>&nbsp;    public static void close(InputStream inputStream, Logger logger) {
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        if (inputStream != null) {</b>
+<i class="no-highlight">299</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                while (inputStream.skip(MAX_CHUNK_SIZE) &gt; 0);</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                inputStream.close();</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                logger.debug(e.getMessage());</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;            }</b>
+<i class="no-highlight">305</i>&nbsp;        }
+<i class="no-highlight">306</i>&nbsp;    }
+<i class="no-highlight">307</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

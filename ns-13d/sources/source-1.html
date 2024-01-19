@@ -1,0 +1,1146 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Bulk2Utils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.bulk2</a>
+</div>
+
+<h1>Coverage Summary for Class: Bulk2Utils (com.snaplogic.snaps.salesforce.bulk2)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Bulk2Utils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/440)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Bulk2Utils$RestResponseObject</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/449)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2019, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.bulk2;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.services.s3.Headers;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.core.JsonProcessingException;
+<i class="no-highlight">15</i>&nbsp;import com.fasterxml.jackson.databind.JsonMappingException;
+<i class="no-highlight">16</i>&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+<i class="no-highlight">17</i>&nbsp;import com.fasterxml.jackson.datatype.joda.JodaModule;
+<i class="no-highlight">18</i>&nbsp;import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+<i class="no-highlight">19</i>&nbsp;import com.google.common.base.Strings;
+<i class="no-highlight">20</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">21</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">22</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">23</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">24</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.account.api.Account;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.JsonFactoryModule;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.http.HttpSnapRedirectStrategy;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.rest.RestHttpClient;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snaps.salesforce.SalesforceMutualAuthAccount;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snaps.salesforce.response.SFAPIError;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">38</i>&nbsp;import org.apache.commons.csv.CSVFormat;
+<i class="no-highlight">39</i>&nbsp;import org.apache.commons.csv.CSVParser;
+<i class="no-highlight">40</i>&nbsp;import org.apache.commons.csv.CSVRecord;
+<i class="no-highlight">41</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">42</i>&nbsp;import org.apache.commons.lang3.ObjectUtils;
+<i class="no-highlight">43</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">44</i>&nbsp;import org.apache.http.Header;
+<i class="no-highlight">45</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">46</i>&nbsp;import org.apache.http.HttpHeaders;
+<i class="no-highlight">47</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">48</i>&nbsp;import org.apache.http.HttpStatus;
+<i class="no-highlight">49</i>&nbsp;import org.apache.http.StatusLine;
+<i class="no-highlight">50</i>&nbsp;import org.apache.http.auth.AUTH;
+<i class="no-highlight">51</i>&nbsp;import org.apache.http.client.methods.HttpDelete;
+<i class="no-highlight">52</i>&nbsp;import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+<i class="no-highlight">53</i>&nbsp;import org.apache.http.client.methods.HttpGet;
+<i class="no-highlight">54</i>&nbsp;import org.apache.http.client.methods.HttpPatch;
+<i class="no-highlight">55</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">56</i>&nbsp;import org.apache.http.client.methods.HttpPut;
+<i class="no-highlight">57</i>&nbsp;import org.apache.http.client.methods.HttpUriRequest;
+<i class="no-highlight">58</i>&nbsp;import org.apache.http.client.params.ClientPNames;
+<i class="no-highlight">59</i>&nbsp;import org.apache.http.client.protocol.HttpClientContext;
+<i class="no-highlight">60</i>&nbsp;import org.apache.http.entity.StringEntity;
+<i class="no-highlight">61</i>&nbsp;import org.apache.http.message.BasicHeader;
+<i class="no-highlight">62</i>&nbsp;import org.apache.http.util.EntityUtils;
+<i class="no-highlight">63</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">64</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">67</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">68</i>&nbsp;import java.io.InputStreamReader;
+<i class="no-highlight">69</i>&nbsp;import java.io.StringReader;
+<i class="no-highlight">70</i>&nbsp;import java.io.UnsupportedEncodingException;
+<i class="no-highlight">71</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">72</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">73</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">74</i>&nbsp;import java.util.List;
+<i class="no-highlight">75</i>&nbsp;import java.util.Map;
+<i class="no-highlight">76</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">77</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">78</i>&nbsp;import java.util.zip.GZIPInputStream;
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">81</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snap.api.http.Constants.FOLLOW_ORIGINAL_METHOD_CTX_KEY;
+<i class="no-highlight">84</i>&nbsp;import static com.snaplogic.snaps.salesforce.Messages.getResolutionPollTimeout;
+<i class="no-highlight">85</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceBulk2Common.LIST_MAP_OBJECT_REF;
+<i class="no-highlight">86</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceBulk2Common.MAP_REF;
+<i class="no-highlight">87</i>&nbsp;import static com.snaplogic.snaps.salesforce.bulk2.Constants.*;
+<i class="no-highlight">88</i>&nbsp;import static com.snaplogic.snaps.salesforce.bulk2.Messages.*;
+<i class="no-highlight">89</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.HttpRequestHandler.GZIP;
+<i class="no-highlight">90</i>&nbsp;import static com.snaplogic.snaps.salesforce.response.Messages.ERR_RESOURCE_NOT_FOUND;
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;import static org.apache.http.HttpStatus.SC_OK;
+<i class="no-highlight">93</i>&nbsp;
+<b class="nc"><i class="no-highlight">94</i>&nbsp;import static java.nio.charset.StandardCharsets.UTF_8;</b>
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;/**
+<b class="nc"><i class="no-highlight">97</i>&nbsp; * Utility class to handle all the Salesforce Bulk2Api Rest calls</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp; */</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;public class Bulk2Utils implements AutoCloseable {</b>
+<i class="no-highlight">100</i>&nbsp;    public static final Map&lt;String, String&gt; CLOSE_JOB_MAP_FIELDS =
+<i class="no-highlight">101</i>&nbsp;            new ImmutableMap
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                    .Builder&lt;String, String&gt;()</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                    .put(STATE, UPLOAD_COMPLETE_STATE)</b>
+<i class="no-highlight">104</i>&nbsp;                    .build();
+<i class="no-highlight">105</i>&nbsp;    public static final Map&lt;String, String&gt; ABORT_JOB_MAP_FIELDS =
+<i class="no-highlight">106</i>&nbsp;            new ImmutableMap
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                    .Builder&lt;String, String&gt;()</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                    .put(STATE, ABORT_STATE)</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;    private static final int SOCKET_TIMEOUT_SEC = 9000;</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;    private static final int CONN_TIMEOUT_SEC = 480;</b>
+<i class="no-highlight">113</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(Bulk2Utils.class);
+<i class="no-highlight">114</i>&nbsp;    protected final ObjectMapper objectMapper = new ObjectMapper()
+<i class="no-highlight">115</i>&nbsp;            .registerModule(new JsonFactoryModule())
+<i class="no-highlight">116</i>&nbsp;            .registerModule(new JodaModule())
+<i class="no-highlight">117</i>&nbsp;            .registerModule(new JavaTimeModule());
+<i class="no-highlight">118</i>&nbsp;    private final RestHttpClient restHttpClient = new RestHttpClient();
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;    @Inject
+<i class="no-highlight">121</i>&nbsp;    protected Account&lt;Login&gt; account;
+<i class="no-highlight">122</i>&nbsp;
+<b class="nc"><i class="no-highlight">123</i>&nbsp;    @Inject</b>
+<i class="no-highlight">124</i>&nbsp;    protected BulkJobInfo bulkJobInfo;
+<b class="nc"><i class="no-highlight">125</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;    private String jobId;</b>
+<i class="no-highlight">127</i>&nbsp;    private boolean isDisplayEmptyAsNull;
+<b class="nc"><i class="no-highlight">128</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;    public Bulk2Utils() {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        // in order to follow method redirect we have to set attribute.</b>
+<i class="no-highlight">131</i>&nbsp;        HttpClientContext httpClientContext = HttpClientContext.create();
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        httpClientContext.setAttribute(FOLLOW_ORIGINAL_METHOD_CTX_KEY, true);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        Map&lt;String, Object&gt; params = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        params.put(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, true);</b>
+<i class="no-highlight">136</i>&nbsp;        params.put(ClientPNames.HANDLE_REDIRECTS, true);
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;        restHttpClient.withCustomHttpContext(httpClientContext)
+<i class="no-highlight">139</i>&nbsp;                .withAdditionalParams(params)
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                .withCustomRedirectStrategy(new HttpSnapRedirectStrategy());</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        LOGGER.trace(&quot;{}.restHttpClient = {}&quot;, this, restHttpClient);</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    @Override
+<i class="no-highlight">145</i>&nbsp;    public void close() {
+<i class="no-highlight">146</i>&nbsp;        LOGGER.trace(&quot;{}.close()&quot;, this);
+<i class="no-highlight">147</i>&nbsp;        restHttpClient.close();
+<i class="no-highlight">148</i>&nbsp;    }
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;    /**
+<i class="no-highlight">151</i>&nbsp;     * Method to invoke any Rest call
+<i class="no-highlight">152</i>&nbsp;     *
+<i class="no-highlight">153</i>&nbsp;     * @param httpMethod
+<i class="no-highlight">154</i>&nbsp;     * @param payload
+<i class="no-highlight">155</i>&nbsp;     * @param url
+<b class="nc"><i class="no-highlight">156</i>&nbsp;     * @param headers</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;     * @throws IOException</b>
+<i class="no-highlight">159</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">160</i>&nbsp;    public RestResponseObject invokeHttpCall(String httpMethod, StringEntity payload, String url,</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;           Header[] headers) throws IOException {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        HttpUriRequest httpRequest = createHttpRequest(httpMethod, url);</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        if (Objects.nonNull(payload) &amp;&amp; httpRequest instanceof HttpEntityEnclosingRequestBase) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            ((HttpEntityEnclosingRequestBase) httpRequest).setEntity(payload);</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        addHeaders(httpRequest, headers);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        HttpResponse httpResponse = getResponseWithRetries(httpRequest);</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        if (Objects.nonNull(httpResponse)) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            HttpEntity entity = httpResponse.getEntity();</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;            Map map = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            if (StringUtils.equals(httpMethod, HttpPost.METHOD_NAME)</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                    || StringUtils.equals(httpMethod, HttpGet.METHOD_NAME)) {</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                try (InputStream inputStream = entity.getContent()) {</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                    map = objectMapper.readValue(inputStream, Map.class);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                } catch (JsonMappingException e1) {</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                    LOGGER.error(ERR_READING_RESPONSE_MAP, e1);</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                    throw new ExecutionException(e1, ERR_READING_RESPONSE_MAP)</b>
+<i class="no-highlight">178</i>&nbsp;                            .withReason(e1.getMessage())
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                            .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<i class="no-highlight">180</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">181</i>&nbsp;            } else if (StringUtils.equals(httpMethod, HttpPut.METHOD_NAME) ||</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                    StringUtils.equals(httpMethod, HttpPatch.METHOD_NAME)) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                return new RestResponseObject(httpResponse.getStatusLine());</b>
+<i class="no-highlight">184</i>&nbsp;            }
+<i class="no-highlight">185</i>&nbsp;            return new RestResponseObject(map, httpResponse.getStatusLine());
+<i class="no-highlight">186</i>&nbsp;        } else {
+<i class="no-highlight">187</i>&nbsp;            LOGGER.error(ERR_EXECUTING_HTTP_REQUEST);
+<b class="nc"><i class="no-highlight">188</i>&nbsp;            throw new ExecutionException(ERR_EXECUTING_HTTP_REQUEST)</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;</b>
+<i class="no-highlight">193</i>&nbsp;    protected RetryPolicy getRetryPolicy() {
+<i class="no-highlight">194</i>&nbsp;        return new RetryPolicy()
+<i class="no-highlight">195</i>&nbsp;                .retryOn(SnapDataException.class)
+<i class="no-highlight">196</i>&nbsp;                .withMaxRetries(bulkJobInfo.getMaxRetries())
+<i class="no-highlight">197</i>&nbsp;                .retryOn(ExecutionException.class, IOException.class)
+<i class="no-highlight">198</i>&nbsp;                .withDelay(bulkJobInfo.getRetryInterval(), TimeUnit.SECONDS);
+<i class="no-highlight">199</i>&nbsp;    }
+<i class="no-highlight">200</i>&nbsp;
+<i class="no-highlight">201</i>&nbsp;    /**
+<i class="no-highlight">202</i>&nbsp;     * Method to get HttpResponse with retries
+<b class="nc"><i class="no-highlight">203</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;     * @param httpRequest</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;    private HttpResponse getResponseWithRetries(HttpUriRequest httpRequest) {</b>
+<i class="no-highlight">208</i>&nbsp;
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        return Failsafe.with(getRetryPolicy())</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .onRetry(throwable -&gt; {</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                    LOGGER.warn(RETRY_FAILURE_MESSAGE, bulkJobInfo.getOperation(),</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                            &quot;Execute rest http call&quot;, throwable.getClass().getName(),</b>
+<i class="no-highlight">213</i>&nbsp;                            throwable.getMessage());
+<i class="no-highlight">214</i>&nbsp;                })
+<i class="no-highlight">215</i>&nbsp;                .get(cntx -&gt; {
+<i class="no-highlight">216</i>&nbsp;                    LOGGER.warn(RETRY_MESSAGE, bulkJobInfo.getOperation(), cntx.getExecutions());
+<i class="no-highlight">217</i>&nbsp;                    HttpResponse httpResponse = getHttpResponse(httpRequest);
+<i class="no-highlight">218</i>&nbsp;                    return httpResponse;
+<i class="no-highlight">219</i>&nbsp;                });
+<i class="no-highlight">220</i>&nbsp;    }
+<i class="no-highlight">221</i>&nbsp;
+<i class="no-highlight">222</i>&nbsp;    /**
+<i class="no-highlight">223</i>&nbsp;     * Method to execute Http Request.
+<b class="nc"><i class="no-highlight">224</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;     * @param httpRequest</b>
+<i class="no-highlight">226</i>&nbsp;     * @return
+<b class="nc"><i class="no-highlight">227</i>&nbsp;     * @throws IOException</b>
+<i class="no-highlight">228</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">229</i>&nbsp;    public HttpResponse getHttpResponse(HttpUriRequest httpRequest) throws IOException {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        if (account instanceof SalesforceMutualAuthAccount) {</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            restHttpClient.withKeyManagers(((SalesforceMutualAuthAccount) account).getKeyManagers());</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        HttpResponse httpResponse = restHttpClient.executeRequest(httpRequest, false,</b>
+<i class="no-highlight">234</i>&nbsp;                SOCKET_TIMEOUT_SEC, CONN_TIMEOUT_SEC, true);
+<i class="no-highlight">235</i>&nbsp;        StatusLine statusLine = httpResponse.getStatusLine();
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        if (Objects.isNull(statusLine)) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;            LOGGER.error(ERR_EXECUTING_HTTP_REQUEST);</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;            throw new ExecutionException(ERR_EXECUTING_HTTP_REQUEST)</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        if (statusLine.getStatusCode() &gt;= HttpStatus.SC_OK &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                statusLine.getStatusCode() &lt;= HttpStatus.SC_ACCEPTED) {</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            return httpResponse;</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        } else if (statusLine.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            LOGGER.error(&quot;Error while executing the HTTP request. {} {}&quot;,</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                    statusLine.getStatusCode(), statusLine.getReasonPhrase());</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;            throw new ExecutionException(ERR_EXECUTING_HTTP_REQUEST)</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                    .withReason(String.format(FORMAT_ERR_MESSAGE, statusLine.getStatusCode(),</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                            statusLine.getReasonPhrase()))</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">252</i>&nbsp;        } else if (statusLine.getStatusCode() == HttpStatus.SC_BAD_REQUEST ||
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                statusLine.getStatusCode() == HttpStatus.SC_NOT_FOUND) {</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;            LOGGER.error(&quot;Error while executing the HTTP request. {} {}&quot;,</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                    statusLine.getStatusCode(),</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                    statusLine.getReasonPhrase());</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            HttpEntity entity = httpResponse.getEntity();</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            String errorReasonString;</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            String apiError = &quot;&quot;;</b>
+<i class="no-highlight">260</i>&nbsp;            if (Objects.nonNull(entity)) {
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                errorReasonString = EntityUtils.toString(entity);</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                List&lt;Map&lt;String, Object&gt;&gt; errorInfoMapList =</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                        objectMapper.readValue(errorReasonString, LIST_MAP_OBJECT_REF);</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                apiError = errorInfoMapList.stream().findFirst().get()</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                        .get(API_ERROR_MESSAGE).toString().replaceAll(&quot;\\n&quot;, &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            }</b>
+<i class="no-highlight">267</i>&nbsp;            throw new SnapDataException(
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                    (statusLine.getStatusCode() == HttpStatus.SC_NOT_FOUND) ?</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                            ERR_RESOURCE_NOT_FOUND : ERR_EXECUTING_HTTP_REQUEST)</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                    .withReason(String.format(FORMAT_ERR_REASON_MESSAGE, statusLine.getStatusCode(),</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                            statusLine.getReasonPhrase(), apiError))</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        } else {</b>
+<i class="no-highlight">274</i>&nbsp;            LOGGER.error(&quot;Error while executing the HTTP request. {} {}&quot;,
+<i class="no-highlight">275</i>&nbsp;                    statusLine.getStatusCode(), statusLine.getReasonPhrase());
+<i class="no-highlight">276</i>&nbsp;            throw new ExecutionException(ERR_EXECUTING_HTTP_REQUEST)
+<i class="no-highlight">277</i>&nbsp;                    .withReason(String.format(FORMAT_ERR_MESSAGE, statusLine.getStatusCode(),
+<i class="no-highlight">278</i>&nbsp;                            statusLine.getReasonPhrase()))
+<i class="no-highlight">279</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);
+<i class="no-highlight">280</i>&nbsp;        }
+<i class="no-highlight">281</i>&nbsp;    }
+<i class="no-highlight">282</i>&nbsp;
+<i class="no-highlight">283</i>&nbsp;    /**
+<i class="no-highlight">284</i>&nbsp;     * Method to invoke Get Call
+<i class="no-highlight">285</i>&nbsp;     *
+<i class="no-highlight">286</i>&nbsp;     * @param url
+<i class="no-highlight">287</i>&nbsp;     * @param headers
+<b class="nc"><i class="no-highlight">288</i>&nbsp;     * @param retry</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;     * @return</b>
+<i class="no-highlight">290</i>&nbsp;     * @throws IOException
+<b class="nc"><i class="no-highlight">291</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;    public HttpResponse invokeGetCall(String url, Header[] headers, boolean retry)</b>
+<i class="no-highlight">293</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        HttpUriRequest httpRequest = createHttpRequest(HttpGet.METHOD_NAME, url);</b>
+<i class="no-highlight">295</i>&nbsp;        addHeaders(httpRequest, headers);
+<i class="no-highlight">296</i>&nbsp;        // retry is false for suggestions
+<i class="no-highlight">297</i>&nbsp;        if (retry) {
+<i class="no-highlight">298</i>&nbsp;            return getResponseWithRetries(httpRequest);
+<i class="no-highlight">299</i>&nbsp;        } else {
+<i class="no-highlight">300</i>&nbsp;            return getHttpResponse(httpRequest);
+<i class="no-highlight">301</i>&nbsp;        }
+<i class="no-highlight">302</i>&nbsp;    }
+<i class="no-highlight">303</i>&nbsp;
+<i class="no-highlight">304</i>&nbsp;    /**
+<i class="no-highlight">305</i>&nbsp;     * Method to create http request
+<b class="nc"><i class="no-highlight">306</i>&nbsp;     *</b>
+<i class="no-highlight">307</i>&nbsp;     * @param httpMethod
+<b class="nc"><i class="no-highlight">308</i>&nbsp;     * @param url</b>
+<i class="no-highlight">309</i>&nbsp;     * @return
+<b class="nc"><i class="no-highlight">310</i>&nbsp;     */</b>
+<i class="no-highlight">311</i>&nbsp;    private HttpUriRequest createHttpRequest(String httpMethod, String url) {
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        switch (httpMethod) {</b>
+<i class="no-highlight">313</i>&nbsp;            case HttpGet.METHOD_NAME:
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                return new HttpGet(url);</b>
+<i class="no-highlight">315</i>&nbsp;            case HttpPost.METHOD_NAME:
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                return new HttpPost(url);</b>
+<i class="no-highlight">317</i>&nbsp;            case HttpPut.METHOD_NAME:
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                return new HttpPut(url);</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            case HttpDelete.METHOD_NAME:</b>
+<i class="no-highlight">320</i>&nbsp;                return new HttpDelete(url);
+<b class="nc"><i class="no-highlight">321</i>&nbsp;            case HttpPatch.METHOD_NAME:</b>
+<i class="no-highlight">322</i>&nbsp;                return new HttpPatch(url);
+<i class="no-highlight">323</i>&nbsp;            default:
+<i class="no-highlight">324</i>&nbsp;                LOGGER.error(UNSUPPORTED_HTTP_METHOD, httpMethod);
+<i class="no-highlight">325</i>&nbsp;                throw new ExecutionException(String.format(ERR_UNSUPPORTED_HTTP_METHOD_MSG,
+<i class="no-highlight">326</i>&nbsp;                        httpMethod))
+<i class="no-highlight">327</i>&nbsp;                        .withResolutionAsDefect();
+<i class="no-highlight">328</i>&nbsp;        }
+<i class="no-highlight">329</i>&nbsp;    }
+<i class="no-highlight">330</i>&nbsp;
+<i class="no-highlight">331</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">332</i>&nbsp;     * Method to add headers for request</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;     *</b>
+<i class="no-highlight">334</i>&nbsp;     * @param httpRequest
+<i class="no-highlight">335</i>&nbsp;     * @param headers
+<i class="no-highlight">336</i>&nbsp;     */
+<i class="no-highlight">337</i>&nbsp;    private void addHeaders(HttpUriRequest httpRequest, Header[] headers) {
+<i class="no-highlight">338</i>&nbsp;        for (Header header : headers) {
+<i class="no-highlight">339</i>&nbsp;            httpRequest.addHeader(header);
+<i class="no-highlight">340</i>&nbsp;        }
+<i class="no-highlight">341</i>&nbsp;    }
+<i class="no-highlight">342</i>&nbsp;
+<i class="no-highlight">343</i>&nbsp;    /**
+<i class="no-highlight">344</i>&nbsp;     * Method to create bulkv2 job sample url:https://na46.salesforce.com/services/data/v42
+<i class="no-highlight">345</i>&nbsp;     * .0/jobs/ingest
+<i class="no-highlight">346</i>&nbsp;     *
+<i class="no-highlight">347</i>&nbsp;     * @param url
+<b class="nc"><i class="no-highlight">348</i>&nbsp;     * @param payload</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;     * @param jobInfo</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;     * @return</b>
+<i class="no-highlight">351</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">352</i>&nbsp;    public BulkJobInfo createJob(String url, StringEntity payload, BulkJobInfo jobInfo) {</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;            bulkJobInfo = jobInfo;</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;            List&lt;Header&gt; specificHeaders = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            specificHeaders.add(new BasicHeader(HttpHeaders.CONTENT_TYPE,</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                    HEADER_CONTENT_TYPE_JSON_VALUE));</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;            RestResponseObject response = invokeHttpCall(HttpPost.METHOD_NAME, payload, url,</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                    generateHeaders(specificHeaders));</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;            Map map = response.getBody();</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;            if (Objects.isNull(map)) {</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                StatusLine statusLine = response.getStatusLine();</b>
+<i class="no-highlight">363</i>&nbsp;                LOGGER.error(&quot;Error creating job with status, {}: {}&quot;, statusLine.getStatusCode(),
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                        statusLine.getReasonPhrase());</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                throw new SnapDataException(ERR_CREATING_JOB)</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                        .withReason(String.format(FORMAT_ERR_MESSAGE, statusLine.getStatusCode(),</b>
+<i class="no-highlight">367</i>&nbsp;                                statusLine.getReasonPhrase()))
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;            if (MapUtils.isNotEmpty(map) &amp;&amp; Objects.nonNull(map.get(ID))) {</b>
+<i class="no-highlight">371</i>&nbsp;                populateCreateJobResponse(map, bulkJobInfo);
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                jobId = bulkJobInfo.getId();</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                throw new SnapDataException(ERR_CREATING_JOB)</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                        .withReason(REASON_ACCOUNT_ISSUE)</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                        .withResolution(RESOLUTION_ACCOUNT_ISSUE);</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        } catch (ExecutionException ex) {</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            LOGGER.error(ERR_CREATING_JOB, ex);</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            throw new SnapDataException(ex, ERR_CREATING_JOB)</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                    .withReason(ex.getReason())</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;        } catch (SnapDataException ex) {</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;            LOGGER.error(ERR_CREATING_JOB, ex);</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;            throw ex;</b>
+<i class="no-highlight">386</i>&nbsp;        } catch (IOException e) {
+<i class="no-highlight">387</i>&nbsp;            LOGGER.error(ERR_CREATING_JOB, e);
+<i class="no-highlight">388</i>&nbsp;            throw new SnapDataException(e, ERR_CREATING_JOB)
+<i class="no-highlight">389</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">390</i>&nbsp;        }
+<i class="no-highlight">391</i>&nbsp;        return bulkJobInfo;
+<i class="no-highlight">392</i>&nbsp;    }
+<i class="no-highlight">393</i>&nbsp;
+<i class="no-highlight">394</i>&nbsp;    /**
+<i class="no-highlight">395</i>&nbsp;     * Method to close the job sample url:/services/data/version/jobs/ingest/batchId once the we
+<b class="nc"><i class="no-highlight">396</i>&nbsp;     * upload the data we have to make sure to close the job by sending state as UploadComplete</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;     *</b>
+<i class="no-highlight">398</i>&nbsp;     * @param url
+<b class="nc"><i class="no-highlight">399</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;     */</b>
+<i class="no-highlight">401</i>&nbsp;    public BulkJobInfo closeJob(String url) {
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        jobId = bulkJobInfo.getId();</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;        if (!Strings.isNullOrEmpty(jobId)) {</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                List&lt;Header&gt; specificHeaders = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                specificHeaders.add(new BasicHeader(HttpHeaders.CONTENT_TYPE,</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                        HEADER_CONTENT_TYPE_FOR_PATCH));</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                RestResponseObject responseObject = invokeHttpCall(HttpPatch.METHOD_NAME,</b>
+<i class="no-highlight">409</i>&nbsp;                        generateRequestBodyForJob(CLOSE_JOB_MAP_FIELDS), url,
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                        generateHeaders(specificHeaders));</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                if (responseObject.getStatusLine().getStatusCode() &gt;= HttpStatus.SC_OK &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                        responseObject.getStatusLine().getStatusCode() &lt;= HttpStatus.SC_ACCEPTED) {</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                    long startTimeInMs = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                    bulkJobInfo = verifyJobStatus(url, startTimeInMs);</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                LOGGER.error(ERR_CLOSING_JOB, e);</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                throw new ExecutionException(e, errorMessage(ERR_CLOSING_JOB, jobId))</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                        .withReason(Throwables.getRootCause(e).getMessage())</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                        .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<i class="no-highlight">421</i>&nbsp;            } catch (Exception e) {
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                LOGGER.error(ERR_CLOSING_JOB, e);</b>
+<i class="no-highlight">423</i>&nbsp;                throw new SnapDataException(e, errorMessage(ERR_CLOSING_JOB, jobId))
+<i class="no-highlight">424</i>&nbsp;                        .withReason(Throwables.getRootCause(e).getMessage())
+<i class="no-highlight">425</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">426</i>&nbsp;            }
+<i class="no-highlight">427</i>&nbsp;        }
+<i class="no-highlight">428</i>&nbsp;        return bulkJobInfo;
+<i class="no-highlight">429</i>&nbsp;    }
+<i class="no-highlight">430</i>&nbsp;
+<i class="no-highlight">431</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">432</i>&nbsp;     * Method to get the Query Job Status</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;     *</b>
+<i class="no-highlight">434</i>&nbsp;     * @param url
+<b class="nc"><i class="no-highlight">435</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;     */</b>
+<i class="no-highlight">437</i>&nbsp;    public BulkJobInfo getQueryJobStatus(String url) {
+<b class="nc"><i class="no-highlight">438</i>&nbsp;        jobId = bulkJobInfo.getId();</b>
+<i class="no-highlight">439</i>&nbsp;        if (!Strings.isNullOrEmpty(jobId)) {
+<b class="nc"><i class="no-highlight">440</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                List&lt;Header&gt; specificHeaders = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                specificHeaders.add(new BasicHeader(HttpHeaders.CONTENT_TYPE,</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;                        HEADER_CONTENT_TYPE_FOR_PATCH));</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                RestResponseObject responseObject = invokeHttpCall(HttpGet.METHOD_NAME,</b>
+<i class="no-highlight">445</i>&nbsp;                        null, url,
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                        generateHeaders(specificHeaders));</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                if (responseObject.getStatusLine().getStatusCode() &gt;= HttpStatus.SC_OK &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                        responseObject.getStatusLine().getStatusCode() &lt;= HttpStatus.SC_ACCEPTED) {</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                    long startTimeInMs = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                    bulkJobInfo = verifyJobStatus(url, startTimeInMs);</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;                LOGGER.error(ERR_CLOSING_JOB, e);</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                throw new ExecutionException(e, errorMessage(ERR_CLOSING_JOB, jobId))</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                        .withReason(Throwables.getRootCause(e).getMessage())</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                        .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<i class="no-highlight">457</i>&nbsp;            } catch (Exception e) {
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                LOGGER.error(ERR_CLOSING_JOB, e);</b>
+<i class="no-highlight">459</i>&nbsp;                throw new SnapDataException(e, errorMessage(ERR_CLOSING_JOB, jobId))
+<i class="no-highlight">460</i>&nbsp;                        .withReason(Throwables.getRootCause(e).getMessage())
+<i class="no-highlight">461</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">462</i>&nbsp;            }
+<i class="no-highlight">463</i>&nbsp;        }
+<i class="no-highlight">464</i>&nbsp;        return bulkJobInfo;
+<i class="no-highlight">465</i>&nbsp;    }
+<i class="no-highlight">466</i>&nbsp;
+<i class="no-highlight">467</i>&nbsp;    /**
+<i class="no-highlight">468</i>&nbsp;     * Method to abort the job Sample url:/services/data/v42.0/jobs/ingest/batchId If the ob is
+<i class="no-highlight">469</i>&nbsp;     * failed we have to abort the job by sending state as &quot;Aborted&quot; https://developer.salesforce
+<b class="nc"><i class="no-highlight">470</i>&nbsp;     * .com/docs/atlas.en-us.api_bulk_v2.meta/api_bulk_v2/close_job.htm#!</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;     *</b>
+<i class="no-highlight">472</i>&nbsp;     * @param url
+<b class="nc"><i class="no-highlight">473</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;     */</b>
+<i class="no-highlight">475</i>&nbsp;    public boolean abortJob(String url) {
+<b class="nc"><i class="no-highlight">476</i>&nbsp;        jobId = bulkJobInfo.getId();</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;        if (!Strings.isNullOrEmpty(jobId)) {</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;            try {</b>
+<i class="no-highlight">479</i>&nbsp;                List&lt;Header&gt; specificHeaders = new ArrayList&lt;&gt;();
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                specificHeaders.add(new BasicHeader(HttpHeaders.CONTENT_TYPE,</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                        HEADER_CONTENT_TYPE_FOR_PATCH));</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;                RestResponseObject responseObject = invokeHttpCall(HttpPatch.METHOD_NAME,</b>
+<i class="no-highlight">483</i>&nbsp;                        generateRequestBodyForJob(ABORT_JOB_MAP_FIELDS), url,
+<b class="nc"><i class="no-highlight">484</i>&nbsp;                        generateHeaders(specificHeaders));</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                if (responseObject.getStatusLine().getStatusCode() &gt;= HttpStatus.SC_OK &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                        responseObject.getStatusLine().getStatusCode() &lt;= HttpStatus.SC_ACCEPTED) {</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                    return true;</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                LOGGER.error(DEFAULT_ABORT_ERROR_MESSAGE, e);</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                throw new ExecutionException(e, errorMessage(DEFAULT_ABORT_ERROR_MESSAGE, jobId))</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                        .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<i class="no-highlight">495</i>&nbsp;            } catch (Exception e) {
+<b class="nc"><i class="no-highlight">496</i>&nbsp;                LOGGER.error(DEFAULT_ABORT_ERROR_MESSAGE, e);</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                throw new SnapDataException(e, errorMessage(DEFAULT_ABORT_ERROR_MESSAGE, jobId))</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                        .withReason(e.getMessage())</b>
+<i class="no-highlight">499</i>&nbsp;                        .withResolution(RESOLUTION_CUSTOMER_SUPPORT);
+<b class="nc"><i class="no-highlight">500</i>&nbsp;            }</b>
+<i class="no-highlight">501</i>&nbsp;        } else {
+<i class="no-highlight">502</i>&nbsp;            LOGGER.error(&quot;Error while aborting the job with jobId: {} &quot;, jobId);
+<i class="no-highlight">503</i>&nbsp;            throw new SnapDataException(errorMessage(DEFAULT_ABORT_ERROR_MESSAGE, jobId))
+<i class="no-highlight">504</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);
+<i class="no-highlight">505</i>&nbsp;        }
+<i class="no-highlight">506</i>&nbsp;        return false;
+<i class="no-highlight">507</i>&nbsp;    }
+<i class="no-highlight">508</i>&nbsp;
+<i class="no-highlight">509</i>&nbsp;    /**
+<i class="no-highlight">510</i>&nbsp;     * Method to verify the status of a job and fetch the records based on the state If the job is
+<i class="no-highlight">511</i>&nbsp;     * in complete state then we will get either success or failed records If the job is failed
+<i class="no-highlight">512</i>&nbsp;     * state we will get only Unprocessed records
+<b class="nc"><i class="no-highlight">513</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;     * @param url</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;     * @param startTimeInMs</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;     * @return</b>
+<i class="no-highlight">517</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">518</i>&nbsp;    public BulkJobInfo verifyJobStatus(String url, long startTimeInMs) {</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;        jobId = bulkJobInfo.getId();</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;        Map&lt;String, List&lt;Map&lt;String, String&gt;&gt;&gt; resultsMap = Maps.newLinkedHashMap();</b>
+<i class="no-highlight">521</i>&nbsp;        String errorMessage = errorMessage(ERR_VERIFYING_JOB_STATUS, jobId);
+<b class="nc"><i class="no-highlight">522</i>&nbsp;        if (!Strings.isNullOrEmpty(jobId)) {</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                List&lt;Header&gt; specificHeaders = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                bulkJobInfo.setSfapiError(new SFAPIError());</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                specificHeaders.add(new BasicHeader(HttpHeaders.CONTENT_TYPE,</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                        HEADER_CONTENT_TYPE_JSON_VALUE));</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                HttpResponse response = invokeGetCall(url, generateHeaders(specificHeaders), true);</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                StatusLine statusLine = response.getStatusLine();</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                if (SC_OK == statusLine.getStatusCode()) {</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                    HttpEntity entity = response.getEntity();</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                    String jobStatusStr = EntityUtils.toString(entity);</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;                    bulkJobInfo.getSfapiError().withResponse(jobStatusStr);</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;                    Map&lt;String, Object&gt; jobInfoMap = objectMapper.readValue(jobStatusStr, MAP_REF);</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                    String state = jobInfoMap.get(STATE).toString();</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;                    bulkJobInfo.setState(state);</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                    bulkJobInfo.setResultsMap(resultsMap);</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                    validateAndProcessResults(url, startTimeInMs);</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                } else {</b>
+<i class="no-highlight">540</i>&nbsp;                    LOGGER.error(errorMessage);
+<b class="nc"><i class="no-highlight">541</i>&nbsp;                    throw new SnapDataException(errorMessage)</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;                            .withReason(String.format(FORMAT_ERR_MESSAGE,</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                                    statusLine.getStatusCode(),</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;                                    statusLine.getReasonPhrase()))</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                            .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;                LOGGER.error(errorMessage, e);</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;                throw new ExecutionException(e, errorMessage)</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;                        .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;            } catch (InterruptedException e) {</b>
+<i class="no-highlight">553</i>&nbsp;                LOGGER.error(errorMessage, e);
+<b class="nc"><i class="no-highlight">554</i>&nbsp;                String error = String.format(ERR_INTERRUPTED_EXECUTION, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;                throw new ExecutionException(e, error)</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                        .withReason(error)</b>
+<i class="no-highlight">557</i>&nbsp;                        .withResolution(RESOLUTION_TRY_AGAIN);
+<b class="nc"><i class="no-highlight">558</i>&nbsp;            }</b>
+<i class="no-highlight">559</i>&nbsp;        } else {
+<i class="no-highlight">560</i>&nbsp;            LOGGER.error(errorMessage);
+<i class="no-highlight">561</i>&nbsp;            throw new SnapDataException(errorMessage)
+<i class="no-highlight">562</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);
+<i class="no-highlight">563</i>&nbsp;        }
+<i class="no-highlight">564</i>&nbsp;        return bulkJobInfo;
+<i class="no-highlight">565</i>&nbsp;    }
+<i class="no-highlight">566</i>&nbsp;
+<i class="no-highlight">567</i>&nbsp;    /**
+<i class="no-highlight">568</i>&nbsp;     * validateAndProcessResults
+<i class="no-highlight">569</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">570</i>&nbsp;     * @param url</b>
+<i class="no-highlight">571</i>&nbsp;     * @param startTimeInMs
+<i class="no-highlight">572</i>&nbsp;     * @throws InterruptedException
+<b class="nc"><i class="no-highlight">573</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;    private void validateAndProcessResults(String url, long startTimeInMs)</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;            throws InterruptedException {</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;        switch (bulkJobInfo.getState()) {</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;            case INPROGRESS:</b>
+<i class="no-highlight">578</i>&nbsp;            case UPLOAD_COMPLETE:
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                TimeUnit.SECONDS.sleep(bulkJobInfo.getPollingIntervalSec());</b>
+<i class="no-highlight">580</i>&nbsp;                if ((System.currentTimeMillis() - startTimeInMs) &gt;
+<b class="nc"><i class="no-highlight">581</i>&nbsp;                        (bulkJobInfo.getPollingTimeoutSec() * 1000)) {</b>
+<i class="no-highlight">582</i>&nbsp;                    abortJob(url);
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                    processError(Options.State.TIMEOUT, bulkJobInfo);</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;                } else {</b>
+<i class="no-highlight">585</i>&nbsp;                    verifyJobStatus(url, startTimeInMs);
+<b class="nc"><i class="no-highlight">586</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                break;</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;            case JOB_COMPLETE:</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;                if (bulkJobInfo.getOperation().isQuery()) {</b>
+<i class="no-highlight">590</i>&nbsp;                    bulkJobInfo.setContentUrl(url);
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                } else {</b>
+<i class="no-highlight">592</i>&nbsp;                    bulkJobInfo.getResultsMap().put(SUCCESSRECORDS,
+<b class="nc"><i class="no-highlight">593</i>&nbsp;                            getResults(url + SUCCESS_RESULTS));</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                    bulkJobInfo.getResultsMap().put(FAILEDRECORDS,</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;                            getResults(url + FAILED_RESULTS));</b>
+<i class="no-highlight">596</i>&nbsp;                }
+<i class="no-highlight">597</i>&nbsp;                break;
+<i class="no-highlight">598</i>&nbsp;            case FAILED:
+<i class="no-highlight">599</i>&nbsp;                if (!bulkJobInfo.getOperation().isQuery()) {
+<i class="no-highlight">600</i>&nbsp;                    bulkJobInfo.getResultsMap().put(UNPROCESSEDRECORDS,
+<i class="no-highlight">601</i>&nbsp;                            getResults(url + UNPROCESSED_RESULTS));
+<i class="no-highlight">602</i>&nbsp;                }
+<i class="no-highlight">603</i>&nbsp;                break;
+<i class="no-highlight">604</i>&nbsp;            default:
+<i class="no-highlight">605</i>&nbsp;        }
+<i class="no-highlight">606</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">607</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">608</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">609</i>&nbsp;     * @param state</b>
+<b class="nc"><i class="no-highlight">610</i>&nbsp;     * @param bulkJobInfo</b>
+<b class="nc"><i class="no-highlight">611</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">612</i>&nbsp;    private void processError(Options.State state, BulkJobInfo bulkJobInfo) {</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;        if (ObjectUtils.equals(Options.State.TIMEOUT, state)) {</b>
+<b class="nc"><i class="no-highlight">614</i>&nbsp;            String error = String.format(FORMAT_TIMEOUT,</b>
+<i class="no-highlight">615</i>&nbsp;                    errorMessage(ERR_TIMEOUT_RETRIEVING_RESPONSE, bulkJobInfo.getId()),
+<b class="nc"><i class="no-highlight">616</i>&nbsp;                    bulkJobInfo.getPollingTimeoutSec());</b>
+<b class="nc"><i class="no-highlight">617</i>&nbsp;            LOGGER.error(error);</b>
+<b class="nc"><i class="no-highlight">618</i>&nbsp;            throw new ExecutionException(error)</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;                    .withReason(error)</b>
+<i class="no-highlight">620</i>&nbsp;                    .withResolution(getResolutionPollTimeout());
+<i class="no-highlight">621</i>&nbsp;        } else {
+<i class="no-highlight">622</i>&nbsp;            LOGGER.error(ERR_BULK_UNKNOWN);
+<i class="no-highlight">623</i>&nbsp;            throw new ExecutionException(ERR_BULK_UNKNOWN)
+<i class="no-highlight">624</i>&nbsp;                    .withReason(ERR_BULK_UNKNOWN)
+<i class="no-highlight">625</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);
+<i class="no-highlight">626</i>&nbsp;        }
+<i class="no-highlight">627</i>&nbsp;    }
+<i class="no-highlight">628</i>&nbsp;
+<b class="nc"><i class="no-highlight">629</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;     * @param error</b>
+<i class="no-highlight">631</i>&nbsp;     * @param jobId
+<i class="no-highlight">632</i>&nbsp;     * @return
+<i class="no-highlight">633</i>&nbsp;     */
+<i class="no-highlight">634</i>&nbsp;    protected String errorMessage(String error, String jobId) {
+<i class="no-highlight">635</i>&nbsp;        String jobIdMessage = String.format(JOB_ID, jobId);
+<i class="no-highlight">636</i>&nbsp;        return String.format(FORMAT_ERR_MESSAGE, error, jobIdMessage);
+<i class="no-highlight">637</i>&nbsp;    }
+<i class="no-highlight">638</i>&nbsp;
+<i class="no-highlight">639</i>&nbsp;    /**
+<i class="no-highlight">640</i>&nbsp;     * method to get the results and convert the response to a MAP
+<b class="nc"><i class="no-highlight">641</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;     * @param url</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;    private List&lt;Map&lt;String, String&gt;&gt; getResults(String url) {</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;        try {</b>
+<i class="no-highlight">647</i>&nbsp;            HttpResponse response = invokeGetCall(url, generateHeadersForGetResults(), true);
+<b class="nc"><i class="no-highlight">648</i>&nbsp;            if (SC_OK == response.getStatusLine().getStatusCode()) {</b>
+<i class="no-highlight">649</i>&nbsp;                HttpEntity entity = response.getEntity();
+<b class="nc"><i class="no-highlight">650</i>&nbsp;                String resultsString = EntityUtils.toString(entity, UTF_8);</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;                if (url.contains(FAILEDRECORDS)) {</b>
+<b class="nc"><i class="no-highlight">652</i>&nbsp;                    bulkJobInfo.getSfapiError().withResponse(resultsString);</b>
+<b class="nc"><i class="no-highlight">653</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">654</i>&nbsp;                return convertResponseToMap(resultsString);</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;            }</b>
+<i class="no-highlight">656</i>&nbsp;        } catch (IOException e) {
+<i class="no-highlight">657</i>&nbsp;            LOGGER.error(ERR_CONSTRUCTING_RESULTS, e);
+<i class="no-highlight">658</i>&nbsp;            throw new SnapDataException(e, ERR_CONSTRUCTING_RESULTS)
+<i class="no-highlight">659</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">660</i>&nbsp;        }
+<i class="no-highlight">661</i>&nbsp;        return null;
+<i class="no-highlight">662</i>&nbsp;    }
+<i class="no-highlight">663</i>&nbsp;
+<i class="no-highlight">664</i>&nbsp;    /**
+<i class="no-highlight">665</i>&nbsp;     * Method to get Query Results
+<i class="no-highlight">666</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">667</i>&nbsp;     * @param url</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">669</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;    public List&lt;Map&lt;String, String&gt;&gt; getQueryResults(String url) {</b>
+<b class="nc"><i class="no-highlight">671</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;            HttpResponse response = invokeGetCall(url, generateHeadersForGetResults(true), true);</b>
+<i class="no-highlight">673</i>&nbsp;            if (SC_OK == response.getStatusLine().getStatusCode()) {
+<b class="nc"><i class="no-highlight">674</i>&nbsp;                String resultsString = downloadEntity(response);</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                getSforceLocator(response);</b>
+<b class="nc"><i class="no-highlight">676</i>&nbsp;                return convertResponseToMap(resultsString);</b>
+<b class="nc"><i class="no-highlight">677</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">679</i>&nbsp;            LOGGER.error(ERR_CONSTRUCTING_RESULTS, e);</b>
+<i class="no-highlight">680</i>&nbsp;            throw new SnapDataException(e, ERR_CONSTRUCTING_RESULTS)
+<i class="no-highlight">681</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">682</i>&nbsp;        }
+<i class="no-highlight">683</i>&nbsp;        return null;
+<i class="no-highlight">684</i>&nbsp;    }
+<i class="no-highlight">685</i>&nbsp;
+<i class="no-highlight">686</i>&nbsp;    private String downloadEntity(HttpResponse response) throws IOException {
+<i class="no-highlight">687</i>&nbsp;        Header header = getHeader(response, Headers.CONTENT_ENCODING.toLowerCase());
+<i class="no-highlight">688</i>&nbsp;        String contentEncoding = header == null ? null : header.getValue();
+<i class="no-highlight">689</i>&nbsp;        try (InputStream inputStream = response.getEntity().getContent()) {
+<b class="nc"><i class="no-highlight">690</i>&nbsp;            InputStream is = GZIP.equalsIgnoreCase(contentEncoding) ?</b>
+<b class="nc"><i class="no-highlight">691</i>&nbsp;                    new GZIPInputStream(inputStream) : inputStream;</b>
+<b class="nc"><i class="no-highlight">692</i>&nbsp;            return IOUtils.toString(is, UTF_8);</b>
+<b class="nc"><i class="no-highlight">693</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">695</i>&nbsp;</b>
+<i class="no-highlight">696</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">697</i>&nbsp;     * Sends an HTTP request to download the next set of the query result and updates the</b>
+<i class="no-highlight">698</i>&nbsp;     * locator (offset) for the next set.
+<i class="no-highlight">699</i>&nbsp;     *
+<i class="no-highlight">700</i>&nbsp;     * @param url - http request URL to download the next set of the query result
+<i class="no-highlight">701</i>&nbsp;     * @return HttpEntity object
+<i class="no-highlight">702</i>&nbsp;     */
+<i class="no-highlight">703</i>&nbsp;    public HttpEntity getNextQueryResults(String url) {
+<i class="no-highlight">704</i>&nbsp;        try {
+<i class="no-highlight">705</i>&nbsp;            HttpResponse response = invokeGetCall(url, generateHeadersForGetResults(true), true);
+<i class="no-highlight">706</i>&nbsp;            if (SC_OK == response.getStatusLine().getStatusCode()) {
+<i class="no-highlight">707</i>&nbsp;                getSforceLocator(response);
+<i class="no-highlight">708</i>&nbsp;                return response.getEntity();
+<i class="no-highlight">709</i>&nbsp;            }
+<i class="no-highlight">710</i>&nbsp;        } catch (IOException e) {
+<b class="nc"><i class="no-highlight">711</i>&nbsp;            LOGGER.error(ERR_CONSTRUCTING_RESULTS, e);</b>
+<b class="nc"><i class="no-highlight">712</i>&nbsp;            throw new SnapDataException(e, ERR_CONSTRUCTING_RESULTS)</b>
+<b class="nc"><i class="no-highlight">713</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;        }</b>
+<i class="no-highlight">715</i>&nbsp;        return null;
+<i class="no-highlight">716</i>&nbsp;    }
+<i class="no-highlight">717</i>&nbsp;
+<b class="nc"><i class="no-highlight">718</i>&nbsp;    /**</b>
+<i class="no-highlight">719</i>&nbsp;     * Method to get sforce-locator header If there are more results than can be listed, the
+<b class="nc"><i class="no-highlight">720</i>&nbsp;     * Sforce-Locator response header will be non-null. Set the locator to that value to get the</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;     * next set of results</b>
+<b class="nc"><i class="no-highlight">722</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">723</i>&nbsp;     * @param response</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">725</i>&nbsp;    private void getSforceLocator(HttpResponse response) {</b>
+<i class="no-highlight">726</i>&nbsp;        if (SC_OK == response.getStatusLine().getStatusCode()) {
+<i class="no-highlight">727</i>&nbsp;            Header header = getHeader(response, SFORCE_LOCATOR_HEADER);
+<i class="no-highlight">728</i>&nbsp;            bulkJobInfo.setLocator(header != null &amp;&amp; !NULL_STRING.equals(header.getValue()) ?
+<b class="nc"><i class="no-highlight">729</i>&nbsp;                    header.getValue() : null);</b>
+<b class="nc"><i class="no-highlight">730</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">731</i>&nbsp;    }</b>
+<i class="no-highlight">732</i>&nbsp;
+<b class="nc"><i class="no-highlight">733</i>&nbsp;    private Header getHeader(HttpResponse response, String header) {</b>
+<b class="nc"><i class="no-highlight">734</i>&nbsp;        Header[] headers = response.getHeaders(header);</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;        return headers != null &amp;&amp; headers.length &gt; 0 ? headers[0] : null;</b>
+<i class="no-highlight">736</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">737</i>&nbsp;</b>
+<i class="no-highlight">738</i>&nbsp;    /**
+<i class="no-highlight">739</i>&nbsp;     * Converting CSV Response To Map
+<b class="nc"><i class="no-highlight">740</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;     * @param resultsString</b>
+<i class="no-highlight">742</i>&nbsp;     * @return
+<b class="nc"><i class="no-highlight">743</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">744</i>&nbsp;    public List&lt;Map&lt;String, String&gt;&gt; convertResponseToMap(String resultsString) {</b>
+<b class="nc"><i class="no-highlight">745</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; outputRecordsList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;        CSVFormat.Builder csvFormatBuilder =</b>
+<b class="nc"><i class="no-highlight">747</i>&nbsp;                CSVFormat.Builder.create(CSVFormat.DEFAULT).setHeader();</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;        if (isDisplayEmptyAsNull) {</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;            //salesforce Bulk API return for both empty string and null value as empty String (&quot;&quot;).</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;            // so,here setting the empty string as null value in csv formatter to display</b>
+<i class="no-highlight">751</i>&nbsp;            // empty string as null in response.
+<i class="no-highlight">752</i>&nbsp;            csvFormatBuilder.setNullString(&quot;&quot;);
+<i class="no-highlight">753</i>&nbsp;        }
+<i class="no-highlight">754</i>&nbsp;        CSVFormat csvFormat = csvFormatBuilder.build();
+<i class="no-highlight">755</i>&nbsp;        StringReader reader = new StringReader(resultsString);
+<i class="no-highlight">756</i>&nbsp;        try (CSVParser parser = new CSVParser(reader, csvFormat)) {
+<i class="no-highlight">757</i>&nbsp;            Map&lt;String, Integer&gt; headers = parser.getHeaderMap();
+<i class="no-highlight">758</i>&nbsp;            for (CSVRecord record : parser) {
+<b class="nc"><i class="no-highlight">759</i>&nbsp;                Map&lt;String, String&gt; outputMap = getMapFrom(headers, record);</b>
+<b class="nc"><i class="no-highlight">760</i>&nbsp;                if (outputMap != null) {</b>
+<i class="no-highlight">761</i>&nbsp;                    outputRecordsList.add(outputMap);
+<b class="nc"><i class="no-highlight">762</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">763</i>&nbsp;            }</b>
+<i class="no-highlight">764</i>&nbsp;        } catch (SuggestViewAbortException e) {
+<i class="no-highlight">765</i>&nbsp;            throw e;
+<i class="no-highlight">766</i>&nbsp;        } catch (Exception e) {
+<i class="no-highlight">767</i>&nbsp;            LOGGER.error(ERR_CONSTRUCTING_RESULTS, e);
+<i class="no-highlight">768</i>&nbsp;            throw new SnapDataException(e, ERR_CONSTRUCTING_RESULTS)
+<i class="no-highlight">769</i>&nbsp;                    .withReason(e.getMessage())
+<i class="no-highlight">770</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);
+<i class="no-highlight">771</i>&nbsp;        }
+<i class="no-highlight">772</i>&nbsp;        return outputRecordsList;
+<b class="nc"><i class="no-highlight">773</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">774</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">775</i>&nbsp;    public Map&lt;String, String&gt; getMapFrom(Map&lt;String, Integer&gt; headers, CSVRecord record) {</b>
+<b class="nc"><i class="no-highlight">776</i>&nbsp;        if (headers != null &amp;&amp; !headers.isEmpty() &amp;&amp; record.isConsistent()) {</b>
+<b class="nc"><i class="no-highlight">777</i>&nbsp;            // CSVRecord#toMap() returns a HashMap object, where the columns are in a</b>
+<i class="no-highlight">778</i>&nbsp;            // random order. This could be a defect in the current version of CSVRecord.
+<b class="nc"><i class="no-highlight">779</i>&nbsp;            // It should be converted to LinkedHashMap as a workaround.</b>
+<b class="nc"><i class="no-highlight">780</i>&nbsp;            Map&lt;String, String&gt; recordMap = record.toMap();</b>
+<i class="no-highlight">781</i>&nbsp;            Map&lt;String, String&gt; outputMap = new LinkedHashMap&lt;&gt;(recordMap.size());
+<b class="nc"><i class="no-highlight">782</i>&nbsp;            for (String header : headers.keySet()) {</b>
+<i class="no-highlight">783</i>&nbsp;
+<i class="no-highlight">784</i>&nbsp;                if (header.startsWith(BULK2_FIELD_PREFIX)) {
+<i class="no-highlight">785</i>&nbsp;                    outputMap.put(header.replace(BULK2_FIELD_PREFIX, StringUtils.EMPTY),
+<i class="no-highlight">786</i>&nbsp;                            recordMap.get(header));
+<i class="no-highlight">787</i>&nbsp;                } else {
+<i class="no-highlight">788</i>&nbsp;                    outputMap.put(header, recordMap.get(header));
+<i class="no-highlight">789</i>&nbsp;                }
+<i class="no-highlight">790</i>&nbsp;
+<b class="nc"><i class="no-highlight">791</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">792</i>&nbsp;            return outputMap;</b>
+<b class="nc"><i class="no-highlight">793</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;        return null;</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;    }</b>
+<i class="no-highlight">796</i>&nbsp;
+<b class="nc"><i class="no-highlight">797</i>&nbsp;    /**</b>
+<i class="no-highlight">798</i>&nbsp;     * Create CSVParser object.
+<i class="no-highlight">799</i>&nbsp;     *
+<i class="no-highlight">800</i>&nbsp;     * @param inputStream from CSV data
+<i class="no-highlight">801</i>&nbsp;     * @return CSVParser object
+<i class="no-highlight">802</i>&nbsp;     */
+<i class="no-highlight">803</i>&nbsp;    public CSVParser getCSVParser(InputStream inputStream) throws IOException {
+<i class="no-highlight">804</i>&nbsp;        CSVFormat.Builder csvFormatBuilder = CSVFormat.Builder.create(CSVFormat.DEFAULT)
+<i class="no-highlight">805</i>&nbsp;                .setHeader();
+<i class="no-highlight">806</i>&nbsp;        if (isDisplayEmptyAsNull) {
+<i class="no-highlight">807</i>&nbsp;            // Salesforce Bulk API returns for both an empty string and null values as an empty
+<i class="no-highlight">808</i>&nbsp;            // string (&quot;&quot;). CSVFormatter is set to convert an empty string to null value.
+<i class="no-highlight">809</i>&nbsp;            csvFormatBuilder.setNullString(StringUtils.EMPTY);
+<i class="no-highlight">810</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">811</i>&nbsp;        CSVFormat csvFormat = csvFormatBuilder.build();</b>
+<b class="nc"><i class="no-highlight">812</i>&nbsp;        InputStreamReader reader = new InputStreamReader(inputStream, UTF_8);</b>
+<b class="nc"><i class="no-highlight">813</i>&nbsp;        return new CSVParser(reader, csvFormat);</b>
+<i class="no-highlight">814</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">815</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">816</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">817</i>&nbsp;     * @param jobResponseMap</b>
+<b class="nc"><i class="no-highlight">818</i>&nbsp;     * @param bulkJobInfo</b>
+<b class="nc"><i class="no-highlight">819</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">820</i>&nbsp;    private void populateCreateJobResponse(Map jobResponseMap, BulkJobInfo bulkJobInfo) {</b>
+<b class="nc"><i class="no-highlight">821</i>&nbsp;        if (!bulkJobInfo.getOperation().isQuery()) {</b>
+<b class="nc"><i class="no-highlight">822</i>&nbsp;            bulkJobInfo.setContentUrl(jobResponseMap.get(CONTENT_URL).toString());</b>
+<b class="nc"><i class="no-highlight">823</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">824</i>&nbsp;        bulkJobInfo.setState(jobResponseMap.get(STATE).toString());</b>
+<b class="nc"><i class="no-highlight">825</i>&nbsp;        bulkJobInfo.setId(jobResponseMap.get(ID).toString());</b>
+<i class="no-highlight">826</i>&nbsp;    }
+<i class="no-highlight">827</i>&nbsp;
+<i class="no-highlight">828</i>&nbsp;    /**
+<i class="no-highlight">829</i>&nbsp;     * Method to generate default headers
+<i class="no-highlight">830</i>&nbsp;     *
+<i class="no-highlight">831</i>&nbsp;     * @param specificHeaders
+<i class="no-highlight">832</i>&nbsp;     * @return
+<i class="no-highlight">833</i>&nbsp;     */
+<i class="no-highlight">834</i>&nbsp;    public Header[] generateHeaders(List&lt;Header&gt; specificHeaders) {
+<i class="no-highlight">835</i>&nbsp;        List&lt;Header&gt; headers = Lists.newArrayList();
+<i class="no-highlight">836</i>&nbsp;        Login login = account.connect();
+<b class="nc"><i class="no-highlight">837</i>&nbsp;        headers.add(new BasicHeader(AUTH.WWW_AUTH_RESP, String.format(Constants.BEARER_TOKEN,</b>
+<b class="nc"><i class="no-highlight">838</i>&nbsp;                login.getSessionId())));</b>
+<b class="nc"><i class="no-highlight">839</i>&nbsp;        headers.add(new BasicHeader(HttpHeaders.ACCEPT,</b>
+<b class="nc"><i class="no-highlight">840</i>&nbsp;                HEADER_ACCEPT_VALUE));</b>
+<b class="nc"><i class="no-highlight">841</i>&nbsp;        if (specificHeaders != null &amp;&amp; !specificHeaders.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">842</i>&nbsp;            headers.addAll(specificHeaders);</b>
+<b class="nc"><i class="no-highlight">843</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">844</i>&nbsp;        return headers.toArray(new Header[0]);</b>
+<b class="nc"><i class="no-highlight">845</i>&nbsp;    }</b>
+<i class="no-highlight">846</i>&nbsp;
+<i class="no-highlight">847</i>&nbsp;    /**
+<i class="no-highlight">848</i>&nbsp;     * Method to generate headers to get the response
+<i class="no-highlight">849</i>&nbsp;     *
+<i class="no-highlight">850</i>&nbsp;     * @return
+<i class="no-highlight">851</i>&nbsp;     */
+<i class="no-highlight">852</i>&nbsp;    public Header[] generateHeadersForGetResults() {
+<i class="no-highlight">853</i>&nbsp;        return generateHeadersForGetResults(false);
+<i class="no-highlight">854</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">855</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">856</i>&nbsp;    /**</b>
+<i class="no-highlight">857</i>&nbsp;     * Generates the HTTP request headers.
+<b class="nc"><i class="no-highlight">858</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">859</i>&nbsp;     * @param isGzip - true to request to compress the response entity in gzip</b>
+<i class="no-highlight">860</i>&nbsp;     * @return an array of headers
+<b class="nc"><i class="no-highlight">861</i>&nbsp;     */</b>
+<i class="no-highlight">862</i>&nbsp;    public Header[] generateHeadersForGetResults(boolean isGzip) {
+<b class="nc"><i class="no-highlight">863</i>&nbsp;        List&lt;Header&gt; headers = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">864</i>&nbsp;        Login login = account.connect();</b>
+<b class="nc"><i class="no-highlight">865</i>&nbsp;        headers.add(new BasicHeader(AUTH.WWW_AUTH_RESP, String.format(Constants.BEARER_TOKEN,</b>
+<b class="nc"><i class="no-highlight">866</i>&nbsp;                login.getSessionId())));</b>
+<b class="nc"><i class="no-highlight">867</i>&nbsp;        headers.add(new BasicHeader(HttpHeaders.ACCEPT,</b>
+<i class="no-highlight">868</i>&nbsp;                HEADER_CONTENT_TYPE_CSV_VALUE));
+<b class="nc"><i class="no-highlight">869</i>&nbsp;        if (isGzip) {</b>
+<i class="no-highlight">870</i>&nbsp;            headers.add(new BasicHeader(HttpHeaders.ACCEPT_ENCODING, GZIP));
+<b class="nc"><i class="no-highlight">871</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;        return headers.toArray(new Header[0]);</b>
+<b class="nc"><i class="no-highlight">873</i>&nbsp;    }</b>
+<i class="no-highlight">874</i>&nbsp;
+<i class="no-highlight">875</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">876</i>&nbsp;     * Method to upload data to bulkv2 job sample</b>
+<b class="nc"><i class="no-highlight">877</i>&nbsp;     * url:/services/data/version/jobs/ingest/jobID/batches</b>
+<i class="no-highlight">878</i>&nbsp;     * https://developer.salesforce.com/docs/atlas.en-us.api_bulk_v2
+<b class="nc"><i class="no-highlight">879</i>&nbsp;     * .meta/api_bulk_v2/upload_job_data.htm</b>
+<b class="nc"><i class="no-highlight">880</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">881</i>&nbsp;     * @param input</b>
+<b class="nc"><i class="no-highlight">882</i>&nbsp;     * @param url</b>
+<i class="no-highlight">883</i>&nbsp;     * @throws IOException
+<b class="nc"><i class="no-highlight">884</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">885</i>&nbsp;    public void uploadJob(String input, String url) throws IOException {</b>
+<b class="nc"><i class="no-highlight">886</i>&nbsp;        StringEntity entity = new StringEntity(input, UTF_8);</b>
+<b class="nc"><i class="no-highlight">887</i>&nbsp;        List&lt;Header&gt; specificHeaders = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">888</i>&nbsp;        specificHeaders.add(new BasicHeader(HttpHeaders.CONTENT_TYPE,
+<i class="no-highlight">889</i>&nbsp;                HEADER_CONTENT_TYPE_CSV_VALUE));
+<b class="nc"><i class="no-highlight">890</i>&nbsp;        RestResponseObject httpResponse = invokeHttpCall(HttpPut.METHOD_NAME, entity, url,</b>
+<b class="nc"><i class="no-highlight">891</i>&nbsp;                generateHeaders(specificHeaders));</b>
+<b class="nc"><i class="no-highlight">892</i>&nbsp;        StatusLine statusLine = httpResponse.getStatusLine();</b>
+<b class="nc"><i class="no-highlight">893</i>&nbsp;        if (HttpStatus.SC_CREATED != statusLine.getStatusCode()) {</b>
+<b class="nc"><i class="no-highlight">894</i>&nbsp;            LOGGER.error(&quot;Error uploading data for Job, {} with reason {}: {}&quot;, jobId,</b>
+<b class="nc"><i class="no-highlight">895</i>&nbsp;                    statusLine.getStatusCode(),</b>
+<b class="nc"><i class="no-highlight">896</i>&nbsp;                    statusLine.getReasonPhrase());</b>
+<b class="nc"><i class="no-highlight">897</i>&nbsp;            throw new SnapDataException(errorMessage(ERR_UPLOADING_JOB, jobId))</b>
+<b class="nc"><i class="no-highlight">898</i>&nbsp;                    .withReason(String.format(FORMAT_ERR_MESSAGE, statusLine.getStatusCode(),</b>
+<b class="nc"><i class="no-highlight">899</i>&nbsp;                            statusLine.getReasonPhrase()))</b>
+<i class="no-highlight">900</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);
+<b class="nc"><i class="no-highlight">901</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">902</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">903</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">904</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">905</i>&nbsp;     * Method to generate request body</b>
+<i class="no-highlight">906</i>&nbsp;     *
+<i class="no-highlight">907</i>&nbsp;     * @param mapFields
+<i class="no-highlight">908</i>&nbsp;     * @return
+<b class="nc"><i class="no-highlight">909</i>&nbsp;     */</b>
+<i class="no-highlight">910</i>&nbsp;    public StringEntity generateRequestBodyForJob(Map&lt;String, String&gt; mapFields) {
+<i class="no-highlight">911</i>&nbsp;        try {
+<i class="no-highlight">912</i>&nbsp;            return new StringEntity(objectMapper.writeValueAsString(mapFields));
+<i class="no-highlight">913</i>&nbsp;        } catch (UnsupportedEncodingException e) {
+<i class="no-highlight">914</i>&nbsp;            throw new SnapDataException(e, ERR_ENCODE)
+<i class="no-highlight">915</i>&nbsp;                    .withReason(e.getMessage())
+<i class="no-highlight">916</i>&nbsp;                    .withResolutionAsDefect();
+<i class="no-highlight">917</i>&nbsp;        } catch (JsonProcessingException e) {
+<i class="no-highlight">918</i>&nbsp;            throw new SnapDataException(e, ERR_PROCESSING_JSON)
+<b class="nc"><i class="no-highlight">919</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">920</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">921</i>&nbsp;        }
+<i class="no-highlight">922</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">923</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">924</i>&nbsp;    /**</b>
+<i class="no-highlight">925</i>&nbsp;     * @param url
+<i class="no-highlight">926</i>&nbsp;     * @param jobInfo
+<b class="nc"><i class="no-highlight">927</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">928</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">929</i>&nbsp;    public Map&lt;String, Integer&gt; getBulkv2QueryJobLimits(String url, BulkJobInfo jobInfo) {</b>
+<i class="no-highlight">930</i>&nbsp;        List&lt;Header&gt; specificHeaders = new ArrayList&lt;&gt;();
+<i class="no-highlight">931</i>&nbsp;        specificHeaders.add(new BasicHeader(HttpHeaders.CONTENT_TYPE,
+<i class="no-highlight">932</i>&nbsp;                HEADER_CONTENT_TYPE_JSON_VALUE));
+<b class="nc"><i class="no-highlight">933</i>&nbsp;        bulkJobInfo = jobInfo;</b>
+<i class="no-highlight">934</i>&nbsp;        Map&lt;String, Integer&gt; bulkv2QueryLimits = Maps.newLinkedHashMap();
+<i class="no-highlight">935</i>&nbsp;        try {
+<i class="no-highlight">936</i>&nbsp;            RestResponseObject responseObject = invokeHttpCall(HttpGet.METHOD_NAME,
+<b class="nc"><i class="no-highlight">937</i>&nbsp;                    null, url,</b>
+<i class="no-highlight">938</i>&nbsp;                    generateHeaders(specificHeaders));
+<i class="no-highlight">939</i>&nbsp;            if (responseObject.getStatusLine().getStatusCode() &gt;= HttpStatus.SC_OK &amp;&amp;
+<i class="no-highlight">940</i>&nbsp;                    responseObject.getStatusLine().getStatusCode() &lt;= HttpStatus.SC_ACCEPTED) {
+<i class="no-highlight">941</i>&nbsp;                Map map = responseObject.getBody();
+<i class="no-highlight">942</i>&nbsp;                if (MapUtils.isNotEmpty(map)) {
+<i class="no-highlight">943</i>&nbsp;                    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">944</i>&nbsp;                    Map&lt;String, Integer&gt; dailyJobLimitsMap = (Map&lt;String, Integer&gt;) map.get(
+<i class="no-highlight">945</i>&nbsp;                            DAILY_BULKV2_QUERY_JOBS);
+<i class="no-highlight">946</i>&nbsp;                    if (dailyJobLimitsMap.get(REMAINING_LIMIT).equals(0)) {
+<i class="no-highlight">947</i>&nbsp;                        LOGGER.warn(DAILY_JOB_LIMITS, dailyJobLimitsMap.get(MAX_LIMIT),
+<i class="no-highlight">948</i>&nbsp;                                dailyJobLimitsMap.get(REMAINING_LIMIT));
+<i class="no-highlight">949</i>&nbsp;                    }
+<i class="no-highlight">950</i>&nbsp;                    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">951</i>&nbsp;                    Map&lt;String, Integer&gt; dailyBulkQueryStorageLimitsMap =
+<i class="no-highlight">952</i>&nbsp;                            (Map&lt;String, Integer&gt;) map.get(
+<i class="no-highlight">953</i>&nbsp;                                    DAILY_BULKV2_QUERY_FILE_STORATE_IN_MB);
+<i class="no-highlight">954</i>&nbsp;                    if (dailyBulkQueryStorageLimitsMap.get(REMAINING_LIMIT).equals(0)) {
+<i class="no-highlight">955</i>&nbsp;                        LOGGER.warn(DAILY_QUERY_FILE_STORAGE_LIMITS,
+<i class="no-highlight">956</i>&nbsp;                                dailyBulkQueryStorageLimitsMap.get(MAX_LIMIT),
+<i class="no-highlight">957</i>&nbsp;                                dailyBulkQueryStorageLimitsMap.get(REMAINING_LIMIT));
+<i class="no-highlight">958</i>&nbsp;                    }
+<i class="no-highlight">959</i>&nbsp;                    bulkv2QueryLimits.put(REMAINING_QUERY_JOB_LIMIT,
+<i class="no-highlight">960</i>&nbsp;                            dailyJobLimitsMap.get(REMAINING_LIMIT));
+<i class="no-highlight">961</i>&nbsp;                    bulkv2QueryLimits.put(REMAINING_FILE_STORAGE_IN_MB,
+<i class="no-highlight">962</i>&nbsp;                            dailyBulkQueryStorageLimitsMap.get(REMAINING_LIMIT));
+<i class="no-highlight">963</i>&nbsp;                }
+<i class="no-highlight">964</i>&nbsp;            }
+<i class="no-highlight">965</i>&nbsp;        } catch (IOException e) {
+<i class="no-highlight">966</i>&nbsp;            LOGGER.error(ERR_QUERING_JOB_LIMITS, e);
+<i class="no-highlight">967</i>&nbsp;            throw new ExecutionException(e, String.format(ERR_QUERING_JOB_LIMITS, url))
+<i class="no-highlight">968</i>&nbsp;                    .withReason(Throwables.getRootCause(e).getMessage())
+<i class="no-highlight">969</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">970</i>&nbsp;        } catch (Exception e) {
+<i class="no-highlight">971</i>&nbsp;            LOGGER.error(ERR_QUERING_JOB_LIMITS, e);
+<i class="no-highlight">972</i>&nbsp;            String reason = Throwables.getRootCause(e).getMessage();
+<i class="no-highlight">973</i>&nbsp;            if (e instanceof ExecutionException) {
+<i class="no-highlight">974</i>&nbsp;                reason = reason + &quot; : &quot; + ((ExecutionException) e).getReason();
+<i class="no-highlight">975</i>&nbsp;            }
+<i class="no-highlight">976</i>&nbsp;            throw new SnapDataException(e, String.format(ERR_QUERING_JOB_LIMITS, url))
+<i class="no-highlight">977</i>&nbsp;                    .withReason(reason)
+<i class="no-highlight">978</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">979</i>&nbsp;        }
+<i class="no-highlight">980</i>&nbsp;        return bulkv2QueryLimits;
+<i class="no-highlight">981</i>&nbsp;    }
+<i class="no-highlight">982</i>&nbsp;
+<i class="no-highlight">983</i>&nbsp;    public void setDisplayEmptyAsNull(boolean isDisplayEmptyAsNull) {
+<i class="no-highlight">984</i>&nbsp;        this.isDisplayEmptyAsNull = isDisplayEmptyAsNull;
+<i class="no-highlight">985</i>&nbsp;    }
+<i class="no-highlight">986</i>&nbsp;
+<i class="no-highlight">987</i>&nbsp;    /**
+<i class="no-highlight">988</i>&nbsp;     * Represents result of a REST call as a combination of StatusLine and Map body (if any)
+<i class="no-highlight">989</i>&nbsp;     */
+<i class="no-highlight">990</i>&nbsp;    public static class RestResponseObject {
+<i class="no-highlight">991</i>&nbsp;        private StatusLine statusLine;
+<i class="no-highlight">992</i>&nbsp;        private Map body;
+<i class="no-highlight">993</i>&nbsp;
+<i class="no-highlight">994</i>&nbsp;        RestResponseObject(StatusLine statusLine) {
+<i class="no-highlight">995</i>&nbsp;            this.statusLine = statusLine;
+<i class="no-highlight">996</i>&nbsp;        }
+<i class="no-highlight">997</i>&nbsp;
+<i class="no-highlight">998</i>&nbsp;        RestResponseObject(Map body) {
+<i class="no-highlight">999</i>&nbsp;            this.body = body;
+<i class="no-highlight">1000</i>&nbsp;        }
+<i class="no-highlight">1001</i>&nbsp;
+<i class="no-highlight">1002</i>&nbsp;        RestResponseObject(Map body, StatusLine statusLine) {
+<i class="no-highlight">1003</i>&nbsp;            this.body = body;
+<i class="no-highlight">1004</i>&nbsp;            this.statusLine = statusLine;
+<i class="no-highlight">1005</i>&nbsp;        }
+<i class="no-highlight">1006</i>&nbsp;
+<i class="no-highlight">1007</i>&nbsp;        public StatusLine getStatusLine() {
+<i class="no-highlight">1008</i>&nbsp;            return statusLine;
+<i class="no-highlight">1009</i>&nbsp;        }
+<i class="no-highlight">1010</i>&nbsp;
+<i class="no-highlight">1011</i>&nbsp;        public Map getBody() {
+<i class="no-highlight">1012</i>&nbsp;            return body;
+<i class="no-highlight">1013</i>&nbsp;        }
+<i class="no-highlight">1014</i>&nbsp;    }
+<i class="no-highlight">1015</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

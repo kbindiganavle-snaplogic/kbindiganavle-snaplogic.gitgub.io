@@ -1,0 +1,793 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AzureSynapseSQLAbstractAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.accounts</a>
+</div>
+
+<h1>Coverage Summary for Class: AzureSynapseSQLAbstractAccount (com.snaplogic.snap.api.sql.accounts)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AzureSynapseSQLAbstractAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/39)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/345)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql.accounts;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.account.api.ExtendedValidatableAccount;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">23</i>&nbsp;import org.jooq.tools.jdbc.JDBCUtils;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">26</i>&nbsp;import java.util.List;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSqlConstants.*;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSynapseSqlUtils.getDatabasePropPath;
+<i class="no-highlight">30</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSynapseSqlUtils.prefixPeriodToAzureEndpoint;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSynapseSqlUtils.validateAADStorageClient;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSynapseSqlUtils.validateFields;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSynapseSqlUtils.validateSAKStorageClient;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSynapseSqlUtils.validateStorageSASClient;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.Messages.*;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import static org.apache.commons.lang3.StringUtils.isNotBlank;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;/**
+<i class="no-highlight">40</i>&nbsp; * Azure Synapse SQL AccountParameters interface which attempts to check for the account instance.
+<i class="no-highlight">41</i>&nbsp; */
+<i class="no-highlight">42</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<b class="nc"><i class="no-highlight">43</i>&nbsp;public abstract class AzureSynapseSQLAbstractAccount extends DriverUploadDynamicAccount</b>
+<i class="no-highlight">44</i>&nbsp;        implements ExtendedValidatableAccount&lt;Connection, Void&gt; {
+<i class="no-highlight">45</i>&nbsp;    private static final String PARAM_UNDEFINED_MSG_SUFFIX = &quot;is undefined.&quot;;
+<i class="no-highlight">46</i>&nbsp;    public static final String AZURE_SQL_DRIVER_CLASS =
+<i class="no-highlight">47</i>&nbsp;            &quot;com.microsoft.sqlserver.jdbc.SQLServerDriver&quot;;
+<i class="no-highlight">48</i>&nbsp;    protected String accountName;
+<i class="no-highlight">49</i>&nbsp;    protected String container;
+<i class="no-highlight">50</i>&nbsp;    protected String folder;
+<i class="no-highlight">51</i>&nbsp;    protected String externalStorage;
+<i class="no-highlight">52</i>&nbsp;    protected String storageEndpoint;
+<i class="no-highlight">53</i>&nbsp;    protected String authType;
+<i class="no-highlight">54</i>&nbsp;    protected String storageKey;
+<i class="no-highlight">55</i>&nbsp;    protected String identity;
+<i class="no-highlight">56</i>&nbsp;    protected String secret;
+<i class="no-highlight">57</i>&nbsp;    protected String clientId;
+<i class="no-highlight">58</i>&nbsp;    protected String clientSecret;
+<i class="no-highlight">59</i>&nbsp;    protected String tenantId;
+<i class="no-highlight">60</i>&nbsp;    protected boolean isErrorFileEnabledForAzureSynapse;
+<i class="no-highlight">61</i>&nbsp;    protected boolean isErrorFileNewConfigEnabled;
+<i class="no-highlight">62</i>&nbsp;    protected String errFileAzureAccountName;
+<i class="no-highlight">63</i>&nbsp;    protected String errFileAzureSynapseStorageEndpoint;
+<i class="no-highlight">64</i>&nbsp;    protected String errFileAzureContainer;
+<i class="no-highlight">65</i>&nbsp;    protected String errFileAzureFolder;
+<i class="no-highlight">66</i>&nbsp;    protected String errFileAzureAuthType;
+<i class="no-highlight">67</i>&nbsp;    protected String errFileAzureIdentity;
+<i class="no-highlight">68</i>&nbsp;    protected String errFileAzureSecret;
+<i class="no-highlight">69</i>&nbsp;    protected String errFileExternalStorage;
+<i class="no-highlight">70</i>&nbsp;    protected SnapProperty externalLocationProp;
+<i class="no-highlight">71</i>&nbsp;    protected SnapProperty accountProp;
+<i class="no-highlight">72</i>&nbsp;    protected SnapProperty endpointProp;
+<i class="no-highlight">73</i>&nbsp;    protected SnapProperty containerProp;
+<i class="no-highlight">74</i>&nbsp;    protected SnapProperty folderProp;
+<i class="no-highlight">75</i>&nbsp;    protected SnapProperty authTypeProp;
+<i class="no-highlight">76</i>&nbsp;    protected SnapProperty storageKeyProp;
+<i class="no-highlight">77</i>&nbsp;    protected SnapProperty identityProp;
+<i class="no-highlight">78</i>&nbsp;    protected SnapProperty secretProp;
+<i class="no-highlight">79</i>&nbsp;    protected SnapProperty clientIdProp;
+<i class="no-highlight">80</i>&nbsp;    protected SnapProperty clientSecretProp;
+<i class="no-highlight">81</i>&nbsp;    protected SnapProperty tenantIdProp;
+<i class="no-highlight">82</i>&nbsp;    protected SnapProperty azureSynapseErrorFileProp;
+<i class="no-highlight">83</i>&nbsp;    protected SnapProperty azureSynapseErrorFileNewConfigProp;
+<i class="no-highlight">84</i>&nbsp;    protected SnapProperty errorFileExternalLocationAzureSynapseProp;
+<i class="no-highlight">85</i>&nbsp;    protected SnapProperty errorFileAzureSynapseAccountProp;
+<i class="no-highlight">86</i>&nbsp;    protected SnapProperty errorFileAzureSynapseEndpointProp;
+<i class="no-highlight">87</i>&nbsp;    protected SnapProperty errorFileAzureSynapseContainerProp;
+<i class="no-highlight">88</i>&nbsp;    protected SnapProperty errorFileAzureSynapseFolderProp;
+<i class="no-highlight">89</i>&nbsp;    protected SnapProperty errorFileAzureSynapseAuthTypeProp;
+<i class="no-highlight">90</i>&nbsp;    protected SnapProperty errorFileAzureSynapseIdentityProp;
+<i class="no-highlight">91</i>&nbsp;    protected SnapProperty errorFileAzureSynapseSecretProp;
+<i class="no-highlight">92</i>&nbsp;
+<i class="no-highlight">93</i>&nbsp;    @Override
+<i class="no-highlight">94</i>&nbsp;    public List&lt;SnapProperty&gt; createAdditionalConnectionProperties(
+<i class="no-highlight">95</i>&nbsp;            List&lt;SnapProperty&gt; connectionProperties, PropertyBuilder propertyBuilder) {
+<i class="no-highlight">96</i>&nbsp;        // forcing user to upload driver jar
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        SnapProperty driver = propertyBuilder.describe(JDBC_DRIVER_PROP, JDBC_DRIVER_LABEL,</b>
+<i class="no-highlight">98</i>&nbsp;                        JDBC_DRIVER_DESC)
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                .driverBrowsing()</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        SnapProperty driverClass = propertyBuilder.describe(JDBC_DRIVER_CLASS_PROP,</b>
+<i class="no-highlight">102</i>&nbsp;                        JDBC_DRIVER_CLASS_LABEL, JDBC_DRIVER_CLASS_DESC)
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                .defaultValue(getDefaultJDBCClass())</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        SnapProperty drivers = propertyBuilder.describe(JDBC_DRIVERS_PROP,</b>
+<i class="no-highlight">107</i>&nbsp;                        JDBC_DRIVERS_LABEL, JDBC_DRIVERS_DESC)
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                .withEntry(driver)</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                .withMinValue(1)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        connectionProperties.add(drivers);</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        connectionProperties.add(driverClass);</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        createMoreAdditionalConnectionProperties(connectionProperties, propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        return connectionProperties;</b>
+<i class="no-highlight">116</i>&nbsp;    }
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;    protected void createExternalStorageConnectionProperties(
+<i class="no-highlight">119</i>&nbsp;            List&lt;SnapProperty&gt; connectionProperties, PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        externalLocationProp = propertyBuilder</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                .describe(EXTERNAL_LOCATION_AZURE_SYNAPSE_PROP, EXTERNAL_LOCATION_LABEL,</b>
+<i class="no-highlight">122</i>&nbsp;                        EXTERNAL_LOCATION_DESC)
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .withAllowedValues(EXTERNAL_LOCATION_TYPES_AZURE_SYNAPSE)</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                .defaultValue(NONE)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        endpointProp = propertyBuilder.describe(AZURE_SYNAPSE_ENDPOINT_PROP,</b>
+<i class="no-highlight">128</i>&nbsp;                        AZURE_SYNAPSE_ENDPOINT_LABEL, AZURE_SYNAPSE_ENDPOINT_DESC)
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_EXTERNAL_LOCATION_SPECIFIC_FIELDS)</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        accountProp = propertyBuilder.describe(AZURE_SYNAPSE_SOURCE_ACCOUNT_PROP,</b>
+<i class="no-highlight">135</i>&nbsp;                        SOURCE_LOCATION_AZURE_ACCOUNT_LABEL, SOURCE_LOCATION_AZURE_ACCOUNT_DESC)
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_EXTERNAL_LOCATION_SPECIFIC_FIELDS)</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        containerProp = propertyBuilder.describe(AZURE_SYNAPSE_SOURCE_CONTAINER_PROP,</b>
+<i class="no-highlight">142</i>&nbsp;                        SOURCE_LOCATION_AZURE_CONTAINER_LABEL,
+<i class="no-highlight">143</i>&nbsp;                        SOURCE_LOCATION_AZURE_CONTAINER_DESC)
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_EXTERNAL_LOCATION_SPECIFIC_FIELDS)</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        folderProp = propertyBuilder.describe(AZURE_SYNAPSE_SOURCE_FOLDER_PROP,</b>
+<i class="no-highlight">150</i>&nbsp;                        SOURCE_LOCATION_AZURE_FOLDER_LABEL, SOURCE_LOCATION_AZURE_FOLDER_DESC)
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_EXTERNAL_LOCATION_SPECIFIC_FIELDS)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        authTypeProp = propertyBuilder.describe(AZURE_AUTH_TYPE_PROP,</b>
+<i class="no-highlight">157</i>&nbsp;                        AZURE_AUTH_TYPE_LABEL, AZURE_AUTH_TYPE_DESC)
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                .withAllowedValues(AZURE_SYNAPSE_AUTH_TYPES)</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                .defaultValue(AZURE_SYNAPSE_ACCESS_KEY_AUTH)</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_EXTERNAL_LOCATION_SPECIFIC_FIELDS)</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        storageKeyProp = propertyBuilder.describe(AZURE_SYNAPSE_STORAGE_KEY_PROP,</b>
+<i class="no-highlight">164</i>&nbsp;                        AZURE_SYNAPSE_STORAGE_KEY_LABEL, AZURE_SYNAPSE_STORAGE_KEY_DESC)
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                .enableIf(ENABLE_AZURE_STORAGE_KEY_CONDITION)</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        identityProp = propertyBuilder.describe(AZURE_IDENTITY_PROP,</b>
+<i class="no-highlight">171</i>&nbsp;                        AZURE_IDENTITY_LABEL, AZURE_IDENTITY_DESC)
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_IDENTITY_CONDITION)</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        secretProp = propertyBuilder.describe(AZURE_SECRET_PROP,</b>
+<i class="no-highlight">178</i>&nbsp;                        AZURE_SECRET_LABEL, AZURE_SECRET_DESC)
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_SECRET_CONDITION)</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        clientIdProp = propertyBuilder.describe(AZURE_AAD_CLIENT_ID_PROP,</b>
+<i class="no-highlight">185</i>&nbsp;                        AZURE_CLIENT_ID_LABEL, AZURE_CLIENT_ID_DESC)
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_AAD_CREDS_CONDITION)</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        clientSecretProp = propertyBuilder.describe(AZURE_AAD_CLIENT_SECRET_PROP,</b>
+<i class="no-highlight">192</i>&nbsp;                        AZURE_CLIENT_SECRET_LABEL, AZURE_CLIENT_SECRET_DESC)
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_AAD_CREDS_CONDITION)</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        tenantIdProp = propertyBuilder.describe(AZURE_AAD_TENANT_ID_PROP,</b>
+<i class="no-highlight">199</i>&nbsp;                        AZURE_TENANT_ID_LABEL, AZURE_TENANT_ID_DESC)
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                .enableIf(ENABLE_AZURE_SYNAPSE_AAD_CREDS_CONDITION)</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                .build();</b>
+<i class="no-highlight">205</i>&nbsp;        // Error files
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        azureSynapseErrorFileProp = propertyBuilder.describe(AZURE_ENABLE_ERRORFILE_PROP,</b>
+<i class="no-highlight">207</i>&nbsp;                        AZURE_ERRORFILE_LABEL, AZURE_ERRORFILE_DESC)
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        azureSynapseErrorFileNewConfigProp =</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                propertyBuilder.describe(AZURE_ERRORFILE_NEW_CONFIG_PROP,</b>
+<i class="no-highlight">214</i>&nbsp;                                AZURE_ERRORFILE_NEW_CONFIG_LABEL, AZURE_ERRORFILE_NEW_CONFIG_DESC)
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                        .optional()</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                        .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                        .enableIf(ENABLE_ERRORFILE_AZURE_SYNAPSE_CONDITION)</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        errorFileExternalLocationAzureSynapseProp = propertyBuilder.describe(</b>
+<i class="no-highlight">221</i>&nbsp;                ERRFILE_EXTERNAL_LOCATION_AZURE_SYNAPSE_PROP, ERRFILE_EXTERNAL_LOCATION_LABEL,
+<i class="no-highlight">222</i>&nbsp;                        EXTERNAL_LOCATION_DESC)
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                .withAllowedValues(ERR_FILE_EXTERNAL_LOCATION_TYPES_AZURE_SYNAPSE)</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                .defaultValue(BLOB_STORAGE)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .enableIf(ENABLE_ERRORFILE_AZURE_SYNAPSE_NEW_CONFIG)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        errorFileAzureSynapseEndpointProp = propertyBuilder</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                .describe(ERRFILE_AZURE_SYNAPSE_ENDPOINT_PROP, AZURE_SYNAPSE_ENDPOINT_LABEL,</b>
+<i class="no-highlight">230</i>&nbsp;                        AZURE_SYNAPSE_ENDPOINT_DESC)
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                .enableIf(ENABLE_ERRORFILE_AZURE_SYNAPSE_NEW_CONFIG)</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        errorFileAzureSynapseAccountProp =</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                propertyBuilder.describe(ERRFILE_SOURCE_LOCATION_AZURE_ACCOUNT_PROP,</b>
+<i class="no-highlight">238</i>&nbsp;                                ERRFILE_SOURCE_LOCATION_AZURE_ACCOUNT_LABEL,
+<i class="no-highlight">239</i>&nbsp;                                SOURCE_LOCATION_AZURE_ACCOUNT_DESC)
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                        .optional()</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                        .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                        .expression()</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                        .enableIf(ENABLE_ERRORFILE_AZURE_SYNAPSE_NEW_CONFIG)</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        errorFileAzureSynapseContainerProp =</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                propertyBuilder.describe(ERRFILE_SOURCE_LOCATION_AZURE_CONTAINER_PROP,</b>
+<i class="no-highlight">247</i>&nbsp;                                ERRFILE_SOURCE_LOCATION_AZURE_CONTAINER_LABEL,
+<i class="no-highlight">248</i>&nbsp;                                SOURCE_LOCATION_AZURE_CONTAINER_DESC)
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                        .optional()</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                        .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                        .expression()</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                        .enableIf(ENABLE_ERRORFILE_AZURE_SYNAPSE_NEW_CONFIG)</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        errorFileAzureSynapseFolderProp =</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                propertyBuilder.describe(ERRFILE_SOURCE_LOCATION_AZURE_FOLDER_PROP,</b>
+<i class="no-highlight">256</i>&nbsp;                                ERRFILE_SOURCE_LOCATION_AZURE_FOLDER_LABEL,
+<i class="no-highlight">257</i>&nbsp;                                SOURCE_LOCATION_AZURE_FOLDER_DESC)
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                        .optional()</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                        .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                        .expression()</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                        .enableIf(ENABLE_ERRORFILE_AZURE_SYNAPSE_CONDITION)</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        errorFileAzureSynapseAuthTypeProp = propertyBuilder.describe(ERRFILE_AZURE_AUTH_TYPE_PROP,</b>
+<i class="no-highlight">264</i>&nbsp;                        ERRFILE_AZURE_AUTH_TYPE_LABEL, ERRFILE_AZURE_AUTH_TYPE_DESC)
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                .withAllowedValues(AZURE_SYNAPSE_AUTH_TYPES)</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                .defaultValue(AZURE_SYNAPSE_ACCESS_KEY_AUTH)</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                .enableIf(ENABLE_ERRORFILE_AZURE_SYNAPSE_NEW_CONFIG)</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        errorFileAzureSynapseIdentityProp = propertyBuilder.describe(ERRFILE_AZURE_IDENTITY_PROP,</b>
+<i class="no-highlight">271</i>&nbsp;                        ERRFILE_AZURE_IDENTITY_LABEL, ERRFILE_AZURE_IDENTITY_DESC)
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                .enableIf(ENABLE_ERR_FILE_AZURE_SYNAPSE_IDENTITY_CONDITION)</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        errorFileAzureSynapseSecretProp = propertyBuilder.describe(ERRFILE_AZURE_SECRET_PROP,</b>
+<i class="no-highlight">278</i>&nbsp;                        ERRFILE_AZURE_SECRET_LABEL, ERRFILE_AZURE_SECRET_DESC)
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                .enableIf(ENABLE_ERR_FILE_AZURE_SYNAPSE_SECRET_CONDITION)</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        connectionProperties.add(externalLocationProp);</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        connectionProperties.add(endpointProp);</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        connectionProperties.add(accountProp);</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        connectionProperties.add(containerProp);</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        connectionProperties.add(folderProp);</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        connectionProperties.add(authTypeProp);</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        connectionProperties.add(authTypeProp);</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        connectionProperties.add(storageKeyProp);</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        connectionProperties.add(identityProp);</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        connectionProperties.add(secretProp);</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        connectionProperties.add(clientIdProp);</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        connectionProperties.add(clientSecretProp);</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        connectionProperties.add(tenantIdProp);</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        connectionProperties.add(azureSynapseErrorFileProp);</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        connectionProperties.add(errorFileAzureSynapseFolderProp);</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        connectionProperties.add(azureSynapseErrorFileNewConfigProp);</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        connectionProperties.add(errorFileExternalLocationAzureSynapseProp);</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        connectionProperties.add(errorFileAzureSynapseEndpointProp);</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        connectionProperties.add(errorFileAzureSynapseAccountProp);</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        connectionProperties.add(errorFileAzureSynapseContainerProp);</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        connectionProperties.add(errorFileAzureSynapseAuthTypeProp);</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        connectionProperties.add(errorFileAzureSynapseIdentityProp);</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        connectionProperties.add(errorFileAzureSynapseSecretProp);    }</b>
+<i class="no-highlight">307</i>&nbsp;
+<i class="no-highlight">308</i>&nbsp;    @Override
+<i class="no-highlight">309</i>&nbsp;    public void configure(PropertyValues propertyValues) {
+<i class="no-highlight">310</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">311</i>&nbsp;            super.configure(propertyValues);</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;            if (StringUtils.endsWithIgnoreCase(e.getMessage(), PARAM_UNDEFINED_MSG_SUFFIX)) {</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                throw new ConfigurationException(ERROR_VALIDATE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                        .withReason(ERROR_VALIDATE_ACCOUNT_REASON)</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                        .withResolution(ERROR_VALIDATE_ACCOUNT_RESOLUTION);</b>
+<i class="no-highlight">317</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        }</b>
+<i class="no-highlight">320</i>&nbsp;    }
+<i class="no-highlight">321</i>&nbsp;
+<i class="no-highlight">322</i>&nbsp;    protected void configExternalStorageConnectionProperties(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        externalStorage =</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">325</i>&nbsp;                        EXTERNAL_LOCATION_AZURE_SYNAPSE_PROP));
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        isErrorFileEnabledForAzureSynapse = propertyValues.get(getDatabasePropPath(</b>
+<i class="no-highlight">327</i>&nbsp;                CONNECTION_PROPERTIES_PROP, AZURE_ENABLE_ERRORFILE_PROP));
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        if (isNotBlank(externalStorage)) {</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;            switch (externalStorage) {</b>
+<i class="no-highlight">330</i>&nbsp;                case BLOB_STORAGE:
+<i class="no-highlight">331</i>&nbsp;                case AZURE_SYNAPSE_ADLSGEN2_STORAGE:
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                    retrieveAzureSynapseStorageInfo(propertyValues);</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                    if (isErrorFileEnabledForAzureSynapse) {</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                        retrieveAzureSynapseErrorFileStorageInfo(propertyValues);</b>
+<i class="no-highlight">335</i>&nbsp;                    }
+<i class="no-highlight">336</i>&nbsp;                    break;
+<i class="no-highlight">337</i>&nbsp;                case NONE:
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                    break;</b>
+<i class="no-highlight">339</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                    throw new ConfigurationException(ERR_INVALID_EXTERNAL_STORAGE)</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                            .withReason(REASON_INVALID_EXTERNAL_STORAGE)</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                            .withResolution(RES_INVALID_EXTERNAL_STORAGE);</b>
+<i class="no-highlight">343</i>&nbsp;            }
+<i class="no-highlight">344</i>&nbsp;        }
+<i class="no-highlight">345</i>&nbsp;    }
+<i class="no-highlight">346</i>&nbsp;
+<i class="no-highlight">347</i>&nbsp;    private void retrieveAzureSynapseStorageInfo(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        externalStorage =</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">350</i>&nbsp;                        EXTERNAL_LOCATION_AZURE_SYNAPSE_PROP));
+<b class="nc"><i class="no-highlight">351</i>&nbsp;        storageEndpoint =</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                getFormattedAzureSynapseStorageEndpoint(propertyValues, AZURE_SYNAPSE_ENDPOINT_PROP,</b>
+<i class="no-highlight">353</i>&nbsp;                        externalStorage);
+<b class="nc"><i class="no-highlight">354</i>&nbsp;        accountName = propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">355</i>&nbsp;                AZURE_SYNAPSE_SOURCE_ACCOUNT_PROP));
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        container = propertyValues.get(getDatabasePropPath(</b>
+<i class="no-highlight">357</i>&nbsp;                CONNECTION_PROPERTIES_PROP, AZURE_SYNAPSE_SOURCE_CONTAINER_PROP));
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        folder = propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">359</i>&nbsp;                AZURE_SYNAPSE_SOURCE_FOLDER_PROP));
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        authType = propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">361</i>&nbsp;                AZURE_AUTH_TYPE_PROP));
+<i class="no-highlight">362</i>&nbsp;
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        switch (authType) {</b>
+<i class="no-highlight">364</i>&nbsp;            case AAD_USER_AUTH:
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                clientId =</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                        propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">367</i>&nbsp;                                AZURE_AAD_CLIENT_ID_PROP));
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                clientSecret = propertyValues</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                        .get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">370</i>&nbsp;                                AZURE_AAD_CLIENT_SECRET_PROP));
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                tenantId =</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                        propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">373</i>&nbsp;                                AZURE_AAD_TENANT_ID_PROP));
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                break;</b>
+<i class="no-highlight">375</i>&nbsp;            case AZURE_SYNAPSE_SERVICE_PRINCIPAL_AUTH:
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                setIdentity(propertyValues);</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                setSecret(propertyValues);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                break;</b>
+<i class="no-highlight">379</i>&nbsp;            case AZURE_SYNAPSE_SAS_AUTH:
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                setIdentity(propertyValues);</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                identity = StringUtils.isBlank(identity) ?</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                        AZURE_SYNAPSE_SAS_AUTH : identity;</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                setSecret(propertyValues);</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                storageKey =</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                        propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">386</i>&nbsp;                                AZURE_SYNAPSE_STORAGE_KEY_PROP));
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                break;</b>
+<i class="no-highlight">388</i>&nbsp;            case AZURE_SYNAPSE_MANAGED_IDENTITY_AUTH:
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                setIdentity(propertyValues);</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                identity = StringUtils.isBlank(identity) ?</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                        AZURE_SYNAPSE_MANAGED_IDENTITY_AUTH : identity;</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                storageKey =</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                        propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">394</i>&nbsp;                                AZURE_SYNAPSE_STORAGE_KEY_PROP));
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                secret = storageKey;</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                break;</b>
+<i class="no-highlight">397</i>&nbsp;            case AZURE_SYNAPSE_ACCESS_KEY_AUTH:
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                setIdentity(propertyValues);</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;                setSecret(propertyValues);</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                storageKey = secret;</b>
+<i class="no-highlight">401</i>&nbsp;                break;
+<i class="no-highlight">402</i>&nbsp;        }
+<i class="no-highlight">403</i>&nbsp;    }
+<i class="no-highlight">404</i>&nbsp;
+<i class="no-highlight">405</i>&nbsp;    private void retrieveAzureSynapseErrorFileStorageInfo(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        isErrorFileNewConfigEnabled = propertyValues.get(getDatabasePropPath(</b>
+<i class="no-highlight">407</i>&nbsp;                CONNECTION_PROPERTIES_PROP, AZURE_ERRORFILE_NEW_CONFIG_PROP));
+<b class="nc"><i class="no-highlight">408</i>&nbsp;        errFileAzureFolder = propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">409</i>&nbsp;                ERRFILE_SOURCE_LOCATION_AZURE_FOLDER_PROP));
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        if (!isErrorFileNewConfigEnabled) {</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            errFileAzureIdentity = identity;</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;            errFileAzureSecret = secret;</b>
+<i class="no-highlight">413</i>&nbsp;            // Reuse account settings
+<b class="nc"><i class="no-highlight">414</i>&nbsp;            errFileExternalStorage = externalStorage;</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;            errFileAzureSynapseStorageEndpoint = storageEndpoint;</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;            errFileAzureAccountName = accountName;</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;            errFileAzureContainer = container;</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            errFileAzureAuthType = authType;</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            validateAzureSynapseAccountSettingsForLoad(errFileAzureSynapseStorageEndpoint,</b>
+<i class="no-highlight">420</i>&nbsp;                    errFileAzureAccountName, errFileAzureContainer, errFileAzureFolder,
+<i class="no-highlight">421</i>&nbsp;                    isErrorFileEnabledForAzureSynapse);
+<i class="no-highlight">422</i>&nbsp;            return;
+<i class="no-highlight">423</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        errFileExternalStorage = propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">425</i>&nbsp;                ERRFILE_EXTERNAL_LOCATION_AZURE_SYNAPSE_PROP));
+<b class="nc"><i class="no-highlight">426</i>&nbsp;        errFileAzureSynapseStorageEndpoint = getFormattedAzureSynapseStorageEndpoint(propertyValues,</b>
+<i class="no-highlight">427</i>&nbsp;                ERRFILE_AZURE_SYNAPSE_ENDPOINT_PROP,
+<i class="no-highlight">428</i>&nbsp;                errFileExternalStorage);
+<b class="nc"><i class="no-highlight">429</i>&nbsp;        errFileAzureAccountName = propertyValues</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                .get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">431</i>&nbsp;                        ERRFILE_SOURCE_LOCATION_AZURE_ACCOUNT_PROP));
+<b class="nc"><i class="no-highlight">432</i>&nbsp;        errFileAzureContainer = propertyValues</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                .get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">434</i>&nbsp;                        ERRFILE_SOURCE_LOCATION_AZURE_CONTAINER_PROP));
+<b class="nc"><i class="no-highlight">435</i>&nbsp;        errFileAzureAuthType = propertyValues</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                .get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">437</i>&nbsp;                        ERRFILE_AZURE_AUTH_TYPE_PROP));
+<i class="no-highlight">438</i>&nbsp;
+<b class="nc"><i class="no-highlight">439</i>&nbsp;        switch (errFileAzureAuthType) {</b>
+<i class="no-highlight">440</i>&nbsp;            case AZURE_SYNAPSE_SERVICE_PRINCIPAL_AUTH:
+<i class="no-highlight">441</i>&nbsp;            case AZURE_SYNAPSE_SAS_AUTH:
+<i class="no-highlight">442</i>&nbsp;            case AZURE_SYNAPSE_ACCESS_KEY_AUTH:
+<b class="nc"><i class="no-highlight">443</i>&nbsp;                setErrFileAzureSynapseIdentity(propertyValues);</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                setErrFileAzureSynapseSecret(propertyValues);</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                break;</b>
+<i class="no-highlight">446</i>&nbsp;            case AZURE_SYNAPSE_MANAGED_IDENTITY_AUTH:
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                setErrFileAzureSynapseIdentity(propertyValues);</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                break;</b>
+<i class="no-highlight">449</i>&nbsp;            case AAD_USER_AUTH:
+<i class="no-highlight">450</i>&nbsp;            default:
+<i class="no-highlight">451</i>&nbsp;                break;
+<i class="no-highlight">452</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">453</i>&nbsp;        validateAzureSynapseAccountSettingsForLoad(errFileAzureSynapseStorageEndpoint,</b>
+<i class="no-highlight">454</i>&nbsp;                errFileAzureAccountName, errFileAzureContainer, errFileAzureFolder,
+<i class="no-highlight">455</i>&nbsp;                isErrorFileEnabledForAzureSynapse);
+<i class="no-highlight">456</i>&nbsp;    }
+<i class="no-highlight">457</i>&nbsp;
+<i class="no-highlight">458</i>&nbsp;    private void setErrFileAzureSynapseIdentity(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">459</i>&nbsp;        errFileAzureIdentity = propertyValues</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                .get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP, ERRFILE_AZURE_IDENTITY_PROP));</b>
+<i class="no-highlight">461</i>&nbsp;    }
+<i class="no-highlight">462</i>&nbsp;
+<i class="no-highlight">463</i>&nbsp;    private void setErrFileAzureSynapseSecret(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">464</i>&nbsp;        errFileAzureSecret = propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">465</i>&nbsp;                ERRFILE_AZURE_SECRET_PROP));
+<i class="no-highlight">466</i>&nbsp;    }
+<i class="no-highlight">467</i>&nbsp;
+<i class="no-highlight">468</i>&nbsp;    @Override
+<i class="no-highlight">469</i>&nbsp;    public Connection validate(Void unused) {
+<b class="nc"><i class="no-highlight">470</i>&nbsp;        Connection conn = null;</b>
+<i class="no-highlight">471</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">472</i>&nbsp;            conn = connect();</b>
+<i class="no-highlight">473</i>&nbsp;            // No external storage validation required
+<i class="no-highlight">474</i>&nbsp;            // when NONE option set
+<b class="nc"><i class="no-highlight">475</i>&nbsp;            if (!StringUtils.equals(NONE, externalStorage)) {</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;                validateExternalStorageAuth();</b>
+<i class="no-highlight">477</i>&nbsp;            }
+<i class="no-highlight">478</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">479</i>&nbsp;            JDBCUtils.safeClose(conn);</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;        return null;</b>
+<i class="no-highlight">482</i>&nbsp;    }
+<i class="no-highlight">483</i>&nbsp;
+<i class="no-highlight">484</i>&nbsp;    private void validateExternalStorageAuth() {
+<b class="nc"><i class="no-highlight">485</i>&nbsp;        switch (getAuthType()) {</b>
+<i class="no-highlight">486</i>&nbsp;            case AAD_USER_AUTH:
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                validateFields(</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                        getTenantId(), AZURE_TENANT_ID_LABEL,</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                        getClientId(), AZURE_CLIENT_ID_LABEL,</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                        getClientSecret(), AZURE_CLIENT_SECRET_LABEL</b>
+<i class="no-highlight">491</i>&nbsp;                );
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                validateAADStorageClient(getAccountName(), getTenantId(),</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                        getClientId(), getClientSecret(), getStorageEndpoint(),</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                        getExternalStorage());</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                break;</b>
+<i class="no-highlight">496</i>&nbsp;            case AZURE_SYNAPSE_SERVICE_PRINCIPAL_AUTH:
+<i class="no-highlight">497</i>&nbsp;            case AZURE_SYNAPSE_ACCESS_KEY_AUTH:
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                validateFields(</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                        getIdentity(), AZURE_IDENTITY_LABEL,</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;                        getSecret(), AZURE_SECRET_LABEL</b>
+<i class="no-highlight">501</i>&nbsp;                );
+<b class="nc"><i class="no-highlight">502</i>&nbsp;                validateSAKStorageClient(getAccountName(), getStorageEndpoint(),</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;                        getSecret(), getExternalStorage());</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;                break;</b>
+<i class="no-highlight">505</i>&nbsp;            case AZURE_SYNAPSE_SAS_AUTH:
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                validateFields(</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                        getIdentity(), AZURE_IDENTITY_LABEL,</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;                        getSecret(), AZURE_SECRET_LABEL</b>
+<i class="no-highlight">509</i>&nbsp;                );
+<b class="nc"><i class="no-highlight">510</i>&nbsp;                validateStorageSASClient(getAccountName(), getStorageEndpoint(),</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                        getSecret(), getExternalStorage());</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                break;</b>
+<i class="no-highlight">513</i>&nbsp;            case AZURE_SYNAPSE_MANAGED_IDENTITY_AUTH:
+<b class="nc"><i class="no-highlight">514</i>&nbsp;                validateFields(getIdentity(), AZURE_IDENTITY_LABEL);</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;                validateSAKStorageClient(getAccountName(), getStorageEndpoint(),</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;                        getSecret(), getExternalStorage());</b>
+<i class="no-highlight">517</i>&nbsp;                break;
+<i class="no-highlight">518</i>&nbsp;        }
+<i class="no-highlight">519</i>&nbsp;    }
+<i class="no-highlight">520</i>&nbsp;
+<i class="no-highlight">521</i>&nbsp;    /**
+<i class="no-highlight">522</i>&nbsp;     * Validates azure synapse account settings for bulk load operation. Other elt snaps do not
+<i class="no-highlight">523</i>&nbsp;     * need most of these properties set.
+<i class="no-highlight">524</i>&nbsp;     *
+<i class="no-highlight">525</i>&nbsp;     * @param endpoint    external storage endpoint
+<i class="no-highlight">526</i>&nbsp;     * @param accountName name of azure external storage account
+<i class="no-highlight">527</i>&nbsp;     * @param container   container in storage account
+<i class="no-highlight">528</i>&nbsp;     * @param errFilePath error file path
+<i class="no-highlight">529</i>&nbsp;     * @param isErrorFile true if error file path present
+<i class="no-highlight">530</i>&nbsp;     */
+<i class="no-highlight">531</i>&nbsp;    public static void validateAzureSynapseAccountSettingsForLoad(String endpoint,
+<i class="no-highlight">532</i>&nbsp;                                                                  String accountName,
+<i class="no-highlight">533</i>&nbsp;                                                                  String container,
+<i class="no-highlight">534</i>&nbsp;                                                                  String errFilePath,
+<i class="no-highlight">535</i>&nbsp;                                                                  boolean isErrorFile) {
+<b class="nc"><i class="no-highlight">536</i>&nbsp;        if (StringUtils.isBlank(endpoint)) {</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ENDPOINT)</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ENDPOINT)</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                    .withResolution(RES_BLANK_AZURE_ENDPOINT);</b>
+<i class="no-highlight">540</i>&nbsp;        }
+<i class="no-highlight">541</i>&nbsp;
+<b class="nc"><i class="no-highlight">542</i>&nbsp;        if (StringUtils.isBlank(accountName)) {</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_ACCOUNT);</b>
+<i class="no-highlight">546</i>&nbsp;        }
+<i class="no-highlight">547</i>&nbsp;
+<b class="nc"><i class="no-highlight">548</i>&nbsp;        if (StringUtils.isBlank(container)) {</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_CONTAINER)</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_CONTAINER)</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_CONTAINER);</b>
+<i class="no-highlight">552</i>&nbsp;        }
+<i class="no-highlight">553</i>&nbsp;
+<b class="nc"><i class="no-highlight">554</i>&nbsp;        if (isErrorFile &amp;&amp; StringUtils.isBlank(errFilePath)) {</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ERRORFILE)</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ERRORFILE)</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_ERRORFILE);</b>
+<i class="no-highlight">558</i>&nbsp;        }
+<i class="no-highlight">559</i>&nbsp;    }
+<i class="no-highlight">560</i>&nbsp;
+<i class="no-highlight">561</i>&nbsp;    private String getDefaultEndpointForAzureExternalStorage(String externalStorageType) {
+<b class="nc"><i class="no-highlight">562</i>&nbsp;        switch (externalStorageType) {</b>
+<i class="no-highlight">563</i>&nbsp;            case BLOB_STORAGE:
+<b class="nc"><i class="no-highlight">564</i>&nbsp;                return AZURE_BLOB_DEFAULT_ENDPOINT;</b>
+<i class="no-highlight">565</i>&nbsp;            case AZURE_SYNAPSE_ADLSGEN2_STORAGE:
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                return AZURE_ADLSGEN2_DEFAULT_ENDPOINT;</b>
+<i class="no-highlight">567</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                throw new ConfigurationException(ERR_INVALID_EXTERNAL_STORAGE)</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                        .withReason(REASON_INVALID_EXTERNAL_STORAGE)</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;                        .withResolution(RES_INVALID_EXTERNAL_STORAGE);</b>
+<i class="no-highlight">571</i>&nbsp;        }
+<i class="no-highlight">572</i>&nbsp;    }
+<i class="no-highlight">573</i>&nbsp;
+<i class="no-highlight">574</i>&nbsp;    private String getFormattedAzureSynapseStorageEndpoint(PropertyValues propertyValues,
+<i class="no-highlight">575</i>&nbsp;                                                           String property, String storageType) {
+<b class="nc"><i class="no-highlight">576</i>&nbsp;        String endpoint = propertyValues</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                .get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP, property));</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;        if (StringUtils.isBlank(endpoint)) {</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;            return getDefaultEndpointForAzureExternalStorage(storageType);</b>
+<i class="no-highlight">580</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">581</i>&nbsp;            return prefixPeriodToAzureEndpoint(endpoint);</b>
+<i class="no-highlight">582</i>&nbsp;        }
+<i class="no-highlight">583</i>&nbsp;    }
+<i class="no-highlight">584</i>&nbsp;
+<i class="no-highlight">585</i>&nbsp;    private void setIdentity(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">586</i>&nbsp;        identity = propertyValues</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                .get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP, AZURE_IDENTITY_PROP));</b>
+<i class="no-highlight">588</i>&nbsp;    }
+<i class="no-highlight">589</i>&nbsp;
+<i class="no-highlight">590</i>&nbsp;
+<i class="no-highlight">591</i>&nbsp;    private void setSecret(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">592</i>&nbsp;        secret = propertyValues.get(getDatabasePropPath(CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">593</i>&nbsp;                AZURE_SECRET_PROP));
+<i class="no-highlight">594</i>&nbsp;    }
+<i class="no-highlight">595</i>&nbsp;
+<i class="no-highlight">596</i>&nbsp;    public String getAccountName() {
+<b class="nc"><i class="no-highlight">597</i>&nbsp;        return accountName;</b>
+<i class="no-highlight">598</i>&nbsp;    }
+<i class="no-highlight">599</i>&nbsp;
+<i class="no-highlight">600</i>&nbsp;    public String getContainer() {
+<b class="nc"><i class="no-highlight">601</i>&nbsp;        return container;</b>
+<i class="no-highlight">602</i>&nbsp;    }
+<i class="no-highlight">603</i>&nbsp;
+<i class="no-highlight">604</i>&nbsp;    public String getFolder() {
+<b class="nc"><i class="no-highlight">605</i>&nbsp;        return folder;</b>
+<i class="no-highlight">606</i>&nbsp;    }
+<i class="no-highlight">607</i>&nbsp;
+<i class="no-highlight">608</i>&nbsp;    public String getExternalStorage() {
+<b class="nc"><i class="no-highlight">609</i>&nbsp;        return externalStorage;</b>
+<i class="no-highlight">610</i>&nbsp;    }
+<i class="no-highlight">611</i>&nbsp;
+<i class="no-highlight">612</i>&nbsp;    public String getStorageEndpoint() {
+<b class="nc"><i class="no-highlight">613</i>&nbsp;        return storageEndpoint;</b>
+<i class="no-highlight">614</i>&nbsp;    }
+<i class="no-highlight">615</i>&nbsp;
+<i class="no-highlight">616</i>&nbsp;    public String getAuthType() {
+<b class="nc"><i class="no-highlight">617</i>&nbsp;        return authType;</b>
+<i class="no-highlight">618</i>&nbsp;    }
+<i class="no-highlight">619</i>&nbsp;
+<i class="no-highlight">620</i>&nbsp;    public String getStorageKey() {
+<b class="nc"><i class="no-highlight">621</i>&nbsp;        return storageKey;</b>
+<i class="no-highlight">622</i>&nbsp;    }
+<i class="no-highlight">623</i>&nbsp;
+<i class="no-highlight">624</i>&nbsp;    public String getIdentity() {
+<b class="nc"><i class="no-highlight">625</i>&nbsp;        return identity;</b>
+<i class="no-highlight">626</i>&nbsp;    }
+<i class="no-highlight">627</i>&nbsp;
+<i class="no-highlight">628</i>&nbsp;    public String getSecret() {
+<b class="nc"><i class="no-highlight">629</i>&nbsp;        return secret;</b>
+<i class="no-highlight">630</i>&nbsp;    }
+<i class="no-highlight">631</i>&nbsp;
+<i class="no-highlight">632</i>&nbsp;    public String getClientId() {
+<b class="nc"><i class="no-highlight">633</i>&nbsp;        return clientId;</b>
+<i class="no-highlight">634</i>&nbsp;    }
+<i class="no-highlight">635</i>&nbsp;
+<i class="no-highlight">636</i>&nbsp;    public String getClientSecret() {
+<b class="nc"><i class="no-highlight">637</i>&nbsp;        return clientSecret;</b>
+<i class="no-highlight">638</i>&nbsp;    }
+<i class="no-highlight">639</i>&nbsp;
+<i class="no-highlight">640</i>&nbsp;    public String getTenantId() {
+<b class="nc"><i class="no-highlight">641</i>&nbsp;        return tenantId;</b>
+<i class="no-highlight">642</i>&nbsp;    }
+<i class="no-highlight">643</i>&nbsp;
+<i class="no-highlight">644</i>&nbsp;    public boolean isErrorFileEnabledForAzureSynapse() {
+<b class="nc"><i class="no-highlight">645</i>&nbsp;        return isErrorFileEnabledForAzureSynapse;</b>
+<i class="no-highlight">646</i>&nbsp;    }
+<i class="no-highlight">647</i>&nbsp;
+<i class="no-highlight">648</i>&nbsp;    public boolean isErrorFileNewConfigEnabled() {
+<b class="nc"><i class="no-highlight">649</i>&nbsp;        return isErrorFileNewConfigEnabled;</b>
+<i class="no-highlight">650</i>&nbsp;    }
+<i class="no-highlight">651</i>&nbsp;
+<i class="no-highlight">652</i>&nbsp;    public String getErrFileAzureAccountName() {
+<b class="nc"><i class="no-highlight">653</i>&nbsp;        return errFileAzureAccountName;</b>
+<i class="no-highlight">654</i>&nbsp;    }
+<i class="no-highlight">655</i>&nbsp;
+<i class="no-highlight">656</i>&nbsp;    public String getErrFileAzureSynapseStorageEndpoint() {
+<b class="nc"><i class="no-highlight">657</i>&nbsp;        return errFileAzureSynapseStorageEndpoint;</b>
+<i class="no-highlight">658</i>&nbsp;    }
+<i class="no-highlight">659</i>&nbsp;
+<i class="no-highlight">660</i>&nbsp;    public String getErrFileAzureContainer() {
+<b class="nc"><i class="no-highlight">661</i>&nbsp;        return errFileAzureContainer;</b>
+<i class="no-highlight">662</i>&nbsp;    }
+<i class="no-highlight">663</i>&nbsp;
+<i class="no-highlight">664</i>&nbsp;    public String getErrFileAzureFolder() {
+<b class="nc"><i class="no-highlight">665</i>&nbsp;        return errFileAzureFolder;</b>
+<i class="no-highlight">666</i>&nbsp;    }
+<i class="no-highlight">667</i>&nbsp;
+<i class="no-highlight">668</i>&nbsp;    public String getErrFileAzureAuthType() {
+<b class="nc"><i class="no-highlight">669</i>&nbsp;        return errFileAzureAuthType;</b>
+<i class="no-highlight">670</i>&nbsp;    }
+<i class="no-highlight">671</i>&nbsp;
+<i class="no-highlight">672</i>&nbsp;    public String getErrFileAzureIdentity() {
+<b class="nc"><i class="no-highlight">673</i>&nbsp;        return errFileAzureIdentity;</b>
+<i class="no-highlight">674</i>&nbsp;    }
+<i class="no-highlight">675</i>&nbsp;
+<i class="no-highlight">676</i>&nbsp;    public String getErrFileAzureSecret() {
+<b class="nc"><i class="no-highlight">677</i>&nbsp;        return errFileAzureSecret;</b>
+<i class="no-highlight">678</i>&nbsp;    }
+<i class="no-highlight">679</i>&nbsp;
+<i class="no-highlight">680</i>&nbsp;    public String getErrFileExternalStorage() {
+<b class="nc"><i class="no-highlight">681</i>&nbsp;        return errFileExternalStorage;</b>
+<i class="no-highlight">682</i>&nbsp;    }
+<i class="no-highlight">683</i>&nbsp;
+<i class="no-highlight">684</i>&nbsp;    @Override
+<i class="no-highlight">685</i>&nbsp;    protected String getDefaultJDBCClass() {
+<b class="nc"><i class="no-highlight">686</i>&nbsp;        return AZURE_SQL_DRIVER_CLASS;</b>
+<i class="no-highlight">687</i>&nbsp;    }
+<i class="no-highlight">688</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

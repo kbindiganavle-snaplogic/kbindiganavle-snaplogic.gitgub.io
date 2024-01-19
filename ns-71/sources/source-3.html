@@ -1,0 +1,790 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ODataUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.odata.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: ODataUtils (com.snaplogic.snap.odata.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ODataUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/300)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2023, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.odata.utils;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.core.JsonProcessingException;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.cache.Cache;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.cache.CacheBuilder;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.util.concurrent.UncheckedExecutionException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.odata.accounts.AccountInfo;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.odata.accounts.ODataRetryableAccount;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.util.SnapObjectMapper;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">28</i>&nbsp;import org.apache.commons.httpclient.util.URIUtil;
+<i class="no-highlight">29</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">30</i>&nbsp;import org.apache.http.Header;
+<i class="no-highlight">31</i>&nbsp;import org.apache.http.HttpStatus;
+<i class="no-highlight">32</i>&nbsp;import org.apache.olingo.client.api.ODataClient;
+<i class="no-highlight">33</i>&nbsp;import org.apache.olingo.client.api.communication.ODataClientErrorException;
+<i class="no-highlight">34</i>&nbsp;import org.apache.olingo.client.api.communication.ODataServerErrorException;
+<i class="no-highlight">35</i>&nbsp;import org.apache.olingo.client.api.communication.request.ODataRequest;
+<i class="no-highlight">36</i>&nbsp;import org.apache.olingo.client.api.communication.request.invoke.ODataInvokeRequest;
+<i class="no-highlight">37</i>&nbsp;import org.apache.olingo.client.api.communication.request.retrieve.EdmMetadataRequest;
+<i class="no-highlight">38</i>&nbsp;import org.apache.olingo.client.api.communication.request.retrieve.ODataRawRequest;
+<i class="no-highlight">39</i>&nbsp;import org.apache.olingo.client.api.communication.response.ODataInvokeResponse;
+<i class="no-highlight">40</i>&nbsp;import org.apache.olingo.client.api.communication.response.ODataRawResponse;
+<i class="no-highlight">41</i>&nbsp;import org.apache.olingo.client.api.communication.response.ODataResponse;
+<i class="no-highlight">42</i>&nbsp;import org.apache.olingo.client.api.communication.response.ODataRetrieveResponse;
+<i class="no-highlight">43</i>&nbsp;import org.apache.olingo.client.api.domain.ClientProperty;
+<i class="no-highlight">44</i>&nbsp;import org.apache.olingo.client.api.domain.ClientValue;
+<i class="no-highlight">45</i>&nbsp;import org.apache.olingo.client.api.uri.URIBuilder;
+<i class="no-highlight">46</i>&nbsp;import org.apache.olingo.commons.api.edm.Edm;
+<i class="no-highlight">47</i>&nbsp;import org.apache.olingo.commons.api.edm.EdmAnnotation;
+<i class="no-highlight">48</i>&nbsp;import org.apache.olingo.commons.api.edm.EdmEntitySet;
+<i class="no-highlight">49</i>&nbsp;import org.apache.olingo.commons.api.edm.EdmEntityType;
+<i class="no-highlight">50</i>&nbsp;import org.apache.olingo.commons.api.edm.EdmProperty;
+<i class="no-highlight">51</i>&nbsp;import org.apache.olingo.commons.api.edm.EdmTerm;
+<i class="no-highlight">52</i>&nbsp;import org.apache.olingo.commons.api.edm.provider.CsdlAnnotation;
+<i class="no-highlight">53</i>&nbsp;import org.apache.olingo.commons.api.ex.ODataError;
+<i class="no-highlight">54</i>&nbsp;import org.apache.olingo.commons.core.edm.EdmAnnotationImpl;
+<i class="no-highlight">55</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">56</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">59</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">60</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">61</i>&nbsp;import java.net.URI;
+<i class="no-highlight">62</i>&nbsp;import java.time.temporal.ChronoUnit;
+<i class="no-highlight">63</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">64</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">65</i>&nbsp;import java.util.List;
+<i class="no-highlight">66</i>&nbsp;import java.util.Map;
+<i class="no-highlight">67</i>&nbsp;import java.util.UUID;
+<i class="no-highlight">68</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">69</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">72</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">73</i>&nbsp;
+<b class="nc"><i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snap.odata.utils.Messages.*;</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;/**</b>
+<i class="no-highlight">77</i>&nbsp; * Utils class for utility methods
+<b class="nc"><i class="no-highlight">78</i>&nbsp; */</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;public class ODataUtils {</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;    final static Cache&lt;String, Map&lt;String, String&gt;&gt; entityTypesCache = CacheBuilder</b>
+<i class="no-highlight">82</i>&nbsp;            .newBuilder()
+<i class="no-highlight">83</i>&nbsp;            .expireAfterWrite(5, TimeUnit.MINUTES)
+<i class="no-highlight">84</i>&nbsp;            .build();
+<i class="no-highlight">85</i>&nbsp;    final static Cache&lt;String, Map&lt;String, Object&gt;&gt; entityPropertiesCache = CacheBuilder
+<i class="no-highlight">86</i>&nbsp;            .newBuilder()
+<i class="no-highlight">87</i>&nbsp;            .expireAfterWrite(5, TimeUnit.MINUTES)
+<i class="no-highlight">88</i>&nbsp;            .build();
+<i class="no-highlight">89</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(ODataUtils.class);
+<i class="no-highlight">90</i>&nbsp;    private static final int MAX_RETRY_DELAY_SECS = 30;
+<b class="nc"><i class="no-highlight">91</i>&nbsp;    private static final String ALLOW_EDIT = &quot;AllowEdit&quot;;</b>
+<i class="no-highlight">92</i>&nbsp;    private static final String ALLOWEDIT_ON_CREATE = &quot;AllowEditOnCreate&quot;;
+<b class="nc"><i class="no-highlight">93</i>&nbsp;    private static final String REQUIRED = &quot;IsRequired&quot;;</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;    private static final String ENTITY_SET_NAME = &quot;EntitySetName&quot;;</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;    private static final String ISKEY = &quot;IsKey&quot;;</b>
+<i class="no-highlight">96</i>&nbsp;    public static SnapObjectMapper OBJECT_MAPPER = new SnapObjectMapper();
+<i class="no-highlight">97</i>&nbsp;    private ODataClient oDataClient;
+<i class="no-highlight">98</i>&nbsp;    private ODataRetryableAccount account;
+<i class="no-highlight">99</i>&nbsp;
+<b class="nc"><i class="no-highlight">100</i>&nbsp;    public ODataUtils(ODataRetryableAccount account, ODataClient oDataClient) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        this.account = account;</b>
+<i class="no-highlight">102</i>&nbsp;        this.oDataClient = oDataClient;
+<b class="nc"><i class="no-highlight">103</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;    public static String appendQuotes(String value) {</b>
+<i class="no-highlight">106</i>&nbsp;        value = StringUtils.unwrap(value, &#39;\&#39;&#39;);
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        // As per OData specification, we must escape single quote with a single quote.</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        value = value.replaceAll(&quot;&#39;&quot;, &quot;&#39;&#39;&quot;);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        return StringUtils.wrap(value, &#39;\&#39;&#39;);</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;</b>
+<i class="no-highlight">112</i>&nbsp;    public static int evalIntProperty(Object value, String propertyName, int defaultValue) {
+<i class="no-highlight">113</i>&nbsp;        try {
+<i class="no-highlight">114</i>&nbsp;            if (value instanceof Number) {
+<i class="no-highlight">115</i>&nbsp;                return ((Number) value).intValue();
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            } else if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                return Integer.parseInt((String) value);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                return defaultValue;</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        } catch (Exception ex) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            throw new ConfigurationException(ex, String.format(ERR_PROPERTY_INVALID, propertyName))</b>
+<i class="no-highlight">123</i>&nbsp;                    .withReason(ex.getMessage())
+<i class="no-highlight">124</i>&nbsp;                    .withResolution(String.format(ERR_PROPERTY_EMPTY_RESOLUTION,
+<i class="no-highlight">125</i>&nbsp;                            propertyName));
+<i class="no-highlight">126</i>&nbsp;        }
+<i class="no-highlight">127</i>&nbsp;    }
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    public byte[] getBytesFromDocument(Document document) {
+<i class="no-highlight">130</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            if (document != null) {</b>
+<i class="no-highlight">132</i>&nbsp;                return OBJECT_MAPPER.writeValueAsBytes(document.get());
+<i class="no-highlight">133</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                throw new SnapDataException(ERR_CONVERTING_INPUT_STREAM)</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                        .withReason(ERR_EMPTY_INPUT_DOCUMENT)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                        .withResolution(RESOLUTION_INPUT_DOC_PROCESS);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        } catch (JsonProcessingException e) {</b>
+<i class="no-highlight">139</i>&nbsp;            LOGGER.error(ERR_CONVERTING_INPUT_STREAM, e);
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            throw new SnapDataException(e, ERR_CONVERTING_INPUT_STREAM)</b>
+<i class="no-highlight">141</i>&nbsp;                    .withReason(e.getMessage())
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                    .withResolution(RESOLUTION_INPUT_DOC_PROCESS);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        }</b>
+<i class="no-highlight">144</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">145</i>&nbsp;</b>
+<i class="no-highlight">146</i>&nbsp;    public Map&lt;String, Object&gt; readRawResponse(ODataResponse response) {
+<i class="no-highlight">147</i>&nbsp;        try (InputStream inputStream = response.getRawResponse()) {
+<i class="no-highlight">148</i>&nbsp;            return OBJECT_MAPPER.readValue(inputStream, Map.class);
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        } catch (IOException e1) {</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            LOGGER.error(ERR_READING_RESPONSE, e1);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            throw new ExecutionException(e1, ERR_READING_RESPONSE)</b>
+<i class="no-highlight">152</i>&nbsp;                    .withReason(e1.getMessage())
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;    }</b>
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;    /**
+<i class="no-highlight">158</i>&nbsp;     * To fetch the entities from cache for OData endpoints
+<i class="no-highlight">159</i>&nbsp;     *
+<i class="no-highlight">160</i>&nbsp;     * @return The map with entitySetName and url
+<i class="no-highlight">161</i>&nbsp;     */
+<i class="no-highlight">162</i>&nbsp;    public Map&lt;String, String&gt; getEntitiesFromCache() {
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        AccountInfo accountInfo = account.connect();</b>
+<i class="no-highlight">164</i>&nbsp;        try {
+<i class="no-highlight">165</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                LOGGER.debug(&quot;Start loading entities from the server&quot;);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                return entityTypesCache.get(accountInfo.getTenantURL(),</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                        () -&gt; fetchEntities());</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            } catch (java.util.concurrent.ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                LOGGER.warn(&quot;Unable to load data into cache, Trying to &quot; +</b>
+<i class="no-highlight">171</i>&nbsp;                        &quot;reload the entities&quot;, e);
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                return fetchEntities();</b>
+<i class="no-highlight">173</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        } catch (UncheckedExecutionException ex) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            handleUncheckedExecutionException(ex);</b>
+<i class="no-highlight">176</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        return null;</b>
+<i class="no-highlight">178</i>&nbsp;    }
+<i class="no-highlight">179</i>&nbsp;
+<i class="no-highlight">180</i>&nbsp;    private void handleUncheckedExecutionException(Exception ex) {
+<i class="no-highlight">181</i>&nbsp;        LOGGER.error(&quot;Unable to load metadata into cache&quot;, ex);
+<i class="no-highlight">182</i>&nbsp;        if (ex.getCause() instanceof SnapDataException) {
+<i class="no-highlight">183</i>&nbsp;            throw (SnapDataException) ex.getCause();
+<i class="no-highlight">184</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        throw new SnapDataException(ex, ERR_METADATA_LOAD_CACHE)</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .withReason(ex.getMessage())</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;     * To fetch F&amp;SCM entities from cache</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;     * @return The map with entitySetName and entityName</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;     */</b>
+<i class="no-highlight">195</i>&nbsp;    public Map&lt;String, String&gt; getFandSCMEntitiesFromCache() {
+<i class="no-highlight">196</i>&nbsp;        AccountInfo accountInfo = account.connect();
+<i class="no-highlight">197</i>&nbsp;        try {
+<i class="no-highlight">198</i>&nbsp;            try {
+<i class="no-highlight">199</i>&nbsp;                LOGGER.debug(&quot;Start loading entities from the server&quot;);
+<i class="no-highlight">200</i>&nbsp;                return entityTypesCache.get(accountInfo.getTenantURL(),
+<i class="no-highlight">201</i>&nbsp;                        () -&gt; fetchFandSCMEntities());
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            } catch (java.util.concurrent.ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                LOGGER.warn(&quot;Unable to load data into cache, &quot; +</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                        &quot;Trying to reload the entities&quot;, e);</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                return fetchFandSCMEntities();</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        } catch (UncheckedExecutionException ex) {</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;            handleUncheckedExecutionException(ex);</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        return null;</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;</b>
+<i class="no-highlight">213</i>&nbsp;    /**
+<i class="no-highlight">214</i>&nbsp;     * To fetch entities using /$metadata for OData endpoints
+<i class="no-highlight">215</i>&nbsp;     *
+<i class="no-highlight">216</i>&nbsp;     * @return The map with entitySetName and url
+<i class="no-highlight">217</i>&nbsp;     */
+<i class="no-highlight">218</i>&nbsp;    private Map&lt;String, String&gt; fetchEntities() {
+<i class="no-highlight">219</i>&nbsp;        AccountInfo accountInfo = account.connect();
+<i class="no-highlight">220</i>&nbsp;        URI uri = oDataClient.newURIBuilder(accountInfo.getTenantURL())
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                .addQueryOption(&quot;format&quot;, &quot;json&quot;, true)</b>
+<i class="no-highlight">222</i>&nbsp;                .build();
+<i class="no-highlight">223</i>&nbsp;        Map&lt;String, Object&gt; map = executeRequestRetryFor401(uri);
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; list = (List&lt;Map&lt;String, Object&gt;&gt;) map.get(VALUE);</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        Map&lt;String, String&gt; result = list.stream()</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .collect(Collectors.toMap(s -&gt; (String) s.get(NAME_ATTR),</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                        s -&gt; (String) s.get(&quot;url&quot;)));</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        return result;</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;     * To fetch entities for F&amp;SCM using /metadata/PublicEntities</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;     * @return The map with entitySetName and entityName</b>
+<i class="no-highlight">235</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">236</i>&nbsp;    private Map&lt;String, String&gt; fetchFandSCMEntities() {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        AccountInfo accountInfo = account.connect();</b>
+<i class="no-highlight">238</i>&nbsp;        String metadataUrl = StringUtils.removeEnd(accountInfo.getTenantURL(), DATA);
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        URI uri = oDataClient.newURIBuilder(String.format(ENTITIES_URI, metadataUrl))</b>
+<i class="no-highlight">240</i>&nbsp;                .select(ENTITY_SET_NAME, NAME)
+<i class="no-highlight">241</i>&nbsp;                .build();
+<i class="no-highlight">242</i>&nbsp;        Map&lt;String, Object&gt; map = executeRequestRetryFor401(uri);
+<i class="no-highlight">243</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; list = (List&lt;Map&lt;String, String&gt;&gt;) map.get(VALUE);
+<i class="no-highlight">244</i>&nbsp;        Map&lt;String, String&gt; result = list.stream()
+<i class="no-highlight">245</i>&nbsp;                .collect(Collectors.toMap(s -&gt; s.get(ENTITY_SET_NAME),
+<i class="no-highlight">246</i>&nbsp;                        s -&gt; s.get(NAME)));
+<i class="no-highlight">247</i>&nbsp;        return result;
+<i class="no-highlight">248</i>&nbsp;    }
+<i class="no-highlight">249</i>&nbsp;
+<b class="nc"><i class="no-highlight">250</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;     * To fetch F&amp;SCM entity metadata from cache</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;     * @param entity The entitySet name</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;     * @return The map of all keys, properties and navigation properties of the entity</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;     */</b>
+<i class="no-highlight">256</i>&nbsp;    public Map&lt;String, Object&gt; fetchFandSCMEntityMetadataFromCache(String entity) {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        String entityName = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                LOGGER.debug(&quot;Start loading entity metadata from the server&quot;);</b>
+<i class="no-highlight">261</i>&nbsp;                AccountInfo accountInfo = account.connect();
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                Map&lt;String, String&gt; entityMap = getFandSCMEntitiesFromCache();</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                entityName = entityMap.get(entity);</b>
+<i class="no-highlight">264</i>&nbsp;                String finalEntityName = entityMap.get(entity);
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                return entityPropertiesCache.get(</b>
+<i class="no-highlight">266</i>&nbsp;                        accountInfo.getTenantURL() + &quot;:&quot; + entityName,
+<i class="no-highlight">267</i>&nbsp;                        () -&gt; fetchFandSCMEntityMetadata(finalEntityName));
+<i class="no-highlight">268</i>&nbsp;            } catch (java.util.concurrent.ExecutionException e) {
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                LOGGER.warn(&quot;Unable to load metadata into cache. Trying to reload&quot;, e);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                return fetchFandSCMEntityMetadata(entityName);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            }</b>
+<i class="no-highlight">272</i>&nbsp;        } catch (UncheckedExecutionException e) {
+<i class="no-highlight">273</i>&nbsp;            handleUncheckedExecutionException(e);
+<i class="no-highlight">274</i>&nbsp;        }
+<i class="no-highlight">275</i>&nbsp;        return null;
+<i class="no-highlight">276</i>&nbsp;    }
+<i class="no-highlight">277</i>&nbsp;
+<i class="no-highlight">278</i>&nbsp;    /**
+<i class="no-highlight">279</i>&nbsp;     * To fetch entity metadata from cache for OData endpoints
+<b class="nc"><i class="no-highlight">280</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;     * @param entity The entitySet name</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;     * @return The map of all keys, properties and navigation properties of the entity</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;    public Map&lt;String, Object&gt; fetchEntityMetadataFromCache(String entity) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                LOGGER.debug(&quot;Start loading entity metadata from the server&quot;);</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                AccountInfo accountInfo = account.connect();</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                Map&lt;String, Object&gt; entityData = entityPropertiesCache.get(</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                        accountInfo.getTenantURL(),</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                        () -&gt; fetchAllEntitiesMetadata());</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                return (Map&lt;String, Object&gt;) entityData.get(entity);</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;</b>
+<i class="no-highlight">294</i>&nbsp;            } catch (java.util.concurrent.ExecutionException e) {
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                LOGGER.warn(&quot;Unable to load metadata into cache. Trying to reload&quot;, e);</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                return (Map&lt;String, Object&gt;) fetchAllEntitiesMetadata()</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                        .get(entity);</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        } catch (UncheckedExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;            handleUncheckedExecutionException(e);</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        return null;</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;    public Map&lt;String, String&gt; getPropertyMap(List&lt;Map&lt;String, String&gt;&gt; propList) {</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        return propList.stream()</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                .collect(Collectors.toMap(s -&gt; s.get(NAME),</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                        s -&gt; s.get(DATA_TYPE)));</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;    /**</b>
+<i class="no-highlight">312</i>&nbsp;     * To fetch metadata of an entity for F&amp;SCM using /PublicEntities
+<i class="no-highlight">313</i>&nbsp;     *
+<i class="no-highlight">314</i>&nbsp;     * @param entity The entitySet name
+<i class="no-highlight">315</i>&nbsp;     * @return The map of all keys, properties and navigation properties of the entity
+<i class="no-highlight">316</i>&nbsp;     */
+<i class="no-highlight">317</i>&nbsp;    private Map&lt;String, Object&gt; fetchFandSCMEntityMetadata(String entity) {
+<i class="no-highlight">318</i>&nbsp;        AccountInfo accountInfo = account.connect();
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        String metadataUrl = StringUtils.removeEnd(accountInfo.getTenantURL(), DATA);</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        URI uri = oDataClient.newURIBuilder(String.format(ENTITY_METADATA_URI,</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                metadataUrl, entity)).build();</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        Map&lt;String, Object&gt; result = executeRequestRetryFor401(uri);</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; list = (List&lt;Map&lt;String, Object&gt;&gt;) result</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                .get(PROPERTIES);</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;        Map&lt;String, Object&gt; data = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; properties = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        List&lt;String&gt; keys = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        for (Map&lt;String, Object&gt; prop : list) {</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;            Map&lt;String, String&gt; props = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;            if ((boolean) prop.get(ISKEY)) {</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                keys.add((String) prop.get(NAME));</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;            props.put(NAME, (String) prop.get(NAME));</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;            props.put(DATA_TYPE, (String) prop.get(DATA_TYPE));</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;            props.put(ALLOWEDIT_ON_CREATE, String.valueOf(prop.get(ALLOWEDIT_ON_CREATE)));</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;            props.put(ALLOW_EDIT, String.valueOf(prop.get(ALLOW_EDIT)));</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;            props.put(REQUIRED, String.valueOf(prop.get(&quot;IsMandatory&quot;)));</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;            properties.add(props);</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; navProps = (List&lt;Map&lt;String, Object&gt;&gt;) result</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                .get(NAVIGATION_PROPERTY);</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;        List&lt;String&gt; navigation = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;        for (Map&lt;String, Object&gt; nav : navProps) {</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;            navigation.add((String) nav.get(NAME));</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;        data.put(KEYS, keys);</b>
+<i class="no-highlight">347</i>&nbsp;        data.put(PROPERTIES, properties);
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        data.put(NAVIGATION_PROPERTY, navigation);</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;        return data;</b>
+<i class="no-highlight">350</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">351</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;     * To fetch metadata of all entities using /$metadata for OData endpoints</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;     * @return The map of all entities keys, properties and navigation properties</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;    private Map&lt;String, Object&gt; fetchAllEntitiesMetadata() {</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        AccountInfo accountInfo = account.connect();</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        EdmMetadataRequest request = oDataClient.getRetrieveRequestFactory()</b>
+<i class="no-highlight">360</i>&nbsp;                .getMetadataRequest(accountInfo.getTenantURL());
+<i class="no-highlight">361</i>&nbsp;        Edm edm = executeRequestRetryFor401(request);
+<i class="no-highlight">362</i>&nbsp;        Map&lt;String, Object&gt; entities = new LinkedHashMap&lt;&gt;();
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        for (EdmEntitySet set : edm.getEntityContainer().getEntitySetsWithAnnotations()) {</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            Map&lt;String, Object&gt; data = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;            List&lt;Map&lt;String, String&gt;&gt; properties = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;            EdmEntityType entityType = set.getEntityType();</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;            for (String propertyName : entityType.getPropertyNames()) {</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                Map&lt;String, String&gt; props = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                EdmProperty property = entityType.getStructuralProperty(propertyName);</b>
+<i class="no-highlight">370</i>&nbsp;                props.put(NAME, propertyName);
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                props.put(DATA_TYPE, property.getType().getName());</b>
+<i class="no-highlight">372</i>&nbsp;                for (EdmAnnotation ann : property.getAnnotations()) {
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                    EdmTerm term = ann.getTerm();</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                    if (term == null &amp;&amp; ann instanceof EdmAnnotationImpl) {</b>
+<i class="no-highlight">375</i>&nbsp;                        CsdlAnnotation a = ((EdmAnnotationImpl) ann).getAnnotation();
+<i class="no-highlight">376</i>&nbsp;                        String name = a.getTerm();
+<i class="no-highlight">377</i>&nbsp;                        if (name.contains(ALLOWEDIT_ON_CREATE)) {
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                            props.put(ALLOWEDIT_ON_CREATE, a.getExpression()</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                                    .asConstant().getValue());</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                        } else if (name.contains(REQUIRED)) {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                            props.put(REQUIRED, a.getExpression()</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                                    .asConstant().getValue());</b>
+<i class="no-highlight">383</i>&nbsp;                        } else if (name.contains(ALLOW_EDIT)) {
+<i class="no-highlight">384</i>&nbsp;                            props.put(ALLOW_EDIT, a.getExpression()
+<i class="no-highlight">385</i>&nbsp;                                    .asConstant().getValue());
+<i class="no-highlight">386</i>&nbsp;                        }
+<i class="no-highlight">387</i>&nbsp;                    } else {
+<i class="no-highlight">388</i>&nbsp;                        props.put(term.getName(), term.getDefaultValue());
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                properties.add(props);</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;            data.put(PROPERTIES, properties);</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;            data.put(NAVIGATION_PROPERTY, entityType.getNavigationPropertyNames());</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            data.put(KEYS, entityType.getKeyPredicateNames());</b>
+<i class="no-highlight">396</i>&nbsp;            entities.put(set.getName(), data);
+<b class="nc"><i class="no-highlight">397</i>&nbsp;        }</b>
+<i class="no-highlight">398</i>&nbsp;        return entities;
+<b class="nc"><i class="no-highlight">399</i>&nbsp;    }</b>
+<i class="no-highlight">400</i>&nbsp;
+<i class="no-highlight">401</i>&nbsp;    public Map&lt;String, String&gt; getPropertiesForCreate(List&lt;Map&lt;String, String&gt;&gt; list) {
+<i class="no-highlight">402</i>&nbsp;        Map&lt;String, String&gt; propMap = new LinkedHashMap&lt;&gt;();
+<b class="nc"><i class="no-highlight">403</i>&nbsp;        for (Map&lt;String, String&gt; m : list) {</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;            String allowEditOnCreate = m.get(ALLOWEDIT_ON_CREATE);</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;            if (allowEditOnCreate == null || &quot;true&quot;.equalsIgnoreCase(allowEditOnCreate)) {</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                String name = m.get(NAME);</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                if (&quot;true&quot;.equalsIgnoreCase(m.get(REQUIRED))) {</b>
+<i class="no-highlight">408</i>&nbsp;                    name = name + &quot;*&quot;;
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                propMap.put(name, m.get(DATA_TYPE));</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            }</b>
+<i class="no-highlight">412</i>&nbsp;        }
+<i class="no-highlight">413</i>&nbsp;        return propMap;
+<i class="no-highlight">414</i>&nbsp;    }
+<i class="no-highlight">415</i>&nbsp;
+<b class="nc"><i class="no-highlight">416</i>&nbsp;    public Map&lt;String, String&gt; getPropertiesForUpdate(List&lt;Map&lt;String, String&gt;&gt; list) {</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;        Map&lt;String, String&gt; propMap = list.stream()</b>
+<i class="no-highlight">418</i>&nbsp;                .filter(m -&gt; (m.get(ALLOW_EDIT) == null ||
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                        (&quot;true&quot;).equalsIgnoreCase(m.get(ALLOW_EDIT)))).collect(Collectors</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                        .toMap(s -&gt; (String) s.get(NAME), s -&gt; (String) s.get(DATA_TYPE)));</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;        return propMap;</b>
+<i class="no-highlight">422</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">423</i>&nbsp;</b>
+<i class="no-highlight">424</i>&nbsp;    public Map&lt;String, Object&gt; executeRequestWithRetry(URI uri, ODataRetryableAccount account,
+<i class="no-highlight">425</i>&nbsp;                                                       int pageSize, Map&lt;String, String&gt; headers,
+<i class="no-highlight">426</i>&nbsp;                                                       int retryCount, int retryInterval) {
+<i class="no-highlight">427</i>&nbsp;        try {
+<i class="no-highlight">428</i>&nbsp;            return Failsafe.with(
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                            createRetryPolicy(retryCount, retryInterval))</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                    .get(cntx -&gt; executeRequest(uri, pageSize, headers));</b>
+<i class="no-highlight">431</i>&nbsp;        } catch (Exception e) {
+<b class="nc"><i class="no-highlight">432</i>&nbsp;            if (retryCount == 0 &amp;&amp; defaultRetryOnAuthIssues(e)) {</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                LOGGER.debug(AUTH_ISSUE_RETRY_MSG, e);</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                return executeRequest(uri, pageSize, headers);</b>
+<i class="no-highlight">435</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">436</i>&nbsp;            throw generateSnapDataException(e);</b>
+<i class="no-highlight">437</i>&nbsp;        }
+<i class="no-highlight">438</i>&nbsp;    }
+<i class="no-highlight">439</i>&nbsp;
+<i class="no-highlight">440</i>&nbsp;    public SnapDataException generateSnapDataException(Exception ex) {
+<b class="nc"><i class="no-highlight">441</i>&nbsp;        Throwable t = Throwables.getRootCause(ex);</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;        String resolution = ERR_ADDRESS_ISSUE_RESOLUTION;</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;        String reason = t.getMessage();</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;        if (reason != null &amp;&amp; (reason.contains(&quot;404&quot;) || reason.contains(&quot;400&quot;))) {</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;            resolution = ERR_EXECUTING_REQUEST_400_RESOLUTION;</b>
+<i class="no-highlight">446</i>&nbsp;        }
+<i class="no-highlight">447</i>&nbsp;        if (reason != null &amp;&amp; (reason.contains(&quot;401&quot;))) {
+<i class="no-highlight">448</i>&nbsp;            resolution = ERR_EXECUTING_REQUEST_401_RESOLUTION;
+<i class="no-highlight">449</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">450</i>&nbsp;        if (ex instanceof ODataClientErrorException) {</b>
+<i class="no-highlight">451</i>&nbsp;            ODataError error = ((ODataClientErrorException) ex).getODataError();
+<b class="nc"><i class="no-highlight">452</i>&nbsp;            if (error != null &amp;&amp; error.getInnerError() != null) {</b>
+<i class="no-highlight">453</i>&nbsp;                reason = error.getInnerError().get(&quot;message&quot;);
+<i class="no-highlight">454</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">455</i>&nbsp;        }</b>
+<i class="no-highlight">456</i>&nbsp;        return new SnapDataException(t, ERR_EXECUTING_REQUEST)
+<i class="no-highlight">457</i>&nbsp;                .withReason(reason)
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                .withResolution(resolution);</b>
+<i class="no-highlight">459</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">460</i>&nbsp;</b>
+<i class="no-highlight">461</i>&nbsp;    public Edm executeRequestRetryFor401(EdmMetadataRequest request) {
+<b class="nc"><i class="no-highlight">462</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;            return executeRequest(request);</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;        } catch (ODataClientErrorException | ODataServerErrorException |</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                 SnapDataException ex) {</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;            if (defaultRetryOnAuthIssues(ex)) {</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                LOGGER.debug(AUTH_ISSUE_RETRY_MSG, ex);</b>
+<i class="no-highlight">468</i>&nbsp;                return executeRequest(request);
+<i class="no-highlight">469</i>&nbsp;            }
+<i class="no-highlight">470</i>&nbsp;            throw ex;
+<i class="no-highlight">471</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">472</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;    public Map&lt;String, Object&gt; executeRequestRetryFor401(URI uri) {</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;            return executeRequest(uri, 0, null);</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;        } catch (ODataClientErrorException | ODataServerErrorException |</b>
+<i class="no-highlight">478</i>&nbsp;                 SnapDataException ex) {
+<i class="no-highlight">479</i>&nbsp;            if (defaultRetryOnAuthIssues(ex)) {
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                LOGGER.debug(AUTH_ISSUE_RETRY_MSG, ex);</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                return executeRequest(uri, 0, null);</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;            throw ex;</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;    public Edm executeRequest(EdmMetadataRequest request) {</b>
+<i class="no-highlight">488</i>&nbsp;        AccountInfo accountInfo = account.connect();
+<b class="nc"><i class="no-highlight">489</i>&nbsp;        request.addCustomHeader(AUTHORIZATION, accountInfo.getBearerToken());</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;        ODataRetrieveResponse&lt;Edm&gt; response = request.execute();</b>
+<i class="no-highlight">491</i>&nbsp;        Edm edm = response.getBody();
+<b class="nc"><i class="no-highlight">492</i>&nbsp;        return edm;</b>
+<i class="no-highlight">493</i>&nbsp;    }
+<i class="no-highlight">494</i>&nbsp;
+<i class="no-highlight">495</i>&nbsp;    public Object convertValue(String dataType, String value) {
+<b class="nc"><i class="no-highlight">496</i>&nbsp;        try {</b>
+<i class="no-highlight">497</i>&nbsp;            switch (dataType) {
+<i class="no-highlight">498</i>&nbsp;                case &quot;Real&quot;:
+<i class="no-highlight">499</i>&nbsp;                    return Double.parseDouble(value);
+<i class="no-highlight">500</i>&nbsp;                case &quot;UtcDateTime&quot;:
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                case &quot;Date&quot;:</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;                    return value;</b>
+<i class="no-highlight">503</i>&nbsp;                case &quot;Int32&quot;:
+<b class="nc"><i class="no-highlight">504</i>&nbsp;                case &quot;Int64&quot;:</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;                    return new BigInteger(value);</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                case &quot;Guid&quot;:</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                    return UUID.fromString(value);</b>
+<i class="no-highlight">508</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">509</i>&nbsp;            return URIUtil.encodePath(value, &quot;UTF-8&quot;);</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;        } catch (Exception ex) {</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;            throw new SnapDataException(ex, ERR_CONVERTING_VALUE)</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                    .withReason(ex.getMessage())</b>
+<i class="no-highlight">513</i>&nbsp;                    .withResolution(ERR_ADDRESS_ISSUE_RESOLUTION);
+<b class="nc"><i class="no-highlight">514</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;    public Map&lt;String, Object&gt; executeRequest(URI uri, int pageSize, Map&lt;String, String&gt; headers) {</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;        AccountInfo accountInfo = account.connect();</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;        ODataRawRequest request = oDataClient.getRetrieveRequestFactory().getRawRequest(uri);</b>
+<i class="no-highlight">520</i>&nbsp;        request = (ODataRawRequest) prepareRequest(request, accountInfo, headers);
+<i class="no-highlight">521</i>&nbsp;        if (pageSize &gt; 0) {
+<i class="no-highlight">522</i>&nbsp;            request.addCustomHeader(OPTIONAL_PREFER_HEADER_KEY,
+<i class="no-highlight">523</i>&nbsp;                    String.format(ODATA_MAX_PAGE_SIZE, pageSize));
+<b class="nc"><i class="no-highlight">524</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;        ODataRawResponse response = request.execute();</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;        int statusCode = response.getStatusCode();</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;        if (response.getContentType() != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                response.getContentType().contains(&quot;text/html&quot;)) {</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;            throw new SnapDataException(ERR_EXECUTING_REQUEST)</b>
+<i class="no-highlight">530</i>&nbsp;                    .withReason(HttpStatus.SC_UNAUTHORIZED + &quot; : &quot; + ERROR_ACCOUNT_EXPIRED)
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                    .withResolution(ERROR_ACCOUNT_EXPIRED_RESOLUTION);</b>
+<i class="no-highlight">532</i>&nbsp;        } else if (statusCode &gt;= HttpStatus.SC_OK &amp;&amp; statusCode &lt;= HttpStatus.SC_ACCEPTED) {
+<i class="no-highlight">533</i>&nbsp;            Map&lt;String, Object&gt; map = readRawResponse(response);
+<i class="no-highlight">534</i>&nbsp;            return map;
+<b class="nc"><i class="no-highlight">535</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;            throw new SnapDataException(ERR_EXECUTING_REQUEST_MSG)</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                    .formatWith(response.getStatusCode())</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                    .withReason(statusCode + &quot; : &quot; + response.getStatusMessage())</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                    .withResolution(ERR_ADDRESS_ISSUE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;        }</b>
+<i class="no-highlight">541</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">542</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;    protected boolean handleThrottleError(ODataClientErrorException exception) {</b>
+<i class="no-highlight">544</i>&nbsp;        LOGGER.warn(&quot;Received ApplicationThrottled Error, Error code: 429&quot;);
+<i class="no-highlight">545</i>&nbsp;        int waitTime = 0;
+<i class="no-highlight">546</i>&nbsp;        try {
+<i class="no-highlight">547</i>&nbsp;            Header[] list = exception.getHeaderInfo();
+<b class="nc"><i class="no-highlight">548</i>&nbsp;            for (Header header : list) {</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;                if (&quot;Retry-After&quot;.equalsIgnoreCase(header.getName())) {</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;                    waitTime = Integer.parseInt(header.getValue());</b>
+<i class="no-highlight">551</i>&nbsp;                }
+<i class="no-highlight">552</i>&nbsp;            }
+<i class="no-highlight">553</i>&nbsp;            waitTime = waitTime &lt; 0 ? 0 : waitTime;
+<b class="nc"><i class="no-highlight">554</i>&nbsp;        } catch (NumberFormatException nfe) {</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;            LOGGER.debug(&quot;Error while converting Retry-After value &quot;, nfe);</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;            return false;</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;        }</b>
+<i class="no-highlight">558</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">559</i>&nbsp;            Thread.sleep(TimeUnit.SECONDS.toMillis(waitTime + 3));</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;        } catch (InterruptedException ie) {</b>
+<i class="no-highlight">561</i>&nbsp;            LOGGER.error(&quot;Wait Thread is interrupted&quot;, ie);
+<b class="nc"><i class="no-highlight">562</i>&nbsp;            Thread.currentThread().interrupt();</b>
+<i class="no-highlight">563</i>&nbsp;        }
+<i class="no-highlight">564</i>&nbsp;        return true;
+<i class="no-highlight">565</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">566</i>&nbsp;</b>
+<i class="no-highlight">567</i>&nbsp;    public ODataRequest prepareRequest(ODataRequest request, AccountInfo accountInfo,
+<i class="no-highlight">568</i>&nbsp;                                       Map&lt;String, String&gt; headers) {
+<i class="no-highlight">569</i>&nbsp;        request.setAccept(&quot;application/json;odata.metadata=minimal&quot;);
+<b class="nc"><i class="no-highlight">570</i>&nbsp;        request.addCustomHeader(AUTHORIZATION, accountInfo.getBearerToken());</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;        if (MapUtils.isNotEmpty(headers)) {</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;            for (Map.Entry&lt;String, String&gt; entry : headers.entrySet()) {</b>
+<i class="no-highlight">573</i>&nbsp;                request.addCustomHeader(entry.getKey(), entry.getValue());
+<b class="nc"><i class="no-highlight">574</i>&nbsp;            }</b>
+<i class="no-highlight">575</i>&nbsp;        }
+<i class="no-highlight">576</i>&nbsp;        return request;
+<i class="no-highlight">577</i>&nbsp;    }
+<i class="no-highlight">578</i>&nbsp;
+<i class="no-highlight">579</i>&nbsp;    public String truncateLastFilterType(String filter, String lastFilterType) {
+<i class="no-highlight">580</i>&nbsp;        return StringUtils.removeEnd(filter, lastFilterType).trim();
+<i class="no-highlight">581</i>&nbsp;    }
+<i class="no-highlight">582</i>&nbsp;
+<i class="no-highlight">583</i>&nbsp;    public RetryPolicy&lt;Object&gt; createRetryPolicy(int retryCount, int retryInterval) {
+<i class="no-highlight">584</i>&nbsp;        return new RetryPolicy&lt;Object&gt;()
+<i class="no-highlight">585</i>&nbsp;                .withBackoff(retryInterval, MAX_RETRY_DELAY_SECS, ChronoUnit.SECONDS)
+<i class="no-highlight">586</i>&nbsp;                .withMaxRetries(retryCount)
+<i class="no-highlight">587</i>&nbsp;                .onRetry(event -&gt; {
+<i class="no-highlight">588</i>&nbsp;                    LOGGER.warn(&quot;Performing retry {} after encountering an exception&quot;,
+<i class="no-highlight">589</i>&nbsp;                            event.getAttemptCount());
+<i class="no-highlight">590</i>&nbsp;                })
+<i class="no-highlight">591</i>&nbsp;                .handleIf(ex -&gt; retryChecker(ex))
+<i class="no-highlight">592</i>&nbsp;                .abortOn(SuggestViewAbortException.class);
+<i class="no-highlight">593</i>&nbsp;    }
+<i class="no-highlight">594</i>&nbsp;
+<i class="no-highlight">595</i>&nbsp;    public boolean retryChecker(Throwable throwable) {
+<i class="no-highlight">596</i>&nbsp;        String msg = throwable.getMessage();
+<i class="no-highlight">597</i>&nbsp;        if (throwable instanceof ODataClientErrorException) {
+<i class="no-highlight">598</i>&nbsp;            int statusCode = ((ODataClientErrorException) throwable).getStatusLine()
+<i class="no-highlight">599</i>&nbsp;                    .getStatusCode();
+<i class="no-highlight">600</i>&nbsp;            if (HttpStatus.SC_UNAUTHORIZED == statusCode
+<i class="no-highlight">601</i>&nbsp;                    || HttpStatus.SC_FORBIDDEN == statusCode) {
+<i class="no-highlight">602</i>&nbsp;                return account.reloadOnAuthError();
+<i class="no-highlight">603</i>&nbsp;            }
+<i class="no-highlight">604</i>&nbsp;            if (statusCode == 429) {
+<i class="no-highlight">605</i>&nbsp;                return handleThrottleError(((ODataClientErrorException) throwable));
+<i class="no-highlight">606</i>&nbsp;            }
+<i class="no-highlight">607</i>&nbsp;            return false;
+<i class="no-highlight">608</i>&nbsp;        } else if (throwable instanceof SnapDataException) {
+<i class="no-highlight">609</i>&nbsp;            msg = ((SnapDataException) throwable).getReason();
+<i class="no-highlight">610</i>&nbsp;            if (checkForAuthCode(msg)) {
+<i class="no-highlight">611</i>&nbsp;                return account.reloadOnAuthError();
+<i class="no-highlight">612</i>&nbsp;            }
+<i class="no-highlight">613</i>&nbsp;            return false;
+<i class="no-highlight">614</i>&nbsp;        } else if (throwable instanceof ODataServerErrorException &amp;&amp; checkForAuthCode(msg)) {
+<i class="no-highlight">615</i>&nbsp;            account.reloadOnAuthError();
+<i class="no-highlight">616</i>&nbsp;        }
+<i class="no-highlight">617</i>&nbsp;        return true;
+<i class="no-highlight">618</i>&nbsp;    }
+<i class="no-highlight">619</i>&nbsp;
+<i class="no-highlight">620</i>&nbsp;    public boolean checkForAuthCode(String msg) {
+<i class="no-highlight">621</i>&nbsp;        // Added 500 status code, because in business central, we are getting 500 Server error
+<i class="no-highlight">622</i>&nbsp;        // before the token expiration
+<i class="no-highlight">623</i>&nbsp;        return msg.contains(&quot;401&quot;) || msg.contains(&quot;403&quot;) || msg.contains(&quot;500&quot;);
+<i class="no-highlight">624</i>&nbsp;    }
+<i class="no-highlight">625</i>&nbsp;
+<i class="no-highlight">626</i>&nbsp;    public boolean defaultRetryOnAuthIssues(Throwable throwable) {
+<i class="no-highlight">627</i>&nbsp;        String msg = throwable.getMessage();
+<i class="no-highlight">628</i>&nbsp;        if (msg.contains(&quot;401&quot;) || msg.contains(&quot;403&quot;)) {
+<i class="no-highlight">629</i>&nbsp;            return account.reloadOnAuthError();
+<i class="no-highlight">630</i>&nbsp;        }
+<i class="no-highlight">631</i>&nbsp;        return false;
+<i class="no-highlight">632</i>&nbsp;    }
+<i class="no-highlight">633</i>&nbsp;
+<i class="no-highlight">634</i>&nbsp;    public Map&lt;String, Object&gt; invokeActionWithRetry(String api, Map&lt;String, Object&gt; parameters,
+<i class="no-highlight">635</i>&nbsp;                                                     int retryCount, int retryInterval) {
+<i class="no-highlight">636</i>&nbsp;        try {
+<i class="no-highlight">637</i>&nbsp;            return Failsafe.with(createRetryPolicy(retryCount, retryInterval))
+<i class="no-highlight">638</i>&nbsp;                    .get(cntx -&gt; invokeAction(api, parameters));
+<i class="no-highlight">639</i>&nbsp;        } catch (Exception ex) {
+<i class="no-highlight">640</i>&nbsp;            if (retryCount == 0 &amp;&amp; defaultRetryOnAuthIssues(ex)) {
+<i class="no-highlight">641</i>&nbsp;                LOGGER.debug(AUTH_ISSUE_RETRY_MSG, ex);
+<i class="no-highlight">642</i>&nbsp;                return invokeAction(api, parameters);
+<i class="no-highlight">643</i>&nbsp;            }
+<i class="no-highlight">644</i>&nbsp;            throw generateSnapDataException(ex);
+<i class="no-highlight">645</i>&nbsp;        }
+<i class="no-highlight">646</i>&nbsp;    }
+<i class="no-highlight">647</i>&nbsp;
+<i class="no-highlight">648</i>&nbsp;    public Map&lt;String, Object&gt; invokeAction(String api, Map&lt;String, Object&gt; parameters) {
+<i class="no-highlight">649</i>&nbsp;        AccountInfo accountInfo = account.connect();
+<i class="no-highlight">650</i>&nbsp;        URIBuilder uri = oDataClient.newURIBuilder(accountInfo.getTenantURL())
+<i class="no-highlight">651</i>&nbsp;                .appendActionCallSegment(api);
+<i class="no-highlight">652</i>&nbsp;        ODataInvokeResponse&lt;ClientProperty&gt; response = invokeRequest(accountInfo, uri, parameters);
+<i class="no-highlight">653</i>&nbsp;        if (response.getStatusCode() &gt;= 200 || response.getStatusCode() &lt; 204) {
+<i class="no-highlight">654</i>&nbsp;            return readRawResponse(response);
+<i class="no-highlight">655</i>&nbsp;        }
+<i class="no-highlight">656</i>&nbsp;        return null;
+<i class="no-highlight">657</i>&nbsp;    }
+<i class="no-highlight">658</i>&nbsp;
+<i class="no-highlight">659</i>&nbsp;    public ODataInvokeResponse&lt;ClientProperty&gt; invokeRequest(AccountInfo accountInfo,
+<i class="no-highlight">660</i>&nbsp;                                    URIBuilder uri, Map&lt;String, Object&gt; parameters) {
+<i class="no-highlight">661</i>&nbsp;        Map&lt;String, ClientValue&gt; requestParams = new LinkedHashMap&lt;&gt;();
+<i class="no-highlight">662</i>&nbsp;        if (parameters != null &amp;&amp; parameters.size() &gt; 0) {
+<i class="no-highlight">663</i>&nbsp;            for (Map.Entry&lt;String, Object&gt; param : parameters.entrySet()) {
+<i class="no-highlight">664</i>&nbsp;                ClientValue value = null;
+<i class="no-highlight">665</i>&nbsp;                if (param.getValue() == null) {
+<i class="no-highlight">666</i>&nbsp;                    value = oDataClient.getObjectFactory()
+<i class="no-highlight">667</i>&nbsp;                            .newPrimitiveValueBuilder().buildString(null);
+<i class="no-highlight">668</i>&nbsp;                } else if (param.getValue() instanceof Boolean) {
+<i class="no-highlight">669</i>&nbsp;                    value = oDataClient.getObjectFactory()
+<i class="no-highlight">670</i>&nbsp;                            .newPrimitiveValueBuilder().buildBoolean((boolean) param.getValue());
+<i class="no-highlight">671</i>&nbsp;                } else {
+<i class="no-highlight">672</i>&nbsp;                    // by default, considering the value is of type String
+<i class="no-highlight">673</i>&nbsp;                    value = oDataClient.getObjectFactory()
+<i class="no-highlight">674</i>&nbsp;                            .newPrimitiveValueBuilder().buildString(
+<i class="no-highlight">675</i>&nbsp;                                    String.valueOf(param.getValue()));
+<i class="no-highlight">676</i>&nbsp;                }
+<i class="no-highlight">677</i>&nbsp;                requestParams.put(param.getKey(), value);
+<i class="no-highlight">678</i>&nbsp;            }
+<i class="no-highlight">679</i>&nbsp;        }
+<i class="no-highlight">680</i>&nbsp;        ODataInvokeRequest&lt;ClientProperty&gt; request = oDataClient.getInvokeRequestFactory()
+<i class="no-highlight">681</i>&nbsp;                .getActionInvokeRequest(uri.build(), ClientProperty.class, requestParams);
+<i class="no-highlight">682</i>&nbsp;        request.addCustomHeader(AUTHORIZATION, accountInfo.getBearerToken());
+<i class="no-highlight">683</i>&nbsp;        return request.execute();
+<i class="no-highlight">684</i>&nbsp;    }
+<i class="no-highlight">685</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

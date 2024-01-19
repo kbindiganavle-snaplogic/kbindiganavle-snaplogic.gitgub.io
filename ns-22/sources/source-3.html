@@ -1,0 +1,336 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > IPRestrictionPolicy</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.policies.traffic</a>
+</div>
+
+<h1>Coverage Summary for Class: IPRestrictionPolicy (com.snaplogic.policies.traffic)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">IPRestrictionPolicy</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">IPRestrictionPolicy$IPRange</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/73)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.policies.traffic;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.github.jgonian.ipmath.Ipv4;
+<i class="no-highlight">15</i>&nbsp;import com.github.jgonian.ipmath.Ipv4Range;
+<i class="no-highlight">16</i>&nbsp;import com.github.jgonian.ipmath.Ipv6;
+<i class="no-highlight">17</i>&nbsp;import com.github.jgonian.ipmath.Ipv6Range;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.Policy;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.policies.Messages;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.policies.util.ResponseGenerator;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.TypedExpressionProperty;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.capabilities.EnsuresContext;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.Property;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.StandardContexts;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">31</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">32</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">37</i>&nbsp;import java.util.List;
+<i class="no-highlight">38</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import javax.ws.rs.container.ContainerRequestContext;
+<i class="no-highlight">41</i>&nbsp;import javax.ws.rs.container.ContainerRequestFilter;
+<i class="no-highlight">42</i>&nbsp;import javax.ws.rs.core.Response;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;/**
+<i class="no-highlight">45</i>&nbsp;* IP Restriction policy
+<i class="no-highlight">46</i>&nbsp;*/
+<i class="no-highlight">47</i>&nbsp;@General(title = &quot;IP Restriction&quot;, purpose = &quot;Restrict the request based on Client IP&quot;,
+<i class="no-highlight">48</i>&nbsp;        docLink = Messages.IP_RESTRICTION_DOC_LINK)
+<i class="no-highlight">49</i>&nbsp;@Version
+<i class="no-highlight">50</i>&nbsp;@EnsuresContext(StandardContexts.EarlyValidator.class)
+<i class="no-highlight">51</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<b class="nc"><i class="no-highlight">52</i>&nbsp;public class IPRestrictionPolicy implements Policy, ContainerRequestFilter {</b>
+<i class="no-highlight">53</i>&nbsp;
+<b class="nc"><i class="no-highlight">54</i>&nbsp;    private static class IPRange {</b>
+<i class="no-highlight">55</i>&nbsp;        @Property(label = &quot;Start IP&quot;, description = &quot;Start IP value&quot;)
+<i class="no-highlight">56</i>&nbsp;        public TypedExpressionProperty&lt;String&gt; startIP;
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;        @Property(label = &quot;End IP&quot;, description = &quot;End IP value&quot;)
+<i class="no-highlight">59</i>&nbsp;        public TypedExpressionProperty&lt;Optional&lt;String&gt;&gt; endIP;
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;        @Property(label = &quot;Description&quot;, description = &quot;Description for IP range&quot;)
+<i class="no-highlight">62</i>&nbsp;        private TypedExpressionProperty&lt;Optional&lt;String&gt;&gt; restrictionDescription;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;        /*
+<i class="no-highlight">66</i>&nbsp;            This will check if given string is in IPV4 format
+<i class="no-highlight">67</i>&nbsp;         */
+<i class="no-highlight">68</i>&nbsp;        private static Ipv4 isValidIPv4Format(String ipAddress) throws SnapDataException {
+<i class="no-highlight">69</i>&nbsp;            Ipv4 ipv4;
+<i class="no-highlight">70</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                 ipv4 = Ipv4.of(ipAddress);</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;            } catch (IllegalArgumentException e) {</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                throw new SnapDataException(e, &quot;Cannot convert %s to IPv4. Incorrect format&quot;)</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                    .formatWith(ipAddress)</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                    .withResolution(&quot;Ensure the address is a valid IPv4 address&quot;);</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;            return ipv4;</b>
+<i class="no-highlight">78</i>&nbsp;        }
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;        public static Ipv6 isValidIPv6Format(String ipAddress) throws SnapDataException {
+<i class="no-highlight">81</i>&nbsp;            Ipv6 ipv6;
+<i class="no-highlight">82</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                ipv6 = Ipv6.of(ipAddress);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;            } catch (IllegalArgumentException e) {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                throw new SnapDataException(e, &quot;Cannot convert %s to IPv6. Incorrect format&quot;)</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                    .formatWith(ipAddress)</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                    .withResolution(&quot;Ensure the address is a valid IPv6 address&quot;);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            return ipv6;</b>
+<i class="no-highlight">90</i>&nbsp;        }
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;        private boolean checkIPv4RangeMatch(Ipv4Range clientIPRange) {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            String startIPAddress = startIP.eval(null);</b>
+<i class="no-highlight">94</i>&nbsp;            // If endIPAddress is null or empty string set it to start ip address
+<b class="nc"><i class="no-highlight">95</i>&nbsp;            String endIPAddress = endIP.eval(null).orElse(StringUtils.EMPTY);</b>
+<i class="no-highlight">96</i>&nbsp;
+<b class="nc"><i class="no-highlight">97</i>&nbsp;            if (endIP.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                endIPAddress = startIPAddress;</b>
+<i class="no-highlight">99</i>&nbsp;            }
+<i class="no-highlight">100</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                Ipv4 start = IPRange.isValidIPv4Format(startIPAddress);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                Ipv4 end = IPRange.isValidIPv4Format(endIPAddress);</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                Ipv4Range ipv4Range = Ipv4Range.from(start).to(end);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                return ipv4Range.contains(clientIPRange);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                log.debug(&quot;Client IP is in IPv4, but configured IP range not in IPv4&quot;);</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                return false;</b>
+<i class="no-highlight">108</i>&nbsp;            }
+<i class="no-highlight">109</i>&nbsp;        }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;        private boolean checkIPv6RangeMatch(Ipv6Range clientIPRange) {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;            String startIPAddress = startIP.eval(null);</b>
+<i class="no-highlight">113</i>&nbsp;            // If endIPAddress is null or empty string set it to start ip address
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            String endIPAddress = endIP.eval(null).orElse(StringUtils.EMPTY);</b>
+<i class="no-highlight">115</i>&nbsp;
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            if (endIP.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                endIPAddress = startIPAddress;</b>
+<i class="no-highlight">118</i>&nbsp;            }
+<i class="no-highlight">119</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                Ipv6 start = IPRange.isValidIPv6Format(startIPAddress);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                Ipv6 end = IPRange.isValidIPv6Format(endIPAddress);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                Ipv6Range ipv6Range = Ipv6Range.from(start).to(end);</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                return ipv6Range.contains(clientIPRange);</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                log.debug(&quot;Client IP is in IPv6 but configured IP range not in IPv6&quot;);</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                return false;</b>
+<i class="no-highlight">127</i>&nbsp;            }
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;        }
+<i class="no-highlight">130</i>&nbsp;    }
+<i class="no-highlight">131</i>&nbsp;
+<b class="nc"><i class="no-highlight">132</i>&nbsp;    private static final Logger log = LoggerFactory.getLogger(IPRestrictionPolicy.class);</b>
+<i class="no-highlight">133</i>&nbsp;
+<b class="nc"><i class="no-highlight">134</i>&nbsp;    @Property(label = &quot;Allowlist IP&#39;s&quot;, description = &quot;Allowlist IP ranges&quot;)</b>
+<i class="no-highlight">135</i>&nbsp;    private List&lt;IPRange&gt; whiteListIPs = new ArrayList&lt;&gt;();
+<i class="no-highlight">136</i>&nbsp;
+<b class="nc"><i class="no-highlight">137</i>&nbsp;    @Property(label = &quot;Denylist IP&#39;s&quot;, description = &quot;Denylist IP ranges&quot;)</b>
+<i class="no-highlight">138</i>&nbsp;    private List&lt;IPRange&gt; blackListIPs = new ArrayList&lt;&gt;();
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    /*
+<i class="no-highlight">141</i>&nbsp;        This will check if the given ip address is within the range of any allow listed CIDR address
+<i class="no-highlight">142</i>&nbsp;        Returns false on first occurrences of matched deny listed ip restriction
+<i class="no-highlight">143</i>&nbsp;        Returns true on first occurrences of matched allow listed ip restriction
+<i class="no-highlight">144</i>&nbsp;        Case when the IP is neither deny listed nor allow listed
+<i class="no-highlight">145</i>&nbsp;        Should return false if at least one allowList is explicitly configured
+<i class="no-highlight">146</i>&nbsp;     */
+<i class="no-highlight">147</i>&nbsp;    private boolean ipAllowed(String clientAddress) {
+<i class="no-highlight">148</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            Ipv4 clientAddr = IPRange.isValidIPv4Format(clientAddress);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            Ipv4Range clientAddrRange = Ipv4Range.from(clientAddr).to(clientAddr);</b>
+<i class="no-highlight">151</i>&nbsp;
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            for (IPRange denyListRestriction: blackListIPs) {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                if (denyListRestriction.checkIPv4RangeMatch(clientAddrRange)) {</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                    return false;</b>
+<i class="no-highlight">155</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            }</b>
+<i class="no-highlight">157</i>&nbsp;
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            for (IPRange allowListRestriction: whiteListIPs) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                if (allowListRestriction.checkIPv4RangeMatch(clientAddrRange)) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                    return true;</b>
+<i class="no-highlight">161</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">162</i>&nbsp;            }</b>
+<i class="no-highlight">163</i>&nbsp;
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            return whiteListIPs.isEmpty();</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;            Ipv6 clientAddr = IPRange.isValidIPv6Format(clientAddress);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;            Ipv6Range clientAddrRange = Ipv6Range.from(clientAddr).to(clientAddr);</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            for (IPRange denyListRestriction: blackListIPs) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                if (denyListRestriction.checkIPv6RangeMatch(clientAddrRange)) {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                    return false;</b>
+<i class="no-highlight">171</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">172</i>&nbsp;            }</b>
+<i class="no-highlight">173</i>&nbsp;
+<b class="nc"><i class="no-highlight">174</i>&nbsp;            for (IPRange allowListRestriction: whiteListIPs) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                if (allowListRestriction.checkIPv6RangeMatch(clientAddrRange)) {</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                    return true;</b>
+<i class="no-highlight">177</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            }</b>
+<i class="no-highlight">179</i>&nbsp;
+<b class="nc"><i class="no-highlight">180</i>&nbsp;            return whiteListIPs.isEmpty();</b>
+<i class="no-highlight">181</i>&nbsp;        }
+<i class="no-highlight">182</i>&nbsp;    }
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;    @Override
+<i class="no-highlight">185</i>&nbsp;    public void filter(final ContainerRequestContext requestContext) throws IOException {
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        Optional&lt;String&gt; contextIP = StandardContexts.CLIENT_IP.getFromContext(requestContext);</b>
+<i class="no-highlight">187</i>&nbsp;
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        if (!contextIP.isPresent()) {</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            Response response = ResponseGenerator.toResponse(Response.Status.INTERNAL_SERVER_ERROR,</b>
+<i class="no-highlight">190</i>&nbsp;                    &quot;Missing client ip address in header&quot;);
+<b class="nc"><i class="no-highlight">191</i>&nbsp;            requestContext.abortWith(response);</b>
+<i class="no-highlight">192</i>&nbsp;            return;
+<i class="no-highlight">193</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        String clientIPAddr = contextIP.get();</b>
+<i class="no-highlight">195</i>&nbsp;
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        if (!ipAllowed(clientIPAddr)) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            String message = String.format(</b>
+<i class="no-highlight">198</i>&nbsp;                    &quot;IP address %s rejected. Client IP address not in allowed IP ranges&quot;,
+<i class="no-highlight">199</i>&nbsp;                    clientIPAddr);
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            Response response = ResponseGenerator.toResponse(Response.Status.FORBIDDEN, message);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            requestContext.abortWith(response);</b>
+<i class="no-highlight">202</i>&nbsp;            return;
+<i class="no-highlight">203</i>&nbsp;        }
+<i class="no-highlight">204</i>&nbsp;    }
+<i class="no-highlight">205</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

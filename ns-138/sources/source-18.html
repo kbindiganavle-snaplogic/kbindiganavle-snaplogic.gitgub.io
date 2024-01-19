@@ -1,0 +1,953 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SFWriteCommon</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce</a>
+</div>
+
+<h1>Coverage Summary for Class: SFWriteCommon (com.snaplogic.snaps.salesforce)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SFWriteCommon</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/414)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SFWriteCommon$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/416)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2012 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.document.schema.model.ObjectSchemaNode;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.fs.JfsUtils;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snaps.salesforce.auth.SalesforceLogin;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.BulkWrite;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options.ContentType;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options.Operation;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options.SnapName;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snaps.salesforce.common.RetryException;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snaps.salesforce.common.SObject;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snaps.salesforce.common.SalesforceSchemaUtil;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snaps.salesforce.response.PollerResponseIterator;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snaps.salesforce.response.RestWriteResponse;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snaps.salesforce.response.SFAPIError;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snaps.salesforce.sync.SyncWrite;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snaps.salesforce.sync.output.RestWriteResult;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">55</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">56</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">57</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">58</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">61</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">62</i>&nbsp;import java.net.ConnectException;
+<i class="no-highlight">63</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">64</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">65</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">66</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">67</i>&nbsp;import java.util.List;
+<i class="no-highlight">68</i>&nbsp;import java.util.Map;
+<i class="no-highlight">69</i>&nbsp;import java.util.Set;
+<i class="no-highlight">70</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.salesforce.Constants.DATA_FORMAT_CSV;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.salesforce.Constants.FORMAT_RELATED_EXTERNAL_ID;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.salesforce.Messages.*;
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;/**
+<i class="no-highlight">77</i>&nbsp; * Abstract class for write-type Salesforce API snaps, i.e. Create, Delete, Update and Upsert.
+<i class="no-highlight">78</i>&nbsp; */
+<i class="no-highlight">79</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">80</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">81</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">82</i>&nbsp;public abstract class SFWriteCommon extends SalesforceCommon implements InputSchemaProvider {
+<b class="nc"><i class="no-highlight">83</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(SFWriteCommon.class);</b>
+<i class="no-highlight">84</i>&nbsp;    public static final String KEY_URL = &quot;url&quot;;
+<i class="no-highlight">85</i>&nbsp;    public static final String KEY_RECORDS = &quot;records&quot;;
+<i class="no-highlight">86</i>&nbsp;    public static final String KEY_BATCH_ID = &quot;batchId&quot;;
+<i class="no-highlight">87</i>&nbsp;    public static final String KEY_JOB_ID = &quot;jobId&quot;;
+<i class="no-highlight">88</i>&nbsp;    protected static final String FORMAT_BULK_URL = &quot;%sservices/async/%s/job&quot;;
+<i class="no-highlight">89</i>&nbsp;    protected static final String FORMAT_SOBJECTS = &quot;%s/sobjects/&quot;;
+<i class="no-highlight">90</i>&nbsp;    protected static final int BATCH_SIZE_WRITE_DEFAULT = 200;
+<i class="no-highlight">91</i>&nbsp;    protected static final String DEFAULT_SALESFORCE_API = BULK_API_LABEL;
+<i class="no-highlight">92</i>&nbsp;    protected static final String APPLY_ACTIVE_RULES_PROP = &quot;applyActiveRules&quot;;
+<i class="no-highlight">93</i>&nbsp;    protected static final String NULL_SETTING_PROP = &quot;nullSettingWithBulkApi&quot;;
+<i class="no-highlight">94</i>&nbsp;    protected static final String RELATED_OBJECT_PROP = &quot;relatedObject&quot;;
+<i class="no-highlight">95</i>&nbsp;    protected static final String RELATED_EXTERNAL_ID_PROP = &quot;relatedExternalId&quot;;
+<i class="no-highlight">96</i>&nbsp;    protected static final String STANDARDIZE_ERROR_OUTPUT_PROP = &quot;standardizeErrorOutput&quot;;
+<i class="no-highlight">97</i>&nbsp;    protected static final boolean STANDARDIZE_ERROR_OUTPUT_DEFAULT = false;
+<i class="no-highlight">98</i>&nbsp;    protected SyncWrite syncWrite;
+<i class="no-highlight">99</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">100</i>&nbsp;    protected BulkWrite bulkWrite;
+<b class="nc"><i class="no-highlight">101</i>&nbsp;    private final List&lt;SObject&gt; sObjectList = Lists.newArrayList();</b>
+<i class="no-highlight">102</i>&nbsp;    private static final String LENGTH = &quot;length&quot;;
+<i class="no-highlight">103</i>&nbsp;    private static final String TYPE = &quot;type&quot;;
+<i class="no-highlight">104</i>&nbsp;    private static final String NILLABLE = &quot;nillable&quot;;
+<i class="no-highlight">105</i>&nbsp;    private static final String CREATEABLE = &quot;createable&quot;;
+<i class="no-highlight">106</i>&nbsp;    private static final String UPDATEABLE = &quot;updateable&quot;;
+<i class="no-highlight">107</i>&nbsp;    private static final String ID_LOOKUP = &quot;idLookup&quot;;
+<b class="nc"><i class="no-highlight">108</i>&nbsp;    private static final Map&lt;String, Object&gt; DELETE_SCHEMA = new ImmutableMap</b>
+<i class="no-highlight">109</i>&nbsp;            .Builder&lt;String, Object&gt;()
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            .put(NAME, ID)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            .put(LENGTH, 18)</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;            .put(TYPE, &quot;id&quot;)</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            .put(NILLABLE, false)</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            .build();</b>
+<i class="no-highlight">115</i>&nbsp;    private static final String REFERENCE_TO = &quot;referenceTo&quot;;
+<i class="no-highlight">116</i>&nbsp;    private static final String EXTERNAL_ID = &quot;externalId&quot;;
+<b class="nc"><i class="no-highlight">117</i>&nbsp;    private static final String[] EMPTY_ARRAY = {&quot;&quot;};</b>
+<i class="no-highlight">118</i>&nbsp;    private static final String CUSTOM_C_SUFFIX = &quot;__c&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String CUSTOM_R_SUFFIX = &quot;__r&quot;;
+<i class="no-highlight">120</i>&nbsp;    // do not translate the following error messages
+<i class="no-highlight">121</i>&nbsp;    private static final String ERR_NETWORK_UNREACHABLE = &quot;Network is unreachable&quot;;
+<i class="no-highlight">122</i>&nbsp;    private static final String ERR_UNKNOWN = &quot;Unknown error&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String BULK_CONTENT_TYPE_PROP = &quot;bulkContentType&quot;;
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;    private final SnapName snapName;
+<i class="no-highlight">126</i>&nbsp;    protected String bulkContentType;
+<i class="no-highlight">127</i>&nbsp;    private String relatedObject;
+<i class="no-highlight">128</i>&nbsp;    private String relatedExternalId;
+<i class="no-highlight">129</i>&nbsp;    protected boolean isPublisher;
+<i class="no-highlight">130</i>&nbsp;    protected boolean nullSettingWithBulkApi;
+<i class="no-highlight">131</i>&nbsp;    protected boolean standardizeErrorOutput;
+<i class="no-highlight">132</i>&nbsp;    protected boolean applyActiveRules;
+<i class="no-highlight">133</i>&nbsp;    protected long lastBatchWriteTime;
+<i class="no-highlight">134</i>&nbsp;    @Inject
+<i class="no-highlight">135</i>&nbsp;    SalesforceSchemaUtil schemaUtil;
+<b class="nc"><i class="no-highlight">136</i>&nbsp;    private List&lt;Document&gt; docsList = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">137</i>&nbsp;
+<b class="nc"><i class="no-highlight">138</i>&nbsp;    public SFWriteCommon(String snapTitle, SnapName snapName, Options.Operation operation) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        this.snapTitle = snapTitle;</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        this.snapName = snapName;</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        options.withOperation(operation);</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    @Override
+<i class="no-highlight">145</i>&nbsp;    public void defineInputSchema(final SchemaProvider provider) {
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        if (loginException == null) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            provideInputViewSchema(provider);</b>
+<i class="no-highlight">148</i>&nbsp;        }
+<i class="no-highlight">149</i>&nbsp;    }
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    protected void addBulkContentTypeProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        builder.describe(BULK_CONTENT_TYPE_PROP, BULK_CONTENT_TYPE_LABEL, BULK_CONTENT_TYPE_DESC)</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                .withAllowedValues(Constants.DATA_FORMATs)</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                .defaultValue(Constants.DATA_FORMAT_XML)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                .add();</b>
+<i class="no-highlight">156</i>&nbsp;    }
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;    protected void readBulkContentTypeProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        bulkContentType = propertyValues.get(BULK_CONTENT_TYPE_PROP);</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        if (StringUtils.isBlank(bulkContentType)) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            bulkContentType = Constants.DATA_FORMAT_XML;</b>
+<i class="no-highlight">162</i>&nbsp;        }
+<i class="no-highlight">163</i>&nbsp;    }
+<i class="no-highlight">164</i>&nbsp;
+<i class="no-highlight">165</i>&nbsp;    protected void addApplyActiveRulesProperty(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        builder.describe(APPLY_ACTIVE_RULES_PROP, APPLY_ACTIVE_RULES_LABEL, APPLY_ACTIVE_RULES_DESC)</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                .defaultValue(true)</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                .enableIf(String.format(&quot;($.settings.%1$s.expression || &quot; +</b>
+<i class="no-highlight">170</i>&nbsp;                        &quot;[&#39;Account&#39;, &#39;Case&#39;, &#39;Lead&#39;].indexOf($.settings.%1$s.value) &gt;= 0) &amp;&amp; &quot; +
+<i class="no-highlight">171</i>&nbsp;                        &quot;$.settings.%2$s.value == &#39;%3$s&#39;&quot;,
+<i class="no-highlight">172</i>&nbsp;                        OBJECT_TYPE_PROP, SALESFORCE_API_PROP, REST_API_LABEL))
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .add();</b>
+<i class="no-highlight">174</i>&nbsp;    }
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;    private void provideInputViewSchema(SchemaProvider provider) {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        loginInfo = getLoginInfo(false);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        if (loginException != null) {</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;            LOG.error(&quot;Unable to generate input view schema {}&quot;, loginException.getMessage(),</b>
+<i class="no-highlight">180</i>&nbsp;                    loginException);
+<i class="no-highlight">181</i>&nbsp;            return;
+<i class="no-highlight">182</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        try (MetadataRead metadataRead = injector.getInstance(MetadataRead.class)) {</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;            metadataRead.initialize(options, loginInfo);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            Operation operation = options.getOperation();</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            for (String inputViewName : provider.getRegisteredViewNames()) {</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                SchemaBuilder schemaBuilder = provider.getSchemaBuilder(inputViewName);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                setSchemaForRelatedObject(provider, schemaBuilder);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                if (operation == Operation.DELETE) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                    Schema childSchema = createChildSchema(DELETE_SCHEMA, provider);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    schemaBuilder.withChildSchema(childSchema);</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                    Iterator&lt;Map&lt;String, Object&gt;&gt; results = null;</b>
+<i class="no-highlight">194</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                        results = metadataRead.execute();</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                    } catch (RetryException e) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                        if (retriesRemaining-- &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                            loginInfo = getLoginInfo(true);</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                            provideInputViewSchema(provider);</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                            resetRetry();</b>
+<i class="no-highlight">201</i>&nbsp;                            return;
+<i class="no-highlight">202</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                            LOG.info(ERR_READ_META_DATA, e);</b>
+<i class="no-highlight">204</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                    } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                        LOG.info(ERR_READ_META_DATA, e);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                    if (results == null) {</b>
+<i class="no-highlight">209</i>&nbsp;                        return;
+<i class="no-highlight">210</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                    while (results.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                        Map&lt;String, Object&gt; entry = results.next();</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                        Boolean isCreatable = jsonPathUtil.nullableRead(CREATEABLE, entry);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                        Boolean isUpdateable = jsonPathUtil.nullableRead(UPDATEABLE, entry);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                        Boolean isIdLookup = jsonPathUtil.nullableRead(ID_LOOKUP, entry);</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                        String name = String.valueOf(entry.get(NAME));</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        switch (operation) {</b>
+<i class="no-highlight">218</i>&nbsp;                            case INSERT:
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                                if (ID.equalsIgnoreCase(name) ||</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                                        isCreatable != null &amp;&amp; !isCreatable) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                                    continue;</b>
+<i class="no-highlight">222</i>&nbsp;                                }
+<i class="no-highlight">223</i>&nbsp;                                break;
+<i class="no-highlight">224</i>&nbsp;                            case UPDATE:
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                                if ((isIdLookup != null &amp;&amp; !isIdLookup) &amp;&amp; (isUpdateable != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                                        !isUpdateable)) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                                    continue;</b>
+<i class="no-highlight">228</i>&nbsp;                                }
+<i class="no-highlight">229</i>&nbsp;                                break;
+<i class="no-highlight">230</i>&nbsp;                            case UPSERT:
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                                if (ID.equalsIgnoreCase(name) || (isIdLookup != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                                        !isIdLookup) &amp;&amp; (isUpdateable != null &amp;&amp; !isUpdateable) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                                        (isCreatable != null &amp;&amp; !isCreatable)) {</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                                    continue;</b>
+<i class="no-highlight">235</i>&nbsp;                                }
+<i class="no-highlight">236</i>&nbsp;                                break;
+<i class="no-highlight">237</i>&nbsp;                            // TODO: add external ID information if any
+<i class="no-highlight">238</i>&nbsp;                            default:
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                                String error = String.format(ERR_SCHEMA_PROVIDER_UNSUPPORTED,</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                                        operation.toString());</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                                throw new ExecutionException(error)</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                                        .withReason(error)</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                                        .withResolution(ERR_CUSTOMER_SUPPORT);</b>
+<i class="no-highlight">244</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                        Schema childSchema = createChildSchema(entry, provider);</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                        schemaBuilder.withChildSchema(childSchema);</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                    }</b>
+<i class="no-highlight">248</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                schemaBuilder.build();</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        }</b>
+<i class="no-highlight">252</i>&nbsp;    }
+<i class="no-highlight">253</i>&nbsp;
+<i class="no-highlight">254</i>&nbsp;    private void setSchemaForRelatedObject(SchemaProvider provider, SchemaBuilder builder) {
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        if (StringUtils.isNotBlank(relatedObject) &amp;&amp; StringUtils.isNotBlank(relatedExternalId)) {</b>
+<i class="no-highlight">256</i>&nbsp;            Schema relatedObjectSchema;
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            if (DATA_FORMAT_CSV.equals(bulkContentType)) {</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                relatedObjectSchema = provider.createSchema(SnapType.STRING, String.format(</b>
+<i class="no-highlight">259</i>&nbsp;                        FORMAT_RELATED_EXTERNAL_ID, relatedObject, relatedExternalId));
+<i class="no-highlight">260</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                Schema childSchema = provider.createSchema(SnapType.STRING, relatedExternalId);</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                relatedObjectSchema = provider.createSchema(SnapType.COMPOSITE, relatedObject);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                ((ObjectSchemaNode) relatedObjectSchema).addChild(childSchema);</b>
+<i class="no-highlight">264</i>&nbsp;
+<i class="no-highlight">265</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            builder.withChildSchema(relatedObjectSchema);</b>
+<i class="no-highlight">267</i>&nbsp;        }
+<i class="no-highlight">268</i>&nbsp;    }
+<i class="no-highlight">269</i>&nbsp;
+<i class="no-highlight">270</i>&nbsp;    private Schema createChildSchema(Map&lt;String, Object&gt; entry, SchemaProvider provider) {
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        String name = jsonPathUtil.nullableRead(NAME, entry);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        String type = jsonPathUtil.nullableRead(TYPE, entry);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        Integer length = jsonPathUtil.nullableRead(LENGTH, entry);</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        Boolean isNullable = jsonPathUtil.nullableRead(NILLABLE, entry);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        SalesforceSchemaUtil.SnapTypeInfo snapTypeInfo = schemaUtil</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                .getSnapTypeForSQLType(type);</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        SnapType snapType = snapTypeInfo.getSnapType();</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        Schema childSchema = provider.createSchema(snapType,</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                snapTypeInfo.getSnapFormatType(), name);</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        switch (snapType) {</b>
+<i class="no-highlight">281</i>&nbsp;            case STRING:
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                childSchema.setMaximumLength(length);</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                break;</b>
+<i class="no-highlight">284</i>&nbsp;            default:
+<i class="no-highlight">285</i>&nbsp;                // TODO - MK: more constraints to come
+<i class="no-highlight">286</i>&nbsp;                break;
+<i class="no-highlight">287</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        if (isNullable != null &amp;&amp; !isNullable) {</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;            childSchema.setRequired(true);</b>
+<i class="no-highlight">290</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        return childSchema;</b>
+<i class="no-highlight">292</i>&nbsp;    }
+<i class="no-highlight">293</i>&nbsp;
+<i class="no-highlight">294</i>&nbsp;    @Override
+<i class="no-highlight">295</i>&nbsp;    protected void createCustomProperties(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        builder.describe(BATCH_SIZE_PROP, BATCH_SIZE_LABEL, BATCH_SIZE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                .defaultValue(BATCH_SIZE_WRITE_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                .withMinValue(MIN_BATCH_SIZE)</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                .withMaxValue(MAX_BATCH_SIZE)</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        builder.describe(OBJECT_TYPE_PROP, OBJECT_TYPE_LABEL, OBJECT_TYPE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                .defaultValue(OBJECT_TYPE_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                .withMinLength(MIN_PROPERTY_LENGTH)</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt;</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                        suggestSObjects(suggestionBuilder, propertyValues))</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                .dataLocationIdentifier(&quot;salesforce.object&quot;)</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        addCustomProperties(builder);</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        builder.describe(BULKAPI_SERIAL_MODE_PROP, BULKAPI_SERIAL_MODE_LABEL,</b>
+<i class="no-highlight">315</i>&nbsp;                BULKAPI_SERIAL_MODE_DESC)
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                .defaultValue(BULKAPI_SERIAL_MODE_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        builder.describe(STANDARDIZE_ERROR_OUTPUT_PROP,</b>
+<i class="no-highlight">320</i>&nbsp;                STANDARDIZE_ERROR_OUTPUT_LABEL,
+<i class="no-highlight">321</i>&nbsp;                STANDARDIZE_ERROR_OUTPUT_DESC)
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                .type(SnapType.BOOLEAN).defaultValue(STANDARDIZE_ERROR_OUTPUT_DEFAULT).add();</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        builder.describe(PASS_THROUGH_PROP, PASS_THROUGH_LABEL, PASS_THROUGH_DESC)</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                .defaultValue(Boolean.TRUE)</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                .add();</b>
+<i class="no-highlight">327</i>&nbsp;    }
+<i class="no-highlight">328</i>&nbsp;
+<i class="no-highlight">329</i>&nbsp;    protected void initializeWriteOptions(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">330</i>&nbsp;        initServiceVersion(serviceVersionExpr, null, options);</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        versionedBaseServiceUrl = String.format(bulkAPI ? FORMAT_BULK_URL : FORMAT_REST_SERVICE_URL,</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                makeSureEndWithSeparator(instanceUrl), options.getServiceVersion());</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        objectType = propertyValues.get(OBJECT_TYPE_PROP);</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;        bulkAPISerialMode = Boolean.TRUE.equals(propertyValues.get(BULKAPI_SERIAL_MODE_PROP));</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        applyActiveRules = propertyValues.getBoolean(APPLY_ACTIVE_RULES_PROP, true);</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        options.withServiceUrl(versionedBaseServiceUrl)</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                .withObjectType(objectType)</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                .withContentType(ContentType.XML)</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                .withSnapName(snapName)</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                .withApplyActiveRules(applyActiveRules)</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                .withBulkAPI(bulkAPI)</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                .withBulkAPIMode(bulkAPISerialMode ? BULKAPI_SERIAL : BULKAPI_PARALLEL);</b>
+<i class="no-highlight">343</i>&nbsp;    }
+<i class="no-highlight">344</i>&nbsp;
+<i class="no-highlight">345</i>&nbsp;    @Override
+<i class="no-highlight">346</i>&nbsp;    protected void initProperties(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">347</i>&nbsp;        initializeWriteOptions(propertyValues);</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        if (bulkAPI) {</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;            nullSettingWithBulkApi = Boolean.TRUE.equals(propertyValues.get(NULL_SETTING_PROP));</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;            options.withNullSettingWithBulkApi(nullSettingWithBulkApi);</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;            bulkWrite = getBulkWrite(options);</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;            batchSize = ((BigInteger) propertyValues.get(BATCH_SIZE_PROP)).intValue();</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;            if (propertyValues.inImmediateMode() &amp;&amp; batchSize &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                throw new ConfigurationException(UNSUPPORTED_SNAP_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                        .withReason(BATCHING_IS_NOT_SUPPORTED_IN_AN_ALWAYS_ON_TASK)</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                        .withResolution(SET_THE_BATCH_SIZE_PROPERTY_TO_ONE);</b>
+<i class="no-highlight">357</i>&nbsp;            }
+<i class="no-highlight">358</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">359</i>&nbsp;            syncWrite = injector.getInstance(SyncWrite.class);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;            batchSize = 1;</b>
+<i class="no-highlight">361</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        relatedObject = evalExpressionProperty(RELATED_OBJECT_PROP, propertyValues);</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        if (objectType.endsWith(CUSTOM_C_SUFFIX) &amp;&amp; StringUtils.isNotBlank(relatedObject)) {</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            if (relatedObject.endsWith(CUSTOM_C_SUFFIX)) {</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                relatedObject = relatedObject.substring(0,</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                        relatedObject.length() - CUSTOM_C_SUFFIX.length());</b>
+<i class="no-highlight">367</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            relatedObject = relatedObject.concat(CUSTOM_R_SUFFIX);</b>
+<i class="no-highlight">369</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">370</i>&nbsp;        relatedExternalId = evalExpressionProperty(RELATED_EXTERNAL_ID_PROP,</b>
+<i class="no-highlight">371</i>&nbsp;                propertyValues);
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        standardizeErrorOutput = Boolean.TRUE.equals(propertyValues.get</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                (STANDARDIZE_ERROR_OUTPUT_PROP));</b>
+<i class="no-highlight">374</i>&nbsp;        // The following &#39;passThrough&#39; property applies to write-type Snaps in REST API, i.e.
+<i class="no-highlight">375</i>&nbsp;        // Create, Update, Upsert and Delete. To be backward-compatible for existing production
+<i class="no-highlight">376</i>&nbsp;        // pipelines, it should be true default.
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        Object value = propertyValues.get(PASS_THROUGH_PROP);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        passThrough = value == null || value.equals(Boolean.TRUE);</b>
+<i class="no-highlight">379</i>&nbsp;    }
+<i class="no-highlight">380</i>&nbsp;
+<i class="no-highlight">381</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">382</i>&nbsp;    protected BulkWrite getBulkWrite(Options options) {
+<b class="nc"><i class="no-highlight">383</i>&nbsp;        BulkWrite bulkWrite = injector.getInstance(BulkWrite.class);</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;        bulkWrite.initialize(options, loginInfo, errorViews);</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;        return bulkWrite;</b>
+<i class="no-highlight">386</i>&nbsp;    }
+<i class="no-highlight">387</i>&nbsp;
+<i class="no-highlight">388</i>&nbsp;    @Override
+<i class="no-highlight">389</i>&nbsp;    public void execute() throws ExecutionException {
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        if (batchTimeoutMs &lt;= 0 || inputViews.size() != 1) {</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            super.execute();</b>
+<i class="no-highlight">392</i>&nbsp;            return;
+<i class="no-highlight">393</i>&nbsp;        }
+<i class="no-highlight">394</i>&nbsp;        // if batch timeout is positive and input view is connected, handle batch timeout
+<b class="nc"><i class="no-highlight">395</i>&nbsp;        lastBatchWriteTime = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;        Document lastDocument = documentUtility.newDocument(new HashMap());</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;        String inputViewName = inputViews.get().getName();</b>
+<i class="no-highlight">398</i>&nbsp;        Map&lt;String, Document&gt; map;
+<i class="no-highlight">399</i>&nbsp;        while (true) {
+<i class="no-highlight">400</i>&nbsp;            // poll input view for a document
+<b class="nc"><i class="no-highlight">401</i>&nbsp;            map = inputViews.select();</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;            if (map.isEmpty()) {</b>
+<i class="no-highlight">403</i>&nbsp;                // input document has not arrived yet
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                if (batchTimeoutMs &lt; (System.currentTimeMillis() - lastBatchWriteTime)) {</b>
+<i class="no-highlight">405</i>&nbsp;                    // batch timeout has occurred
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                    if (!sObjectList.isEmpty()) {</b>
+<i class="no-highlight">407</i>&nbsp;                        // submit the batch
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                        LOG.info(&quot;Write batch request is sent due to a batch timeout&quot;);</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                        writeBatch(lastDocument);</b>
+<i class="no-highlight">410</i>&nbsp;                    } else {
+<i class="no-highlight">411</i>&nbsp;                        // the batch buffer is empty, just reset timeout timer
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                        lastBatchWriteTime = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                        LOG.info(&quot;Batch timeout has occurred, but batch buffer is empty&quot;);</b>
+<i class="no-highlight">414</i>&nbsp;                    }
+<i class="no-highlight">415</i>&nbsp;                } else {
+<i class="no-highlight">416</i>&nbsp;                    // batch timeout has not occurred yet, pause here, otherwise cpu may hit 100%
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                    sleep(1, TimeUnit.SECONDS);</b>
+<i class="no-highlight">418</i>&nbsp;                }
+<i class="no-highlight">419</i>&nbsp;            } else {
+<i class="no-highlight">420</i>&nbsp;                // input document is present
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                Document document = map.get(inputViewName);</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                if (document != null) {</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;                    validateServiceVersion(options.getServiceVersion());</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                    process(document, inputViewName);</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;                    lastDocument = document;</b>
+<i class="no-highlight">426</i>&nbsp;                } else {
+<i class="no-highlight">427</i>&nbsp;                    // it is the end of the input document stream
+<i class="no-highlight">428</i>&nbsp;                    return;
+<i class="no-highlight">429</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">430</i>&nbsp;            }</b>
+<i class="no-highlight">431</i>&nbsp;        }
+<i class="no-highlight">432</i>&nbsp;    }
+<i class="no-highlight">433</i>&nbsp;
+<i class="no-highlight">434</i>&nbsp;    @Override
+<i class="no-highlight">435</i>&nbsp;    protected void process(Document document, String inputViewName) {
+<b class="nc"><i class="no-highlight">436</i>&nbsp;        if (bulkAPI) {</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;            docsList.add(document);</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;            sObjectList.add(getSObject(document));</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;            if (sObjectList.size() == batchSize) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                writeBatch(document);</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                lastBatchWriteTime = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                docsList.clear();</b>
+<i class="no-highlight">443</i>&nbsp;            }
+<i class="no-highlight">444</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">445</i>&nbsp;            loginInfo = getLoginInfo(false); // make sure access token is not expired</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;            if (loginException != null) {</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                errorViews.write(loginException, document);</b>
+<i class="no-highlight">448</i>&nbsp;                return;
+<i class="no-highlight">449</i>&nbsp;            }
+<i class="no-highlight">450</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                syncWrite.initialize(options, loginInfo);</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                RestWriteResult restWriteResult = syncWrite.execute(getSObject(document));</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;                writeObjectToView(document, restWriteResult);</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;            } catch (RetryException e) {</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                if (retriesRemaining-- &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                    loginInfo = getLoginInfo(true);</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                    LOG.info(&quot;Retrying REST API request in {}, retires remaining: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                            snapTitle, retriesRemaining, e);</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                    process(document, inputViewName);</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                    LOG.info(&quot;Retry of REST API request in {} was successful&quot;, snapTitle, e);</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                    resetRetry();</b>
+<i class="no-highlight">462</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                    LOG.info(&quot;All retries of REST API request in {} have failed, routing input &quot; +</b>
+<i class="no-highlight">464</i>&nbsp;                            &quot;data to error view&quot;, snapTitle, e);
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                    throwSnapDataException(e, ERR_REQUEST, document);</b>
+<i class="no-highlight">466</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">467</i>&nbsp;            } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                errorViews.write(e, document);</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;            } catch (ExecutionException | SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                throw e;</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;            } catch (Throwable e) {</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                throwSnapDataException(e, ERR_REQUEST, document);</b>
+<i class="no-highlight">473</i>&nbsp;            } finally {
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                syncWrite.close();</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;            }</b>
+<i class="no-highlight">476</i>&nbsp;        }
+<i class="no-highlight">477</i>&nbsp;    }
+<i class="no-highlight">478</i>&nbsp;
+<i class="no-highlight">479</i>&nbsp;    private void writeBatch(Document document) {
+<i class="no-highlight">480</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">481</i>&nbsp;            loginInfo = getLoginInfo(false); // make sure access token is not expired</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;            if (loginException != null) {</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;                if (docsList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;                    errorViews.write(loginException, document);</b>
+<i class="no-highlight">485</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                    for (Document d : docsList) {</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                        errorViews.write(loginException, d);</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                    }</b>
+<i class="no-highlight">489</i>&nbsp;                }
+<i class="no-highlight">490</i>&nbsp;                return;
+<i class="no-highlight">491</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">492</i>&nbsp;            bulkWrite.setLoginInfo(loginInfo);</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;            bulkWrite.setPayloadContentType(bulkContentType);</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;            Map&lt;String, Object&gt; batchJobInfo = bulkWrite.execute(sObjectList);</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;            if (isPublisher) {</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;                getBatchResults(batchJobInfo, document);</b>
+<i class="no-highlight">497</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                writeResultsToOutput(document, batchJobInfo);</b>
+<i class="no-highlight">499</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">500</i>&nbsp;        } catch (RetryException e) {</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;            retryBulkWrite(e, document, ERR_REQUEST);</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;        } catch (Throwable e) {</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;            throwSnapDataException(e, ERR_REQUEST);</b>
+<i class="no-highlight">504</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">505</i>&nbsp;            sObjectList.clear();</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;            bulkWrite.close();</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;        }</b>
+<i class="no-highlight">508</i>&nbsp;    }
+<i class="no-highlight">509</i>&nbsp;
+<i class="no-highlight">510</i>&nbsp;    private void writeResultsToOutput(Document document, Map&lt;String, Object&gt; results) {
+<b class="nc"><i class="no-highlight">511</i>&nbsp;        if (batchSize &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;            outputViews.write(documentUtility.newDocument(results));</b>
+<i class="no-highlight">513</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">514</i>&nbsp;            outputViews.write(documentUtility.newDocumentFor(document, results),</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;                    passThrough ? document : null);</b>
+<i class="no-highlight">516</i>&nbsp;        }
+<i class="no-highlight">517</i>&nbsp;    }
+<i class="no-highlight">518</i>&nbsp;
+<i class="no-highlight">519</i>&nbsp;    private void retryBulkWrite(Exception exception, Document document, String error) {
+<b class="nc"><i class="no-highlight">520</i>&nbsp;        JfsUtils.sleepNoInterrupt(retryInterval, TimeUnit.SECONDS, LOG);</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;        Map&lt;String, Object&gt; batchJobInfo = null;</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;        if (retriesRemaining-- &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;            loginInfo = getLoginInfo(true);</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;            if (loginException != null) {</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                if (docsList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                    errorViews.write(loginException, document);</b>
+<i class="no-highlight">527</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                    for (Document d : docsList) {</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                        errorViews.write(loginException, d);</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                    }</b>
+<i class="no-highlight">531</i>&nbsp;                }
+<i class="no-highlight">532</i>&nbsp;                return;
+<i class="no-highlight">533</i>&nbsp;            }
+<i class="no-highlight">534</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                LOG.info(&quot;Retrying Bulk API request in {}, retires remaining: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;                        snapTitle, retriesRemaining, exception);</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                batchJobInfo = bulkWrite.execute(sObjectList);</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                LOG.info(&quot;Retry of Bulk API request in {} was successful&quot;, snapTitle, exception);</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                resetRetry();</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;            } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;                throw e;</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;            } catch (Exception ex) {</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                retryBulkWrite(exception, document, error);</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;            }</b>
+<i class="no-highlight">545</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">546</i>&nbsp;            LOG.info(&quot;All retries of Bulk API request in {} have failed, routing input data to&quot; +</b>
+<i class="no-highlight">547</i>&nbsp;                    &quot; error view&quot;, snapTitle, exception);
+<b class="nc"><i class="no-highlight">548</i>&nbsp;            for (SObject sObject : sObjectList) {</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;                throwSnapDataException(exception, error, sObject.getAllFields());</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;            }</b>
+<i class="no-highlight">551</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">552</i>&nbsp;        if (MapUtils.isNotEmpty(batchJobInfo)) {</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;            if (isPublisher) {</b>
+<b class="nc"><i class="no-highlight">554</i>&nbsp;                getBatchResults(batchJobInfo, document);</b>
+<i class="no-highlight">555</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                writeResultsToOutput(document, batchJobInfo);</b>
+<i class="no-highlight">557</i>&nbsp;            }
+<i class="no-highlight">558</i>&nbsp;        }
+<i class="no-highlight">559</i>&nbsp;    }
+<i class="no-highlight">560</i>&nbsp;
+<i class="no-highlight">561</i>&nbsp;    protected void throwSnapDataException(Throwable e, String message) {
+<b class="nc"><i class="no-highlight">562</i>&nbsp;        throwSnapDataException(e, message, null);</b>
+<i class="no-highlight">563</i>&nbsp;    }
+<i class="no-highlight">564</i>&nbsp;
+<i class="no-highlight">565</i>&nbsp;    private void throwSnapDataException(Throwable e, String message, Object original) {
+<b class="nc"><i class="no-highlight">566</i>&nbsp;        errorViews.write((SnapDataException) new SnapDataException(e, message)</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;                .formatWith(snapTitle, objectType)</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                .withResolution(ERR_RESOLUTION), original);</b>
+<i class="no-highlight">569</i>&nbsp;    }
+<i class="no-highlight">570</i>&nbsp;
+<i class="no-highlight">571</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">572</i>&nbsp;    protected Document writeObjectToView(Document document, RestWriteResult restWriteResult) {
+<b class="nc"><i class="no-highlight">573</i>&nbsp;        Document outputDoc = null;</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;        Map&lt;String, Object&gt; inputMap = document.get(Map.class);</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;        if (restWriteResult.isSuccess()) {</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;            addEntriesToRecord(inputMap, restWriteResult.getId().toString(),</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                    restWriteResult.getResponseMap());</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;            if (batchSize &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                outputDoc = documentUtility.newDocument(inputMap);</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;                outputViews.write(outputDoc);</b>
+<i class="no-highlight">581</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">582</i>&nbsp;                outputDoc = documentUtility.newDocumentFor(document, inputMap);</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                outputViews.write(outputDoc, passThrough ? document : null);</b>
+<i class="no-highlight">584</i>&nbsp;            }
+<i class="no-highlight">585</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">586</i>&nbsp;            SFAPIError sfError = restWriteResult.getSfError();</b>
+<i class="no-highlight">587</i>&nbsp;            SnapDataException ex;
+<b class="nc"><i class="no-highlight">588</i>&nbsp;            if (standardizeErrorOutput) {</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;                ex = new SnapDataException(sfError.getResponse())</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;                        .withReason(sfError.getMessage())</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">592</i>&nbsp;                errorViews.write(ex, document);</b>
+<i class="no-highlight">593</i>&nbsp;             } else {
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                String reason = sfError.getResponse();</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;                inputMap.put(KEY_ERROR, reason);</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;                outputDoc = documentUtility.newDocumentFor(document, inputMap);</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;                ex = new SnapDataException(outputDoc, ERROR_OCCURRED_WHILE_EXECUTING_REQUEST_TO_SF)</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                        .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;                        .withResolution(ERR_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;                errorViews.write(ex, document);</b>
+<i class="no-highlight">601</i>&nbsp;             }
+<i class="no-highlight">602</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">603</i>&nbsp;        return outputDoc;</b>
+<i class="no-highlight">604</i>&nbsp;    }
+<i class="no-highlight">605</i>&nbsp;
+<i class="no-highlight">606</i>&nbsp;    protected void addEntriesToRecord(Map&lt;String, Object&gt; inputMap, String id,
+<i class="no-highlight">607</i>&nbsp;            Map&lt;String, Object&gt; responseMap) {
+<b class="nc"><i class="no-highlight">608</i>&nbsp;        if (!id.equals(RestWriteResponse.EMPTY_ID)) {</b>
+<b class="nc"><i class="no-highlight">609</i>&nbsp;            inputMap.put(ID, id);</b>
+<i class="no-highlight">610</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">611</i>&nbsp;        inputMap.put(PollerResponseIterator.KEY_CREATED, Boolean.FALSE.toString());</b>
+<i class="no-highlight">612</i>&nbsp;    }
+<i class="no-highlight">613</i>&nbsp;
+<i class="no-highlight">614</i>&nbsp;    @Override
+<i class="no-highlight">615</i>&nbsp;    public void cleanup() throws ExecutionException {
+<i class="no-highlight">616</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">617</i>&nbsp;            if (bulkAPI &amp;&amp; CollectionUtils.isNotEmpty(sObjectList)) {</b>
+<b class="nc"><i class="no-highlight">618</i>&nbsp;                Document document = getDocumentFrom(sObjectList);</b>
+<i class="no-highlight">619</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">620</i>&nbsp;                    loginInfo = getLoginInfo(false); // make sure access token is not expired</b>
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                    if (loginException != null) {</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                        errorViews.write(loginException, document);</b>
+<i class="no-highlight">623</i>&nbsp;                        return;
+<i class="no-highlight">624</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">625</i>&nbsp;                    bulkWrite.setLoginInfo(loginInfo);</b>
+<b class="nc"><i class="no-highlight">626</i>&nbsp;                    bulkWrite.setPayloadContentType(bulkContentType);</b>
+<b class="nc"><i class="no-highlight">627</i>&nbsp;                    Map&lt;String, Object&gt; batchJobInfo = bulkWrite.execute(sObjectList);</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;                    if (isPublisher) {</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;                        getBatchResults(batchJobInfo, getDocumentFrom(sObjectList));</b>
+<i class="no-highlight">630</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                        writeResultsToOutput(document, batchJobInfo);</b>
+<i class="no-highlight">632</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">633</i>&nbsp;                } catch (RetryException | ConnectException e) {</b>
+<b class="nc"><i class="no-highlight">634</i>&nbsp;                    retryBulkWrite(e, document, ERR_LAST_BATCH);</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;                } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;                    String error = e.getMessage();</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;                    if (StringUtils.containsIgnoreCase(error, ERR_NETWORK_UNREACHABLE) ||</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;                            StringUtils.containsIgnoreCase(error, ERR_UNKNOWN)) {</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;                        retryBulkWrite(e, document, ERR_LAST_BATCH);</b>
+<i class="no-highlight">640</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                        throwSnapDataException(e, ERR_LAST_BATCH, document);</b>
+<i class="no-highlight">642</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">643</i>&nbsp;                } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;                    throwSnapDataException(e, ERR_LAST_BATCH, document);</b>
+<i class="no-highlight">645</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">646</i>&nbsp;                    sObjectList.clear();</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                }</b>
+<i class="no-highlight">648</i>&nbsp;            }
+<i class="no-highlight">649</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">650</i>&nbsp;            if (bulkWrite != null) {</b>
+<i class="no-highlight">651</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">652</i>&nbsp;                    bulkWrite.closeBatchJob();</b>
+<i class="no-highlight">653</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">654</i>&nbsp;                    bulkWrite.close();</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;                }</b>
+<i class="no-highlight">656</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">657</i>&nbsp;            if (syncWrite != null) {</b>
+<b class="nc"><i class="no-highlight">658</i>&nbsp;                syncWrite.close();</b>
+<i class="no-highlight">659</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">660</i>&nbsp;        }</b>
+<i class="no-highlight">661</i>&nbsp;    }
+<i class="no-highlight">662</i>&nbsp;
+<i class="no-highlight">663</i>&nbsp;    /**
+<i class="no-highlight">664</i>&nbsp;     * Adds additional properties.
+<i class="no-highlight">665</i>&nbsp;     *
+<i class="no-highlight">666</i>&nbsp;     * @param builder - PropertyBuilder object to build snap properties to
+<i class="no-highlight">667</i>&nbsp;     */
+<i class="no-highlight">668</i>&nbsp;    abstract protected void addCustomProperties(PropertyBuilder builder);
+<i class="no-highlight">669</i>&nbsp;
+<i class="no-highlight">670</i>&nbsp;    /**
+<i class="no-highlight">671</i>&nbsp;     * Creates an instance of SObject and copies document data.
+<i class="no-highlight">672</i>&nbsp;     *
+<i class="no-highlight">673</i>&nbsp;     * @param document - document object received from input view
+<i class="no-highlight">674</i>&nbsp;     *
+<i class="no-highlight">675</i>&nbsp;     * @return SObject instance with document data in it
+<i class="no-highlight">676</i>&nbsp;     */
+<i class="no-highlight">677</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">678</i>&nbsp;    protected SObject getSObject(Document document) {
+<b class="nc"><i class="no-highlight">679</i>&nbsp;        SObject sObject = new SObject(objectType);</b>
+<b class="nc"><i class="no-highlight">680</i>&nbsp;        sObject.setAllFields(document.get(Map.class));</b>
+<b class="nc"><i class="no-highlight">681</i>&nbsp;        return sObject;</b>
+<i class="no-highlight">682</i>&nbsp;    }
+<i class="no-highlight">683</i>&nbsp;
+<i class="no-highlight">684</i>&nbsp;    @Override
+<i class="no-highlight">685</i>&nbsp;    protected String getServiceEndpoint() {
+<b class="nc"><i class="no-highlight">686</i>&nbsp;        return String.format(FORMAT_SOBJECTS, versionedBaseServiceUrl);</b>
+<i class="no-highlight">687</i>&nbsp;    }
+<i class="no-highlight">688</i>&nbsp;
+<i class="no-highlight">689</i>&nbsp;    protected void createRelatedObjectProperties(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">690</i>&nbsp;        builder.describe(RELATED_OBJECT_PROP, RELATED_OBJECT_LABEL, RELATED_OBJECT_DESC)</b>
+<b class="nc"><i class="no-highlight">691</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt;</b>
+<b class="nc"><i class="no-highlight">692</i>&nbsp;                        suggestRelatedNames(suggestionBuilder, propertyValues,</b>
+<i class="no-highlight">693</i>&nbsp;                        RELATED_OBJECT_PROP, OBJECT_TYPE_PROP))
+<b class="nc"><i class="no-highlight">694</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">695</i>&nbsp;        builder.describe(RELATED_EXTERNAL_ID_PROP, RELATED_EXTERNAL_ID_LABEL,</b>
+<i class="no-highlight">696</i>&nbsp;                RELATED_EXTERNAL_ID_DESC)
+<b class="nc"><i class="no-highlight">697</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt;</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                        suggestRelatedNames(suggestionBuilder, propertyValues,</b>
+<i class="no-highlight">699</i>&nbsp;                        RELATED_EXTERNAL_ID_PROP, RELATED_OBJECT_PROP))
+<b class="nc"><i class="no-highlight">700</i>&nbsp;                .add();</b>
+<i class="no-highlight">701</i>&nbsp;    }
+<i class="no-highlight">702</i>&nbsp;
+<i class="no-highlight">703</i>&nbsp;    private void suggestRelatedNames(final SuggestionBuilder suggestionBuilder,
+<i class="no-highlight">704</i>&nbsp;            final PropertyValues propertyValues, final String suggestProperty,
+<i class="no-highlight">705</i>&nbsp;            final String objectTypeProperty) {
+<b class="nc"><i class="no-highlight">706</i>&nbsp;        Login loginInfo = getLoginInfo(false);</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;        if (loginException != null) {</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;            throw new ExecutionException(loginException, loginException.getMessage());</b>
+<i class="no-highlight">709</i>&nbsp;        }
+<i class="no-highlight">710</i>&nbsp;        String[] suggestedNames;
+<b class="nc"><i class="no-highlight">711</i>&nbsp;        String compositeKey = null;</b>
+<b class="nc"><i class="no-highlight">712</i>&nbsp;        String objectType = propertyValues.get(objectTypeProperty);</b>
+<b class="nc"><i class="no-highlight">713</i>&nbsp;        if (StringUtils.isNotBlank(objectType)) {</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;            compositeKey = new StringBuilder(suggestProperty)</b>
+<b class="nc"><i class="no-highlight">715</i>&nbsp;                    .append(loginInfo.getSessionId())</b>
+<b class="nc"><i class="no-highlight">716</i>&nbsp;                    .append(objectType)</b>
+<b class="nc"><i class="no-highlight">717</i>&nbsp;                    .toString();</b>
+<b class="nc"><i class="no-highlight">718</i>&nbsp;            suggestedNames = FIELD_NAME_CACHE.getIfPresent(compositeKey);</b>
+<i class="no-highlight">719</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">720</i>&nbsp;            suggestedNames = EMPTY_ARRAY;</b>
+<i class="no-highlight">721</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">722</i>&nbsp;        if (suggestedNames == null) {</b>
+<b class="nc"><i class="no-highlight">723</i>&nbsp;            MetadataRead metadataRead = injector.getInstance(MetadataRead.class);</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;            options.withObjectType(objectType);</b>
+<b class="nc"><i class="no-highlight">725</i>&nbsp;            options.withServiceVersion(propertyValues.get(SERVICE_VERSION_PROP));</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;            String instanceUrl = ((SalesforceLogin) loginInfo).getInstanceUrl();</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;            versionedBaseServiceUrl = String.format(FORMAT_REST_SERVICE_URL,</b>
+<b class="nc"><i class="no-highlight">728</i>&nbsp;                    makeSureEndWithSeparator(instanceUrl), options.getServiceVersion());</b>
+<b class="nc"><i class="no-highlight">729</i>&nbsp;            options.withServiceUrl(versionedBaseServiceUrl);</b>
+<b class="nc"><i class="no-highlight">730</i>&nbsp;            metadataRead.initialize(options, loginInfo);</b>
+<i class="no-highlight">731</i>&nbsp;            Iterator&lt;Map&lt;String, Object&gt;&gt; results;
+<i class="no-highlight">732</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">733</i>&nbsp;                results = metadataRead.execute();</b>
+<b class="nc"><i class="no-highlight">734</i>&nbsp;            } catch (RetryException e) {</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;                if (retriesRemaining-- &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;                    suggestRelatedNames(suggestionBuilder, propertyValues, suggestProperty,</b>
+<i class="no-highlight">737</i>&nbsp;                            objectTypeProperty);
+<b class="nc"><i class="no-highlight">738</i>&nbsp;                    resetRetry();</b>
+<i class="no-highlight">739</i>&nbsp;                    return;
+<i class="no-highlight">740</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">741</i>&nbsp;                    throw new ExecutionException(e, ERR_READ_META_DATA)</b>
+<b class="nc"><i class="no-highlight">742</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">743</i>&nbsp;                            .withResolution(ERR_LOGIN_RESOLUTION);</b>
+<i class="no-highlight">744</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">745</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;                throw new ExecutionException(e, ERR_READ_META_DATA)</b>
+<b class="nc"><i class="no-highlight">747</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;                        .withResolution(ERR_LOGIN_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;            if (results == null) {</b>
+<i class="no-highlight">751</i>&nbsp;                return;
+<i class="no-highlight">752</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">753</i>&nbsp;            Set&lt;String&gt; suggestedNameSet = new HashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">754</i>&nbsp;            while (results.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">755</i>&nbsp;                Map&lt;String, Object&gt; entry = results.next();</b>
+<i class="no-highlight">756</i>&nbsp;                Object object;
+<b class="nc"><i class="no-highlight">757</i>&nbsp;                switch (suggestProperty) {</b>
+<i class="no-highlight">758</i>&nbsp;                    case RELATED_OBJECT_PROP:
+<b class="nc"><i class="no-highlight">759</i>&nbsp;                        object = entry.get(REFERENCE_TO);</b>
+<b class="nc"><i class="no-highlight">760</i>&nbsp;                        if (object instanceof List &amp;&amp; !((List&lt;?&gt;) object).isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">761</i>&nbsp;                            suggestedNameSet.addAll((List&lt;String&gt;) object);</b>
+<i class="no-highlight">762</i>&nbsp;                        }
+<i class="no-highlight">763</i>&nbsp;                        break;
+<i class="no-highlight">764</i>&nbsp;                    case RELATED_EXTERNAL_ID_PROP:
+<b class="nc"><i class="no-highlight">765</i>&nbsp;                        object = entry.get(EXTERNAL_ID);</b>
+<b class="nc"><i class="no-highlight">766</i>&nbsp;                        if (object instanceof Boolean &amp;&amp; (Boolean) object) {</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;                            suggestedNameSet.add((String) entry.get(NAME));</b>
+<i class="no-highlight">768</i>&nbsp;                        }
+<i class="no-highlight">769</i>&nbsp;                        break;
+<i class="no-highlight">770</i>&nbsp;                    default:
+<b class="nc"><i class="no-highlight">771</i>&nbsp;                        suggestionBuilder.node(suggestProperty)</b>
+<b class="nc"><i class="no-highlight">772</i>&nbsp;                                .suggestions(EMPTY_ARRAY);</b>
+<i class="no-highlight">773</i>&nbsp;                        return;
+<i class="no-highlight">774</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">775</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">776</i>&nbsp;            if (suggestedNameSet.isEmpty()) {</b>
+<i class="no-highlight">777</i>&nbsp;                // If we pass an empty array to the suggestion builder, it gives a wrong error
+<i class="no-highlight">778</i>&nbsp;                // message. We should pass an array with one empty string.
+<b class="nc"><i class="no-highlight">779</i>&nbsp;                suggestedNames = EMPTY_ARRAY;</b>
+<i class="no-highlight">780</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">781</i>&nbsp;                suggestedNames = suggestedNameSet.toArray(new String[0]);</b>
+<i class="no-highlight">782</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">783</i>&nbsp;            FIELD_NAME_CACHE.put(compositeKey, suggestedNames);</b>
+<i class="no-highlight">784</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">785</i>&nbsp;        suggestionBuilder.node(suggestProperty)</b>
+<b class="nc"><i class="no-highlight">786</i>&nbsp;                .suggestions(suggestedNames);</b>
+<i class="no-highlight">787</i>&nbsp;    }
+<i class="no-highlight">788</i>&nbsp;
+<i class="no-highlight">789</i>&nbsp;    protected void addNullSettingWithBulkApiProperty(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">790</i>&nbsp;        builder.describe(NULL_SETTING_PROP, NULL_SETTING_LABEL, NULL_SETTING_DESC)</b>
+<b class="nc"><i class="no-highlight">791</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<i class="no-highlight">792</i>&nbsp;                // A null value can be formatted to XML in two ways: &quot;/&gt;&lt;&quot; or &quot; xsi:nil=\&quot;true\&quot;/&gt;&lt;&quot;
+<i class="no-highlight">793</i>&nbsp;                // The SFDC server software takes &quot; xsi:nil=\&quot;true\&quot;/&gt;&lt;&quot; as null in Bulk API, but
+<i class="no-highlight">794</i>&nbsp;                // not &quot;/&gt;&lt;&quot;. If this property is true, the Snap converts &quot;/&gt;&lt;&quot; to
+<i class="no-highlight">795</i>&nbsp;                // &quot; xsi:nil=\&quot;true\&quot;/&gt;&lt;&quot; for a null value. Refer to the end of
+<i class="no-highlight">796</i>&nbsp;                // BulkWriteRequest#getXmlData(List&lt;SObject&gt; sObjects) for more details.
+<b class="nc"><i class="no-highlight">797</i>&nbsp;                .add();</b>
+<i class="no-highlight">798</i>&nbsp;    }
+<i class="no-highlight">799</i>&nbsp;
+<i class="no-highlight">800</i>&nbsp;    protected void getBatchResults(Map&lt;String, Object&gt; batchJobInfo, Document document) {
+<i class="no-highlight">801</i>&nbsp;        // No-Op
+<i class="no-highlight">802</i>&nbsp;    }
+<i class="no-highlight">803</i>&nbsp;
+<i class="no-highlight">804</i>&nbsp;    private Document getDocumentFrom(List&lt;SObject&gt; sObjects) {
+<b class="nc"><i class="no-highlight">805</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; records = new ArrayList&lt;&gt;(sObjects.size());</b>
+<b class="nc"><i class="no-highlight">806</i>&nbsp;        for (SObject sObject : sObjects) {</b>
+<b class="nc"><i class="no-highlight">807</i>&nbsp;            records.add(sObject.getAllFields());</b>
+<b class="nc"><i class="no-highlight">808</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">809</i>&nbsp;        return  documentUtility.newDocument(records);</b>
+<i class="no-highlight">810</i>&nbsp;    }
+<i class="no-highlight">811</i>&nbsp;
+<i class="no-highlight">812</i>&nbsp;    protected void initRetryProperties(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">813</i>&nbsp;        numOfRetries = getIntValueFrom(propertyValues, NUMBER_OF_RETRIES_PROP, DEFAULT_RETRIES);</b>
+<b class="nc"><i class="no-highlight">814</i>&nbsp;        retriesRemaining = numOfRetries;</b>
+<b class="nc"><i class="no-highlight">815</i>&nbsp;        retryInterval = getIntValueFrom(propertyValues, RETRY_INTERVAL_PROP,</b>
+<i class="no-highlight">816</i>&nbsp;                DEFAULT_RETRY_INTERVAL);
+<b class="nc"><i class="no-highlight">817</i>&nbsp;        if (options != null) {</b>
+<b class="nc"><i class="no-highlight">818</i>&nbsp;            options.withRetries(numOfRetries)</b>
+<b class="nc"><i class="no-highlight">819</i>&nbsp;                    .withRetryInterval(retryInterval);</b>
+<i class="no-highlight">820</i>&nbsp;        }
+<i class="no-highlight">821</i>&nbsp;    }
+<i class="no-highlight">822</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

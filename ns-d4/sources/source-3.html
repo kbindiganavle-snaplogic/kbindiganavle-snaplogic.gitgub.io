@@ -1,0 +1,251 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CommentHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: CommentHandler (com.snaplogic.snaps.elt.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CommentHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/52)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt.utils;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import org.apache.commons.lang3.Range;
+<i class="no-highlight">16</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">19</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">20</i>&nbsp;import java.util.List;
+<i class="no-highlight">21</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;import static org.apache.commons.lang3.Range.between;
+<i class="no-highlight">24</i>&nbsp;import static org.apache.commons.lang3.StringUtils.SPACE;
+<i class="no-highlight">25</i>&nbsp;import static org.apache.commons.lang3.StringUtils.countMatches;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;/**
+<i class="no-highlight">29</i>&nbsp; * Handle SL comments in sql editors
+<i class="no-highlight">30</i>&nbsp; */
+<b class="nc"><i class="no-highlight">31</i>&nbsp;public class CommentHandler {</b>
+<i class="no-highlight">32</i>&nbsp;
+<b class="nc"><i class="no-highlight">33</i>&nbsp;    private static final List&lt;String&gt; ONE_LINE_COMMENT_SEPARATOR = ImmutableList.of(</b>
+<i class="no-highlight">34</i>&nbsp;            &quot;--&quot;, &quot;#&quot;, &quot;//&quot;
+<i class="no-highlight">35</i>&nbsp;    );
+<i class="no-highlight">36</i>&nbsp;
+<b class="nc"><i class="no-highlight">37</i>&nbsp;    private static final List&lt;Pair&lt;String, String&gt;&gt; MULTI_LINE_COMMENT_SEPARATOR = ImmutableList.of(</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;            Pair.of(&quot;/*&quot;, &quot;*/&quot;)</b>
+<i class="no-highlight">39</i>&nbsp;    );
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;    public static String removeComments(final String query, final char quotationMarker) {
+<b class="nc"><i class="no-highlight">42</i>&nbsp;        String[] lines = query.split(&quot;\\r?\\n&quot;); // new line regex</b>
+<i class="no-highlight">43</i>&nbsp;
+<b class="nc"><i class="no-highlight">44</i>&nbsp;        StringBuilder sb = new StringBuilder(Arrays.stream(lines)</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;                .map(String::trim)</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;                .filter(line -&gt; ONE_LINE_COMMENT_SEPARATOR.stream().noneMatch(line::startsWith))</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;                .map(SPACE::concat)</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;                .collect(Collectors.joining()));</b>
+<i class="no-highlight">49</i>&nbsp;
+<b class="nc"><i class="no-highlight">50</i>&nbsp;        MULTI_LINE_COMMENT_SEPARATOR.forEach(multiLineSeparator -&gt; deleteMultiLineComment(</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;                sb, multiLineSeparator.getLeft(), multiLineSeparator.getRight(), quotationMarker));</b>
+<i class="no-highlight">52</i>&nbsp;
+<b class="nc"><i class="no-highlight">53</i>&nbsp;        return sb.toString().trim();</b>
+<i class="no-highlight">54</i>&nbsp;    }
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;    private static void deleteMultiLineComment(final StringBuilder query,
+<i class="no-highlight">57</i>&nbsp;                                               final String openCommentSeparator,
+<i class="no-highlight">58</i>&nbsp;                                               final String closeCommentSeparator,
+<i class="no-highlight">59</i>&nbsp;                                               final char quotationMarker) {
+<i class="no-highlight">60</i>&nbsp;
+<b class="nc"><i class="no-highlight">61</i>&nbsp;        String queryString = query.toString();</b>
+<i class="no-highlight">62</i>&nbsp;
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        validate(queryString, openCommentSeparator, closeCommentSeparator);</b>
+<i class="no-highlight">64</i>&nbsp;
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        List&lt;Range&lt;Integer&gt;&gt; ranges =</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                getNotAllowedForDeletionRanges(queryString, quotationMarker);</b>
+<i class="no-highlight">67</i>&nbsp;
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        int openSeparatorIndex = query.indexOf(openCommentSeparator);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        int closeSeparatorIndex = query.indexOf(closeCommentSeparator);</b>
+<i class="no-highlight">70</i>&nbsp;
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        while (openSeparatorIndex &gt;= 0) {</b>
+<i class="no-highlight">72</i>&nbsp;
+<b class="nc"><i class="no-highlight">73</i>&nbsp;            int closeSeparatorIndexLengthIncluded =</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                    closeSeparatorIndex + closeCommentSeparator.length();</b>
+<i class="no-highlight">75</i>&nbsp;
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            if (ranges.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                query.delete(openSeparatorIndex, closeSeparatorIndexLengthIncluded);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                openSeparatorIndex = query.indexOf(openCommentSeparator);</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                closeSeparatorIndex = query.indexOf(closeCommentSeparator);</b>
+<i class="no-highlight">80</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                for (Range&lt;Integer&gt; range : ranges) {</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                    if (!range.containsRange(between(openSeparatorIndex, closeSeparatorIndex))</b>
+<i class="no-highlight">83</i>&nbsp;                            &amp;&amp; (openSeparatorIndex != -1 || closeSeparatorIndex != -1)) {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                        query.delete(openSeparatorIndex, closeSeparatorIndexLengthIncluded);</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                        openSeparatorIndex = query.indexOf(openCommentSeparator);</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                        closeSeparatorIndex = query.indexOf(closeCommentSeparator);</b>
+<i class="no-highlight">87</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                        openSeparatorIndex = query.indexOf(openCommentSeparator,</b>
+<i class="no-highlight">89</i>&nbsp;                                closeSeparatorIndexLengthIncluded);
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                        closeSeparatorIndex = query.indexOf(closeCommentSeparator,</b>
+<i class="no-highlight">91</i>&nbsp;                                closeSeparatorIndexLengthIncluded);
+<i class="no-highlight">92</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                }</b>
+<i class="no-highlight">94</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        }</b>
+<i class="no-highlight">96</i>&nbsp;    }
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;    private static void validate(
+<i class="no-highlight">99</i>&nbsp;            final String query,
+<i class="no-highlight">100</i>&nbsp;            final String openCommentSeparator,
+<i class="no-highlight">101</i>&nbsp;            final String closeCommentSeparator) {
+<i class="no-highlight">102</i>&nbsp;
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        int o = countMatches(query, openCommentSeparator);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        int c = countMatches(query, closeCommentSeparator);</b>
+<i class="no-highlight">105</i>&nbsp;
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        if (o != c) {</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            throw new IllegalArgumentException(</b>
+<i class="no-highlight">108</i>&nbsp;                    &quot;different number of opening and closing symbols: &quot; +
+<i class="no-highlight">109</i>&nbsp;                            &quot;open &quot; + o + &quot; [&quot; + openCommentSeparator + &quot;], &quot; +
+<i class="no-highlight">110</i>&nbsp;                            &quot;close &quot; + c + &quot; [&quot; + closeCommentSeparator + &quot;]&quot;);
+<i class="no-highlight">111</i>&nbsp;        }
+<i class="no-highlight">112</i>&nbsp;    }
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    private static List&lt;Range&lt;Integer&gt;&gt; getNotAllowedForDeletionRanges(
+<i class="no-highlight">115</i>&nbsp;            final String query,
+<i class="no-highlight">116</i>&nbsp;            final char quotationMarker) {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        List&lt;Integer&gt; indexes = getQuotationMarkerIndexes(query, quotationMarker);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        List&lt;Range&lt;Integer&gt;&gt; ranges = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">119</i>&nbsp;
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        for (int i = 0; i &lt; indexes.size(); i = i + 2) {</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            ranges.add(between(indexes.get(i), indexes.get(i + 1)));</b>
+<i class="no-highlight">122</i>&nbsp;        }
+<i class="no-highlight">123</i>&nbsp;
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        return ranges;</b>
+<i class="no-highlight">125</i>&nbsp;    }
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;    private static List&lt;Integer&gt; getQuotationMarkerIndexes(
+<i class="no-highlight">128</i>&nbsp;            final String query,
+<i class="no-highlight">129</i>&nbsp;            final char quotationMarker) {
+<i class="no-highlight">130</i>&nbsp;
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        List&lt;Integer&gt; list = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">132</i>&nbsp;
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        int index = query.indexOf(quotationMarker);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        while (index &gt;= 0) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            list.add(index);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            index = query.indexOf(quotationMarker, index + 1);</b>
+<i class="no-highlight">137</i>&nbsp;        }
+<i class="no-highlight">138</i>&nbsp;
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        if (!list.isEmpty() &amp;&amp; list.size() % 2 != 0) {</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            throw new IllegalArgumentException(</b>
+<i class="no-highlight">141</i>&nbsp;                    &quot;no closing or open quotation symbol: [&quot; + quotationMarker + &quot;]&quot;);
+<i class="no-highlight">142</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        return list;</b>
+<i class="no-highlight">144</i>&nbsp;    }
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

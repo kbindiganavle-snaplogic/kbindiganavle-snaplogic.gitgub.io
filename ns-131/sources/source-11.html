@@ -1,0 +1,913 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Unload</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.redshift</a>
+</div>
+
+<h1>Coverage Summary for Class: Unload (com.snaplogic.snaps.redshift)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Unload</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/350)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Unload$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/351)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.redshift;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.AmazonClientException;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.auth.AWSCredentials;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.auth.BasicSessionCredentials;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.s3.AmazonS3Client;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.securitytoken.model.Credentials;
+<i class="no-highlight">20</i>&nbsp;import com.fasterxml.jackson.core.type.TypeReference;
+<i class="no-highlight">21</i>&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+<i class="no-highlight">22</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.SuggestExecutionProvider;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.services.Disconnectable;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.common.utilities.URLEncoder;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.binary.UrlUtils;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.fs.JfsUtils;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.fs.SnapObjectMapper;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.fs.s3.S3EncryptionType;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftCrossAccountIAMRoleAccount;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftCrossAccountIAMRoleSSLAccount;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftDatabaseAccount;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftSSLDatabaseAccount;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.snaps.sql.SimpleSqlSnap;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">56</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">57</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">58</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">61</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">62</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">63</i>&nbsp;import java.net.URI;
+<i class="no-highlight">64</i>&nbsp;import java.net.URLConnection;
+<i class="no-highlight">65</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">66</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">67</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">68</i>&nbsp;import java.util.List;
+<i class="no-highlight">69</i>&nbsp;import java.util.Map;
+<i class="no-highlight">70</i>&nbsp;import java.util.Set;
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snap.api.binary.Messages.KMS_KEY_DESC;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snap.api.binary.Messages.KMS_KEY_LABEL;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snap.api.fs.URLUtils.COLON;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snap.api.sql.util.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">76</i>&nbsp;import static com.snaplogic.snaps.redshift.LoadUnloadUtils.checkAndThrowDiffRegionException;
+<i class="no-highlight">77</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.*;
+<i class="no-highlight">78</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.MAX_RETRY_DESCRIPTION;
+<i class="no-highlight">79</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.MAX_RETRY_LABEL;
+<i class="no-highlight">80</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.MAX_RETRY_PROP;
+<i class="no-highlight">81</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.RETRY_INTERVAL_DESCRIPTION;
+<i class="no-highlight">82</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.RETRY_INTERVAL_LABEL;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.RETRY_INTERVAL_PROP;
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;/**
+<i class="no-highlight">86</i>&nbsp; * Unload the result of query from RedShift to Amazon S3.
+<i class="no-highlight">87</i>&nbsp; *
+<i class="no-highlight">88</i>&nbsp; * @author psung
+<i class="no-highlight">89</i>&nbsp; */
+<i class="no-highlight">90</i>&nbsp;@General(title = UNLOAD_TITLE, purpose = UNLOAD_PURPOSE)
+<i class="no-highlight">91</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">92</i>&nbsp;@Category(snap = SnapCategory.READ)
+<i class="no-highlight">93</i>&nbsp;@Inputs(min = 0, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">94</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">95</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">96</i>&nbsp;@Accounts(provides = {RedshiftDatabaseAccount.class,
+<i class="no-highlight">97</i>&nbsp;        RedshiftSSLDatabaseAccount.class,
+<i class="no-highlight">98</i>&nbsp;        RedshiftCrossAccountIAMRoleAccount.class,
+<i class="no-highlight">99</i>&nbsp;        RedshiftCrossAccountIAMRoleSSLAccount.class})
+<b class="nc"><i class="no-highlight">100</i>&nbsp;public class Unload extends SimpleSqlSnap implements SuggestExecutionProvider {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(Unload.class);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;    private static final Set&lt;String&gt; ENCRYPT_TYPES = new LinkedHashSet&lt;&gt;(</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            Arrays.asList(S3EncryptionType.NONE.toString(),</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                    S3EncryptionType.SSE_KMS.toString()));</b>
+<i class="no-highlight">105</i>&nbsp;    private static final String SELECT_QUERY_PROP = &quot;selectQuery&quot;;
+<i class="no-highlight">106</i>&nbsp;    private static final String SELECT_QUERY_DEFAULT = &quot;SELECT * FROM &quot;;
+<i class="no-highlight">107</i>&nbsp;    private static final String S3_FILE_PREFIX_PROP = &quot;s3FilePrefix&quot;;
+<i class="no-highlight">108</i>&nbsp;    private static final String DELIMITER_PROP = &quot;delimiter&quot;;
+<i class="no-highlight">109</i>&nbsp;    private static final String DELIMITER_DEFAULT = &quot;|&quot;;
+<i class="no-highlight">110</i>&nbsp;    private static final String FIXED_WIDTH_PROP = &quot;fixedWidth&quot;;
+<i class="no-highlight">111</i>&nbsp;    private static final String ESCAPE_PROP = &quot;escape&quot;;
+<i class="no-highlight">112</i>&nbsp;    private static final String ADD_QUOTES_PROP = &quot;addQuotes&quot;;
+<i class="no-highlight">113</i>&nbsp;    private static final String NULL_AS_PROP = &quot;nullAs&quot;;
+<i class="no-highlight">114</i>&nbsp;    private static final String ALLOW_OVERWRITE_PROP = &quot;allowOverwrite&quot;;
+<i class="no-highlight">115</i>&nbsp;    private static final String MANIFEST_PROP = &quot;manifest&quot;;
+<i class="no-highlight">116</i>&nbsp;    private static final String PARALLEL_PROP = &quot;parallel&quot;;
+<i class="no-highlight">117</i>&nbsp;    private static final String GZIP_PROP = &quot;gzip&quot;;
+<i class="no-highlight">118</i>&nbsp;    private static final String ENCRYPTED_PROP = &quot;encrypted&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String ENCRYPT_TYPE_PROP = &quot;encryptType&quot;;
+<i class="no-highlight">120</i>&nbsp;    private static final String KMS_KEY_PROP = &quot;kmsKey&quot;;
+<i class="no-highlight">121</i>&nbsp;    private static final String IAM_ROLE_PROP = &quot;iamRole&quot;;
+<i class="no-highlight">122</i>&nbsp;    private static final String MASTER_SYMMETRIC_KEY_PROP = &quot;masterSymmetricKey&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String QUOTE = &quot;&#39;&quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String DOUBLE_QUOTE = &quot;\&quot;&quot;;
+<i class="no-highlight">125</i>&nbsp;    private static final String S3_BUCKET = &quot;S3 Bucket&quot;;
+<i class="no-highlight">126</i>&nbsp;    private static final String ESCAPED_QUOTE = &quot;\\\&#39;&quot;;
+<i class="no-highlight">127</i>&nbsp;    private static final String ESCAPED_DOUBLE_QUOTE = &quot;\\\&quot;&quot;;
+<i class="no-highlight">128</i>&nbsp;    private static final String SLASH = &quot;/&quot;;
+<i class="no-highlight">129</i>&nbsp;    private static final String DOUBLE_SLASH = &quot;//&quot;;
+<i class="no-highlight">130</i>&nbsp;    private static final String TRIPLE_SLASH = &quot;///&quot;;
+<i class="no-highlight">131</i>&nbsp;    private static final String BACKSLASH = &quot;\\&quot;;
+<i class="no-highlight">132</i>&nbsp;    private static final String ESCAPED_BACKSLASH = &quot;\\\\&quot;;
+<i class="no-highlight">133</i>&nbsp;    private static final String FORMAT_UNLOAD = &quot;UNLOAD (&#39;%s&#39;) TO &#39;%s&#39;&quot;;
+<i class="no-highlight">134</i>&nbsp;    private static final String FORMAT_S3_PATH = &quot;s3://%s/%s&quot;;
+<i class="no-highlight">135</i>&nbsp;    private static final String FORMAT_KEY = &quot;%s/%s&quot;;
+<i class="no-highlight">136</i>&nbsp;    private static final String DEFAULT_CREDENTIALS =
+<i class="no-highlight">137</i>&nbsp;            &quot;aws_access_key_id=%s;aws_secret_access_key=%s&quot;;
+<i class="no-highlight">138</i>&nbsp;    private static final String DEFAULT_TEMP_CREDENTIALS =
+<i class="no-highlight">139</i>&nbsp;            &quot;aws_access_key_id=%s;aws_secret_access_key=%s;token=%s&quot;;
+<i class="no-highlight">140</i>&nbsp;    private static final String IAM_CREDENTIALS =
+<i class="no-highlight">141</i>&nbsp;            &quot;aws_iam_role=arn:aws:iam::%s:role/%s&quot;;
+<i class="no-highlight">142</i>&nbsp;    // append credentials and MANIFEST, the Snap needs to retrieve the list of S3 files
+<i class="no-highlight">143</i>&nbsp;    // written, if MANIFEST option is not selected, the manifest file will be deleted later
+<i class="no-highlight">144</i>&nbsp;    private static final String FORMAT_CREDENTIALS = &quot; CREDENTIALS &#39;%s&#39; MANIFEST&quot;;
+<i class="no-highlight">145</i>&nbsp;    private static final String FORMAT_ENCRYPTED_CREDENTIALS_MASTER = &quot; CREDENTIALS &quot; +
+<i class="no-highlight">146</i>&nbsp;            &quot;&#39;%s;master_symmetric_key=%s&#39; ENCRYPTED MANIFEST&quot;;
+<i class="no-highlight">147</i>&nbsp;    // KMS_KEY_ID cannot be used with CREDENTIALS according to the documentation
+<i class="no-highlight">148</i>&nbsp;    private static final String FORMAT_ENCRYPTED_CREDENTIALS_KMS = &quot; ACCESS_KEY_ID &#39;%s&#39; &quot; +
+<i class="no-highlight">149</i>&nbsp;        &quot;SECRET_ACCESS_KEY &#39;%s&#39; KMS_KEY_ID &#39;%s&#39; ENCRYPTED MANIFEST&quot;;
+<i class="no-highlight">150</i>&nbsp;    private static final String FORMAT_ENCRYPTED_TEMP_CREDENTIALS_KMS = &quot; ACCESS_KEY_ID &#39;%s&#39; &quot; +
+<i class="no-highlight">151</i>&nbsp;            &quot;SECRET_ACCESS_KEY &#39;%s&#39; SESSION_TOKEN &#39;%s&#39; KMS_KEY_ID &#39;%s&#39; ENCRYPTED MANIFEST&quot;;
+<i class="no-highlight">152</i>&nbsp;    private static final String FORMAT_ENCRYPTED_CREDENTIALS_IAM_KMS = &quot; IAM_ROLE &quot;
+<i class="no-highlight">153</i>&nbsp;        + &quot;&#39;arn:aws:iam::%s:role/%s&#39; KMS_KEY_ID &#39;%s&#39; ENCRYPTED MANIFEST&quot;;
+<i class="no-highlight">154</i>&nbsp;    private static final String FORMAT_ENCRYPTED_CREDENTIALS_CROSS_ACCOUNT_IAM_KMS = &quot; CREDENTIALS &quot;
+<i class="no-highlight">155</i>&nbsp;            + &quot;&#39;%s&#39; KMS_KEY_ID &#39;%s&#39; ENCRYPTED MANIFEST&quot;;
+<i class="no-highlight">156</i>&nbsp;    private static final String FORMAT_OPTION = &quot; %s &#39;%s&#39;&quot;;
+<i class="no-highlight">157</i>&nbsp;    private static final String FORMAT_OPTION_OFF = &quot; %s OFF&quot;;
+<i class="no-highlight">158</i>&nbsp;    private static final String FORMAT_SPACE = &quot; %s&quot;;
+<i class="no-highlight">159</i>&nbsp;    private static final String FORMAT_USER_INFO = &quot;%s:%s&quot;;
+<i class="no-highlight">160</i>&nbsp;    private static final String NULL_AS = &quot;NULL AS&quot;;
+<i class="no-highlight">161</i>&nbsp;    private static final String ENTRIES = &quot;entries&quot;;
+<i class="no-highlight">162</i>&nbsp;    private static final String KEY_URL = &quot;url&quot;;
+<i class="no-highlight">163</i>&nbsp;    private static final String STATUS = &quot;status&quot;;
+<i class="no-highlight">164</i>&nbsp;    private static final String SUCCESS = &quot;success&quot;;
+<i class="no-highlight">165</i>&nbsp;    private static final String UNLOAD_QUERY = &quot;unloadQuery&quot;;
+<b class="nc"><i class="no-highlight">166</i>&nbsp;    private static final ObjectMapper OBJECT_MAPPER = new SnapObjectMapper();</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;    private static final TypeReference&lt;Map&lt;String, Object&gt;&gt; TYPE_REF = new TypeReference&lt;Map&lt;String, Object&gt;&gt;() {};</b>
+<i class="no-highlight">168</i>&nbsp;    private static final String PREVIEW_OUTPUT = &quot;{\&quot;entries\&quot;:[{\&quot;url\&quot;:\&quot;s3:///&lt;bucket&gt;/&quot; +
+<i class="no-highlight">169</i>&nbsp;            &quot;&lt;folder&gt;/&lt;prefix&gt;000n_part_00\&quot;}],\&quot;status\&quot;:\&quot;preview\&quot;}&quot;;
+<i class="no-highlight">170</i>&nbsp;    private static final String ENCODE_SECRET_KEY = &quot;%s:%s&quot;;
+<i class="no-highlight">171</i>&nbsp;    private static final String REGION_OPTION = &quot; REGION &#39;%s&#39; &quot;;
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    private ExpressionProperty selectQueryProp;
+<i class="no-highlight">174</i>&nbsp;    private ExpressionProperty s3FilePrefixProp;
+<i class="no-highlight">175</i>&nbsp;    private ExpressionProperty delimiterProp;
+<i class="no-highlight">176</i>&nbsp;    private ExpressionProperty fixedWidthProp;
+<i class="no-highlight">177</i>&nbsp;    private ExpressionProperty nullAsProp;
+<i class="no-highlight">178</i>&nbsp;    private boolean escape;
+<i class="no-highlight">179</i>&nbsp;    private boolean addQuotes;
+<i class="no-highlight">180</i>&nbsp;    private boolean allowOverwrite;
+<i class="no-highlight">181</i>&nbsp;    private boolean manifest;
+<i class="no-highlight">182</i>&nbsp;    private boolean parallel;
+<i class="no-highlight">183</i>&nbsp;    private boolean gzip;
+<i class="no-highlight">184</i>&nbsp;    private boolean encrypted;
+<i class="no-highlight">185</i>&nbsp;    private S3EncryptionType encryptType;
+<i class="no-highlight">186</i>&nbsp;    protected boolean iamRoleEnabled;
+<i class="no-highlight">187</i>&nbsp;    private String masterSymmetricKey;
+<i class="no-highlight">188</i>&nbsp;    private String kmsKey;
+<i class="no-highlight">189</i>&nbsp;    private boolean isPreview;
+<i class="no-highlight">190</i>&nbsp;    @Inject
+<i class="no-highlight">191</i>&nbsp;    private URLEncoder urlEncoder;
+<i class="no-highlight">192</i>&nbsp;    @Inject
+<i class="no-highlight">193</i>&nbsp;    private LoadUnloadUtils loadUnloadUtils;
+<i class="no-highlight">194</i>&nbsp;    protected String iamRoleName;
+<i class="no-highlight">195</i>&nbsp;    protected String awsAccountID;
+<i class="no-highlight">196</i>&nbsp;    protected String regionName;
+<i class="no-highlight">197</i>&nbsp;    protected String awsAccessId;
+<i class="no-highlight">198</i>&nbsp;    protected String awsSecretKey;
+<i class="no-highlight">199</i>&nbsp;    protected String awsSecurityToken;
+<i class="no-highlight">200</i>&nbsp;    protected ExpressionProperty maxRetryProperty;
+<i class="no-highlight">201</i>&nbsp;    protected ExpressionProperty retryIntervalProperty;
+<b class="nc"><i class="no-highlight">202</i>&nbsp;    protected int maxRetries = 0;</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;    protected long retryInterval = 1;</b>
+<i class="no-highlight">204</i>&nbsp;    private boolean crossAccountIamRoleAccount;
+<i class="no-highlight">205</i>&nbsp;
+<i class="no-highlight">206</i>&nbsp;    @Override
+<i class="no-highlight">207</i>&nbsp;    protected String getName() {
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        return JdbcOperations.REDSHIFT;</b>
+<i class="no-highlight">209</i>&nbsp;    }
+<i class="no-highlight">210</i>&nbsp;
+<i class="no-highlight">211</i>&nbsp;    @Override
+<i class="no-highlight">212</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        builder.describe(SELECT_QUERY_PROP, SELECT_QUERY_LABEL, SELECT_QUERY_DESC)</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                .defaultValue(SELECT_QUERY_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        builder.describe(S3_FILE_PREFIX_PROP, S3_FILE_PREFIX_LABEL, S3_FILE_PREFIX_DESC)</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                .dataLocationIdentifier(&quot;redshift.s3_file_prefix&quot;)</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        builder.describe(DELIMITER_PROP, DELIMITER_LABEL, DELIMITER_DESC)</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                .defaultValue(DELIMITER_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        builder.describe(FIXED_WIDTH_PROP, FIXED_WIDTH_LABEL, FIXED_WIDTH_DESC)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        builder.describe(NULL_AS_PROP, NULL_AS_LABEL, NULL_AS_DESC)</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        builder.describe(ESCAPE_PROP, ESCAPE_LABEL, ESCAPE_DESC)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                .defaultValue(Boolean.TRUE)</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        builder.describe(ADD_QUOTES_PROP, ADD_QUOTES_LABEL, ADD_QUOTES_DESC)</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        builder.describe(ALLOW_OVERWRITE_PROP, ALLOW_OVERWRITE_LABEL, ALLOW_OVERWRITE_DESC)</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        builder.describe(MANIFEST_PROP, MANIFEST_LABEL, MANIFEST_DESC)</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        builder.describe(PARALLEL_PROP, PARALLEL_LABEL, PARALLEL_DESC)</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                .defaultValue(Boolean.TRUE)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        builder.describe(GZIP_PROP, GZIP_LABEL, GZIP_DESC)</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                .add();</b>
+<i class="no-highlight">252</i>&nbsp;
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        builder.describe(ENCRYPTED_PROP, CSE_ENCRYPTED_LABEL, CSE_ENCRYPTED_DESC)</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        builder.describe(IAM_ROLE_PROP, BULK_LOAD_UNLOAD_IAM_ROLE_LABEL,</b>
+<i class="no-highlight">257</i>&nbsp;            BULK_LOAD_UNLOAD_IAM_ROLE_DESC)
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        builder.describe(ENCRYPT_TYPE_PROP, ENCRYPT_KEY_LABEL, ENCRYPT_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                .withAllowedValues(ENCRYPT_TYPES)</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                .defaultValue(S3EncryptionType.NONE.toString())</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        builder.describe(MASTER_SYMMETRIC_KEY_PROP, MASTER_SYMMETRIC_KEY_LABEL,</b>
+<i class="no-highlight">265</i>&nbsp;                MASTER_SYMMETRIC_KEY_DESC)
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                .obfuscate()</b>
+<i class="no-highlight">268</i>&nbsp;                // This cannot be an expression until PLAT-3114 is done
+<i class="no-highlight">269</i>&nbsp;                // .expression()
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        builder.describe(KMS_KEY_PROP, KMS_KEY_LABEL, KMS_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                .obfuscate()</b>
+<i class="no-highlight">274</i>&nbsp;                // This cannot be an expression until PLAT-3114 is done
+<i class="no-highlight">275</i>&nbsp;                // .expression()
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                .add();</b>
+<i class="no-highlight">277</i>&nbsp;
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        builder.describe(MAX_RETRY_PROP, MAX_RETRY_LABEL, MAX_RETRY_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;            .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;            .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;            .withMaxValue(100)</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;            .defaultValue(0)</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            .expression()</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        builder.describe(RETRY_INTERVAL_PROP, RETRY_INTERVAL_LABEL, RETRY_INTERVAL_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;            .withMaxValue(3600)</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;            .defaultValue(1)</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;            .expression()</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;            .add();</b>
+<i class="no-highlight">292</i>&nbsp;    }
+<i class="no-highlight">293</i>&nbsp;
+<i class="no-highlight">294</i>&nbsp;    @Override
+<i class="no-highlight">295</i>&nbsp;    protected void configureSnap(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        crossAccountIamRoleAccount = (account instanceof RedshiftCrossAccountIAMRoleAccount);</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            ((RedshiftCrossAccountIAMRoleAccount) account).validateAccountCustom();</b>
+<i class="no-highlight">299</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        selectQueryProp = propertyValues.getAsExpression(SELECT_QUERY_PROP);</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        s3FilePrefixProp = propertyValues.getAsExpression(S3_FILE_PREFIX_PROP);</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        delimiterProp = propertyValues.getAsExpression(DELIMITER_PROP);</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        fixedWidthProp = propertyValues.getAsExpression(FIXED_WIDTH_PROP);</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        nullAsProp = propertyValues.getAsExpression(NULL_AS_PROP);</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        escape = Boolean.TRUE.equals(propertyValues.get(ESCAPE_PROP));</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        addQuotes = Boolean.TRUE.equals(propertyValues.get(ADD_QUOTES_PROP));</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        allowOverwrite = Boolean.TRUE.equals(propertyValues.get(ALLOW_OVERWRITE_PROP));</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        manifest = Boolean.TRUE.equals(propertyValues.get(MANIFEST_PROP));</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        parallel = Boolean.TRUE.equals(propertyValues.get(PARALLEL_PROP));</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        gzip = Boolean.TRUE.equals(propertyValues.get(GZIP_PROP));</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        encrypted = Boolean.TRUE.equals(propertyValues.get(ENCRYPTED_PROP));</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        iamRoleEnabled = Boolean.TRUE.equals(propertyValues.get(IAM_ROLE_PROP));</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        iamRoleName = ((RedshiftDatabaseAccount) account).getIAMRoleNameForRedshiftType();</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        awsAccountID = ((RedshiftDatabaseAccount) account).getAwsAccountID();</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        regionName = ((RedshiftDatabaseAccount) account).getRegionName();</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        masterSymmetricKey = propertyValues.get(MASTER_SYMMETRIC_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        kmsKey = propertyValues.get(KMS_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;        encryptType = S3EncryptionType.toEnum(propertyValues.get(ENCRYPT_TYPE_PROP));</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        awsAccessId = ((RedshiftDatabaseAccount) account).getAWSAccessId();</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        awsSecretKey = ((RedshiftDatabaseAccount) account).getAWSSecretKey();</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        awsSecurityToken = ((RedshiftDatabaseAccount) account).getAwsSecurityToken();</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        if (encrypted &amp;&amp; StringUtils.isBlank(masterSymmetricKey)) {</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;            throw new ConfigurationException(ERR_EMPTY_PROPERTY).formatWith(MASTER_SYMMETRIC_KEY_LABEL)</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                    .withReason(MASTER_SYMMETRIC_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">326</i>&nbsp;        }
+<i class="no-highlight">327</i>&nbsp;
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        if (encrypted &amp;&amp; encryptType.isKms()) {</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;            throw new ConfigurationException(DISABLE_CSE_FOR_KMS)</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                    .withReason(DISABLE_CSE_FOR_KMS_REASON);</b>
+<i class="no-highlight">331</i>&nbsp;        }
+<i class="no-highlight">332</i>&nbsp;
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        if (encryptType.isKms()) {</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;            S3Utils.verifyKmsKey(kmsKey);</b>
+<i class="no-highlight">335</i>&nbsp;        }
+<i class="no-highlight">336</i>&nbsp;
+<b class="nc"><i class="no-highlight">337</i>&nbsp;        if (!crossAccountIamRoleAccount) {</b>
+<i class="no-highlight">338</i>&nbsp;            // check for invalid configuration where IAM role is given along with Access-Key ID and
+<i class="no-highlight">339</i>&nbsp;            // Secret-Key
+<b class="nc"><i class="no-highlight">340</i>&nbsp;            loadUnloadUtils.performInvalidIamConfigurationCheckOne(iamRoleEnabled, awsAccessId,</b>
+<i class="no-highlight">341</i>&nbsp;                    awsSecretKey, awsSecurityToken);
+<i class="no-highlight">342</i>&nbsp;            // check for invalid configuration where IAM role is given but one of the properties
+<i class="no-highlight">343</i>&nbsp;            // (role name, AWS account ID) is missing
+<b class="nc"><i class="no-highlight">344</i>&nbsp;            loadUnloadUtils.performInvalidIamConfigurationCheckTwo(iamRoleEnabled, awsAccountID,</b>
+<i class="no-highlight">345</i>&nbsp;                    iamRoleName);
+<i class="no-highlight">346</i>&nbsp;        }
+<i class="no-highlight">347</i>&nbsp;
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        maxRetryProperty = propertyValues.getAsExpression(MAX_RETRY_PROP);</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;        retryIntervalProperty = propertyValues.getAsExpression(RETRY_INTERVAL_PROP);</b>
+<i class="no-highlight">350</i>&nbsp;    }
+<i class="no-highlight">351</i>&nbsp;
+<i class="no-highlight">352</i>&nbsp;    private void configureRetry(Document document) {
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        Number temp = maxRetryProperty.eval(document);</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;        maxRetries = temp == null ? 0 : temp.intValue();</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;        temp = retryIntervalProperty.eval(document);</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        retryInterval = temp == null ? 1 : temp.longValue();</b>
+<i class="no-highlight">357</i>&nbsp;    }
+<i class="no-highlight">358</i>&nbsp;
+<i class="no-highlight">359</i>&nbsp;    @Override
+<i class="no-highlight">360</i>&nbsp;    public void configureForSuggest(final PropertyValues propertyValues,
+<i class="no-highlight">361</i>&nbsp;            final BigInteger maxSuggestValue) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        configureSnap(propertyValues);</b>
+<i class="no-highlight">363</i>&nbsp;    }
+<i class="no-highlight">364</i>&nbsp;
+<i class="no-highlight">365</i>&nbsp;    @Override
+<i class="no-highlight">366</i>&nbsp;    protected void processDocument(final Document document, final String inputViewName) {
+<i class="no-highlight">367</i>&nbsp;        // evaluate property values
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        String selectQuery = selectQueryProp.eval(document);</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        String s3FilePrefix = s3FilePrefixProp.eval(document);</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;        String delimiter = delimiterProp.eval(document);</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;        String fixedWidth = fixedWidthProp.eval(document);</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        String nullAs = nullAsProp.eval(document);</b>
+<i class="no-highlight">373</i>&nbsp;        String key;
+<i class="no-highlight">374</i>&nbsp;        String s3Bucket;
+<i class="no-highlight">375</i>&nbsp;
+<b class="nc"><i class="no-highlight">376</i>&nbsp;        configureRetry(document);</b>
+<i class="no-highlight">377</i>&nbsp;        // validate SELECT query property value
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        if (StringUtils.isBlank(selectQuery)) {</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            SnapDataException ex = new SnapDataException(ERR_EMPTY_PROPERTY)</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                    .formatWith(SELECT_QUERY_LABEL)</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                    .withReason(REASON_PROPERTY_REQUIRED)</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;            errorViews.write(ex, document);</b>
+<i class="no-highlight">384</i>&nbsp;            return;
+<i class="no-highlight">385</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        selectQuery = handleEscapeQuote(selectQuery);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;        RedshiftDatabaseAccount redshiftAccount = (RedshiftDatabaseAccount) account;</b>
+<i class="no-highlight">388</i>&nbsp;        // get bucket name, key, and S3 file prefix path
+<b class="nc"><i class="no-highlight">389</i>&nbsp;        s3Bucket = StringUtils.strip(redshiftAccount.getBucketName(), SLASH);</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        if (StringUtils.isBlank(s3Bucket)) {</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            SnapDataException ex = new SnapDataException(ERR_EMPTY_PROPERTY).formatWith(S3_BUCKET)</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                    .withReason(REASON_PROPERTY_REQUIRED)</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                    .withResolution(RESOLUTION_S3_BUCKET);</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;            errorViews.write(ex, document);</b>
+<i class="no-highlight">395</i>&nbsp;            return;
+<i class="no-highlight">396</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">397</i>&nbsp;        s3FilePrefix = s3FilePrefix == null ? StringUtils.EMPTY : s3FilePrefix;</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;        String s3Folder = StringUtils.strip(redshiftAccount.getFolderPath(), SLASH);</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;        key = StringUtils.isBlank(s3Folder) ? s3FilePrefix :</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                String.format(FORMAT_KEY, s3Folder, s3FilePrefix);</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;        s3FilePrefix = String.format(FORMAT_S3_PATH, s3Bucket, key);</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        s3FilePrefix = s3FilePrefix == null ? StringUtils.EMPTY : s3FilePrefix;</b>
+<i class="no-highlight">403</i>&nbsp;        // init query builder
+<b class="nc"><i class="no-highlight">404</i>&nbsp;        StringBuilder queryBuilder = new StringBuilder(</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                String.format(FORMAT_UNLOAD, selectQuery, s3FilePrefix));</b>
+<i class="no-highlight">406</i>&nbsp;
+<b class="nc"><i class="no-highlight">407</i>&nbsp;        addEncryption(queryBuilder);</b>
+<i class="no-highlight">408</i>&nbsp;
+<i class="no-highlight">409</i>&nbsp;        // append DELIMITER
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        if (StringUtils.isNotBlank(delimiter) &amp;&amp; !DELIMITER_DEFAULT.equalsIgnoreCase(delimiter)) {</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            queryBuilder.append(String.format(FORMAT_OPTION, DELIMITER_PROP.toUpperCase(),</b>
+<i class="no-highlight">412</i>&nbsp;                    delimiter));
+<i class="no-highlight">413</i>&nbsp;        }
+<i class="no-highlight">414</i>&nbsp;        // append FIXEDWIDTH
+<b class="nc"><i class="no-highlight">415</i>&nbsp;        if (StringUtils.isNotBlank(fixedWidth)) {</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;            queryBuilder.append(String.format(FORMAT_OPTION, FIXED_WIDTH_PROP.toUpperCase(),</b>
+<i class="no-highlight">417</i>&nbsp;                    fixedWidth));
+<i class="no-highlight">418</i>&nbsp;        }
+<i class="no-highlight">419</i>&nbsp;        // append GZIP
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        if (gzip) {</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;            queryBuilder.append(String.format(FORMAT_SPACE, GZIP_PROP.toUpperCase()));</b>
+<i class="no-highlight">422</i>&nbsp;        }
+<i class="no-highlight">423</i>&nbsp;        // append ADDQUOTES
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        if (addQuotes) {</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;            queryBuilder.append(String.format(FORMAT_SPACE, ADD_QUOTES_PROP.toUpperCase()));</b>
+<i class="no-highlight">426</i>&nbsp;        }
+<i class="no-highlight">427</i>&nbsp;        // append NULL AS
+<b class="nc"><i class="no-highlight">428</i>&nbsp;        if (StringUtils.isNotBlank(nullAs)) {</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;            queryBuilder.append(String.format(FORMAT_OPTION, NULL_AS, nullAs));</b>
+<i class="no-highlight">430</i>&nbsp;        }
+<i class="no-highlight">431</i>&nbsp;        // append ESCAPE
+<b class="nc"><i class="no-highlight">432</i>&nbsp;        if (escape) {</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;            queryBuilder.append(String.format(FORMAT_SPACE, ESCAPE_PROP.toUpperCase()));</b>
+<i class="no-highlight">434</i>&nbsp;        }
+<i class="no-highlight">435</i>&nbsp;        // append ALLOWOVERWRITE
+<b class="nc"><i class="no-highlight">436</i>&nbsp;        if (allowOverwrite) {</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;            queryBuilder.append(String.format(FORMAT_SPACE, ALLOW_OVERWRITE_PROP.toUpperCase()));</b>
+<i class="no-highlight">438</i>&nbsp;        }
+<i class="no-highlight">439</i>&nbsp;        // append PARALLEL
+<b class="nc"><i class="no-highlight">440</i>&nbsp;        if (!parallel) {</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;            queryBuilder.append(String.format(FORMAT_OPTION_OFF, PARALLEL_PROP.toUpperCase()));</b>
+<i class="no-highlight">442</i>&nbsp;        }
+<i class="no-highlight">443</i>&nbsp;        // append region if provided
+<b class="nc"><i class="no-highlight">444</i>&nbsp;        if (StringUtils.isNotBlank(regionName)) {</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;            queryBuilder.append(String.format(REGION_OPTION, regionName));</b>
+<i class="no-highlight">446</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">447</i>&nbsp;        String unloadQuery = queryBuilder.toString();</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;        String trackingTaggedUnloadQuery = RedshiftUtils.addApnTaggingPrefix(unloadQuery);</b>
+<i class="no-highlight">449</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">450</i>&nbsp;            if (!isPreview) {</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                jdbcOperations.executeQuery(trackingTaggedUnloadQuery, null, account,</b>
+<i class="no-highlight">452</i>&nbsp;                    maxRetries, retryInterval);
+<i class="no-highlight">453</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">454</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;            checkAndThrowDiffRegionException(e, e.getReason());</b>
+<i class="no-highlight">456</i>&nbsp;
+<i class="no-highlight">457</i>&nbsp;            // we want to skip this exception since its stack trace may contain S3 credential
+<b class="nc"><i class="no-highlight">458</i>&nbsp;            SnapDataException ex = new SnapDataException(ERR_UNLOAD)</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                    .formatWith(removeS3Credential(unloadQuery, getCredentialsToBeMasked()))</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                    .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;            errorViews.write(ex, document);</b>
+<i class="no-highlight">463</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">464</i>&nbsp;        } catch (ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;            SnapDataException ex = new SnapDataException(e,</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                    removeS3Credential(e.getMessage(), getCredentialsToBeMasked()))</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                    .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                    .withResolution(e.getResolution());</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;            errorViews.write(ex, document);</b>
+<i class="no-highlight">470</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;        } catch (Throwable e) {</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_UNLOAD)</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                    .formatWith(removeS3Credential(unloadQuery, getCredentialsToBeMasked()))</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;            errorViews.write(ex, document);</b>
+<i class="no-highlight">479</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">480</i>&nbsp;        }</b>
+<i class="no-highlight">481</i>&nbsp;        // read manifest file
+<b class="nc"><i class="no-highlight">482</i>&nbsp;        String manifestFile = s3FilePrefix.concat(MANIFEST_PROP);</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;        if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;            Credentials credentials = ((RedshiftCrossAccountIAMRoleAccount) account)</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;                    .getCredentialFromCrossAccountIamRoleForBucketWrite();</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;            if (credentials != null) {</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                awsAccessId = credentials.getAccessKeyId();</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                awsSecretKey = String.format(ENCODE_SECRET_KEY, credentials.getSecretAccessKey(),</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                        credentials.getSessionToken());</b>
+<i class="no-highlight">490</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                awsAccessId = null;</b>
+<i class="no-highlight">492</i>&nbsp;            }
+<i class="no-highlight">493</i>&nbsp;        }
+<i class="no-highlight">494</i>&nbsp;        try {
+<i class="no-highlight">495</i>&nbsp;            Map&lt;String, Object&gt; manifestMap;
+<b class="nc"><i class="no-highlight">496</i>&nbsp;            if (isPreview) {</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                manifestMap = OBJECT_MAPPER.readValue(PREVIEW_OUTPUT, TYPE_REF);</b>
+<i class="no-highlight">498</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                manifestMap = readJsonFile(s3Bucket, key.concat(MANIFEST_PROP), awsAccessId,</b>
+<i class="no-highlight">500</i>&nbsp;                        awsSecretKey, awsSecurityToken);
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                manifestMap = validateManifestContent(manifestMap);</b>
+<i class="no-highlight">502</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">503</i>&nbsp;            manifestMap.put(UNLOAD_QUERY,</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;                    removeS3Credential(unloadQuery, getCredentialsToBeMasked()));</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;            outputViews.write(documentUtility.newDocument(manifestMap), document);</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;            if (!manifest &amp;&amp; !isPreview) {</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                deleteManifestFile(s3Bucket, key.concat(MANIFEST_PROP),</b>
+<i class="no-highlight">508</i>&nbsp;                        awsAccessId, awsSecretKey, awsSecurityToken);
+<i class="no-highlight">509</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">510</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_READ_MANIFEST_FILE)</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                    .formatWith(manifestFile)</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                    .withReason(removeS3Credential(e.getMessage(), getCredentialsToBeMasked()))</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;            errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;        }</b>
+<i class="no-highlight">517</i>&nbsp;    }
+<i class="no-highlight">518</i>&nbsp;
+<i class="no-highlight">519</i>&nbsp;    private void addEncryption(StringBuilder queryBuilder) {
+<b class="nc"><i class="no-highlight">520</i>&nbsp;        if (encrypted) {</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;            queryBuilder.append(String.format(FORMAT_ENCRYPTED_CREDENTIALS_MASTER,</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                    getCredentials(),</b>
+<i class="no-highlight">523</i>&nbsp;                    masterSymmetricKey));
+<b class="nc"><i class="no-highlight">524</i>&nbsp;        } else if (encryptType.equals(S3EncryptionType.SSE_KMS)) {</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;            if (crossAccountIamRoleAccount) {</b>
+<i class="no-highlight">526</i>&nbsp;                //ignore IAMRole if using crossIamRoleAccount
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                queryBuilder.append(String.format(FORMAT_ENCRYPTED_CREDENTIALS_CROSS_ACCOUNT_IAM_KMS,</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                        getCredentials(), kmsKey));</b>
+<i class="no-highlight">529</i>&nbsp;
+<b class="nc"><i class="no-highlight">530</i>&nbsp;            } else if (iamRoleEnabled) {</b>
+<i class="no-highlight">531</i>&nbsp;                //If IAMRole enabled and using other than crossIamRoleAccount
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                queryBuilder.append(String.format(FORMAT_ENCRYPTED_CREDENTIALS_IAM_KMS,</b>
+<i class="no-highlight">533</i>&nbsp;                        awsAccountID, iamRoleName,
+<i class="no-highlight">534</i>&nbsp;                        kmsKey));
+<i class="no-highlight">535</i>&nbsp;            } else {
+<i class="no-highlight">536</i>&nbsp;                //If no IAMRole, no crossIamRoleAccount
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                if (StringUtils.isNotBlank(awsSecurityToken)) {</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                    queryBuilder.append(String.format(FORMAT_ENCRYPTED_TEMP_CREDENTIALS_KMS,</b>
+<i class="no-highlight">539</i>&nbsp;                            awsAccessId, awsSecretKey, awsSecurityToken,
+<i class="no-highlight">540</i>&nbsp;                            kmsKey));
+<i class="no-highlight">541</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">542</i>&nbsp;                    queryBuilder.append(String.format(FORMAT_ENCRYPTED_CREDENTIALS_KMS,</b>
+<i class="no-highlight">543</i>&nbsp;                            awsAccessId, awsSecretKey,
+<i class="no-highlight">544</i>&nbsp;                            kmsKey));
+<i class="no-highlight">545</i>&nbsp;                }
+<i class="no-highlight">546</i>&nbsp;            }
+<i class="no-highlight">547</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">548</i>&nbsp;            queryBuilder.append(String.format(FORMAT_CREDENTIALS, getCredentials()));</b>
+<i class="no-highlight">549</i>&nbsp;        }
+<i class="no-highlight">550</i>&nbsp;    }
+<i class="no-highlight">551</i>&nbsp;
+<i class="no-highlight">552</i>&nbsp;    /**
+<i class="no-highlight">553</i>&nbsp;     * Returns credentials based on IAM checkbox enabled or not
+<i class="no-highlight">554</i>&nbsp;     *
+<i class="no-highlight">555</i>&nbsp;     * @return credentials string
+<i class="no-highlight">556</i>&nbsp;     */
+<i class="no-highlight">557</i>&nbsp;    protected String getCredentials() {
+<b class="nc"><i class="no-highlight">558</i>&nbsp;        if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">559</i>&nbsp;            return ((RedshiftCrossAccountIAMRoleAccount) account).getCredentials(false);</b>
+<i class="no-highlight">560</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">561</i>&nbsp;            String credentials = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;            if (iamRoleEnabled) {</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;                credentials = String.format(IAM_CREDENTIALS, awsAccountID, iamRoleName);</b>
+<i class="no-highlight">564</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">565</i>&nbsp;                if (StringUtils.isNotBlank(awsSecurityToken)) {</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                    credentials = String.format(DEFAULT_TEMP_CREDENTIALS, awsAccessId, awsSecretKey, awsSecurityToken);</b>
+<i class="no-highlight">567</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                    credentials = String.format(DEFAULT_CREDENTIALS, awsAccessId, awsSecretKey);</b>
+<i class="no-highlight">569</i>&nbsp;                }
+<i class="no-highlight">570</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">571</i>&nbsp;            return credentials;</b>
+<i class="no-highlight">572</i>&nbsp;        }
+<i class="no-highlight">573</i>&nbsp;    }
+<i class="no-highlight">574</i>&nbsp;
+<i class="no-highlight">575</i>&nbsp;    @Override
+<i class="no-highlight">576</i>&nbsp;    public void executeForSuggest() throws ExecutionException {
+<b class="nc"><i class="no-highlight">577</i>&nbsp;        isPreview = true;</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;        execute();</b>
+<i class="no-highlight">579</i>&nbsp;    }
+<i class="no-highlight">580</i>&nbsp;
+<i class="no-highlight">581</i>&nbsp;    @Override
+<i class="no-highlight">582</i>&nbsp;    public void cleanupSnap() throws ExecutionException {
+<b class="nc"><i class="no-highlight">583</i>&nbsp;        if (jdbcOperations != null) {</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;            jdbcOperations.cleanup();</b>
+<i class="no-highlight">585</i>&nbsp;        }
+<i class="no-highlight">586</i>&nbsp;    }
+<i class="no-highlight">587</i>&nbsp;
+<i class="no-highlight">588</i>&nbsp;    private String handleEscapeQuote(String string) {
+<i class="no-highlight">589</i>&nbsp;        // remove enclosing single or double quotes
+<b class="nc"><i class="no-highlight">590</i>&nbsp;        if (StringUtils.startsWith(string, QUOTE)) {</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;            string = string.substring(1);</b>
+<b class="nc"><i class="no-highlight">592</i>&nbsp;            if (StringUtils.endsWith(string, QUOTE)) {</b>
+<b class="nc"><i class="no-highlight">593</i>&nbsp;                string = string.substring(0, string.length() - 1);</b>
+<i class="no-highlight">594</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">595</i>&nbsp;        } else if (StringUtils.startsWith(string, DOUBLE_QUOTE)) {</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;            string = string.substring(1);</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;            if (StringUtils.endsWith(string, DOUBLE_QUOTE)) {</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                string = string.substring(0, string.length() - 1);</b>
+<i class="no-highlight">599</i>&nbsp;            }
+<i class="no-highlight">600</i>&nbsp;        }
+<i class="no-highlight">601</i>&nbsp;        // escape single quote and backslash
+<b class="nc"><i class="no-highlight">602</i>&nbsp;        if (!StringUtils.contains(string, ESCAPED_QUOTE) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;                !StringUtils.contains(string, ESCAPED_DOUBLE_QUOTE) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;                !StringUtils.contains(string, ESCAPED_BACKSLASH)) {</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;            string = StringUtils.replace(string, BACKSLASH, ESCAPED_BACKSLASH);</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;            string = StringUtils.replace(string, QUOTE, ESCAPED_QUOTE);</b>
+<i class="no-highlight">607</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">608</i>&nbsp;        return string;</b>
+<i class="no-highlight">609</i>&nbsp;    }
+<i class="no-highlight">610</i>&nbsp;
+<i class="no-highlight">611</i>&nbsp;    @Deprecated
+<i class="no-highlight">612</i>&nbsp;    private Map&lt;String, Object&gt; readJsonFile(String url, String userInfo) throws IOException {
+<b class="nc"><i class="no-highlight">613</i>&nbsp;        URI uri = urlEncoder.encodeURIWithUserInfo(url, userInfo);</b>
+<b class="nc"><i class="no-highlight">614</i>&nbsp;        URLConnection urlConnection = JfsUtils.getInstance().openURLConnection(uri);</b>
+<b class="nc"><i class="no-highlight">615</i>&nbsp;        if (urlConnection == null) {</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;            throw new IOException(String.format(ERR_FILE_OPEN, url));</b>
+<i class="no-highlight">617</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">618</i>&nbsp;        urlConnection.connect();</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;        try (final InputStream inputStream = urlConnection.getInputStream()) {</b>
+<b class="nc"><i class="no-highlight">620</i>&nbsp;            String string = IOUtils.toString(inputStream, StandardCharsets.UTF_8);</b>
+<b class="nc"><i class="no-highlight">621</i>&nbsp;            return OBJECT_MAPPER.readValue(string, TYPE_REF);</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;        } finally {</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;            ((Disconnectable) urlConnection).disconnect();</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;        }</b>
+<i class="no-highlight">625</i>&nbsp;    }
+<i class="no-highlight">626</i>&nbsp;
+<i class="no-highlight">627</i>&nbsp;    /**
+<i class="no-highlight">628</i>&nbsp;     * Reads manifest file from s3 and returns content in map object.
+<i class="no-highlight">629</i>&nbsp;     * @param bucket
+<i class="no-highlight">630</i>&nbsp;     * @param object
+<i class="no-highlight">631</i>&nbsp;     * @param awsAccessKey
+<i class="no-highlight">632</i>&nbsp;     * @param awsSecretKey
+<i class="no-highlight">633</i>&nbsp;     * @return
+<i class="no-highlight">634</i>&nbsp;     */
+<i class="no-highlight">635</i>&nbsp;    private Map&lt;String, Object&gt; readJsonFile(String bucket, String object, String awsAccessKey,
+<i class="no-highlight">636</i>&nbsp;                                             String awsSecretKey, String awsSecurityToken) {
+<b class="nc"><i class="no-highlight">637</i>&nbsp;        AmazonS3Client amazonS3Client = null;</b>
+<i class="no-highlight">638</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">639</i>&nbsp;            amazonS3Client = getAmazonS3Client(awsAccessKey, awsSecretKey, awsSecurityToken);</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;            try (InputStream is = amazonS3Client.getObject(bucket, object).getObjectContent()) {</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                return OBJECT_MAPPER.readValue(IOUtils.toString(is), TYPE_REF);</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;        } catch (AmazonClientException | IOException e) {</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;            LOG.error(String.format(ERR_DELETE_MANIFEST_FILE, bucket, object), e);</b>
+<i class="no-highlight">645</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">646</i>&nbsp;            if (amazonS3Client != null) {</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                amazonS3Client.shutdown();</b>
+<i class="no-highlight">648</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">649</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">650</i>&nbsp;        return null;</b>
+<i class="no-highlight">651</i>&nbsp;    }
+<i class="no-highlight">652</i>&nbsp;
+<i class="no-highlight">653</i>&nbsp;    // UNLOAD writes s3 files in the form of &quot;s3://bucket_name/file_path&quot;, which should be fixed to
+<i class="no-highlight">654</i>&nbsp;    // &quot;s3:///bucket_name/file_path&quot;
+<i class="no-highlight">655</i>&nbsp;    private Map&lt;String, Object&gt; validateManifestContent(Map&lt;String, Object&gt; s3Files) {
+<b class="nc"><i class="no-highlight">656</i>&nbsp;        if (s3Files == null) {</b>
+<b class="nc"><i class="no-highlight">657</i>&nbsp;            return null;</b>
+<i class="no-highlight">658</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">659</i>&nbsp;        Object fileList = s3Files.get(ENTRIES);</b>
+<b class="nc"><i class="no-highlight">660</i>&nbsp;        boolean success = true;</b>
+<b class="nc"><i class="no-highlight">661</i>&nbsp;        if (fileList != null) {</b>
+<b class="nc"><i class="no-highlight">662</i>&nbsp;            for (Map&lt;String, String&gt; file : (List&lt;Map&lt;String, String&gt;&gt;) fileList) {</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;                String url = file.get(KEY_URL);</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;                if (StringUtils.isNotBlank(url)) {</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;                    file.put(KEY_URL, url.replace(DOUBLE_SLASH, TRIPLE_SLASH));</b>
+<i class="no-highlight">666</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">667</i>&nbsp;                    success = false;</b>
+<i class="no-highlight">668</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">669</i>&nbsp;            }</b>
+<i class="no-highlight">670</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">671</i>&nbsp;        if (success) {</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;            s3Files.put(STATUS, SUCCESS);</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;            return s3Files;</b>
+<i class="no-highlight">674</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">675</i>&nbsp;            return null;</b>
+<i class="no-highlight">676</i>&nbsp;        }
+<i class="no-highlight">677</i>&nbsp;    }
+<i class="no-highlight">678</i>&nbsp;
+<i class="no-highlight">679</i>&nbsp;    /**
+<i class="no-highlight">680</i>&nbsp;     * creates amazonS3Client using awsAccessKey, awsSecretKey
+<i class="no-highlight">681</i>&nbsp;     * @param awsAccessKey
+<i class="no-highlight">682</i>&nbsp;     * @param awsSecretKey
+<i class="no-highlight">683</i>&nbsp;     * @return
+<i class="no-highlight">684</i>&nbsp;     */
+<i class="no-highlight">685</i>&nbsp;    private AmazonS3Client getAmazonS3Client(String awsAccessKey, String awsSecretKey, String awsSecurityToken) {
+<b class="nc"><i class="no-highlight">686</i>&nbsp;        AmazonS3Client amazonS3Client = null;</b>
+<b class="nc"><i class="no-highlight">687</i>&nbsp;        if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">688</i>&nbsp;            if (awsAccessId != null) {</b>
+<b class="nc"><i class="no-highlight">689</i>&nbsp;                int colonIndex = awsSecretKey.indexOf(COLON);</b>
+<i class="no-highlight">690</i>&nbsp;                AWSCredentials awsCreds;
+<b class="nc"><i class="no-highlight">691</i>&nbsp;                if (colonIndex &gt; -1) {</b>
+<b class="nc"><i class="no-highlight">692</i>&nbsp;                    awsCreds = new BasicSessionCredentials(awsAccessId,</b>
+<b class="nc"><i class="no-highlight">693</i>&nbsp;                            awsSecretKey.substring(0, colonIndex),</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;                            awsSecretKey.substring(colonIndex + 1));</b>
+<i class="no-highlight">695</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">696</i>&nbsp;                    awsCreds = new BasicAWSCredentials(awsAccessId, awsSecretKey);</b>
+<i class="no-highlight">697</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                amazonS3Client = new AmazonS3Client(awsCreds,</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;                        UrlUtils.createClientConfiguration());</b>
+<b class="nc"><i class="no-highlight">700</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">701</i>&nbsp;                amazonS3Client = new AmazonS3Client(new InstanceProfileCredentialsProvider(),</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;                        UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">703</i>&nbsp;            }
+<i class="no-highlight">704</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">705</i>&nbsp;            if (iamRoleEnabled) {</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;                amazonS3Client = new AmazonS3Client(new InstanceProfileCredentialsProvider(),</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;                        UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">708</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">709</i>&nbsp;                if (StringUtils.isNotBlank(awsSecurityToken)) {</b>
+<b class="nc"><i class="no-highlight">710</i>&nbsp;                    amazonS3Client = new AmazonS3Client(new BasicSessionCredentials(awsAccessKey,</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;                            awsSecretKey, awsSecurityToken), UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">712</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">713</i>&nbsp;                    amazonS3Client = new AmazonS3Client(new BasicAWSCredentials(awsAccessKey,</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;                            awsSecretKey), UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">715</i>&nbsp;                }
+<i class="no-highlight">716</i>&nbsp;            }
+<i class="no-highlight">717</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">718</i>&nbsp;        return amazonS3Client;</b>
+<i class="no-highlight">719</i>&nbsp;    }
+<i class="no-highlight">720</i>&nbsp;
+<i class="no-highlight">721</i>&nbsp;    private void deleteManifestFile(String bucket, String key, String awsAccessKey,
+<i class="no-highlight">722</i>&nbsp;                                    String awsSecretKey, String awsSecurityToken) {
+<b class="nc"><i class="no-highlight">723</i>&nbsp;        AmazonS3Client amazonS3Client = null;</b>
+<i class="no-highlight">724</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">725</i>&nbsp;            amazonS3Client = getAmazonS3Client(awsAccessKey, awsSecretKey, awsSecurityToken);</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;            amazonS3Client.deleteObject(bucket, key);</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;        } catch (AmazonClientException e) {</b>
+<b class="nc"><i class="no-highlight">728</i>&nbsp;            LOG.debug(String.format(ERR_DELETE_MANIFEST_FILE, bucket, key));</b>
+<i class="no-highlight">729</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">730</i>&nbsp;            if (amazonS3Client != null) {</b>
+<b class="nc"><i class="no-highlight">731</i>&nbsp;                amazonS3Client.shutdown();</b>
+<i class="no-highlight">732</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">733</i>&nbsp;        }</b>
+<i class="no-highlight">734</i>&nbsp;    }
+<i class="no-highlight">735</i>&nbsp;
+<i class="no-highlight">736</i>&nbsp;    private String[] getCredentialsToBeMasked() {
+<b class="nc"><i class="no-highlight">737</i>&nbsp;        if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">738</i>&nbsp;            RedshiftCrossAccountIAMRoleAccount crossAccountIAMRoleAccount =</b>
+<i class="no-highlight">739</i>&nbsp;                    (RedshiftCrossAccountIAMRoleAccount) account;
+<b class="nc"><i class="no-highlight">740</i>&nbsp;            return new String[] {</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;                    crossAccountIAMRoleAccount.getAwsAccountID(),</b>
+<b class="nc"><i class="no-highlight">742</i>&nbsp;                    crossAccountIAMRoleAccount.getIAMRoleName(),</b>
+<b class="nc"><i class="no-highlight">743</i>&nbsp;                    crossAccountIAMRoleAccount.getArnCrossAccountIAMRoleBucketRead()</b>
+<i class="no-highlight">744</i>&nbsp;            };
+<i class="no-highlight">745</i>&nbsp;        } else {
+<i class="no-highlight">746</i>&nbsp;            String[] credentials;
+<b class="nc"><i class="no-highlight">747</i>&nbsp;            if (iamRoleEnabled) {</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;                credentials = new String[]{</b>
+<i class="no-highlight">749</i>&nbsp;                        awsAccountID,
+<i class="no-highlight">750</i>&nbsp;                        iamRoleName
+<i class="no-highlight">751</i>&nbsp;                };
+<i class="no-highlight">752</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">753</i>&nbsp;                if (StringUtils.isNotBlank(awsSecurityToken)) {</b>
+<b class="nc"><i class="no-highlight">754</i>&nbsp;                    credentials = new String[] {</b>
+<i class="no-highlight">755</i>&nbsp;                            awsAccessId,
+<i class="no-highlight">756</i>&nbsp;                            awsSecretKey,
+<i class="no-highlight">757</i>&nbsp;                            awsSecurityToken
+<i class="no-highlight">758</i>&nbsp;                    };
+<i class="no-highlight">759</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">760</i>&nbsp;                    credentials = new String[] {</b>
+<i class="no-highlight">761</i>&nbsp;                            awsAccessId,
+<i class="no-highlight">762</i>&nbsp;                            awsSecretKey
+<i class="no-highlight">763</i>&nbsp;                    };
+<i class="no-highlight">764</i>&nbsp;                }
+<i class="no-highlight">765</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">766</i>&nbsp;            return credentials;</b>
+<i class="no-highlight">767</i>&nbsp;        }
+<i class="no-highlight">768</i>&nbsp;    }
+<i class="no-highlight">769</i>&nbsp;
+<i class="no-highlight">770</i>&nbsp;    private String removeS3Credential(String string, String[] removeStrings) {
+<b class="nc"><i class="no-highlight">771</i>&nbsp;        for (String removeString : removeStrings) {</b>
+<b class="nc"><i class="no-highlight">772</i>&nbsp;            string = StringUtils.remove(string, removeString);</b>
+<i class="no-highlight">773</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">774</i>&nbsp;        if (StringUtils.isNotBlank(masterSymmetricKey)) {</b>
+<b class="nc"><i class="no-highlight">775</i>&nbsp;            string = StringUtils.remove(string, masterSymmetricKey);</b>
+<i class="no-highlight">776</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">777</i>&nbsp;        if (StringUtils.isNotBlank(kmsKey)) {</b>
+<b class="nc"><i class="no-highlight">778</i>&nbsp;            string = StringUtils.remove(string, kmsKey);</b>
+<i class="no-highlight">779</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">780</i>&nbsp;        return string;</b>
+<i class="no-highlight">781</i>&nbsp;    }
+<i class="no-highlight">782</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

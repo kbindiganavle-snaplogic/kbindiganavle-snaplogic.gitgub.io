@@ -1,0 +1,703 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkLoad</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.postgres</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkLoad (com.snaplogic.snaps.postgres)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkLoad</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/210)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BulkLoad$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/211)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2019 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.postgres;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Module;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.spi.InjectionListener;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.DependencyManager;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.Notification;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.api.StatusMessage;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.BinaryInput;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.StatusReporter;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.PostgresDatabaseAccount;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.PostgresDynamicAccount;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.sql.operations.PostgresOperations;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.view.InputView;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snaps.postgres.bulk.CsvBulkUploadConverter;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snaps.sql.SimpleSqlBulkLoadSnap;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">50</i>&nbsp;import org.jooq.exception.DataAccessException;
+<i class="no-highlight">51</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">52</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">55</i>&nbsp;import java.nio.channels.Pipe;
+<i class="no-highlight">56</i>&nbsp;import java.nio.channels.Pipe.SinkChannel;
+<i class="no-highlight">57</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">58</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">59</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">60</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">61</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">62</i>&nbsp;import java.util.List;
+<i class="no-highlight">63</i>&nbsp;import java.util.Map;
+<i class="no-highlight">64</i>&nbsp;import java.util.concurrent.ExecutionException;
+<i class="no-highlight">65</i>&nbsp;import java.util.concurrent.ExecutorService;
+<i class="no-highlight">66</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">67</i>&nbsp;import java.util.concurrent.Future;
+<i class="no-highlight">68</i>&nbsp;import java.util.concurrent.ThreadFactory;
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.postgres.CopyColumnProperties.COLUMNS_PROP;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.postgres.CopyColumnProperties.COLUMN_PROP;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.postgres.Messages.*;
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;/**
+<i class="no-highlight">75</i>&nbsp; * Perform a bulk upload to a Postgres server using the COPY command. The external pg_restore
+<i class="no-highlight">76</i>&nbsp; * does not support uploading standard SQL and there&#39;s no benefits to using psql \copy instead
+<i class="no-highlight">77</i>&nbsp; * of the COPY command.
+<i class="no-highlight">78</i>&nbsp; *
+<i class="no-highlight">79</i>&nbsp; * This snap sidesteps jdbcOperationsImpl in a few places since the Binary input view
+<i class="no-highlight">80</i>&nbsp; * allows the customer to specify data types that we don&#39;t support ourselves.
+<i class="no-highlight">81</i>&nbsp; *
+<i class="no-highlight">82</i>&nbsp; * FREEZE
+<i class="no-highlight">83</i>&nbsp; *
+<i class="no-highlight">84</i>&nbsp; * Support for &#39;freeze&#39; is... complicated. We can do it in two ways - either do it as
+<i class="no-highlight">85</i>&nbsp; * part of the copy command or do it in a subsequent jdbc call. In the former case we must
+<i class="no-highlight">86</i>&nbsp; * also perform a &#39;truncate&#39; (or &#39;create table&#39;) in the same &quot;subtransaction&quot;. Due to our
+<i class="no-highlight">87</i>&nbsp; * jdbc connection model that means the truncate needs to be done within this snap. It also
+<i class="no-highlight">88</i>&nbsp; * means that we can&#39;t be running it in auto-commit (iirc).
+<i class="no-highlight">89</i>&nbsp; *
+<i class="no-highlight">90</i>&nbsp; * We can&#39;t use &#39;vacuum freeze&#39; after the &#39;copy&#39; unless we&#39;re in auto-commit.
+<i class="no-highlight">91</i>&nbsp; *
+<i class="no-highlight">92</i>&nbsp; * VACUUM, ANALYZE, and ERROR RECOVERY
+<i class="no-highlight">93</i>&nbsp; *
+<i class="no-highlight">94</i>&nbsp; * The user might want to run &#39;analyze&#39; after the data is loaded. We don&#39;t want to do
+<i class="no-highlight">95</i>&nbsp; * this ourselves (without user consent) since that could introduce a sizeable delay.
+<i class="no-highlight">96</i>&nbsp; *
+<i class="no-highlight">97</i>&nbsp; * If there is an error the data is written to the table, not visible, but &lt;b&gt;not&lt;/b&gt;
+<i class="no-highlight">98</i>&nbsp; * removed until a &#39;vacuum&#39; has been performed. Again we don&#39;t want to do this ourselves
+<i class="no-highlight">99</i>&nbsp; * (without user consent) since it could introduce a sizeable delay. We need to clearly
+<i class="no-highlight">100</i>&nbsp; * document this.
+<i class="no-highlight">101</i>&nbsp; *
+<i class="no-highlight">102</i>&nbsp; * For more information: https://www.postgresql.org/docs/current/sql-copy.html
+<i class="no-highlight">103</i>&nbsp; * For more information: https://wiki.postgresql.org/wiki/COPY
+<i class="no-highlight">104</i>&nbsp; */
+<i class="no-highlight">105</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">106</i>&nbsp;@General(title = BULK_LOAD_TITLE, purpose = BULK_LOAD_PURPOSE, docLink = BULK_LOAD_DOCLINK)
+<i class="no-highlight">107</i>&nbsp;@Inputs(min = 1, max = 2, accepts = { ViewType.DOCUMENT, ViewType.BINARY })
+<i class="no-highlight">108</i>&nbsp;@Outputs(min = 0, max = 1, offers = { ViewType.DOCUMENT })
+<i class="no-highlight">109</i>&nbsp;@Errors(min = 1, max = 1, offers = { ViewType.DOCUMENT })
+<i class="no-highlight">110</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">111</i>&nbsp;@Accounts(provides = { PostgresDatabaseAccount.class, PostgresDynamicAccount.class })
+<b class="nc"><i class="no-highlight">112</i>&nbsp;public class BulkLoad extends SimpleSqlBulkLoadSnap implements DependencyManager,</b>
+<i class="no-highlight">113</i>&nbsp;        InjectionListener&lt;BulkLoad&gt; {
+<b class="nc"><i class="no-highlight">114</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(BulkLoad.class);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;    static final Object[] EMPTY_OBJECT_LIST = new Object[0];</b>
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;    private static final String COPY_FORMAT_PROP = &quot;format&quot;;
+<i class="no-highlight">118</i>&nbsp;    private static final String HAS_HEADER_PROP = &quot;useHeader&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String ENCODING_PROP = &quot;encoding&quot;;
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;    @Notification(message = &quot;Uploading: %d records&quot;)
+<b class="nc"><i class="no-highlight">122</i>&nbsp;    private static final StatusMessage UPLOADING_COUNT = new StatusMessage();</b>
+<i class="no-highlight">123</i>&nbsp;    @Notification(message = &quot;Uploaded: %d records in %6.3f seconds&quot;)
+<b class="nc"><i class="no-highlight">124</i>&nbsp;    private static final StatusMessage UPLOADED_COUNT = new StatusMessage();</b>
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    @Inject
+<i class="no-highlight">127</i>&nbsp;    private StatusReporter statusReporter;
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    @Inject
+<i class="no-highlight">130</i>&nbsp;    private ThreadFactory threadFactory;
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;    private CopyUtils copyUtils;
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    // instance variables
+<b class="nc"><i class="no-highlight">135</i>&nbsp;    private CopyColumnProperties columnProperties = new CopyColumnProperties();</b>
+<i class="no-highlight">136</i>&nbsp;    private String format;
+<i class="no-highlight">137</i>&nbsp;    private Boolean header;
+<b class="nc"><i class="no-highlight">138</i>&nbsp;    private String encoding = DEFAULT_ENCODING;</b>
+<i class="no-highlight">139</i>&nbsp;
+<b class="nc"><i class="no-highlight">140</i>&nbsp;    private List&lt;CopyColumnProperty&gt; columnList = Collections.emptyList();</b>
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;    @Override
+<i class="no-highlight">143</i>&nbsp;    public void afterInjection(BulkLoad bulkLoad) {
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        bulkLoad.copyUtils = new CopyUtils(bulkLoad.jdbcOperations, bulkLoad.account);</b>
+<i class="no-highlight">145</i>&nbsp;    }
+<i class="no-highlight">146</i>&nbsp;
+<i class="no-highlight">147</i>&nbsp;    @Override
+<i class="no-highlight">148</i>&nbsp;    protected String getName() {
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        return JdbcOperations.POSTGRES;</b>
+<i class="no-highlight">150</i>&nbsp;    }
+<i class="no-highlight">151</i>&nbsp;
+<i class="no-highlight">152</i>&nbsp;    @Override
+<i class="no-highlight">153</i>&nbsp;    public Module getManagedModule() {
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        return new PostgresModule();</b>
+<i class="no-highlight">155</i>&nbsp;    }
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;    /**
+<i class="no-highlight">158</i>&nbsp;     * Create snap properties
+<i class="no-highlight">159</i>&nbsp;     *
+<i class="no-highlight">160</i>&nbsp;     * @param builder
+<i class="no-highlight">161</i>&nbsp;     */
+<i class="no-highlight">162</i>&nbsp;    @Override
+<i class="no-highlight">163</i>&nbsp;    protected void createSnapProperties(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        super.createSnapProperties(builder);</b>
+<i class="no-highlight">165</i>&nbsp;
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        columnProperties.createSnapPropertiesLoad(builder, (s, values) -&gt; columnSuggest(s, values));</b>
+<i class="no-highlight">167</i>&nbsp;
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        builder.describe(COPY_FORMAT_PROP, COPY_FORMAT_LABEL, COPY_FORMAT_DESC)</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                .withAllowedValues(SUPPORTED_COPY_FORMATS)</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .defaultValue(DEFAULT_COPY_FORMAT)</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                .add();</b>
+<i class="no-highlight">175</i>&nbsp;
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        builder.describe(HAS_HEADER_PROP, HAS_HEADER_LABEL, HAS_HEADER_DESC)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .add();</b>
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;        // possible values at: https://www.postgresql.org/docs/current/multibyte.html
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        builder.describe(ENCODING_PROP, ENCODING_LABEL, ENCODING_DESC)</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .withAllowedValues(SUPPORTED_ENCODINGS)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .defaultValue(DEFAULT_ENCODING)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .add();</b>
+<i class="no-highlight">189</i>&nbsp;    }
+<i class="no-highlight">190</i>&nbsp;
+<i class="no-highlight">191</i>&nbsp;    /**
+<i class="no-highlight">192</i>&nbsp;     * Suggest columns.
+<i class="no-highlight">193</i>&nbsp;     *
+<i class="no-highlight">194</i>&nbsp;     * @param suggestionBuilder
+<i class="no-highlight">195</i>&nbsp;     * @param propertyValues
+<i class="no-highlight">196</i>&nbsp;     */
+<i class="no-highlight">197</i>&nbsp;    public void columnSuggest(final SuggestionBuilder suggestionBuilder,
+<i class="no-highlight">198</i>&nbsp;            final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        initOperations();</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        tableName = jdbcOperations.normalizeAndEscape((String) propertyValues.get(TABLE_NAME_PROP));</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        if (StringUtils.isBlank(tableName)) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            suggestionBuilder.node(COLUMNS_PROP).over(COLUMN_PROP)</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                    .suggestions(TABLE_NAME_MUST_BE_DEFINED_FIRST);</b>
+<i class="no-highlight">204</i>&nbsp;            return;
+<i class="no-highlight">205</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        if (copyUtils == null) {</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;            copyUtils = new CopyUtils(jdbcOperations, account);</b>
+<i class="no-highlight">208</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        final String[] fieldNames = copyUtils.getFieldNames(tableName);</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        suggestionBuilder.node(COLUMNS_PROP).over(COLUMN_PROP).suggestions(fieldNames);</b>
+<i class="no-highlight">211</i>&nbsp;    }
+<i class="no-highlight">212</i>&nbsp;
+<i class="no-highlight">213</i>&nbsp;    /**
+<i class="no-highlight">214</i>&nbsp;     * Configure snap.
+<i class="no-highlight">215</i>&nbsp;     *
+<i class="no-highlight">216</i>&nbsp;     * @param propertyValues
+<i class="no-highlight">217</i>&nbsp;     */
+<i class="no-highlight">218</i>&nbsp;    @Override
+<i class="no-highlight">219</i>&nbsp;    protected void configureSnap(PropertyValues propertyValues) {
+<i class="no-highlight">220</i>&nbsp;        // this -should- have been done by guice injector above.
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        if (copyUtils == null) {</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;            copyUtils = new CopyUtils(jdbcOperations, account);</b>
+<i class="no-highlight">223</i>&nbsp;        }
+<i class="no-highlight">224</i>&nbsp;
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<i class="no-highlight">226</i>&nbsp;
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        columnProperties.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        columnList = columnProperties.getColumns();</b>
+<i class="no-highlight">229</i>&nbsp;
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        initOperations();</b>
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;        // make sure we won&#39;t get a bogus &#39;connection already closed&#39; error message
+<i class="no-highlight">233</i>&nbsp;        // if we&#39;re not using auto-commit and there&#39;s no need to check the destination
+<i class="no-highlight">234</i>&nbsp;        // target&#39;s metadata.
+<i class="no-highlight">235</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            if ((account != null) &amp;&amp; Boolean.TRUE.equals(jdbcOperations.getAutoCommit())) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">238</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;            throw new ConfigurationException(e, ERR_CANT_ACQUIRE_CONNECTION_MSG)</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                .withResolution(ERR_CANT_ACQUIRE_CONNECTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        }</b>
+<i class="no-highlight">244</i>&nbsp;
+<i class="no-highlight">245</i>&nbsp;        // get list of all columns if the user didn&#39;t specify any.
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        if (columnList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;            columnList = copyUtils.getDefaultColumns(tableName);</b>
+<i class="no-highlight">248</i>&nbsp;        }
+<i class="no-highlight">249</i>&nbsp;
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        final ExpressionProperty formatProperty = propertyValues.getAsExpression(COPY_FORMAT_PROP);</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        if (formatProperty != null) {</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;            format = formatProperty.eval(null);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            if (StringUtils.isBlank(format)) {</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                format = DEFAULT_FORMAT;</b>
+<i class="no-highlight">255</i>&nbsp;            }
+<i class="no-highlight">256</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            format = DEFAULT_FORMAT;</b>
+<i class="no-highlight">258</i>&nbsp;        }
+<i class="no-highlight">259</i>&nbsp;
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        header = propertyValues.get(HAS_HEADER_PROP);</b>
+<i class="no-highlight">261</i>&nbsp;
+<b class="nc"><i class="no-highlight">262</i>&nbsp;        final ExpressionProperty encodingProperty = propertyValues.getAsExpression(ENCODING_PROP);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        if (encodingProperty != null) {</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            encoding = encodingProperty.eval(null);</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            if (StringUtils.isBlank(encoding)) {</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                encoding = DEFAULT_ENCODING;</b>
+<i class="no-highlight">267</i>&nbsp;            }
+<i class="no-highlight">268</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            encoding = DEFAULT_ENCODING;</b>
+<i class="no-highlight">270</i>&nbsp;        }
+<i class="no-highlight">271</i>&nbsp;
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        final List&lt;String&gt; viewOrder = viewNameUtil.sortViewNames(inputViews.names(),</b>
+<i class="no-highlight">273</i>&nbsp;                INPUT_ROWS_VIEW_NAME);
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        if (!viewOrder.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;            rowViewName = viewOrder.get(0);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            if (viewOrder.size() &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                schemaViewName = viewOrder.get(1);</b>
+<i class="no-highlight">278</i>&nbsp;            }
+<i class="no-highlight">279</i>&nbsp;        }
+<i class="no-highlight">280</i>&nbsp;
+<i class="no-highlight">281</i>&nbsp;        // Throw exception when &#39;Create table if absent&#39; is enabled AND Binary inputView is
+<i class="no-highlight">282</i>&nbsp;        // enabled AND schema inputView is NOT enabled
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        if (Boolean.TRUE.equals(autoCreateTable) &amp;&amp; inputViews.size() &lt; 2 &amp;&amp; inputViews.size() &gt; 0</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                &amp;&amp; ViewType.BINARY.equals(inputViews.get().getType())) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            throw new ConfigurationException(ERR_CREATE_TABLE_FROM_BINARY)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                .withReason(ERR_CREATE_TABLE_FROM_BINARY_REASON)</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                .withResolution(CREATE_TABLE_FROM_BINARY_RESOLUTION);</b>
+<i class="no-highlight">288</i>&nbsp;        }
+<i class="no-highlight">289</i>&nbsp;    }
+<i class="no-highlight">290</i>&nbsp;
+<i class="no-highlight">291</i>&nbsp;    /**
+<i class="no-highlight">292</i>&nbsp;     * Check whether there&#39;s any input data.
+<i class="no-highlight">293</i>&nbsp;     *
+<i class="no-highlight">294</i>&nbsp;     * @return
+<i class="no-highlight">295</i>&nbsp;     */
+<i class="no-highlight">296</i>&nbsp;    boolean hasData() {
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        boolean hasData = false;</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        if (rowViewName != null) {</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;            final InputView dataView = inputViews.get(rowViewName);</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;            switch (dataView.getType()) {</b>
+<i class="no-highlight">301</i>&nbsp;                case DOCUMENT:
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                    hasData = inputViews.documents(dataView).iterator().hasNext();</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                    break;</b>
+<i class="no-highlight">304</i>&nbsp;
+<i class="no-highlight">305</i>&nbsp;                case BINARY:
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                    hasData = inputViews.binaryInputs(dataView).iterator().hasNext();</b>
+<i class="no-highlight">307</i>&nbsp;                    break;
+<i class="no-highlight">308</i>&nbsp;            }
+<i class="no-highlight">309</i>&nbsp;        }
+<i class="no-highlight">310</i>&nbsp;
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        return hasData;</b>
+<i class="no-highlight">312</i>&nbsp;    }
+<i class="no-highlight">313</i>&nbsp;
+<i class="no-highlight">314</i>&nbsp;    /**
+<i class="no-highlight">315</i>&nbsp;     * Upload data
+<i class="no-highlight">316</i>&nbsp;     */
+<i class="no-highlight">317</i>&nbsp;    @Override
+<i class="no-highlight">318</i>&nbsp;    public void execute() {
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        if (!hasData()) {</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;            if (!account.getDatabaseConfig().isAutoCommit()) {</b>
+<i class="no-highlight">321</i>&nbsp;                // required since jdbcOperationsImpl#commit() will always be called.
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">323</i>&nbsp;            }
+<i class="no-highlight">324</i>&nbsp;            return;
+<i class="no-highlight">325</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        if (Boolean.FALSE.equals(autoCreateTable) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                !jdbcOperations.tableExists(conn,</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                        account.getDatabaseConfig().getDatabaseName(), tableName)) {</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;            errorViews.write((SnapDataException) new SnapDataException(ERR_TABLE_DOESNT_EXIST)</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                    .withReason(ERR_TABLE_DOESNT_EXIST_REASON)</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                    .withResolution(ERR_TABLE_DOESNT_EXIST_RESOLUTION));</b>
+<i class="no-highlight">333</i>&nbsp;
+<i class="no-highlight">334</i>&nbsp;            // this is an error condition so *don&#39;t* write document to output view.
+<i class="no-highlight">335</i>&nbsp;            return;
+<i class="no-highlight">336</i>&nbsp;        }
+<i class="no-highlight">337</i>&nbsp;
+<i class="no-highlight">338</i>&nbsp;        // capture schema, if provided
+<b class="nc"><i class="no-highlight">339</i>&nbsp;        final InputView schemaView = inputViews.get(schemaViewName);</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;        if (schemaView != null) {</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;             final Iterator&lt;Document&gt; iter = inputViews.getDocumentsFrom(schemaView);</b>
+<i class="no-highlight">342</i>&nbsp;             // Only the first document of the 2nd input view is used to setup the schema
+<i class="no-highlight">343</i>&nbsp;             //  Must loop through all of the documents in the view so close method won&#39;t throw
+<i class="no-highlight">344</i>&nbsp;             //  a Not all documents consumed error
+<b class="nc"><i class="no-highlight">345</i>&nbsp;             while (iter.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                 Document document = iter.next();</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                 if (schema == null) {</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                     schema = document;</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                     columnTranslation = databaseUtils.buildColumnTranslation(schema);</b>
+<i class="no-highlight">350</i>&nbsp;                     // Commit the table creation if Binary input view
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                     for (InputView iv : inputViews) {</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                         if (ViewType.BINARY.equals(iv.getType()) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                             Boolean.TRUE.equals(autoCreateTable) &amp;&amp; createTableIfAbsent(null)) {</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                             if (!account.getDatabaseConfig().getAutoCommit()) {</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                                 jdbcOperations.commit();</b>
+<i class="no-highlight">356</i>&nbsp;                             }
+<i class="no-highlight">357</i>&nbsp;                         }
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                     }</b>
+<i class="no-highlight">359</i>&nbsp;                 }
+<b class="nc"><i class="no-highlight">360</i>&nbsp;             }</b>
+<i class="no-highlight">361</i>&nbsp;        }
+<i class="no-highlight">362</i>&nbsp;
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        final InputView dataView = inputViews.get(rowViewName);</b>
+<i class="no-highlight">364</i>&nbsp;
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        final long start = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;        statusReporter.beginUnknown();</b>
+<i class="no-highlight">367</i>&nbsp;
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        final Map&lt;String, String&gt; columnMap = copyUtils.getColumnMap(tableName);</b>
+<i class="no-highlight">369</i>&nbsp;
+<i class="no-highlight">370</i>&nbsp;        // DOCUMENTS are formatted internally and always uploaded in CSV format.
+<i class="no-highlight">371</i>&nbsp;        // BINARY documents can be in any supported format so we have to ask the user.
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        final String formatStr = ViewType.DOCUMENT.equals(dataView.getType()) ? CSV_FORMAT : format;</b>
+<i class="no-highlight">373</i>&nbsp;
+<b class="nc"><i class="no-highlight">374</i>&nbsp;        final String headerStr = ViewType.DOCUMENT.equals(dataView.getType()) ? &quot;&quot;</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                : (Boolean.TRUE.equals(header) ? &quot;header true,&quot; : &quot;&quot;);</b>
+<i class="no-highlight">376</i>&nbsp;
+<i class="no-highlight">377</i>&nbsp;        // Note: this will be handled as SWAT stories - we need to identify dependencies
+<i class="no-highlight">378</i>&nbsp;        // on jdbc driver version.
+<i class="no-highlight">379</i>&nbsp;        // Generate SQL command.
+<i class="no-highlight">380</i>&nbsp;        // could add &#39;freeze&#39;, &#39;quote&#39;, &#39;escape&#39;, &#39;null&#39;, but see above
+<b class="nc"><i class="no-highlight">381</i>&nbsp;        final String columns = copyUtils.getColumns(columnList, columnMap, header);</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;        final String forceNotNullColumns = copyUtils.getForceNotNullColumns(columnList, columnMap);</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;        final String forceNullColumns = copyUtils.getForceNullColumns(columnList, columnMap);</b>
+<i class="no-highlight">384</i>&nbsp;
+<b class="nc"><i class="no-highlight">385</i>&nbsp;        final String sql = String.format(</b>
+<i class="no-highlight">386</i>&nbsp;                    &quot;COPY %s%s FROM stdin (FORMAT %s,%s%s%s ENCODING &#39;%s&#39;)&quot;,
+<i class="no-highlight">387</i>&nbsp;                    tableName, columns, formatStr, headerStr, forceNotNullColumns,
+<i class="no-highlight">388</i>&nbsp;                    forceNullColumns, encoding);
+<i class="no-highlight">389</i>&nbsp;
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        LOG.debug(&quot;Copying data : {}&quot;, sql);</b>
+<i class="no-highlight">391</i>&nbsp;
+<b class="nc"><i class="no-highlight">392</i>&nbsp;        long count = 0;</b>
+<i class="no-highlight">393</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">394</i>&nbsp;            switch (dataView.getType()) {</b>
+<i class="no-highlight">395</i>&nbsp;                case DOCUMENT:
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                    count = processDocuments(sql, dataView);</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                    break;</b>
+<i class="no-highlight">398</i>&nbsp;
+<i class="no-highlight">399</i>&nbsp;                case BINARY:
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                    count = processBinaryDocuments(sql, dataView);</b>
+<i class="no-highlight">401</i>&nbsp;                    break;
+<i class="no-highlight">402</i>&nbsp;            }
+<i class="no-highlight">403</i>&nbsp;
+<i class="no-highlight">404</i>&nbsp;            // write output document
+<b class="nc"><i class="no-highlight">405</i>&nbsp;            if (count != 0) {</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                final Map&lt;String, Object&gt; data = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                data.put(&quot;count&quot;, count);</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                outputViews.write(documentUtility.newDocument(data));</b>
+<i class="no-highlight">409</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;            errorViews.write(e);</b>
+<i class="no-highlight">414</i>&nbsp;            // safe to fall through if &#39;ignore&#39; is true.
+<b class="nc"><i class="no-highlight">415</i>&nbsp;        } catch (DataAccessException e) {</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;            Throwable t = e.getCause();</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;            if (t instanceof SnapDataException) {</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                errorViews.write((SnapDataException) t);</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            } else if (t != null) {</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                errorViews.write((SnapDataException)</b>
+<i class="no-highlight">421</i>&nbsp;                        new SnapDataException(t, ERR_UPLOAD_EXCEPTION_MSG)
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                                .withResolution(ERR_UPLOAD_EXCEPTION_MSG));</b>
+<i class="no-highlight">423</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                errorViews.write((SnapDataException)</b>
+<i class="no-highlight">425</i>&nbsp;                        new SnapDataException(e, ERR_UPLOAD_EXCEPTION_MSG)
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                                .withResolution(ERR_UPLOAD_EXCEPTION_MSG));</b>
+<i class="no-highlight">427</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">428</i>&nbsp;        } catch (Exception e) {</b>
+<i class="no-highlight">429</i>&nbsp;            // wraps SQLException, etc.
+<b class="nc"><i class="no-highlight">430</i>&nbsp;            SnapDataException sde = new SnapDataException(e, ERR_UPLOAD_EXCEPTION_MSG)</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                .withResolution(ERR_UPLOAD_EXCEPTION_MSG);</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;            errorViews.write(sde);</b>
+<i class="no-highlight">434</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">435</i>&nbsp;            long elapsed = System.currentTimeMillis() - start;</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;            statusReporter.notify(UPLOADED_COUNT, count, elapsed / 1000.0);</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;            statusReporter.worked(count);</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;            statusReporter.done();</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;        }</b>
+<i class="no-highlight">440</i>&nbsp;    }
+<i class="no-highlight">441</i>&nbsp;
+<i class="no-highlight">442</i>&nbsp;    /**
+<i class="no-highlight">443</i>&nbsp;     * Process documents
+<i class="no-highlight">444</i>&nbsp;     *
+<i class="no-highlight">445</i>&nbsp;     * @param sql
+<i class="no-highlight">446</i>&nbsp;     * @param dataView
+<i class="no-highlight">447</i>&nbsp;     * @return
+<i class="no-highlight">448</i>&nbsp;     */
+<i class="no-highlight">449</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">450</i>&nbsp;    protected long processDocuments(String sql, InputView dataView) {
+<i class="no-highlight">451</i>&nbsp;
+<i class="no-highlight">452</i>&nbsp;        // do we have any input documents?
+<b class="nc"><i class="no-highlight">453</i>&nbsp;        final Iterator&lt;Document&gt; documents = inputViews.getDocumentsFrom(dataView);</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;        if (!documents.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;            return 0;</b>
+<i class="no-highlight">456</i>&nbsp;        }
+<i class="no-highlight">457</i>&nbsp;
+<b class="nc"><i class="no-highlight">458</i>&nbsp;        final ExecutorService executor = Executors.newSingleThreadExecutor(threadFactory);</b>
+<i class="no-highlight">459</i>&nbsp;
+<b class="nc"><i class="no-highlight">460</i>&nbsp;        long count = 0;</b>
+<i class="no-highlight">461</i>&nbsp;
+<b class="nc"><i class="no-highlight">462</i>&nbsp;        Document document = documents.next();</b>
+<i class="no-highlight">463</i>&nbsp;
+<i class="no-highlight">464</i>&nbsp;        // Create table if absent for Document inputView
+<b class="nc"><i class="no-highlight">465</i>&nbsp;        if (Boolean.TRUE.equals(autoCreateTable) &amp;&amp; createTableIfAbsent(document)) {</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;            if (!account.getDatabaseConfig().getAutoCommit()) {</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                jdbcOperations.commit();</b>
+<i class="no-highlight">468</i>&nbsp;            }
+<i class="no-highlight">469</i>&nbsp;        }
+<i class="no-highlight">470</i>&nbsp;
+<i class="no-highlight">471</i>&nbsp;        // get list of all columns if the user didn&#39;t specify any.
+<b class="nc"><i class="no-highlight">472</i>&nbsp;        if (columnList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;            columnList = copyUtils.getDefaultColumns(tableName);</b>
+<i class="no-highlight">474</i>&nbsp;        }
+<i class="no-highlight">475</i>&nbsp;
+<i class="no-highlight">476</i>&nbsp;        // the child thread is responsible for its own connection in order to
+<i class="no-highlight">477</i>&nbsp;        // eliminate any risk of simultaneous access by both parent and child
+<i class="no-highlight">478</i>&nbsp;        // threads.
+<i class="no-highlight">479</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">480</i>&nbsp;            final Pipe pipe = Pipe.open();</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;            final PostgresOperations.DocumentCopyInThread uploader =</b>
+<i class="no-highlight">482</i>&nbsp;                    new PostgresOperations.DocumentCopyInThread(account, sql, pipe);
+<i class="no-highlight">483</i>&nbsp;
+<b class="nc"><i class="no-highlight">484</i>&nbsp;            final Future&lt;Long&gt; future = executor.submit(uploader);</b>
+<i class="no-highlight">485</i>&nbsp;
+<b class="nc"><i class="no-highlight">486</i>&nbsp;            try (SinkChannel sc = pipe.sink()) {</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                final CsvBulkUploadConverter converter = new CsvBulkUploadConverter(sc, columnList);</b>
+<i class="no-highlight">488</i>&nbsp;
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                converter.writeHeader();</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                converter.formatOneDocument(document);</b>
+<i class="no-highlight">491</i>&nbsp;
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                while (documents.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                    document = documents.next();</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                    converter.formatOneDocument(document);</b>
+<i class="no-highlight">495</i>&nbsp;                }
+<i class="no-highlight">496</i>&nbsp;
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                converter.writeFooter();</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                LOG.trace(&quot;Process Documents loop finished.&quot;);</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;            }</b>
+<i class="no-highlight">500</i>&nbsp;
+<b class="nc"><i class="no-highlight">501</i>&nbsp;            count = future.get();</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;        } catch (IOException | SQLException e) {</b>
+<i class="no-highlight">503</i>&nbsp;            // any error here is probably still related to the PipedReader/Writer
+<i class="no-highlight">504</i>&nbsp;            // but we can&#39;t associate it with a document.
+<b class="nc"><i class="no-highlight">505</i>&nbsp;            throw new SnapDataException(e, ERR_UPLOAD_EXCEPTION_MSG)</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                .withResolution(ERR_UPLOAD_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;        } catch (ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;            if (e.getCause() instanceof SnapException) {</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;                throw (SnapException) e.getCause();</b>
+<i class="no-highlight">511</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                throw new SnapDataException(e.getCause(), ERR_UPLOAD_EXCEPTION_MSG)</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;                    .withResolution(ERR_UPLOAD_EXCEPTION_RESOLUTION);</b>
+<i class="no-highlight">515</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">516</i>&nbsp;        } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;            Thread.currentThread().interrupt();</b>
+<i class="no-highlight">518</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">519</i>&nbsp;            if (executor != null) {</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;                executor.shutdown();</b>
+<i class="no-highlight">521</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">522</i>&nbsp;        }</b>
+<i class="no-highlight">523</i>&nbsp;
+<b class="nc"><i class="no-highlight">524</i>&nbsp;        return count;</b>
+<i class="no-highlight">525</i>&nbsp;    }
+<i class="no-highlight">526</i>&nbsp;
+<i class="no-highlight">527</i>&nbsp;    /**
+<i class="no-highlight">528</i>&nbsp;     * Process binary documents
+<i class="no-highlight">529</i>&nbsp;     *
+<i class="no-highlight">530</i>&nbsp;     * @param sql
+<i class="no-highlight">531</i>&nbsp;     * @param dataView
+<i class="no-highlight">532</i>&nbsp;     * @return
+<i class="no-highlight">533</i>&nbsp;     */
+<i class="no-highlight">534</i>&nbsp;    long processBinaryDocuments(String sql, InputView dataView) {
+<b class="nc"><i class="no-highlight">535</i>&nbsp;        long count = 0;</b>
+<i class="no-highlight">536</i>&nbsp;
+<b class="nc"><i class="no-highlight">537</i>&nbsp;        for (BinaryInput binaryInput : inputViews.binaryInputs(dataView)) {</b>
+<i class="no-highlight">538</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                count += ((PostgresOperations) jdbcOperations).upload(account, sql,</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;                            binaryInput.getChannel());</b>
+<i class="no-highlight">541</i>&nbsp;
+<b class="nc"><i class="no-highlight">542</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                throw new SnapDataException(e, ERR_UPLOAD_CSV_EXCEPTION_MSG)</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                    .withResolution(ERR_UPLOAD_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;        }</b>
+<i class="no-highlight">548</i>&nbsp;
+<b class="nc"><i class="no-highlight">549</i>&nbsp;        return count;</b>
+<i class="no-highlight">550</i>&nbsp;    }
+<i class="no-highlight">551</i>&nbsp;
+<i class="no-highlight">552</i>&nbsp;    /**
+<i class="no-highlight">553</i>&nbsp;     * ProcessDocument is a no-op since all work is done in execute().
+<i class="no-highlight">554</i>&nbsp;     * @param document
+<i class="no-highlight">555</i>&nbsp;     * @param inputViewName
+<i class="no-highlight">556</i>&nbsp;     */
+<i class="no-highlight">557</i>&nbsp;    @Override
+<i class="no-highlight">558</i>&nbsp;    protected void processDocument(final Document document, final String inputViewName) {
+<i class="no-highlight">559</i>&nbsp;        // no-op
+<i class="no-highlight">560</i>&nbsp;    }
+<i class="no-highlight">561</i>&nbsp;
+<i class="no-highlight">562</i>&nbsp;    @Override
+<i class="no-highlight">563</i>&nbsp;    public void cleanup() {
+<b class="nc"><i class="no-highlight">564</i>&nbsp;        if (account != null) {</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;            jdbcOperations.cleanup();</b>
+<i class="no-highlight">566</i>&nbsp;        }
+<i class="no-highlight">567</i>&nbsp;    }
+<i class="no-highlight">568</i>&nbsp;
+<i class="no-highlight">569</i>&nbsp;    public void setCopyUtils (CopyUtils copyUtils) {
+<b class="nc"><i class="no-highlight">570</i>&nbsp;        this.copyUtils = copyUtils;</b>
+<i class="no-highlight">571</i>&nbsp;    }
+<i class="no-highlight">572</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

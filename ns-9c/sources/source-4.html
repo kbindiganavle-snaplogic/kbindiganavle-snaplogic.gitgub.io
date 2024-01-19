@@ -1,0 +1,1022 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkLoad</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.azuresql</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkLoad (com.snaplogic.snaps.azuresql)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkLoad</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/406)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BulkLoad$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/407)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015 - 2018, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.azuresql;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">14</i>&nbsp;import com.google.inject.Module;
+<i class="no-highlight">15</i>&nbsp;import com.microsoft.azure.storage.StorageException;
+<i class="no-highlight">16</i>&nbsp;import com.microsoft.azure.storage.blob.CloudBlobContainer;
+<i class="no-highlight">17</i>&nbsp;import com.microsoft.azure.storage.blob.CloudBlockBlob;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.LifecycleEvent;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseAccount;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseConfig;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.sql.TableMetaData;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.sql.SqlServerModule;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.AzureSQLAccountParameters;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.AzureSqlDatabaseAccount;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.AzureSqlDynamicDatabaseAccount;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.BaseDatabaseAccount;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.sql.converters.registry.SqlServerConverterRegistry;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.view.InputView;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snaps.sql.SimpleSqlBulkLoadSnap;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">47</i>&nbsp;import org.joda.time.DateTime;
+<i class="no-highlight">48</i>&nbsp;import org.joda.time.LocalDate;
+<i class="no-highlight">49</i>&nbsp;import org.joda.time.LocalDateTime;
+<i class="no-highlight">50</i>&nbsp;import org.joda.time.LocalTime;
+<i class="no-highlight">51</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">52</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">55</i>&nbsp;import java.io.OutputStream;
+<i class="no-highlight">56</i>&nbsp;import java.math.BigDecimal;
+<i class="no-highlight">57</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">58</i>&nbsp;import java.net.URISyntaxException;
+<i class="no-highlight">59</i>&nbsp;import java.nio.charset.Charset;
+<i class="no-highlight">60</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">61</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">62</i>&nbsp;import java.sql.Date;
+<i class="no-highlight">63</i>&nbsp;import java.sql.DriverManager;
+<i class="no-highlight">64</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">65</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">66</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">67</i>&nbsp;import java.sql.Time;
+<i class="no-highlight">68</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">69</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">70</i>&nbsp;import java.util.List;
+<i class="no-highlight">71</i>&nbsp;import java.util.Map;
+<i class="no-highlight">72</i>&nbsp;import java.util.Set;
+<i class="no-highlight">73</i>&nbsp;import java.util.UUID;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snaps.azuresql.Constants.*;
+<i class="no-highlight">76</i>&nbsp;import static com.snaplogic.snaps.azuresql.Messages.*;
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;/**
+<i class="no-highlight">79</i>&nbsp; * This snaps writes the incoming records to a temporary blob onto Microsoft Azure Storage.
+<i class="no-highlight">80</i>&nbsp; * The blob is then used to do bulk load onto Azure Sql database.
+<i class="no-highlight">81</i>&nbsp; *
+<i class="no-highlight">82</i>&nbsp; * @author smudassir
+<i class="no-highlight">83</i>&nbsp; */
+<i class="no-highlight">84</i>&nbsp;@General(title = BULK_LOAD_TITLE, purpose = BULK_LOAD_DESC)
+<i class="no-highlight">85</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">86</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">87</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">88</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">89</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">90</i>&nbsp;@Accounts(provides = {AzureSqlDatabaseAccount.class, AzureSqlDynamicDatabaseAccount.class})
+<b class="nc"><i class="no-highlight">91</i>&nbsp;public class BulkLoad extends SimpleSqlBulkLoadSnap {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(BulkLoad.class);</b>
+<i class="no-highlight">93</i>&nbsp;    // Keys to define extra properties needed for this snap
+<i class="no-highlight">94</i>&nbsp;    protected static final String INSERT_MODE_PROP = &quot;InsertModeProp&quot;;
+<i class="no-highlight">95</i>&nbsp;    protected static final String BULK_LOAD_SCHEMA_PROP =
+<i class="no-highlight">96</i>&nbsp;            &quot;schemaSource&quot;;
+<i class="no-highlight">97</i>&nbsp;    protected static final String USE_TYPE_DEFAULT_PROP =
+<i class="no-highlight">98</i>&nbsp;            &quot;useTypeDefaultProp&quot;;
+<i class="no-highlight">99</i>&nbsp;    protected static final String DATABASE_SCOPED_CREDENTIAL_PROP =
+<i class="no-highlight">100</i>&nbsp;            &quot;DatabaseScopedCredentialProp&quot;;
+<i class="no-highlight">101</i>&nbsp;    protected static final String ENCODING_PROP = &quot;encoding&quot;;
+<i class="no-highlight">102</i>&nbsp;    private static final String FMT_QUOTED_COLUMN_NAME = &quot;\&quot;%s\&quot;&quot;;
+<b class="nc"><i class="no-highlight">103</i>&nbsp;    protected static final String UTF8 = StandardCharsets.UTF_8.displayName();</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;    protected static final String UTF16 = StandardCharsets.UTF_16.displayName();</b>
+<i class="no-highlight">105</i>&nbsp;    protected static final String NO_ENCODING_SPECIFIED = &quot;None&quot;;
+<b class="nc"><i class="no-highlight">106</i>&nbsp;    private static final Set&lt;String&gt; ENCODING_OPTIONS = ImmutableSet.of(</b>
+<i class="no-highlight">107</i>&nbsp;            NO_ENCODING_SPECIFIED, UTF8, UTF16);
+<i class="no-highlight">108</i>&nbsp;    // variables to hold extra properties and other values
+<i class="no-highlight">109</i>&nbsp;    protected String insertMode;
+<i class="no-highlight">110</i>&nbsp;    protected String bulkLoadSchema;
+<i class="no-highlight">111</i>&nbsp;    protected String useTypeDefault;
+<i class="no-highlight">112</i>&nbsp;    private String dbScopedCredentialName;
+<i class="no-highlight">113</i>&nbsp;    private boolean isDbScopedCredentialCreated;
+<i class="no-highlight">114</i>&nbsp;    protected OutputStream azureStorageOutputStream;
+<i class="no-highlight">115</i>&nbsp;    private String randomUUID;
+<i class="no-highlight">116</i>&nbsp;    private boolean isKeysIdentified;
+<i class="no-highlight">117</i>&nbsp;    private Set&lt;String&gt; documentKeys;
+<i class="no-highlight">118</i>&nbsp;    private CloudBlockBlob tempCloudBlockBlob;
+<i class="no-highlight">119</i>&nbsp;    private boolean isMasterKeyCreated;
+<i class="no-highlight">120</i>&nbsp;    private String externalDataSourceName;
+<i class="no-highlight">121</i>&nbsp;    private String externalFileFormatName;
+<i class="no-highlight">122</i>&nbsp;    private String externalTableName;
+<i class="no-highlight">123</i>&nbsp;    private String tempBlobName;
+<i class="no-highlight">124</i>&nbsp;    private boolean isAzureBlobCreated;
+<i class="no-highlight">125</i>&nbsp;    private boolean isAzureBlobNotToBeDeleted;
+<i class="no-highlight">126</i>&nbsp;    private StringBuilder externalTableSchema;
+<i class="no-highlight">127</i>&nbsp;    private boolean isExternalDataSourceCreated;
+<i class="no-highlight">128</i>&nbsp;    private boolean isExternalFileFormatCreated;
+<i class="no-highlight">129</i>&nbsp;    private boolean isExternalTableCreated;
+<i class="no-highlight">130</i>&nbsp;    private boolean isTempBlobNamePrinted;
+<i class="no-highlight">131</i>&nbsp;    protected DbUtils dbUtils;
+<i class="no-highlight">132</i>&nbsp;    protected SqlServerConverterRegistry converterRegistry;
+<b class="nc"><i class="no-highlight">133</i>&nbsp;    private List&lt;String&gt; columnNames = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;    protected boolean isNoEncodingProvided = false;</b>
+<i class="no-highlight">135</i>&nbsp;    protected String encoding;
+<i class="no-highlight">136</i>&nbsp;    protected Charset charset;
+<i class="no-highlight">137</i>&nbsp;    protected byte[] newLineInBytes;
+<i class="no-highlight">138</i>&nbsp;    boolean azureSqlDataWarehouse;
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    @Override
+<i class="no-highlight">141</i>&nbsp;    public Module getManagedModule() {
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        return new SqlServerModule();</b>
+<i class="no-highlight">143</i>&nbsp;    }
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;    @Override
+<i class="no-highlight">146</i>&nbsp;    protected String getName() {
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        return JdbcOperations.SQLSERVER;</b>
+<i class="no-highlight">148</i>&nbsp;    }
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;    @Override
+<i class="no-highlight">151</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        super.createSnapProperties(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        createAdditionalSnapProperties(propertyBuilder);</b>
+<i class="no-highlight">154</i>&nbsp;    }
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;    /**
+<i class="no-highlight">157</i>&nbsp;     * Defines extra properties needed by the snap
+<i class="no-highlight">158</i>&nbsp;     *
+<i class="no-highlight">159</i>&nbsp;     * @param propertyBuilder
+<i class="no-highlight">160</i>&nbsp;     */
+<i class="no-highlight">161</i>&nbsp;    protected void createAdditionalSnapProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        propertyBuilder.describe(BULK_LOAD_SCHEMA_PROP,</b>
+<i class="no-highlight">163</i>&nbsp;                BULK_LOAD_SCHEMA_LABEL, BULK_LOAD_SCHEMA_DESCRIPTION)
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                .withAllowedValues(BULK_LOAD_SCHEMA_OPTIONS)</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                .defaultValue(BULK_LOAD_SCHEMA_INPUT_PROVIDED)</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        propertyBuilder.describe(USE_TYPE_DEFAULT_PROP,</b>
+<i class="no-highlight">168</i>&nbsp;                USE_TYPE_DEFAULT_LABEL, USE_TYPE_DEFAULT_DESCRIPTION)
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                .withAllowedValues(USE_TYPE_DEFAULT_OPTIONS)</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                .defaultValue(TRUE_UPPERCASE)</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        propertyBuilder.describe(INSERT_MODE_PROP, INSERT_MODE_LABEL, INSERT_MODE_DESC)</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .withAllowedValues(BULK_LOAD_INSERT_MODES)</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                .defaultValue(BULK_LOAD_INSERT_MODE_APPEND)</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        propertyBuilder.describe(DATABASE_SCOPED_CREDENTIAL_PROP,</b>
+<i class="no-highlight">177</i>&nbsp;                DATABASE_SCOPED_CREDENTIAL_LABEL, DATABASE_SCOPED_CREDENTIAL_DESC)
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        propertyBuilder.describe(ENCODING_PROP, ENCODING_LABEL, ENCODING_DESC)</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                .withAllowedValues(ENCODING_OPTIONS)</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                .defaultValue(NO_ENCODING_SPECIFIED)</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                .add();</b>
+<i class="no-highlight">183</i>&nbsp;    }
+<i class="no-highlight">184</i>&nbsp;
+<i class="no-highlight">185</i>&nbsp;    @Override
+<i class="no-highlight">186</i>&nbsp;    protected void configureSnap(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        configureSnapAdditional(propertyValues);</b>
+<i class="no-highlight">189</i>&nbsp;    }
+<i class="no-highlight">190</i>&nbsp;
+<i class="no-highlight">191</i>&nbsp;    /**
+<i class="no-highlight">192</i>&nbsp;     * Reads extra properties needed by the snap
+<i class="no-highlight">193</i>&nbsp;     *
+<i class="no-highlight">194</i>&nbsp;     * @param propertyValues
+<i class="no-highlight">195</i>&nbsp;     */
+<i class="no-highlight">196</i>&nbsp;    protected void configureSnapAdditional(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        encoding = propertyValues.get(ENCODING_PROP);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        if ((encoding == null) || encoding.equals(NO_ENCODING_SPECIFIED)) {</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;            isNoEncodingProvided = true;</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            encoding = UTF8;</b>
+<i class="no-highlight">201</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        charset = UTF8.equals(encoding) ? StandardCharsets.UTF_8 : StandardCharsets.UTF_16;</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        newLineInBytes = System.lineSeparator().getBytes(charset);</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        converterRegistry = new SqlServerConverterRegistry();</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        dbUtils = new DbUtils(jdbcOperations.acquireConnection(account));</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        insertMode = propertyValues.get(INSERT_MODE_PROP);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        bulkLoadSchema = propertyValues.get(BULK_LOAD_SCHEMA_PROP);</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        useTypeDefault = propertyValues.get(USE_TYPE_DEFAULT_PROP);</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        dbScopedCredentialName = propertyValues.get(DATABASE_SCOPED_CREDENTIAL_PROP);</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        checkAccountParameters(account);</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        if (StringUtils.isNotBlank(dbScopedCredentialName)) {</b>
+<i class="no-highlight">212</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                String queryToCheckDbScopedCredentialExists = String.format(</b>
+<i class="no-highlight">214</i>&nbsp;                        QUERY_CHECK_DATABASE_SCOPED_CREDENTIAL_EXISTS, dbScopedCredentialName);
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                if (!dbUtils.executeReadQuery(queryToCheckDbScopedCredentialExists)) {</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                    throw new ConfigurationException(ERR_DATABASE_SCOPED_CREDENTIAL_NOT_FOUND_MSG)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                            .withReason(ERR_DATABASE_SCOPED_CREDENTIAL_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                            .withResolution(ERR_DATABASE_SCOPED_CREDENTIAL_NOT_FOUND_RESOLUTION);</b>
+<i class="no-highlight">219</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                throw new ConfigurationException(e1,</b>
+<i class="no-highlight">222</i>&nbsp;                        ERR_UNABLE_TO_RUN_DB_QUERY_MSG,
+<i class="no-highlight">223</i>&nbsp;                        QUERY_NAME_DB_SCOPED_CREDENTIAL_CHECK)
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                        .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                        .withResolution(GENERIC_DB_ERROR_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;            }</b>
+<i class="no-highlight">227</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;            isDbScopedCredentialCreated = true;</b>
+<i class="no-highlight">229</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        randomUUID = UUID.randomUUID().toString().replace(HYPHEN, UNDERSCORE);</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        String queryToCheckDataTableExists = String.format(QUERY_CHECK_DATA_TABLE_EXISTS,</b>
+<i class="no-highlight">232</i>&nbsp;                tableName);
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        if (insertMode.equalsIgnoreCase(BULK_LOAD_INSERT_MODE_APPEND)) {</b>
+<i class="no-highlight">234</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                dbUtils.executeReadQuery(queryToCheckDataTableExists);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            } catch (SQLException e2) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                insertMode = BULK_LOAD_INSERT_MODE_OVERWRITE;</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;            }</b>
+<i class="no-highlight">239</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">240</i>&nbsp;            boolean errorDuringTableDrop = false;</b>
+<i class="no-highlight">241</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                dbUtils.executeReadQuery(queryToCheckDataTableExists);</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                errorDuringTableDrop = true;</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                dbUtils.executeWriteQuery(String.format(QUERY_DROP_DATA_TABLE, tableName));</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            } catch (SQLException e3) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                if (errorDuringTableDrop) {</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                    throw new ConfigurationException(e3,</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                            String.format(ERR_UNABLE_TO_RUN_DB_QUERY_MSG,</b>
+<i class="no-highlight">249</i>&nbsp;                                    QUERY_NAME_DROP_DATA_TABLE))
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                            .withReason(e3.getMessage())</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                            .withResolution(GENERIC_DB_ERROR_RESOLUTION);</b>
+<i class="no-highlight">252</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            }</b>
+<i class="no-highlight">254</i>&nbsp;        }
+<i class="no-highlight">255</i>&nbsp;    }
+<i class="no-highlight">256</i>&nbsp;
+<i class="no-highlight">257</i>&nbsp;    /**
+<i class="no-highlight">258</i>&nbsp;     * Check for the required account parameters
+<i class="no-highlight">259</i>&nbsp;     *
+<i class="no-highlight">260</i>&nbsp;     * @param account
+<i class="no-highlight">261</i>&nbsp;     */
+<i class="no-highlight">262</i>&nbsp;    protected void checkAccountParameters(DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        String azureStorageAccName = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        String azureStorageAccKey = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        String storageContName = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        AzureSQLAccountParameters azureSQLAccountParameters = (AzureSQLAccountParameters) account;</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        azureStorageAccName = azureSQLAccountParameters.getAzureStorageAccountName();</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        azureStorageAccKey = azureSQLAccountParameters.getAzureStorageAccountKey();</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        storageContName = azureSQLAccountParameters.getAzureStorageContainerName();</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        if (StringUtils.isBlank(azureStorageAccKey)) {</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            throw new ConfigurationException(ERR_INVALID_ACCOUNT_KEY_NOT_FOUND_MSG)</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                    .withReason(ERR_INVALID_ACCOUNT_KEY_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                    .withResolution(ERR_INVALID_ACCOUNT_KEY_NOT_FOUND_RESOLUTION);</b>
+<i class="no-highlight">274</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        if (StringUtils.isBlank(azureStorageAccName)) {</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            throw new ConfigurationException(ERR_INVALID_ACCOUNT_NAME_NOT_FOUND_MSG)</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                    .withReason(ERR_INVALID_ACCOUNT_NAME_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                    .withResolution(ERR_INVALID_ACCOUNT_NAME_NOT_FOUND_RESOLUTION);</b>
+<i class="no-highlight">279</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        if (StringUtils.isBlank(storageContName)) {</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;            throw new ConfigurationException(ERR_INVALID_CONTAINER_NAME_NOT_FOUND_MSG)</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                    .withReason(ERR_INVALID_CONTAINER_NAME_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                    .withResolution(ERR_INVALID_CONTAINER_NAME_NOT_FOUND_RESOLUTION);</b>
+<i class="no-highlight">284</i>&nbsp;        }
+<i class="no-highlight">285</i>&nbsp;    }
+<i class="no-highlight">286</i>&nbsp;
+<i class="no-highlight">287</i>&nbsp;    /**
+<i class="no-highlight">288</i>&nbsp;     * Establish connection to Microsoft Azure Storage to upload incoming data to a blob
+<i class="no-highlight">289</i>&nbsp;     *
+<i class="no-highlight">290</i>&nbsp;     * @return true if no exception occurs, false otherwise
+<i class="no-highlight">291</i>&nbsp;     */
+<i class="no-highlight">292</i>&nbsp;    private boolean initAzureStorage() {
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        tempBlobName = String.format(TEMP_BLOB_NAME, randomUUID);</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        return initAzureStorageDefault();</b>
+<i class="no-highlight">295</i>&nbsp;    }
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;    /**
+<i class="no-highlight">298</i>&nbsp;     * Uses default http/https handlers to provide azure storage service
+<i class="no-highlight">299</i>&nbsp;     *
+<i class="no-highlight">300</i>&nbsp;     * @return true if no exception, false otherwise
+<i class="no-highlight">301</i>&nbsp;     */
+<i class="no-highlight">302</i>&nbsp;    protected boolean initAzureStorageDefault() {
+<i class="no-highlight">303</i>&nbsp;        CloudBlobContainer container;
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        AzureSQLAccountParameters azureSQLAccountParameters = (AzureSQLAccountParameters) account;</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        container = azureSQLAccountParameters.connectToAzureStorage();</b>
+<i class="no-highlight">306</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">307</i>&nbsp;            tempCloudBlockBlob = container.getBlockBlobReference(tempBlobName);</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;            azureStorageOutputStream = tempCloudBlockBlob.openOutputStream();</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        } catch (URISyntaxException e1) {</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;            SnapDataException snapDataException = new SnapDataException(e1, ERR_URI_SYNTAX_MSG)</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                    .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            errorViews.write(snapDataException);</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;            return false;</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        } catch (StorageException e2) {</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;            SnapDataException snapDataException = new SnapDataException(e2, ERR_BLOB_CREATION_MSG)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                    .withReason(e2.getMessage())</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                    .withResolution(ERR_BLOB_CREATION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;            errorViews.write(snapDataException);</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;            return false;</b>
+<i class="no-highlight">322</i>&nbsp;        }
+<i class="no-highlight">323</i>&nbsp;    }
+<i class="no-highlight">324</i>&nbsp;
+<i class="no-highlight">325</i>&nbsp;    @Override
+<i class="no-highlight">326</i>&nbsp;    public void execute() {
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        if (inputViews.isEmpty() || !initAzureStorage()) {</b>
+<i class="no-highlight">328</i>&nbsp;            return;
+<i class="no-highlight">329</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">330</i>&nbsp;        Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        if(jdbcOperations.tableExists(conn,</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                account.getDatabaseConfig().getDatabaseName(), tableName)) {</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;            tableMetaData = getTableMetaData();</b>
+<i class="no-highlight">334</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        long recordCount = 0L;</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        for (InputView inputView : inputViews) {</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;            for (Document document : inputViews.documents(inputView)) {</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                processDocument(document, inputView.getName());</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;            recordCount = inputView.getObjectCount();</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        }</b>
+<i class="no-highlight">342</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            azureStorageOutputStream.close();</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;        } catch (IOException e1) {</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;            SnapDataException snapDataException = new SnapDataException(e1, ERR_BLOB_CREATION_MSG)</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                    .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                    .withResolution(ERR_BLOB_CREATION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;            errorViews.write(snapDataException);</b>
+<i class="no-highlight">349</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">350</i>&nbsp;        }</b>
+<i class="no-highlight">351</i>&nbsp;        /**
+<i class="no-highlight">352</i>&nbsp;         * At least one record should be written to azure storage to confirm the azure blob
+<i class="no-highlight">353</i>&nbsp;         * creation.
+<i class="no-highlight">354</i>&nbsp;         **/
+<b class="nc"><i class="no-highlight">355</i>&nbsp;        if (recordCount &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            isAzureBlobCreated = true;</b>
+<i class="no-highlight">357</i>&nbsp;        }
+<i class="no-highlight">358</i>&nbsp;    }
+<i class="no-highlight">359</i>&nbsp;
+<i class="no-highlight">360</i>&nbsp;    protected TableMetaData getTableMetaData() {
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        return jdbcOperations.getTableMetaData(conn,</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                account.getDatabaseConfig().getDatabaseName(), tableName);</b>
+<i class="no-highlight">364</i>&nbsp;    }
+<i class="no-highlight">365</i>&nbsp;
+<i class="no-highlight">366</i>&nbsp;    @Override
+<i class="no-highlight">367</i>&nbsp;    protected void processDocument(Document inputDocument, String inputViewName) {
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        if (inputDocument.get() instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            Map&lt;String, Object&gt; data = ((Map) inputDocument.get());</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;            if (!isKeysIdentified) {</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                documentKeys = data.keySet();</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                isKeysIdentified = true;</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                generateExternalTableSchema(data);</b>
+<i class="no-highlight">374</i>&nbsp;            }
+<i class="no-highlight">375</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                azureStorageOutputStream.write(getValuesFromDocument(data));</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                azureStorageOutputStream.write(newLineInBytes);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            } catch (IOException e1) {</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                SnapDataException exception = new SnapDataException(e1,</b>
+<i class="no-highlight">380</i>&nbsp;                        ERR_WRITE_DATA_TO_BLOB_MSG)
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                        .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                        .withResolution(ERR_WRITE_DATA_TO_BLOB_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                errorViews.write(exception, inputDocument);</b>
+<i class="no-highlight">384</i>&nbsp;            }
+<i class="no-highlight">385</i>&nbsp;            //Handled NumberFormatException for NaN
+<b class="nc"><i class="no-highlight">386</i>&nbsp;            catch (NumberFormatException ex) {</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                RuntimeException runtimeException = new RuntimeException(ERROR_FORMATTING_VALUE, ex);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                SnapDataException exception = new SnapDataException(runtimeException, ERR_WRITE_DATA_TO_BLOB_MSG)</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                        .withReason(NUMBER_FORMAT_EXCEPTION_MESSAGE)</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                        .withResolution(ERR_WRITE_DATA_TO_BLOB_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                errorViews.write(exception, inputDocument);</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            }</b>
+<i class="no-highlight">393</i>&nbsp;        }
+<i class="no-highlight">394</i>&nbsp;    }
+<i class="no-highlight">395</i>&nbsp;
+<i class="no-highlight">396</i>&nbsp;    /**
+<i class="no-highlight">397</i>&nbsp;     * Extracts values from the incoming document and return them as a stream of bytes
+<i class="no-highlight">398</i>&nbsp;     * Delimiter is used to separate these values
+<i class="no-highlight">399</i>&nbsp;     *
+<i class="no-highlight">400</i>&nbsp;     * @param data
+<i class="no-highlight">401</i>&nbsp;     *
+<i class="no-highlight">402</i>&nbsp;     * @return stream of bytes representing values from data
+<i class="no-highlight">403</i>&nbsp;     */
+<i class="no-highlight">404</i>&nbsp;    private byte[] getValuesFromDocument(Map&lt;String, Object&gt; data) {
+<b class="nc"><i class="no-highlight">405</i>&nbsp;        List&lt;Object&gt; finalValues = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        for (Object value : data.values()) {</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;            if (value instanceof DateTime || value instanceof LocalDateTime) {</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                value = converterRegistry.to(DateTime.class).to(value);</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;            } else if (value instanceof Date || value instanceof LocalDate) {</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                value = converterRegistry.to(LocalDate.class).to(value);</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            } else if (value instanceof Time || value instanceof LocalTime) {</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                value = converterRegistry.to(LocalTime.class).to(value);</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;            } else if (value instanceof BigInteger || value instanceof BigDecimal ||</b>
+<i class="no-highlight">414</i>&nbsp;                    value instanceof Number || value instanceof Long || value instanceof Integer
+<i class="no-highlight">415</i>&nbsp;                    || value instanceof Short) {
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                value = new BigDecimal(value.toString()).toPlainString();</b>
+<i class="no-highlight">417</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            finalValues.add(value);</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        return StringUtils.join(finalValues, DEFAULT_DATA_DELIMITER).getBytes(charset);</b>
+<i class="no-highlight">421</i>&nbsp;    }
+<i class="no-highlight">422</i>&nbsp;
+<i class="no-highlight">423</i>&nbsp;    @Override
+<i class="no-highlight">424</i>&nbsp;    public void handle(LifecycleEvent event) {
+<b class="nc"><i class="no-highlight">425</i>&nbsp;        switch (event) {</b>
+<i class="no-highlight">426</i>&nbsp;            case SUCCESS:
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                if (isAzureBlobCreated &amp;&amp; azureStorageOutputStream != null) {</b>
+<i class="no-highlight">428</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                        isTempBlobNamePrinted = true;</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                        if (loadAzureBlobIntoAzureSql()) {</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                            Map&lt;String, String&gt; result = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                            result.put(OUTPUT_MESSAGE_HEADER, OUTPUT_MESSAGE_VALUE);</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                            outputViews.write(documentUtility.newDocument(result));</b>
+<i class="no-highlight">434</i>&nbsp;                        }
+<i class="no-highlight">435</i>&nbsp;                    } finally {
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                        isTempBlobNamePrinted = false;</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;                        deleteTempDbObjectsCreated();</b>
+<i class="no-highlight">438</i>&nbsp;                        // delete temp azure blob (if created)
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                        if (isAzureBlobCreated &amp;&amp; !isAzureBlobNotToBeDeleted) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                            deleteTempBlockBlob();</b>
+<i class="no-highlight">441</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                    }</b>
+<i class="no-highlight">443</i>&nbsp;                }
+<i class="no-highlight">444</i>&nbsp;                break;
+<i class="no-highlight">445</i>&nbsp;            default:
+<i class="no-highlight">446</i>&nbsp;                break;
+<i class="no-highlight">447</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">448</i>&nbsp;        super.handle(event);    // Do all the clean-up, we are finished</b>
+<i class="no-highlight">449</i>&nbsp;    }
+<i class="no-highlight">450</i>&nbsp;
+<i class="no-highlight">451</i>&nbsp;    /**
+<i class="no-highlight">452</i>&nbsp;     * Loads the temporarily created blob into Azure Sql database
+<i class="no-highlight">453</i>&nbsp;     *
+<i class="no-highlight">454</i>&nbsp;     * @return true if all the sub-operations are successful, false otherwise
+<i class="no-highlight">455</i>&nbsp;     */
+<i class="no-highlight">456</i>&nbsp;    protected boolean loadAzureBlobIntoAzureSql() {
+<i class="no-highlight">457</i>&nbsp;        // Step 1: Create master-key and database-scoped-credential (if needed)
+<b class="nc"><i class="no-highlight">458</i>&nbsp;        if (createMasterKeyAndDbScopedCredential()) {</b>
+<i class="no-highlight">459</i>&nbsp;            // Step 2: Create external data source
+<b class="nc"><i class="no-highlight">460</i>&nbsp;            if (createExternalDataSource()) {</b>
+<i class="no-highlight">461</i>&nbsp;                // Step 3: Create external file format
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                if (createExternalFileFormat()) {</b>
+<i class="no-highlight">463</i>&nbsp;                    // Step 4: Create external table
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                    if (createExternalTable()) {</b>
+<i class="no-highlight">465</i>&nbsp;                        // Step 5: Load data into actual table from external table
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                        return doBulkLoad();</b>
+<i class="no-highlight">467</i>&nbsp;                    }
+<i class="no-highlight">468</i>&nbsp;                }
+<i class="no-highlight">469</i>&nbsp;            }
+<i class="no-highlight">470</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        return false;</b>
+<i class="no-highlight">472</i>&nbsp;    }
+<i class="no-highlight">473</i>&nbsp;
+<i class="no-highlight">474</i>&nbsp;    /**
+<i class="no-highlight">475</i>&nbsp;     * Throws the exception occurred while executing db queries with resolution as defect
+<i class="no-highlight">476</i>&nbsp;     *
+<i class="no-highlight">477</i>&nbsp;     * @param e
+<i class="no-highlight">478</i>&nbsp;     * @param queryName
+<i class="no-highlight">479</i>&nbsp;     */
+<i class="no-highlight">480</i>&nbsp;    private void throwDbQueryExecuteException(Exception e, String queryName) {
+<b class="nc"><i class="no-highlight">481</i>&nbsp;        if (queryName.equalsIgnoreCase(QUERY_NAME_EXTERNAL_FILE_FORMAT_CREATE)) {</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;            SnapDataException exception = new SnapDataException(e,</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;                    String.format(ERR_UNABLE_TO_RUN_DB_QUERY_MSG, queryName))</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;                    .withResolution(ENCODING_DB_ERROR_RESOLUTION +</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                            (isTempBlobNamePrinted ? String.format(TEMP_BLOB_NAME_MSG, tempBlobName)</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                                    : StringUtils.EMPTY));</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;            errorViews.write(exception);</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            SnapDataException exception = new SnapDataException(e,</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                    String.format(ERR_UNABLE_TO_RUN_DB_QUERY_MSG, queryName))</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                    .withResolution(GENERIC_DB_ERROR_RESOLUTION +</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                            (isTempBlobNamePrinted ? String.format(TEMP_BLOB_NAME_MSG, tempBlobName)</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                                    : StringUtils.EMPTY));</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;            errorViews.write(exception);</b>
+<i class="no-highlight">497</i>&nbsp;        }
+<i class="no-highlight">498</i>&nbsp;    }
+<i class="no-highlight">499</i>&nbsp;
+<i class="no-highlight">500</i>&nbsp;    /**
+<i class="no-highlight">501</i>&nbsp;     * Throws the exception occurred while executing db queries with given resolution
+<i class="no-highlight">502</i>&nbsp;     *
+<i class="no-highlight">503</i>&nbsp;     * @param e
+<i class="no-highlight">504</i>&nbsp;     * @param queryName
+<i class="no-highlight">505</i>&nbsp;     * @param resolution
+<i class="no-highlight">506</i>&nbsp;     */
+<i class="no-highlight">507</i>&nbsp;    private void throwDbQueryExecuteException(Exception e, String queryName, String resolution) {
+<b class="nc"><i class="no-highlight">508</i>&nbsp;        SnapDataException exception = new SnapDataException(e,</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;                String.format(ERR_UNABLE_TO_RUN_DB_QUERY_MSG, queryName))</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;                .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                .withResolution(resolution +</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                        (isTempBlobNamePrinted ? String.format(TEMP_BLOB_NAME_MSG, tempBlobName)</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                                : StringUtils.EMPTY));</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;        errorViews.write(exception);</b>
+<i class="no-highlight">515</i>&nbsp;    }
+<i class="no-highlight">516</i>&nbsp;
+<i class="no-highlight">517</i>&nbsp;    /**
+<i class="no-highlight">518</i>&nbsp;     * Generates schema for external table based on the first input record
+<i class="no-highlight">519</i>&nbsp;     *
+<i class="no-highlight">520</i>&nbsp;     * @param data
+<i class="no-highlight">521</i>&nbsp;     */
+<i class="no-highlight">522</i>&nbsp;    private void generateExternalTableSchema(Map&lt;String, Object&gt; data) {
+<b class="nc"><i class="no-highlight">523</i>&nbsp;        externalTableSchema = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;        boolean isFirstKey = true;</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;        for (String key : documentKeys) {</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;            if (!isFirstKey) {</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                externalTableSchema.append(COMMA);</b>
+<i class="no-highlight">528</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                isFirstKey = false;</b>
+<i class="no-highlight">530</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">531</i>&nbsp;            externalTableSchema.append(key);</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;            externalTableSchema.append(SPACE);</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;            Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;            if (bulkLoadSchema.equalsIgnoreCase(BULK_LOAD_SCHEMA_EXISTING_TABLE) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                    jdbcOperations.tableExists(conn, account.getDatabaseConfig().getDatabaseName(),</b>
+<i class="no-highlight">536</i>&nbsp;                            tableName) &amp;&amp; tableMetaData != null) {
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                String dataType = mapDataType(tableMetaData.getColumnTypeName(key).toUpperCase());</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                externalTableSchema.append(dataType);</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                LOG.debug(&quot;Data Type generated from existing table: &quot; + dataType);</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;                externalTableSchema.append(getDataType(data.get(key)));</b>
+<i class="no-highlight">542</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">543</i>&nbsp;            LOG.debug(&quot;Data Type generated from input schema: &quot; + getDataType(data.get(key)));</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;            columnNames.add(String.format(FMT_QUOTED_COLUMN_NAME, key));</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;        }</b>
+<i class="no-highlight">546</i>&nbsp;    }
+<i class="no-highlight">547</i>&nbsp;
+<i class="no-highlight">548</i>&nbsp;    /**
+<i class="no-highlight">549</i>&nbsp;     * Returns best sql server data type for the given value
+<i class="no-highlight">550</i>&nbsp;     *
+<i class="no-highlight">551</i>&nbsp;     * @param value
+<i class="no-highlight">552</i>&nbsp;     *
+<i class="no-highlight">553</i>&nbsp;     * @return data type
+<i class="no-highlight">554</i>&nbsp;     */
+<i class="no-highlight">555</i>&nbsp;    private String getDataType(Object value) {
+<b class="nc"><i class="no-highlight">556</i>&nbsp;        if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;            return DATA_TYPE_VARCHAR;</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;        } else if (value instanceof BigInteger || value instanceof Long ||</b>
+<i class="no-highlight">559</i>&nbsp;                value instanceof Integer || value instanceof Short) {
+<b class="nc"><i class="no-highlight">560</i>&nbsp;            return DATA_TYPE_BIGINT;</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;        } else if (value instanceof Number || value instanceof BigDecimal) {</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;            return DATA_TYPE_FLOAT;</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;        } else if (value instanceof DateTime || value instanceof LocalDateTime) {</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;            return DATA_TYPE_DATETIME;</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;        } else if (value instanceof Date || value instanceof LocalDate) {</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;            return DATA_TYPE_DATE;</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;        } else if (value instanceof Time || value instanceof LocalTime) {</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;            return DATA_TYPE_TIME;</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;        } else if (value instanceof Boolean) {</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;            return DATA_TYPE_BIT;</b>
+<i class="no-highlight">571</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">572</i>&nbsp;            return DATA_TYPE_VARCHAR;</b>
+<i class="no-highlight">573</i>&nbsp;        }
+<i class="no-highlight">574</i>&nbsp;    }
+<i class="no-highlight">575</i>&nbsp;
+<i class="no-highlight">576</i>&nbsp;    protected String mapDataType(String incomingDataType) {
+<b class="nc"><i class="no-highlight">577</i>&nbsp;        switch (incomingDataType) {</b>
+<i class="no-highlight">578</i>&nbsp;            case DATA_TYPE_VARCHAR_DEFAULT_SIZE:
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                return DATA_TYPE_VARCHAR;</b>
+<i class="no-highlight">580</i>&nbsp;            case DATA_TYPE_NVARCHAR_DEFAULT_SIZE:
+<b class="nc"><i class="no-highlight">581</i>&nbsp;                return DATA_TYPE_NVARCHAR;</b>
+<i class="no-highlight">582</i>&nbsp;            case DATA_TYPE_NUMERIC:
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                return DATA_TYPE_BIGINT;</b>
+<i class="no-highlight">584</i>&nbsp;            case DATA_TYPE_DECIMAL:
+<b class="nc"><i class="no-highlight">585</i>&nbsp;                return DATA_TYPE_FLOAT;</b>
+<i class="no-highlight">586</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                return incomingDataType;</b>
+<i class="no-highlight">588</i>&nbsp;        }
+<i class="no-highlight">589</i>&nbsp;    }
+<i class="no-highlight">590</i>&nbsp;
+<i class="no-highlight">591</i>&nbsp;    /**
+<i class="no-highlight">592</i>&nbsp;     * Deletes all the temporary database objects created such as external table, etc
+<i class="no-highlight">593</i>&nbsp;     */
+<i class="no-highlight">594</i>&nbsp;    protected void deleteTempDbObjectsCreated() {
+<i class="no-highlight">595</i>&nbsp;        // delete external table
+<b class="nc"><i class="no-highlight">596</i>&nbsp;        if (isExternalTableCreated) {</b>
+<i class="no-highlight">597</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                dbUtils.executeWriteQuery(String.format(QUERY_DROP_EXTERNAL_TABLE,</b>
+<i class="no-highlight">599</i>&nbsp;                        externalTableName));
+<b class="nc"><i class="no-highlight">600</i>&nbsp;            } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;                throwDbQueryExecuteException(e1, QUERY_NAME_DROP_EXTERNAL_TABLE);</b>
+<i class="no-highlight">602</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">603</i>&nbsp;            }</b>
+<i class="no-highlight">604</i>&nbsp;        }
+<i class="no-highlight">605</i>&nbsp;        // delete external file format
+<b class="nc"><i class="no-highlight">606</i>&nbsp;        if (isExternalFileFormatCreated) {</b>
+<i class="no-highlight">607</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">608</i>&nbsp;                dbUtils.executeWriteQuery(String.format(QUERY_DROP_EXTERNAL_FILE_FORMAT,</b>
+<i class="no-highlight">609</i>&nbsp;                        externalFileFormatName));
+<b class="nc"><i class="no-highlight">610</i>&nbsp;            } catch (SQLException e2) {</b>
+<b class="nc"><i class="no-highlight">611</i>&nbsp;                throwDbQueryExecuteException(e2, QUERY_NAME_DROP_EXTERNAL_FILE_FORMAT);</b>
+<i class="no-highlight">612</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">613</i>&nbsp;            }</b>
+<i class="no-highlight">614</i>&nbsp;        }
+<i class="no-highlight">615</i>&nbsp;        // delete external data source
+<b class="nc"><i class="no-highlight">616</i>&nbsp;        if (isExternalDataSourceCreated) {</b>
+<i class="no-highlight">617</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">618</i>&nbsp;                dbUtils.executeWriteQuery(String.format(QUERY_DROP_EXTERNAL_DATA_SOURCE,</b>
+<i class="no-highlight">619</i>&nbsp;                        externalDataSourceName));
+<b class="nc"><i class="no-highlight">620</i>&nbsp;            } catch (SQLException e3) {</b>
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                throwDbQueryExecuteException(e3, QUERY_NAME_DROP_EXTERNAL_DATA_SOURCE);</b>
+<i class="no-highlight">622</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">623</i>&nbsp;            }</b>
+<i class="no-highlight">624</i>&nbsp;        }
+<i class="no-highlight">625</i>&nbsp;        // delete database-scoped-credential (if created)
+<b class="nc"><i class="no-highlight">626</i>&nbsp;        if (isDbScopedCredentialCreated) {</b>
+<i class="no-highlight">627</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">628</i>&nbsp;                dbUtils.executeWriteQuery(String.format(</b>
+<i class="no-highlight">629</i>&nbsp;                        QUERY_DROP_DATABASE_SCOPED_CREDENTIAL, dbScopedCredentialName));
+<b class="nc"><i class="no-highlight">630</i>&nbsp;            } catch (SQLException e4) {</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                throwDbQueryExecuteException(e4, QUERY_NAME_DROP_DB_SCOPED_CREDENTIAL);</b>
+<i class="no-highlight">632</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">633</i>&nbsp;            }</b>
+<i class="no-highlight">634</i>&nbsp;        }
+<i class="no-highlight">635</i>&nbsp;        // delete master-key (if created)
+<b class="nc"><i class="no-highlight">636</i>&nbsp;        if (isMasterKeyCreated) {</b>
+<i class="no-highlight">637</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">638</i>&nbsp;                dbUtils.executeWriteQuery(QUERY_DROP_MASTER_KEY);</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;            } catch (SQLException e5) {</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;                throwDbQueryExecuteException(e5, QUERY_NAME_DROP_MASTER_KEY);</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;            }</b>
+<i class="no-highlight">642</i>&nbsp;        }
+<i class="no-highlight">643</i>&nbsp;    }
+<i class="no-highlight">644</i>&nbsp;
+<i class="no-highlight">645</i>&nbsp;    /**
+<i class="no-highlight">646</i>&nbsp;     * Creates master-key and database-scoped-credential (if required)
+<i class="no-highlight">647</i>&nbsp;     *
+<i class="no-highlight">648</i>&nbsp;     * @return true if operation successful, false otherwise
+<i class="no-highlight">649</i>&nbsp;     */
+<i class="no-highlight">650</i>&nbsp;    private boolean createMasterKeyAndDbScopedCredential() {
+<b class="nc"><i class="no-highlight">651</i>&nbsp;        if (isDbScopedCredentialCreated) {</b>
+<i class="no-highlight">652</i>&nbsp;            boolean masterKeyExists;
+<i class="no-highlight">653</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">654</i>&nbsp;                masterKeyExists = dbUtils.executeReadQuery(QUERY_CHECK_MASTER_KEY_EXISTS);</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;            } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">656</i>&nbsp;                throwDbQueryExecuteException(e1, QUERY_NAME_MASTER_KEY_CHECK);</b>
+<b class="nc"><i class="no-highlight">657</i>&nbsp;                isAzureBlobNotToBeDeleted = true;</b>
+<b class="nc"><i class="no-highlight">658</i>&nbsp;                return false;</b>
+<b class="nc"><i class="no-highlight">659</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">660</i>&nbsp;            if (!masterKeyExists) {</b>
+<i class="no-highlight">661</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">662</i>&nbsp;                    String queryToCreateMasterKey = String.format(QUERY_CREATE_MASTER_KEY,</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;                            String.format(TEMP_MASTER_KEY_PASSWORD, randomUUID));</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;                    dbUtils.executeWriteQuery(queryToCreateMasterKey);</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;                    isMasterKeyCreated = true;</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;                } catch (SQLException e2) {</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;                    throwDbQueryExecuteException(e2, QUERY_NAME_MASTER_KEY_CREATE);</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;                    isAzureBlobNotToBeDeleted = true;</b>
+<b class="nc"><i class="no-highlight">669</i>&nbsp;                    return false;</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;                }</b>
+<i class="no-highlight">671</i>&nbsp;            }
+<i class="no-highlight">672</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">673</i>&nbsp;                dbScopedCredentialName = String.format(TEMP_DB_SCOPED_CREDENTIAL_NAME, randomUUID);</b>
+<b class="nc"><i class="no-highlight">674</i>&nbsp;                String queryToCreateDbScopedCredential =</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                        String.format(QUERY_CREATE_DATABASE_SCOPED_CREDENTIAL,</b>
+<b class="nc"><i class="no-highlight">676</i>&nbsp;                                dbScopedCredentialName, String.format(</b>
+<i class="no-highlight">677</i>&nbsp;                                        TEMP_DB_SCOPED_CREDENTIAL_ID, randomUUID),
+<b class="nc"><i class="no-highlight">678</i>&nbsp;                                ((AzureSqlDatabaseAccount) account).getAzureStorageAccountKey());</b>
+<b class="nc"><i class="no-highlight">679</i>&nbsp;                dbUtils.executeWriteQuery(queryToCreateDbScopedCredential);</b>
+<b class="nc"><i class="no-highlight">680</i>&nbsp;            } catch (SQLException e3) {</b>
+<b class="nc"><i class="no-highlight">681</i>&nbsp;                throwDbQueryExecuteException(e3, QUERY_NAME_DB_SCOPED_CREDENTIAL_CREATE);</b>
+<b class="nc"><i class="no-highlight">682</i>&nbsp;                isAzureBlobNotToBeDeleted = true;</b>
+<b class="nc"><i class="no-highlight">683</i>&nbsp;                return false;</b>
+<b class="nc"><i class="no-highlight">684</i>&nbsp;            }</b>
+<i class="no-highlight">685</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">686</i>&nbsp;        return true;</b>
+<i class="no-highlight">687</i>&nbsp;    }
+<i class="no-highlight">688</i>&nbsp;
+<i class="no-highlight">689</i>&nbsp;    /**
+<i class="no-highlight">690</i>&nbsp;     * Creates external data source
+<i class="no-highlight">691</i>&nbsp;     *
+<i class="no-highlight">692</i>&nbsp;     * @return true if operation successful, false otherwise
+<i class="no-highlight">693</i>&nbsp;     */
+<i class="no-highlight">694</i>&nbsp;    private boolean createExternalDataSource() {
+<i class="no-highlight">695</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">696</i>&nbsp;            externalDataSourceName = String.format(TEMP_EXTERNAL_DATA_SOURCE_NAME, randomUUID);</b>
+<b class="nc"><i class="no-highlight">697</i>&nbsp;            String queryToCreateExternalDataSource =</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                    String.format(QUERY_CREATE_EXTERNAL_DATA_SOURCE, externalDataSourceName,</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;                            ((AzureSqlDatabaseAccount) account).getDataSourceLocationUrl(),</b>
+<i class="no-highlight">700</i>&nbsp;                            dbScopedCredentialName);
+<b class="nc"><i class="no-highlight">701</i>&nbsp;            dbUtils.executeWriteQuery(queryToCreateExternalDataSource);</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;            isExternalDataSourceCreated = true;</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">704</i>&nbsp;        } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">705</i>&nbsp;            throwDbQueryExecuteException(e1, QUERY_NAME_EXTERNAL_DS_CREATE);</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;            isAzureBlobNotToBeDeleted = true;</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;            return false;</b>
+<i class="no-highlight">708</i>&nbsp;        }
+<i class="no-highlight">709</i>&nbsp;    }
+<i class="no-highlight">710</i>&nbsp;
+<i class="no-highlight">711</i>&nbsp;    /**
+<i class="no-highlight">712</i>&nbsp;     * Creates external file format
+<i class="no-highlight">713</i>&nbsp;     *
+<i class="no-highlight">714</i>&nbsp;     * @return true if operation successful, false otherwise
+<i class="no-highlight">715</i>&nbsp;     */
+<i class="no-highlight">716</i>&nbsp;    private boolean createExternalFileFormat() {
+<i class="no-highlight">717</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">718</i>&nbsp;            externalFileFormatName = String.format(TEMP_EXTERNAL_FILE_FORMAT_NAME, randomUUID);</b>
+<i class="no-highlight">719</i>&nbsp;            String queryToCreateExternalFileFormat;
+<b class="nc"><i class="no-highlight">720</i>&nbsp;            if (isNoEncodingProvided) {</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;                queryToCreateExternalFileFormat = String.format(</b>
+<i class="no-highlight">722</i>&nbsp;                        QUERY_CREATE_EXTERNAL_FILE_FORMAT, externalFileFormatName,
+<i class="no-highlight">723</i>&nbsp;                        DEFAULT_DATA_DELIMITER, useTypeDefault);
+<i class="no-highlight">724</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">725</i>&nbsp;                queryToCreateExternalFileFormat = String.format(</b>
+<i class="no-highlight">726</i>&nbsp;                        QUERY_CREATE_EXTERNAL_FILE_FORMAT_WITH_ENCODING, externalFileFormatName,
+<i class="no-highlight">727</i>&nbsp;                        DEFAULT_DATA_DELIMITER, useTypeDefault,
+<b class="nc"><i class="no-highlight">728</i>&nbsp;                        StringUtils.remove(encoding, HYPHEN));</b>
+<i class="no-highlight">729</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">730</i>&nbsp;            LOG.debug(&quot;Query to create external file format: {}&quot;, queryToCreateExternalFileFormat);</b>
+<b class="nc"><i class="no-highlight">731</i>&nbsp;            dbUtils.executeWriteQuery(queryToCreateExternalFileFormat);</b>
+<b class="nc"><i class="no-highlight">732</i>&nbsp;            isExternalFileFormatCreated = true;</b>
+<b class="nc"><i class="no-highlight">733</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">734</i>&nbsp;        } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;            throwDbQueryExecuteException(e1, QUERY_NAME_EXTERNAL_FILE_FORMAT_CREATE);</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;            isAzureBlobNotToBeDeleted = true;</b>
+<b class="nc"><i class="no-highlight">737</i>&nbsp;            return false;</b>
+<i class="no-highlight">738</i>&nbsp;        }
+<i class="no-highlight">739</i>&nbsp;    }
+<i class="no-highlight">740</i>&nbsp;
+<i class="no-highlight">741</i>&nbsp;    /**
+<i class="no-highlight">742</i>&nbsp;     * Creates external table
+<i class="no-highlight">743</i>&nbsp;     *
+<i class="no-highlight">744</i>&nbsp;     * @return true if operation successful, false otherwise
+<i class="no-highlight">745</i>&nbsp;     */
+<i class="no-highlight">746</i>&nbsp;    private boolean createExternalTable() {
+<i class="no-highlight">747</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">748</i>&nbsp;            externalTableName = String.format(TEMP_EXTERNAL_TABLE_NAME, randomUUID);</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;            String queryToCreateExternalTable =</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;                    String.format(QUERY_CREATE_EXTERNAL_TABLE, externalTableName,</b>
+<i class="no-highlight">751</i>&nbsp;                            externalTableSchema, tempBlobName, externalDataSourceName,
+<b class="nc"><i class="no-highlight">752</i>&nbsp;                            externalFileFormatName, getRejectedRowLocationOption());</b>
+<b class="nc"><i class="no-highlight">753</i>&nbsp;            LOG.debug(&quot;Query to create external table: {}&quot;, queryToCreateExternalTable);</b>
+<b class="nc"><i class="no-highlight">754</i>&nbsp;            dbUtils.executeWriteQuery(queryToCreateExternalTable);</b>
+<b class="nc"><i class="no-highlight">755</i>&nbsp;            isExternalTableCreated = true;</b>
+<b class="nc"><i class="no-highlight">756</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">757</i>&nbsp;        } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">758</i>&nbsp;            throwDbQueryExecuteException(e1, QUERY_NAME_EXTERNAL_TABLE_CREATE);</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;            isAzureBlobNotToBeDeleted = true;</b>
+<b class="nc"><i class="no-highlight">760</i>&nbsp;            return false;</b>
+<i class="no-highlight">761</i>&nbsp;        }
+<i class="no-highlight">762</i>&nbsp;    }
+<i class="no-highlight">763</i>&nbsp;
+<i class="no-highlight">764</i>&nbsp;    /**
+<i class="no-highlight">765</i>&nbsp;     * If the given Azure Sql instance is a Data Warehouse then we will append the option to
+<i class="no-highlight">766</i>&nbsp;     * place rejected rows (due to invalid data) in the Azure Storage Blob so that users can easily
+<i class="no-highlight">767</i>&nbsp;     * get hold of bad data
+<i class="no-highlight">768</i>&nbsp;     *
+<i class="no-highlight">769</i>&nbsp;     * @return location to place rejected rows if data warehouse else empty string
+<i class="no-highlight">770</i>&nbsp;     */
+<i class="no-highlight">771</i>&nbsp;    private String getRejectedRowLocationOption() {
+<b class="nc"><i class="no-highlight">772</i>&nbsp;        azureSqlDataWarehouse = isAzureSqlDataWarehouse();</b>
+<b class="nc"><i class="no-highlight">773</i>&nbsp;        return azureSqlDataWarehouse ?</b>
+<b class="nc"><i class="no-highlight">774</i>&nbsp;                String.format(REJECTED_ROW_LOC_OPTION, randomUUID) :</b>
+<b class="nc"><i class="no-highlight">775</i>&nbsp;                StringUtils.EMPTY;</b>
+<i class="no-highlight">776</i>&nbsp;    }
+<i class="no-highlight">777</i>&nbsp;
+<i class="no-highlight">778</i>&nbsp;    protected boolean isAzureSqlDataWarehouse() {
+<i class="no-highlight">779</i>&nbsp;        /*
+<i class="no-highlight">780</i>&nbsp;        There are two steps to determine if a given Azure Sql instance is a Data Warehouse or not.
+<i class="no-highlight">781</i>&nbsp;        Step 1: Connect to master database of the given Azure Sql instance
+<i class="no-highlight">782</i>&nbsp;        Step 2: Run the following query:
+<i class="no-highlight">783</i>&nbsp;                SELECT ds.edition [Edition] FROM sys.database_service_objectives AS ds WHERE ds.database_id =
+<i class="no-highlight">784</i>&nbsp;                 (SELECT db.database_id FROM sys.databases AS db WHERE UPPER(db.name) = &#39;target DB name in upper-case&#39;)
+<i class="no-highlight">785</i>&nbsp;
+<i class="no-highlight">786</i>&nbsp;        If the above query throws exception then its not a Data Warehouse.
+<i class="no-highlight">787</i>&nbsp;        Or, if the output column of the query is not equal to &#39;DataWarehouse&#39; then is not a Data Warehouse.
+<i class="no-highlight">788</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">789</i>&nbsp;        if (account instanceof BaseDatabaseAccount) {</b>
+<b class="nc"><i class="no-highlight">790</i>&nbsp;            String jdbcUrl = ((BaseDatabaseAccount) account).createJdbcUrlWithMasterDatabase();</b>
+<b class="nc"><i class="no-highlight">791</i>&nbsp;            DatabaseConfig databaseConfig = account.getDatabaseConfig();</b>
+<b class="nc"><i class="no-highlight">792</i>&nbsp;            try (Connection connToMasterDb = DriverManager.getConnection(jdbcUrl,</b>
+<b class="nc"><i class="no-highlight">793</i>&nbsp;                    databaseConfig.getUsername(), databaseConfig.getPassword())) {</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;                try (Statement statement = connToMasterDb.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;                    String hostName = databaseConfig.getDatabaseName().toUpperCase();</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;                    String query = String.format(QUERY_TO_CHECK_IF_CURRENT_INSTANCE_DATA_WAREHOUSE,</b>
+<i class="no-highlight">797</i>&nbsp;                            hostName);
+<b class="nc"><i class="no-highlight">798</i>&nbsp;                    try (ResultSet resultSet = statement.executeQuery(query)) {</b>
+<b class="nc"><i class="no-highlight">799</i>&nbsp;                        resultSet.next();</b>
+<b class="nc"><i class="no-highlight">800</i>&nbsp;                        return resultSet.getString(1).equalsIgnoreCase(DATA_WAREHOUSE);</b>
+<b class="nc"><i class="no-highlight">801</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">802</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">803</i>&nbsp;            } catch (SQLException e1) {</b>
+<i class="no-highlight">804</i>&nbsp;                // This instance may not be a Data Warehouse
+<b class="nc"><i class="no-highlight">805</i>&nbsp;                LOG.error(&quot;Exception encountered while trying to determine if the given &quot; +</b>
+<i class="no-highlight">806</i>&nbsp;                        &quot;Azure Sql instance is a Data Warehouse&quot;, e1);
+<b class="nc"><i class="no-highlight">807</i>&nbsp;                return false;</b>
+<i class="no-highlight">808</i>&nbsp;            }
+<i class="no-highlight">809</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">810</i>&nbsp;            return false;</b>
+<i class="no-highlight">811</i>&nbsp;        }
+<i class="no-highlight">812</i>&nbsp;    }
+<i class="no-highlight">813</i>&nbsp;
+<i class="no-highlight">814</i>&nbsp;    /**
+<i class="no-highlight">815</i>&nbsp;     * Copies data from external table into actual table
+<i class="no-highlight">816</i>&nbsp;     *
+<i class="no-highlight">817</i>&nbsp;     * @return true if the operation is successful, false otherwise
+<i class="no-highlight">818</i>&nbsp;     */
+<i class="no-highlight">819</i>&nbsp;    private boolean doBulkLoad() {
+<b class="nc"><i class="no-highlight">820</i>&nbsp;        boolean isBulkLoadAppend = false;</b>
+<i class="no-highlight">821</i>&nbsp;        String queryToDoBulkLoad;
+<i class="no-highlight">822</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">823</i>&nbsp;            if (insertMode.equalsIgnoreCase(BULK_LOAD_INSERT_MODE_APPEND)) {</b>
+<b class="nc"><i class="no-highlight">824</i>&nbsp;                isBulkLoadAppend = true;</b>
+<b class="nc"><i class="no-highlight">825</i>&nbsp;                String columnList = StringUtils.join(columnNames, &#39;,&#39;);</b>
+<b class="nc"><i class="no-highlight">826</i>&nbsp;                queryToDoBulkLoad = String.format(QUERY_BULK_INSERT_APPEND, tableName,</b>
+<i class="no-highlight">827</i>&nbsp;                        columnList, columnList, externalTableName);
+<b class="nc"><i class="no-highlight">828</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">829</i>&nbsp;                queryToDoBulkLoad = String.format(QUERY_BULK_INSERT_OVERWRITE, tableName,</b>
+<i class="no-highlight">830</i>&nbsp;                        externalTableName);
+<i class="no-highlight">831</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">832</i>&nbsp;            LOG.debug(&quot;Query to do bulk load: {}&quot;, queryToDoBulkLoad);</b>
+<b class="nc"><i class="no-highlight">833</i>&nbsp;            dbUtils.executeWriteQuery(queryToDoBulkLoad);</b>
+<b class="nc"><i class="no-highlight">834</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">835</i>&nbsp;        } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">836</i>&nbsp;            isAzureBlobNotToBeDeleted = true;</b>
+<b class="nc"><i class="no-highlight">837</i>&nbsp;            String errorMessage = e1.getMessage();</b>
+<b class="nc"><i class="no-highlight">838</i>&nbsp;            if (errorMessage.contains(BULK_LOAD_OVERWRITE_ERROR_MSG)) {</b>
+<b class="nc"><i class="no-highlight">839</i>&nbsp;                throwDbQueryExecuteException(e1, QUERY_NAME_BULK_LOAD_OVERWRITE,</b>
+<i class="no-highlight">840</i>&nbsp;                        ERR_BULK_LOAD_OVERWRITE_RESOLUTION);
+<b class="nc"><i class="no-highlight">841</i>&nbsp;            } else if (errorMessage.contains(BULK_LOAD_APPEND_ERROR_MSG)) {</b>
+<b class="nc"><i class="no-highlight">842</i>&nbsp;                throwDbQueryExecuteException(e1, QUERY_NAME_BULK_LOAD_APPEND,</b>
+<i class="no-highlight">843</i>&nbsp;                        ERR_BULK_LOAD_APPEND_RESOLUTION);
+<i class="no-highlight">844</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">845</i>&nbsp;                throwDbQueryExecuteException(e1, isBulkLoadAppend ? QUERY_NAME_BULK_LOAD_APPEND :</b>
+<b class="nc"><i class="no-highlight">846</i>&nbsp;                        QUERY_NAME_BULK_LOAD_OVERWRITE,</b>
+<b class="nc"><i class="no-highlight">847</i>&nbsp;                        String.format(ERR_BULK_LOAD_GENERAL_RESOLUTION, putRejectedRowLocation()));</b>
+<i class="no-highlight">848</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">849</i>&nbsp;            return false;</b>
+<i class="no-highlight">850</i>&nbsp;        }
+<i class="no-highlight">851</i>&nbsp;    }
+<i class="no-highlight">852</i>&nbsp;
+<i class="no-highlight">853</i>&nbsp;    /**
+<i class="no-highlight">854</i>&nbsp;     * If the instance if Azure Data Warehouse then display the rejected row location for user&#39;s
+<i class="no-highlight">855</i>&nbsp;     *  convenience
+<i class="no-highlight">856</i>&nbsp;     *
+<i class="no-highlight">857</i>&nbsp;     */
+<i class="no-highlight">858</i>&nbsp;    private String putRejectedRowLocation() {
+<b class="nc"><i class="no-highlight">859</i>&nbsp;        return azureSqlDataWarehouse ?</b>
+<b class="nc"><i class="no-highlight">860</i>&nbsp;                String.format(REJECTED_ROW_LOCATION_MSG,</b>
+<b class="nc"><i class="no-highlight">861</i>&nbsp;                        String.format(REJECTED_ROW_LOC_OPTION.substring(28,</b>
+<b class="nc"><i class="no-highlight">862</i>&nbsp;                                REJECTED_ROW_LOC_OPTION.length() - 1), randomUUID)) :</b>
+<b class="nc"><i class="no-highlight">863</i>&nbsp;                StringUtils.EMPTY;</b>
+<i class="no-highlight">864</i>&nbsp;    }
+<i class="no-highlight">865</i>&nbsp;
+<i class="no-highlight">866</i>&nbsp;    /**
+<i class="no-highlight">867</i>&nbsp;     * Deletes temporary block blob that was created
+<i class="no-highlight">868</i>&nbsp;     */
+<i class="no-highlight">869</i>&nbsp;    protected void deleteTempBlockBlob() {
+<i class="no-highlight">870</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">871</i>&nbsp;            if (tempCloudBlockBlob == null) {</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;                CloudBlobContainer container = ((AzureSqlDatabaseAccount) account)</b>
+<b class="nc"><i class="no-highlight">873</i>&nbsp;                        .connectToAzureStorage();</b>
+<b class="nc"><i class="no-highlight">874</i>&nbsp;                tempCloudBlockBlob = container.getBlockBlobReference(tempBlobName);</b>
+<i class="no-highlight">875</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">876</i>&nbsp;            tempCloudBlockBlob.delete();</b>
+<b class="nc"><i class="no-highlight">877</i>&nbsp;        } catch (StorageException e1) {</b>
+<b class="nc"><i class="no-highlight">878</i>&nbsp;            SnapDataException exception = new SnapDataException(e1,</b>
+<b class="nc"><i class="no-highlight">879</i>&nbsp;                    String.format(ERR_BLOB_DELETION_STORAGE_MSG, tempBlobName))</b>
+<b class="nc"><i class="no-highlight">880</i>&nbsp;                    .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">881</i>&nbsp;                    .withResolution(ERR_BLOB_DELETION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">882</i>&nbsp;            errorViews.write(exception);</b>
+<b class="nc"><i class="no-highlight">883</i>&nbsp;        } catch (URISyntaxException e2) {</b>
+<b class="nc"><i class="no-highlight">884</i>&nbsp;            SnapDataException exception = new SnapDataException(e2,</b>
+<b class="nc"><i class="no-highlight">885</i>&nbsp;                    String.format(ERR_BLOB_DELETION_URI_MSG, tempBlobName))</b>
+<b class="nc"><i class="no-highlight">886</i>&nbsp;                    .withReason(e2.getMessage())</b>
+<b class="nc"><i class="no-highlight">887</i>&nbsp;                    .withResolution(ERR_BLOB_DELETION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">888</i>&nbsp;            errorViews.write(exception);</b>
+<b class="nc"><i class="no-highlight">889</i>&nbsp;        }</b>
+<i class="no-highlight">890</i>&nbsp;    }
+<i class="no-highlight">891</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

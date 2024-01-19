@@ -1,0 +1,441 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AutosyncAssetUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.autosync.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: AutosyncAssetUtil (com.snaplogic.snaps.autosync.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AutosyncAssetUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    27.8%
+  </span>
+  <span class="absValue">
+    (5/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    8.1%
+  </span>
+  <span class="absValue">
+    (14/173)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2023, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.autosync.utils;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.core.JsonProcessingException;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.databind.DeserializationFeature;
+<i class="no-highlight">15</i>&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+<i class="no-highlight">16</i>&nbsp;import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+<i class="no-highlight">17</i>&nbsp;import com.fasterxml.jackson.datatype.joda.JodaModule;
+<i class="no-highlight">18</i>&nbsp;import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+<i class="no-highlight">19</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">20</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.JsonFactoryModule;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snaps.autosync.model.AutoSyncSpec;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snaps.autosync.model.AutosyncAssetDTO;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snaps.autosync.model.AutosyncAssetStatsDTO;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snaps.autosync.model.ColumnOperationsAssetDTO;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snaps.autosync.model.ColumnTransformation;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snaps.autosync.model.Endpoint;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snaps.autosync.model.EndpointAssetDTO;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snaps.autosync.model.TableAssetDTO;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snaps.autosync.model.TableConfig;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snaps.autosync.service.JobStatusHandler;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">35</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">36</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">37</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">40</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">41</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">42</i>&nbsp;import java.util.List;
+<i class="no-highlight">43</i>&nbsp;import java.util.Map;
+<i class="no-highlight">44</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">45</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.autosync.AutoSyncUtils.prettyPrint;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.autosync.Messages.CONTACT_SUPPORT;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.autosync.schema_management.Constants.CSV_FILE_READER;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.autosync.schema_management.Constants.EMPTY_STRING;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;/**
+<i class="no-highlight">53</i>&nbsp; * AutosyncAssetUtil
+<i class="no-highlight">54</i>&nbsp; */
+<i class="no-highlight">55</i>&nbsp;public final class AutosyncAssetUtil {
+<b class="fc"><i class="no-highlight">56</i>&nbsp;    private static final Logger LOGGER =</b>
+<b class="fc"><i class="no-highlight">57</i>&nbsp;            LoggerFactory.getLogger(AutosyncAssetUtil.class);</b>
+<i class="no-highlight">58</i>&nbsp;
+<b class="fc"><i class="no-highlight">59</i>&nbsp;    private static final ObjectMapper MAPPER = new ObjectMapper()</b>
+<b class="fc"><i class="no-highlight">60</i>&nbsp;            .registerModule(new JsonFactoryModule())</b>
+<b class="fc"><i class="no-highlight">61</i>&nbsp;            .registerModule(new JodaModule())</b>
+<b class="fc"><i class="no-highlight">62</i>&nbsp;            .registerModule(new JavaTimeModule())</b>
+<b class="fc"><i class="no-highlight">63</i>&nbsp;            .setPropertyNamingStrategy(new PropertyNamingStrategies.SnakeCaseStrategy())</b>
+<b class="fc"><i class="no-highlight">64</i>&nbsp;            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);</b>
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;    private AutosyncAssetUtil() {
+<i class="no-highlight">67</i>&nbsp;        // utils class
+<i class="no-highlight">68</i>&nbsp;    }
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;    public static AutosyncAssetDTO convertAssetFromMap(Map&lt;String, Object&gt; assetMap) {
+<b class="fc"><i class="no-highlight">71</i>&nbsp;        AutosyncAssetDTO.AutosyncAssetInstanceDto autosyncAssetInstanceDto =</b>
+<b class="fc"><i class="no-highlight">72</i>&nbsp;                MAPPER.convertValue(assetMap, AutosyncAssetDTO.AutosyncAssetInstanceDto.class);</b>
+<b class="fc"><i class="no-highlight">73</i>&nbsp;        return autosyncAssetInstanceDto.getInstance();</b>
+<i class="no-highlight">74</i>&nbsp;    }
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    public static AutosyncAssetStatsDTO.TableStatsDTO convertAssetStatsFromMap(
+<i class="no-highlight">77</i>&nbsp;            Map&lt;String, Object&gt; syncDataResult, String loadMethod) {
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        AutosyncAssetStatsDTO.AutosyncAssetStatsResultDTO autosyncAssetStatsResultDTO =</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                MAPPER.convertValue(syncDataResult,</b>
+<i class="no-highlight">80</i>&nbsp;                        AutosyncAssetStatsDTO.AutosyncAssetStatsResultDTO.class);
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        return CollectionUtils.isEmpty(autosyncAssetStatsResultDTO.getResults()) ?</b>
+<i class="no-highlight">82</i>&nbsp;//              If result is empty -&gt; there is no data in src table and
+<i class="no-highlight">83</i>&nbsp;//              load was not invoked. We set &#39;Success&#39; in this case manually
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                getDefaultSuccessStatsWhenEmptySyncResult(loadMethod) :</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                autosyncAssetStatsResultDTO.getResults().get(0);</b>
+<i class="no-highlight">86</i>&nbsp;    }
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;    private static AutosyncAssetStatsDTO.TableStatsDTO getDefaultSuccessStatsWhenEmptySyncResult(
+<i class="no-highlight">89</i>&nbsp;            String loadMethod) {
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        AutosyncAssetStatsDTO.TableStatsDTO stats = new AutosyncAssetStatsDTO.TableStatsDTO();</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        stats.setStatus(JobStatusHandler.SUCCESS);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        stats.setFailedRecords(&quot;0&quot;);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        stats.setInputRecords(&quot;0&quot;);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        stats.setInsertedRecords(&quot;0&quot;);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        stats.setUpdatedRecords(&quot;0&quot;);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        stats.setLoadMethod(loadMethod);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        return stats;</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    public static Map&lt;String, Object&gt; convertStatsToMap(
+<i class="no-highlight">101</i>&nbsp;            AutosyncAssetStatsDTO autosyncAssetStatsDTO){
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        return MAPPER.convertValue(autosyncAssetStatsDTO, Map.class);</b>
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    public static Map&lt;String, Object&gt; convertExtraParamsToMap(
+<i class="no-highlight">106</i>&nbsp;            String extraParams) {
+<i class="no-highlight">107</i>&nbsp;        try {
+<b class="fc"><i class="no-highlight">108</i>&nbsp;            return MAPPER.readValue(extraParams, Map.class);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        } catch (JsonProcessingException e) {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            throw new ConfigurationException(e, &quot;Extra params can&#39;t be deserialized: %s&quot;)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                    .formatWith(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                    .withReason(&quot;Deserialization exception&quot;)</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                    .withResolution(CONTACT_SUPPORT);</b>
+<i class="no-highlight">114</i>&nbsp;        }
+<i class="no-highlight">115</i>&nbsp;    }
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;    public static String convertExtraParamsMapToJsonString(
+<i class="no-highlight">118</i>&nbsp;            Map&lt;String, Object&gt; extraParamsMap) {
+<i class="no-highlight">119</i>&nbsp;        try {
+<b class="fc"><i class="no-highlight">120</i>&nbsp;            return MAPPER.writeValueAsString(extraParamsMap);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        } catch (JsonProcessingException e) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            throw new ConfigurationException(e, &quot;Extra params can&#39;t be serialized: %s&quot;)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                    .formatWith(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                    .withReason(&quot;Serialization exception&quot;)</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                    .withResolution(CONTACT_SUPPORT);</b>
+<i class="no-highlight">126</i>&nbsp;        }
+<i class="no-highlight">127</i>&nbsp;    }
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    public static List&lt;AutoSyncSpec&gt; retrieveConfigFromAssetInfo(AutosyncAssetDTO assetDTO) {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        LOGGER.debug(&quot;AutosyncAssetUtil::retrieveConfigFromAssetInfo: assetDTO {}&quot;,</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                prettyPrint(assetDTO));</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        List&lt;EndpointAssetDTO&gt; sources = parseSourceEndpoint(assetDTO);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        List&lt;EndpointAssetDTO&gt; targets = parseTargetEndpoint(assetDTO);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        List&lt;AutoSyncSpec&gt; specs = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        for (EndpointAssetDTO source: sources) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            for (EndpointAssetDTO target: targets) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                specs.add(getAutoSyncSpec(assetDTO, source, target));</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        return specs;</b>
+<i class="no-highlight">141</i>&nbsp;    }
+<i class="no-highlight">142</i>&nbsp;
+<i class="no-highlight">143</i>&nbsp;    public static AutoSyncSpec getAutoSyncSpec(AutosyncAssetDTO assetDTO, EndpointAssetDTO source,
+<i class="no-highlight">144</i>&nbsp;                                               EndpointAssetDTO target) {
+<i class="no-highlight">145</i>&nbsp;
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        String sourceAccount = parseSourceAccount(source);</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        Endpoint sourceEndpoint = new Endpoint()</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                .withSchemaName(</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                        Optional.ofNullable(source.getSchemaSelection().getSchema())</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                                .orElse(&quot;&quot;))</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                .withType(source.getName())</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .withAccountPath(sourceAccount)</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                .withDatabaseName(</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                        Optional.ofNullable(source.getSchemaSelection().getCatalog())</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                                .orElse(&quot;&quot;));</b>
+<i class="no-highlight">156</i>&nbsp;
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        String targetAccount = parseTargetAccount(target);</b>
+<i class="no-highlight">158</i>&nbsp;
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        Endpoint targetEndpoint = new Endpoint()</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                .withSchemaName(</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                        Optional.ofNullable(target.getSchemaSelection().getSchema())</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                                .orElse(&quot;&quot;))</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                .withType(target.getName())</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                .withAccountPath(targetAccount)</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                .withDatabaseName(</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                        Optional.ofNullable(target.getSchemaSelection().getCatalog())</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                                .orElse(&quot;&quot;));</b>
+<i class="no-highlight">168</i>&nbsp;
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        List&lt;TableAssetDTO&gt; tables = parseTables(source);</b>
+<i class="no-highlight">170</i>&nbsp;
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        Map&lt;String, Object&gt; tgtExtraParamMap = Optional</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                .ofNullable(target.getSchemaSelection().getExtraParams())</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .orElse(new HashMap&lt;&gt;());</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        Map&lt;String, Object&gt; srcExtraParamMap = Optional</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                .ofNullable(source.getSchemaSelection().getExtraParams())</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                .orElse(new HashMap&lt;&gt;());</b>
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;        String srcExtraParams;
+<i class="no-highlight">179</i>&nbsp;        String tgtExtraParams;
+<i class="no-highlight">180</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">181</i>&nbsp;            srcExtraParams = new ObjectMapper()</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                    .registerModule(new JsonFactoryModule())</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                    .registerModule(new JodaModule())</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                    .registerModule(new JavaTimeModule())</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                    .writeValueAsString(srcExtraParamMap);</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            tgtExtraParams = new ObjectMapper()</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                    .registerModule(new JsonFactoryModule())</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                    .registerModule(new JodaModule())</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                    .registerModule(new JavaTimeModule())</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                    .writeValueAsString(tgtExtraParamMap);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        } catch (JsonProcessingException e) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            throw new ConfigurationException(&quot;Extra params can&#39;t be serialized.&quot;)</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                    .withReason(&quot;Serialization exception&quot;)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                    .withResolution(CONTACT_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        }</b>
+<i class="no-highlight">196</i>&nbsp;
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        String projectId = Optional.ofNullable(target.getSchemaSelection().getExtraParams())</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                .map(e -&gt; (String) e.get(&quot;project_id&quot;))</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                .orElse(&quot;&quot;);</b>
+<i class="no-highlight">200</i>&nbsp;
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        boolean enquoteNames = Optional.ofNullable(target.getSchemaSelection().getExtraParams())</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .map(e -&gt; e.get(&quot;enquote_names&quot;))</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                .map(e -&gt; (boolean) e)</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                .orElse(false);</b>
+<i class="no-highlight">205</i>&nbsp;
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        boolean enableErrorTable = Optional.ofNullable(target.getSchemaSelection().getExtraParams())</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                .map(e -&gt; e.get(&quot;enable_error_table&quot;))</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .map(e -&gt; (boolean) e)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .orElse(false);</b>
+<i class="no-highlight">210</i>&nbsp;
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        List&lt;TableConfig&gt; tableConfigs = tables.stream()</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                .map(tableAssetDTO -&gt; new TableConfig(</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                        tableAssetDTO.getSourceTable(),</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                        tableAssetDTO.getLoadType(),</b>
+<i class="no-highlight">215</i>&nbsp;                        enquoteNames,
+<i class="no-highlight">216</i>&nbsp;                        enableErrorTable,
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        source.getName(),</b>
+<i class="no-highlight">218</i>&nbsp;                        sourceAccount,
+<i class="no-highlight">219</i>&nbsp;                        &quot;&quot;,
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                        sourceEndpoint.getSchemaName(),</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                        target.getName(),</b>
+<i class="no-highlight">222</i>&nbsp;                        targetAccount,
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                        targetEndpoint.getSchemaName(),</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                        assetDTO.getSnodeId(),</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                        tableAssetDTO.getSourceTable(),</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                        tableAssetDTO.getTargetTable(),</b>
+<i class="no-highlight">227</i>&nbsp;                        null,
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                        tableAssetDTO.getLastUpdatedColumn(),</b>
+<i class="no-highlight">229</i>&nbsp;                        &quot;&quot;,
+<i class="no-highlight">230</i>&nbsp;                        &quot;&quot;,
+<i class="no-highlight">231</i>&nbsp;                        &quot;&quot;,
+<i class="no-highlight">232</i>&nbsp;                        &quot;&quot;,
+<i class="no-highlight">233</i>&nbsp;                        &quot;&quot;,
+<i class="no-highlight">234</i>&nbsp;                        srcExtraParams,
+<i class="no-highlight">235</i>&nbsp;                        tgtExtraParams,
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                        getColumnTransformationsForTable(tableAssetDTO)</b>
+<i class="no-highlight">237</i>&nbsp;                ))
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                .collect(Collectors.toList());</b>
+<i class="no-highlight">239</i>&nbsp;
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        AutoSyncSpec autoSyncSpec = new AutoSyncSpec();</b>
+<i class="no-highlight">241</i>&nbsp;
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        return autoSyncSpec</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                .withIntegrationName(assetDTO.getName())</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                .withSource(sourceEndpoint)</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                .withTarget(targetEndpoint)</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                .withOrgId(assetDTO.getOrgSnodeId())</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                .withTenant(assetDTO.getOwner())</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                .withPath(assetDTO.getPath())</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                .withTables(tableConfigs);</b>
+<i class="no-highlight">250</i>&nbsp;    }
+<i class="no-highlight">251</i>&nbsp;
+<i class="no-highlight">252</i>&nbsp;    private static Map&lt;String, List&lt;ColumnTransformation&gt;&gt; getColumnTransformationsForTable(
+<i class="no-highlight">253</i>&nbsp;            TableAssetDTO tableAssetDTO) {
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        Map&lt;String, List&lt;ColumnTransformation&gt;&gt; results = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        List&lt;ColumnOperationsAssetDTO&gt; transformationsAssetDTOs =</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                tableAssetDTO.getTransformations();</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        if (transformationsAssetDTOs == null) {</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            return Collections.emptyMap();</b>
+<i class="no-highlight">259</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        for (ColumnOperationsAssetDTO transformations : transformationsAssetDTOs) {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            String columnName = transformations.getColumn();</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;            List&lt;ColumnTransformation&gt; columnTransformations = transformations.getOperations()</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                    .stream().map(operation -&gt; new ColumnTransformation(</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                            operation.getTransformationType(),</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                            operation.getTransformationParams())).collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            results.put(columnName, columnTransformations);</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        return results;</b>
+<i class="no-highlight">269</i>&nbsp;    }
+<i class="no-highlight">270</i>&nbsp;
+<i class="no-highlight">271</i>&nbsp;    private static List&lt;TableAssetDTO&gt; parseTables(EndpointAssetDTO source) {
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        List&lt;TableAssetDTO&gt; tables = source.getSchemaSelection().getTables();</b>
+<i class="no-highlight">273</i>&nbsp;
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        if (tables == null || tables.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;            throw new ConfigurationException(&quot;Tables are empty&quot;)</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                    .withReason(&quot;Tables are not provided.&quot;)</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                    .withResolution(&quot;Ensure that tables are correct and provided&quot;);</b>
+<i class="no-highlight">278</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        return tables;</b>
+<i class="no-highlight">280</i>&nbsp;    }
+<i class="no-highlight">281</i>&nbsp;
+<i class="no-highlight">282</i>&nbsp;    private static String parseTargetAccount(EndpointAssetDTO source) {
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        List&lt;String&gt; targetAccounts = source.getAccounts();</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        if (targetAccounts == null || targetAccounts.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            throw new ConfigurationException(&quot;Target account is empty&quot;)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                    .withReason(&quot;Target account is not provided.&quot;)</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                    .withResolution(&quot;Ensure that target account is correct and provided&quot;);</b>
+<i class="no-highlight">288</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        return targetAccounts.get(0);</b>
+<i class="no-highlight">290</i>&nbsp;    }
+<i class="no-highlight">291</i>&nbsp;
+<i class="no-highlight">292</i>&nbsp;    private static List&lt;EndpointAssetDTO&gt; parseTargetEndpoint(AutosyncAssetDTO assetDTO) {
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        List&lt;EndpointAssetDTO&gt; targets = assetDTO.getTargets();</b>
+<i class="no-highlight">294</i>&nbsp;
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        if (targets == null || targets.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;            throw new ConfigurationException(&quot;Target is empty&quot;)</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                    .withReason(&quot;Source is not provided.&quot;)</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                    .withResolution(&quot;Ensure that source is correct and provided&quot;);</b>
+<i class="no-highlight">299</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        return targets;</b>
+<i class="no-highlight">301</i>&nbsp;    }
+<i class="no-highlight">302</i>&nbsp;
+<i class="no-highlight">303</i>&nbsp;    private static String parseSourceAccount(EndpointAssetDTO source) {
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        String sourceAccount = EMPTY_STRING;</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        List&lt;String&gt; sourceAccounts = source.getAccounts();</b>
+<i class="no-highlight">306</i>&nbsp;
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        LOGGER.info(&quot;AutosyncAssetUtil: parseSourceAccount {}&quot;, prettyPrint(source));</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        if (sourceAccounts == null || sourceAccounts.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;            if (!StringUtils.equalsIgnoreCase(CSV_FILE_READER, source.getName())) {</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                throw new ConfigurationException(&quot;Source account is empty&quot;)</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                        .withReason(&quot;Source account is not provided.&quot;)</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                        .withResolution(&quot;Ensure that source account is correct and provided&quot;);</b>
+<i class="no-highlight">313</i>&nbsp;            }
+<i class="no-highlight">314</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">315</i>&nbsp;            sourceAccount = sourceAccounts.get(0);</b>
+<i class="no-highlight">316</i>&nbsp;        }
+<i class="no-highlight">317</i>&nbsp;
+<b class="nc"><i class="no-highlight">318</i>&nbsp;        return sourceAccount;</b>
+<i class="no-highlight">319</i>&nbsp;    }
+<i class="no-highlight">320</i>&nbsp;
+<i class="no-highlight">321</i>&nbsp;    private static List&lt;EndpointAssetDTO&gt; parseSourceEndpoint(AutosyncAssetDTO assetDTO) {
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        List&lt;EndpointAssetDTO&gt; sources = assetDTO.getSources();</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        if (sources == null || sources.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;            throw new ConfigurationException(&quot;Source is empty&quot;)</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                    .withReason(&quot;Source is not provided.&quot;)</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                    .withResolution(&quot;Ensure that source is correct and provided&quot;);</b>
+<i class="no-highlight">327</i>&nbsp;        }
+<i class="no-highlight">328</i>&nbsp;
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        return sources;</b>
+<i class="no-highlight">330</i>&nbsp;    }
+<i class="no-highlight">331</i>&nbsp;
+<i class="no-highlight">332</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">333</i>&nbsp;    protected static ObjectMapper getMapper() {
+<b class="fc"><i class="no-highlight">334</i>&nbsp;        return MAPPER;</b>
+<i class="no-highlight">335</i>&nbsp;    }
+<i class="no-highlight">336</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

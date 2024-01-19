@@ -1,0 +1,452 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > GeoParser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform</a>
+</div>
+
+<h1>Coverage Summary for Class: GeoParser (com.snaplogic.snaps.transform)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GeoParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/156)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2023, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.transform;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.document.provider.ReadObjectMapper;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.BinaryInput;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.PropertyCategory;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.SimpleBinarySnap;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.fs.JfsUtils;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.view.InputView;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.util.ExpressionUtils;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import java.io.File;
+<i class="no-highlight">33</i>&nbsp;import java.io.FileInputStream;
+<i class="no-highlight">34</i>&nbsp;import java.io.FileOutputStream;
+<i class="no-highlight">35</i>&nbsp;import java.io.FileNotFoundException;
+<i class="no-highlight">36</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">37</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">40</i>&nbsp;import java.nio.file.Files;
+<i class="no-highlight">41</i>&nbsp;import java.nio.file.StandardCopyOption;
+<i class="no-highlight">42</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">43</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">44</i>&nbsp;import java.util.List;
+<i class="no-highlight">45</i>&nbsp;import java.util.Map;
+<i class="no-highlight">46</i>&nbsp;import java.util.Set;
+<i class="no-highlight">47</i>&nbsp;import java.util.TreeSet;
+<i class="no-highlight">48</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">49</i>&nbsp;import java.util.zip.ZipEntry;
+<i class="no-highlight">50</i>&nbsp;import java.util.zip.ZipInputStream;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import org.apache.commons.io.FileUtils;
+<i class="no-highlight">53</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">54</i>&nbsp;import org.geotools.data.shapefile.ShapefileDataStore;
+<i class="no-highlight">55</i>&nbsp;import org.geotools.data.simple.SimpleFeatureCollection;
+<i class="no-highlight">56</i>&nbsp;import org.geotools.data.simple.SimpleFeatureSource;
+<i class="no-highlight">57</i>&nbsp;import org.geotools.xsd.StreamingParser;
+<i class="no-highlight">58</i>&nbsp;import org.geotools.gml3.v3_2.GMLConfiguration;
+<i class="no-highlight">59</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">60</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">61</i>&nbsp;import org.xml.sax.SAXException;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;import javax.xml.parsers.ParserConfigurationException;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_COPY_IS_TO_ZIP;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_COPY_IS_TO_ZIP_REASON;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_COPY_IS_TO_ZIP_RESOLUTION;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_PARSING_SHAPEFILE;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_PARSING_SHAPEFILE_RESOLUTION;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_READ_BINARY_INPUT;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_SHP_FILE_NOT_FOUND;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_SHP_FILE_NOT_FOUND_REASON;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_SHP_FILE_NOT_FOUND_RESOLUTION;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_SPEC_SHP_FILE_NOT_FOUND_RESOLUTION;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_UNSUPPORTED_FILE_FORMAT;
+<i class="no-highlight">76</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_UNSUPPORTED_FILE_FORMAT_REASON;
+<i class="no-highlight">77</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_UNSUPPORTED_FILE_FORMAT_RESOLUTION;
+<i class="no-highlight">78</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.ERR_UNZIP_FILE;
+<i class="no-highlight">79</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.INPUT_FORMAT_DESC;
+<i class="no-highlight">80</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.INPUT_FORMAT_LABEL;
+<i class="no-highlight">81</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.PROP_SHAPE_FILES_DESC;
+<i class="no-highlight">82</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.PROP_SHAPE_FILES_LABEL;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.PROP_SHAPE_FILE_NAME_DESC;
+<i class="no-highlight">84</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.PROP_SHAPE_FILE_NAME_LABEL;
+<i class="no-highlight">85</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.READ_ALL_FILES_DESC;
+<i class="no-highlight">86</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.READ_ALL_FILES_LABEL;
+<i class="no-highlight">87</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.RESOLUTION_CUSTOMER_SUPPORT;
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;
+<b class="nc"><i class="no-highlight">90</i>&nbsp;public abstract class GeoParser extends SimpleBinarySnap {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(GeoParser.class);</b>
+<i class="no-highlight">92</i>&nbsp;
+<i class="no-highlight">93</i>&nbsp;    private static final String CONTENT_TYPE = &quot;content-type&quot;;
+<i class="no-highlight">94</i>&nbsp;    private static final String LABEL = &quot;label&quot;;
+<i class="no-highlight">95</i>&nbsp;    private static final String SHAPEFILE_EXT = &quot;.shp&quot;;
+<i class="no-highlight">96</i>&nbsp;    private static final String PROP_SHAPE_FILENAME = &quot;shapeFilename&quot;;
+<i class="no-highlight">97</i>&nbsp;    private static final String PROP_SHAPE_FILES = &quot;shapeFiles&quot;;
+<i class="no-highlight">98</i>&nbsp;    private static final String PROP_INPUT_FORMAT = &quot;inputFormat&quot;;
+<i class="no-highlight">99</i>&nbsp;    private static final String PROP_READ_ALL_FILES = &quot;readAllFiles&quot;;
+<i class="no-highlight">100</i>&nbsp;    private final static String SHAPE_FILES = &quot;Shapefiles&quot;;
+<i class="no-highlight">101</i>&nbsp;    private final static String GML_FILES = &quot;GML file&quot;;
+<i class="no-highlight">102</i>&nbsp;    private static final String ZIP_FILE_TYPE = &quot;application/zip&quot;;
+<i class="no-highlight">103</i>&nbsp;    private static final String GML_FILE_TYPE = &quot;application/gml+xml&quot;;
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    private boolean readAllFiles;
+<i class="no-highlight">106</i>&nbsp;    private String destPath;
+<i class="no-highlight">107</i>&nbsp;    protected String label;
+<i class="no-highlight">108</i>&nbsp;    private String inputFormat;
+<i class="no-highlight">109</i>&nbsp;    private String shapeFilePath;
+<i class="no-highlight">110</i>&nbsp;    private File tmpDir;
+<i class="no-highlight">111</i>&nbsp;    private File tmpFile;
+<b class="nc"><i class="no-highlight">112</i>&nbsp;    private List&lt;String&gt; shapeFileNames = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;    private TreeSet&lt;String&gt; shapeFilePaths = new TreeSet&lt;&gt;();</b>
+<i class="no-highlight">114</i>&nbsp;
+<b class="nc"><i class="no-highlight">115</i>&nbsp;    static final Set&lt;String&gt; SET_INPUT_FORMAT_TYPE = ImmutableSet.of(SHAPE_FILES, GML_FILES);</b>
+<i class="no-highlight">116</i>&nbsp;
+<b class="nc"><i class="no-highlight">117</i>&nbsp;    protected static final ReadObjectMapper READ_OBJECT_MAPPER = new ReadObjectMapper();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;    private static final String PROP_CONDITION_INPUT_FORMAT_SHAPEFILE = String.format(</b>
+<i class="no-highlight">119</i>&nbsp;            &quot;($.settings.%s.expression || $.settings.%s.value==&#39;%s&#39;)&quot;, PROP_INPUT_FORMAT,
+<i class="no-highlight">120</i>&nbsp;            PROP_INPUT_FORMAT, SHAPE_FILES);
+<b class="nc"><i class="no-highlight">121</i>&nbsp;    private static final String PROP_NEG_CONDITION_READ_ALL_FILES = String.format(</b>
+<i class="no-highlight">122</i>&nbsp;            &quot;($.settings.%s.value!=true)&quot;, PROP_READ_ALL_FILES);
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;    @Inject
+<i class="no-highlight">126</i>&nbsp;    private ExpressionUtils expressionUtils;
+<i class="no-highlight">127</i>&nbsp;
+<i class="no-highlight">128</i>&nbsp;    @Override
+<i class="no-highlight">129</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        propertyBuilder.describe(PROP_INPUT_FORMAT, INPUT_FORMAT_LABEL, INPUT_FORMAT_DESC)</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                .withAllowedValues(SET_INPUT_FORMAT_TYPE)</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                .defaultValue(SHAPE_FILES)</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        propertyBuilder.describe(PROP_READ_ALL_FILES, READ_ALL_FILES_LABEL, READ_ALL_FILES_DESC)</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                .enableIf(PROP_CONDITION_INPUT_FORMAT_SHAPEFILE)</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        SnapProperty shapeFileProp = propertyBuilder.describe(PROP_SHAPE_FILENAME, PROP_SHAPE_FILE_NAME_LABEL, PROP_SHAPE_FILE_NAME_DESC)</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                .enableIf(PROP_CONDITION_INPUT_FORMAT_SHAPEFILE + &quot; &amp;&amp; &quot; + PROP_NEG_CONDITION_READ_ALL_FILES)</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        propertyBuilder.describe(PROP_SHAPE_FILES, PROP_SHAPE_FILES_LABEL, PROP_SHAPE_FILES_DESC)</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                .withEntry(shapeFileProp)</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                .enableIf(PROP_CONDITION_INPUT_FORMAT_SHAPEFILE + &quot; &amp;&amp; &quot; + PROP_NEG_CONDITION_READ_ALL_FILES)</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                .add();</b>
+<i class="no-highlight">149</i>&nbsp;    }
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    @Override
+<i class="no-highlight">152</i>&nbsp;    public void configure(PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        inputFormat = propertyValues.get(PROP_INPUT_FORMAT);</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        readAllFiles = propertyValues.getBoolean(PROP_READ_ALL_FILES, false);</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        if (!readAllFiles &amp;&amp; inputFormat.equals(SHAPE_FILES)) {</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; table = propertyValues.get(PROP_SHAPE_FILES);</b>
+<i class="no-highlight">157</i>&nbsp;
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            if (table != null) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                shapeFileNames = table.stream().map(tableRow -&gt;</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                        propertyValues.getExpressionPropertyFor(tableRow, PROP_SHAPE_FILENAME).toString())</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                        .filter(v -&gt; v != null).collect(Collectors.toList());</b>
+<i class="no-highlight">162</i>&nbsp;            }
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        label = propertyValues.get(PropertyCategory.INFO, LABEL);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        tmpDir = JfsUtils.getTmpDir(expressionUtils, propertyValues, errorViews);</b>
+<i class="no-highlight">167</i>&nbsp;    }
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;    @Override
+<i class="no-highlight">170</i>&nbsp;    public void cleanup() throws ExecutionException {
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    @Override
+<i class="no-highlight">174</i>&nbsp;    protected void doWork() {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        for (InputView inputView : inputViews) {</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;            for (BinaryInput binaryData : inputViews.binaryInputs(inputView)) {</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                Document header = binaryData.getHeader();</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                LinkedHashMap headerData = (LinkedHashMap) header.get();</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                try (InputStream is = Channels.newInputStream(binaryData.getChannel())) {</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                    if (inputFormat.equals(SHAPE_FILES) &amp;&amp; headerData.get(CONTENT_TYPE).equals(ZIP_FILE_TYPE)) {</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                        parseShapeFiles(is);</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                    } else if (inputFormat.equals(GML_FILES) &amp;&amp; headerData.get(CONTENT_TYPE).toString()</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                            .contains(GML_FILE_TYPE)) {</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                        parseGmlFiles(is);</b>
+<i class="no-highlight">185</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                        SnapDataException ex = new SnapDataException(ERR_UNSUPPORTED_FILE_FORMAT)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                                .withReason(ERR_UNSUPPORTED_FILE_FORMAT_REASON)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                                .withResolution(ERR_UNSUPPORTED_FILE_FORMAT_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                        errorViews.write(ex, header);</b>
+<i class="no-highlight">190</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                    errorViews.write(e, header);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                } catch (IOException | SAXException | ParserConfigurationException e) {</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                    SnapDataException ex = new SnapDataException(e, ERR_READ_BINARY_INPUT)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                            .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                    errorViews.write(ex, header);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        }</b>
+<i class="no-highlight">201</i>&nbsp;    }
+<i class="no-highlight">202</i>&nbsp;
+<i class="no-highlight">203</i>&nbsp;    private void parseGmlFiles(final InputStream is) throws IOException, ParserConfigurationException, SAXException {
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        GMLConfiguration config = new GMLConfiguration();</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        StreamingParser streamingParser = new StreamingParser(config, is, SimpleFeatureCollection.class);</b>
+<i class="no-highlight">206</i>&nbsp;        SimpleFeatureCollection features;
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        features = (SimpleFeatureCollection) streamingParser.parse();</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        parseOutput(features);</b>
+<i class="no-highlight">209</i>&nbsp;    }
+<i class="no-highlight">210</i>&nbsp;
+<i class="no-highlight">211</i>&nbsp;    private void parseShapeFiles(final InputStream is) throws IOException {
+<i class="no-highlight">212</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            tmpFile = writeToTempFile(is);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            destPath = tmpDir + File.separator + &quot;extract&quot;;</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            unzip(tmpFile.getAbsolutePath(), destPath);</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;            FileUtils.delete(tmpFile);</b>
+<i class="no-highlight">217</i>&nbsp;
+<b class="nc"><i class="no-highlight">218</i>&nbsp;            if (readAllFiles || shapeFileNames.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                File directory = new File(destPath);</b>
+<i class="no-highlight">220</i>&nbsp;
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                if (directory.exists() &amp;&amp; directory.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                    File[] files = directory.listFiles();</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                    if (files != null) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                        for (File file : files) {</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                            if (file.isFile() &amp;&amp; file.getName().endsWith(SHAPEFILE_EXT)) {</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                                shapeFilePaths.add(file.getAbsolutePath());</b>
+<i class="no-highlight">227</i>&nbsp;                            }
+<i class="no-highlight">228</i>&nbsp;                        }
+<i class="no-highlight">229</i>&nbsp;                    }
+<i class="no-highlight">230</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                if (shapeFilePaths.size() &gt; 0 ) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                    shapeFilePath = shapeFilePaths.first();</b>
+<i class="no-highlight">233</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">234</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                for (String shapeFileName: shapeFileNames) {</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                    shapeFilePaths.add(destPath + File.separator + shapeFileName);</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                }</b>
+<i class="no-highlight">238</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">239</i>&nbsp;            if (readAllFiles || StringUtils.isEmpty(shapeFilePath)) {</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                for (String shapeFilePath : shapeFilePaths) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                    readShapeFile(shapeFilePath);</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                }</b>
+<i class="no-highlight">243</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                readShapeFile(shapeFilePath);</b>
+<i class="no-highlight">245</i>&nbsp;            }
+<i class="no-highlight">246</i>&nbsp;
+<b class="nc"><i class="no-highlight">247</i>&nbsp;            if (StringUtils.isEmpty(shapeFilePath) &amp;&amp; shapeFilePaths.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                SnapDataException ex = new SnapDataException(ERR_SHP_FILE_NOT_FOUND)</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                        .withReason(ERR_SHP_FILE_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                        .withResolution(ERR_SHP_FILE_NOT_FOUND_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                throw ex;</b>
+<i class="no-highlight">252</i>&nbsp;            }
+<i class="no-highlight">253</i>&nbsp;        } finally {
+<i class="no-highlight">254</i>&nbsp;            //Cleaning up the unzipped directory
+<b class="nc"><i class="no-highlight">255</i>&nbsp;            if (StringUtils.isNotEmpty(destPath)) {</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                File directory = new File(destPath);</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                FileUtils.deleteDirectory(directory);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        }</b>
+<i class="no-highlight">260</i>&nbsp;    }
+<i class="no-highlight">261</i>&nbsp;
+<i class="no-highlight">262</i>&nbsp;    private void readShapeFile(String shapeFilePath) {
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        File inFile = new File(shapeFilePath);</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        LOG.info(&quot;Parsing Shapefile {} with size {}&quot;, inFile.getName(), inFile.length());</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        File shpFile = inFile;</b>
+<i class="no-highlight">266</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">267</i>&nbsp;            if (shpFile.exists()) {</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                shpFile.setReadOnly();</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                ShapefileDataStore store = new ShapefileDataStore(shpFile.toURI().toURL());</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                SimpleFeatureSource source = store.getFeatureSource();</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                SimpleFeatureCollection features = source.getFeatures();</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                parseOutput(features);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                throw new FileNotFoundException(&quot;File &quot; + shpFile.getName() + &quot; not found in the zip&quot;);</b>
+<i class="no-highlight">275</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        } catch (FileNotFoundException e) {</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_SHP_FILE_NOT_FOUND)</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                    .withResolution(ERR_SPEC_SHP_FILE_NOT_FOUND_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;            throw ex;</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_PARSING_SHAPEFILE)</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                    .withResolution(ERR_PARSING_SHAPEFILE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            throw ex;</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        }</b>
+<i class="no-highlight">287</i>&nbsp;    }
+<i class="no-highlight">288</i>&nbsp;
+<i class="no-highlight">289</i>&nbsp;    protected abstract void parseOutput(SimpleFeatureCollection features) throws IOException;
+<i class="no-highlight">290</i>&nbsp;
+<i class="no-highlight">291</i>&nbsp;    private void unzip(String zipFilePath, String destDir) {
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        File dir = new File(destDir);</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        dir.mkdirs();</b>
+<i class="no-highlight">294</i>&nbsp;
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        byte[] buffer = new byte[1024];</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFilePath))) {</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;            ZipEntry zipEntry = zis.getNextEntry();</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            if (zipEntry == null) {</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                SnapDataException ex = new SnapDataException(ERR_UNSUPPORTED_FILE_FORMAT)</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                        .withReason(ERR_UNSUPPORTED_FILE_FORMAT_REASON)</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                        .withResolution(ERR_UNSUPPORTED_FILE_FORMAT_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                throw ex;</b>
+<i class="no-highlight">303</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">304</i>&nbsp;            while (zipEntry != null) {</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                String fileName = zipEntry.getName();</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                File newFile = new File(destDir + File.separator + fileName);</b>
+<i class="no-highlight">307</i>&nbsp;
+<i class="no-highlight">308</i>&nbsp;                // Create directories if the entry is a directory
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                if (zipEntry.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                    newFile.mkdirs();</b>
+<i class="no-highlight">311</i>&nbsp;                } else {
+<i class="no-highlight">312</i>&nbsp;                    // Create parent directories if they don&#39;t exist
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                    new File(newFile.getParent()).mkdirs();</b>
+<i class="no-highlight">314</i>&nbsp;
+<i class="no-highlight">315</i>&nbsp;                    // Extract the file
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                    try (FileOutputStream fos = new FileOutputStream(newFile)) {</b>
+<i class="no-highlight">317</i>&nbsp;                        int length;
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                        while ((length = zis.read(buffer)) &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                            fos.write(buffer, 0, length);</b>
+<i class="no-highlight">320</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                    }</b>
+<i class="no-highlight">322</i>&nbsp;                }
+<i class="no-highlight">323</i>&nbsp;
+<i class="no-highlight">324</i>&nbsp;                // Move to the next entry
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                zipEntry = zis.getNextEntry();</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_UNZIP_FILE)</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;            throw ex;</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;        }</b>
+<i class="no-highlight">333</i>&nbsp;    }
+<i class="no-highlight">334</i>&nbsp;
+<i class="no-highlight">335</i>&nbsp;    private File writeToTempFile(final InputStream is) throws IOException {
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        File tmpFile = File.createTempFile(this.getClass().getSimpleName(), null,</b>
+<i class="no-highlight">337</i>&nbsp;                tmpDir);
+<i class="no-highlight">338</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">339</i>&nbsp;            Files.copy(is, tmpFile.toPath(), StandardCopyOption.REPLACE_EXISTING);</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;            throw new SnapDataException(e, ERR_COPY_IS_TO_ZIP)</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                    .withReason(ERR_COPY_IS_TO_ZIP_REASON)</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                    .withResolution(ERR_COPY_IS_TO_ZIP_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        return tmpFile;</b>
+<i class="no-highlight">346</i>&nbsp;    }
+<i class="no-highlight">347</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

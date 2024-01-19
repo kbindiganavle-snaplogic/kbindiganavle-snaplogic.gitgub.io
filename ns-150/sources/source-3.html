@@ -1,0 +1,965 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkUpsert</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.snowflake</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkUpsert (com.snaplogic.snaps.snowflake)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkUpsert</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/435)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BulkUpsert$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/436)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.snowflake;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.services.s3.model.AmazonS3Exception;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.base.Joiner;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">17</i>&nbsp;import com.google.inject.Key;
+<i class="no-highlight">18</i>&nbsp;import com.google.inject.Module;
+<i class="no-highlight">19</i>&nbsp;import com.google.inject.name.Names;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.api.LifecycleCallback;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.LifecycleEvent;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.api.Lint;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.Notification;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.api.Notifications;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.common.properties.builders.ViewBuilder;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.ViewCategory;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.fs.s3.S3EncryptionType;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseUtils;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeAccountType;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeAccountTypeProvider;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeAzureDatabaseAccount;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeAzureOAuth2Account;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeDatabaseAccount;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeDynamicAccount;
+<i class="no-highlight">54</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeGoogleStorageDatabaseAccount;
+<i class="no-highlight">55</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeGoogleStorageOAuth2Account;
+<i class="no-highlight">56</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeS3OAuth2Account;
+<i class="no-highlight">57</i>&nbsp;import com.snaplogic.snap.api.sql.query.SqlQueryManagementOptions;
+<i class="no-highlight">58</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.QuotationHandler;
+<i class="no-highlight">59</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">62</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">63</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">64</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">67</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">68</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">69</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">70</i>&nbsp;import java.sql.ResultSetMetaData;
+<i class="no-highlight">71</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">72</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">73</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">74</i>&nbsp;import java.util.List;
+<i class="no-highlight">75</i>&nbsp;import java.util.Map;
+<i class="no-highlight">76</i>&nbsp;import java.util.TreeMap;
+<i class="no-highlight">77</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;import static com.snaplogic.snaps.snowflake.Constants.HYPHEN;
+<i class="no-highlight">80</i>&nbsp;import static com.snaplogic.snaps.snowflake.Constants.UNDERSCORE;
+<i class="no-highlight">81</i>&nbsp;import static com.snaplogic.snaps.snowflake.Messages.*;
+<i class="no-highlight">82</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.ROWS_INPUT_VIEW_DESC;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.ROWS_VIEW_LABEL;
+<i class="no-highlight">84</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_DELETE_OBJECT_ACCESS;
+<i class="no-highlight">85</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_DELETE_OBJECT_ACCESS_REASON;
+<i class="no-highlight">86</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_DELETE_OBJECT_ACCESS_RESOLUTION;
+<i class="no-highlight">87</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_INVALID_INPUT_REASON;
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;/**
+<i class="no-highlight">90</i>&nbsp; * Bulk Upsert can be used to update existing records, insert new records
+<i class="no-highlight">91</i>&nbsp; * and delete records in Snowflake Database
+<i class="no-highlight">92</i>&nbsp; */
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;@General(title = BULK_UPSERT_TITLE, purpose = BULK_UPSERT_PURPOSE)
+<i class="no-highlight">95</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">96</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<i class="no-highlight">97</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">98</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">99</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">100</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">101</i>&nbsp;@Accounts(provides = {SnowflakeDatabaseAccount.class, SnowflakeDynamicAccount.class,
+<i class="no-highlight">102</i>&nbsp;        SnowflakeAzureDatabaseAccount.class,
+<i class="no-highlight">103</i>&nbsp;        SnowflakeGoogleStorageDatabaseAccount.class,
+<i class="no-highlight">104</i>&nbsp;        SnowflakeS3OAuth2Account.class, SnowflakeGoogleStorageOAuth2Account.class,
+<i class="no-highlight">105</i>&nbsp;        SnowflakeAzureOAuth2Account.class})
+<b class="nc"><i class="no-highlight">106</i>&nbsp;public class BulkUpsert extends AbstractBulkSnap implements LifecycleCallback,</b>
+<i class="no-highlight">107</i>&nbsp;        OAuthRetryableSnowflakeSnap {
+<i class="no-highlight">108</i>&nbsp;
+<b class="nc"><i class="no-highlight">109</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(BulkUpsert.class);</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;    private static final String COLUMN_NAMES_PATH = new JsonPathBuilder(COLUMN_NAMES_PROP)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            .appendAllListElements()</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;            .build();</b>
+<i class="no-highlight">113</i>&nbsp;    private static final String COMMA_DELIMITER = &quot;, &quot;;
+<i class="no-highlight">114</i>&nbsp;    private static final String KEY_UPDATED_RECORDS = &quot;updated_records&quot;;
+<i class="no-highlight">115</i>&nbsp;    private static final String KEY_INSERT_RECORDS = &quot;inserted_records&quot;;
+<i class="no-highlight">116</i>&nbsp;    private static final String KEY_INPUT_RECORDS = &quot;input_records&quot;;
+<i class="no-highlight">117</i>&nbsp;    protected static final String KEY_FAILED_RECORDS = &quot;failed_records&quot;;
+<i class="no-highlight">118</i>&nbsp;    protected static final String KEY_COPY_INTO_RESULTS = &quot;COPY command results&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String KEY_TABLE = &quot;table&quot;;
+<i class="no-highlight">120</i>&nbsp;    private static final String UPDATE_ENTRY = &quot;%s = s.%s&quot;;
+<i class="no-highlight">121</i>&nbsp;    private static final String DELETE_MERGE_COMMAND = &quot;WHEN MATCHED AND s.%s THEN DELETE &quot;;
+<i class="no-highlight">122</i>&nbsp;    private static final String MERGE_COMMAND = &quot;MERGE INTO %s USING %s AS s ON %s %s %s&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String MERGE_COMMAND_DELETE = &quot;MERGE INTO %s USING %s AS s ON %s %s %s %s&quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String AND_DELIMITER = &quot; AND &quot;;
+<i class="no-highlight">125</i>&nbsp;    private static final String PREDICATE_ENTRY = &quot;%s.\&quot;%s\&quot; = s.\&quot;%s\&quot;&quot;;
+<i class="no-highlight">126</i>&nbsp;    private static final String PRIMARY_KEY_ENTRY = &quot;t.\&quot;%s\&quot; IS NULL&quot;;
+<i class="no-highlight">127</i>&nbsp;    private static final String PROP_NEG_CONDITION_FMT = &quot;$.settings.%s.value!=&#39;%s&#39;&quot;;
+<b class="nc"><i class="no-highlight">128</i>&nbsp;    private static final String enableIfFlushChunkSize = String.format(PROP_NEG_CONDITION_FMT,</b>
+<i class="no-highlight">129</i>&nbsp;            STAGING_LOCATION_PROP, STAGING_LOCATION_EXTERNAL);
+<i class="no-highlight">130</i>&nbsp;    private static final String UPDATE_COMMAND = &quot;WHEN MATCHED THEN UPDATE SET %s &quot;;
+<i class="no-highlight">131</i>&nbsp;    private static final String SELECT_COLUMN = &quot;s.%s&quot;;
+<i class="no-highlight">132</i>&nbsp;    private static final String INSERT_COMMAND = &quot;WHEN NOT MATCHED THEN INSERT (%s) VALUES (%s) &quot;;
+<i class="no-highlight">133</i>&nbsp;    private static final String CREATE_TEMP_TABLE = &quot;CREATE OR REPLACE TEMPORARY table&quot; +
+<i class="no-highlight">134</i>&nbsp;            &quot; %s AS (select * from %s where 1 = 0)&quot;;
+<i class="no-highlight">135</i>&nbsp;    private static final String DROP_TEMP_TABLE_COMMAND = &quot;DROP table %s&quot;;
+<i class="no-highlight">136</i>&nbsp;    private static final String QUOTED_DELETE_CONDITION_FMT = &quot;\&quot;%s\&quot;=%s&quot;;
+<i class="no-highlight">137</i>&nbsp;    //Response from Snowflake for COPY statement
+<i class="no-highlight">138</i>&nbsp;    protected static final String RESPONSE_ERRORS_SEEN = &quot;errors_seen&quot;;
+<i class="no-highlight">139</i>&nbsp;    //Response from Snowflake for Merge statement
+<i class="no-highlight">140</i>&nbsp;    private static final String RESPONSE_ROWS_INSERTED_COUNT = &quot;number of rows inserted&quot;;
+<i class="no-highlight">141</i>&nbsp;    private static final String RESPONSE_ROWS_UPDATED_COUNT = &quot;number of rows updated&quot;;
+<i class="no-highlight">142</i>&nbsp;    // Default ValuesBulk
+<i class="no-highlight">143</i>&nbsp;    private static final String TEMP_TABLE_NAME = &quot;MERGE_TEMP_TABLE_%s&quot;;
+<i class="no-highlight">144</i>&nbsp;    private static final String DELETE_MERGE_PROP = &quot;DELETE&quot;;
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;    @Notification(message = &quot;Error while deleting the temp table : %s&quot;,
+<i class="no-highlight">147</i>&nbsp;            resolution = RESOLUTION_ADDRESS_ISSUE)
+<b class="nc"><i class="no-highlight">148</i>&nbsp;    private static final Lint DELETING_TEMP_TABLE_WARN = new Lint();</b>
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;    private List&lt;String&gt; keyColumnNames;
+<i class="no-highlight">151</i>&nbsp;    private SqlQueryManagementOptions queryManagementOption;
+<i class="no-highlight">152</i>&nbsp;    private long updateCount;
+<i class="no-highlight">153</i>&nbsp;    private long insertCount;
+<i class="no-highlight">154</i>&nbsp;    private String deleteCond;
+<b class="nc"><i class="no-highlight">155</i>&nbsp;    private long inputCount = 0;</b>
+<i class="no-highlight">156</i>&nbsp;    private String mergeTable;
+<i class="no-highlight">157</i>&nbsp;    private boolean tmpTableCreated;
+<i class="no-highlight">158</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; resultsForCopyToTempTable;
+<i class="no-highlight">159</i>&nbsp;
+<i class="no-highlight">160</i>&nbsp;    @Notification(
+<i class="no-highlight">161</i>&nbsp;            message = ERROR_DELETE_OBJECT_ACCESS,
+<i class="no-highlight">162</i>&nbsp;            reason = ERROR_DELETE_OBJECT_ACCESS_REASON,
+<i class="no-highlight">163</i>&nbsp;            resolution = ERROR_DELETE_OBJECT_ACCESS_RESOLUTION
+<i class="no-highlight">164</i>&nbsp;    )
+<b class="nc"><i class="no-highlight">165</i>&nbsp;    private static final Lint FAILED_TO_DELETE_OBJECT = new Lint();</b>
+<i class="no-highlight">166</i>&nbsp;
+<i class="no-highlight">167</i>&nbsp;    static {
+<i class="no-highlight">168</i>&nbsp;        //required to use lint rules
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        Notifications.register(BulkUpsert.class);</b>
+<i class="no-highlight">170</i>&nbsp;    }
+<i class="no-highlight">171</i>&nbsp;
+<i class="no-highlight">172</i>&nbsp;    @Override
+<i class="no-highlight">173</i>&nbsp;    protected void initOperations() {
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        String dbName = getName();</b>
+<i class="no-highlight">175</i>&nbsp;
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        jdbcOperations = jdbcOperations == null</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                ? injector.getInstance(Key.get(JdbcOperations.class,</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                Names.named(dbName))) : jdbcOperations;</b>
+<i class="no-highlight">179</i>&nbsp;
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        quotationHandler = quotationHandler == null</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                ? injector.getInstance(Key.get(QuotationHandler.class,</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                Names.named(dbName))) : quotationHandler;</b>
+<i class="no-highlight">183</i>&nbsp;    }
+<i class="no-highlight">184</i>&nbsp;
+<i class="no-highlight">185</i>&nbsp;    @Override
+<i class="no-highlight">186</i>&nbsp;    protected String getName() {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        return JdbcOperations.SNOWFLAKE;</b>
+<i class="no-highlight">188</i>&nbsp;    }
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;    @Override
+<i class="no-highlight">191</i>&nbsp;    public Module getManagedModule() {
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        return new SnowflakeModule();</b>
+<i class="no-highlight">193</i>&nbsp;    }
+<i class="no-highlight">194</i>&nbsp;
+<i class="no-highlight">195</i>&nbsp;    @Override
+<i class="no-highlight">196</i>&nbsp;    public void defineViews(final ViewBuilder viewBuilder) {
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        viewBuilder.describe(INPUT_ROWS_VIEW_NAME, ROWS_VIEW_LABEL, ROWS_INPUT_VIEW_DESC)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                .type(ViewType.DOCUMENT)</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                .add(ViewCategory.INPUT);</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        viewBuilder.describe(DEFAULT_OUTPUT_VIEW_0)</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                .type(ViewType.DOCUMENT)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .add(ViewCategory.OUTPUT);</b>
+<i class="no-highlight">203</i>&nbsp;    }
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;    @Override
+<i class="no-highlight">206</i>&nbsp;    protected boolean supportsAutoTableCreate() {
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        return false;</b>
+<i class="no-highlight">208</i>&nbsp;    }
+<i class="no-highlight">209</i>&nbsp;
+<i class="no-highlight">210</i>&nbsp;    @Override
+<i class="no-highlight">211</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        super.createSnapProperties(builder);</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        addAdditionalProperties(builder);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        List&lt;SnapProperty&gt; onErrorProps = buildOnErrorProperties(builder);</b>
+<i class="no-highlight">215</i>&nbsp;
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        builder.describe(ADDITIONAL_OPTIONS_PROP,ADDITIONAL_OPTIONS_LABEL,ADDITIONAL_OPTIONS_UPSERT_DESC)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;            .withEntries(onErrorProps)</b>
+<i class="no-highlight">219</i>&nbsp;            //any other additional properties can be added here if needed
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            .add();</b>
+<i class="no-highlight">221</i>&nbsp;    }
+<i class="no-highlight">222</i>&nbsp;
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;    private void addAdditionalProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        SnapProperty columnProperty = builder</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .describe(COLUMN_PROP, COLUMN_LABEL, COLUMN_DESC)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .withSuggestions(this::suggestTableColumns)</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        defineStagingLocationProperty(builder);</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        defineFlushChunkSizeProperty(builder, enableIfFlushChunkSize);</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        defineFileFormatProperties(builder);</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        SnowflakeUtils.defineEncryptionTypeProperty(builder);</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        SnowflakeUtils.defineKMSKeyProperty(builder);</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        SnowflakeUtils.defineBufferSizeProperty(builder);</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        builder.describe(COLUMN_NAMES_PROP, COLUMN_NAMES_LABEL, COLUMN_NAMES_DESC)</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                .withEntry(columnProperty)</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        builder.describe(DELETE_MERGE_PROP, DELETE_MERGE_LABEL, DELETE_MERGE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        definePreserveCaseSensitivityProperty(builder);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        SnowflakeUtils.defineSQLQueryManagementProperty(builder);</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        defineLoadEmptyStringsProperty(builder, true);</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        defineParallelismProperty(builder);</b>
+<i class="no-highlight">247</i>&nbsp;    }
+<i class="no-highlight">248</i>&nbsp;
+<i class="no-highlight">249</i>&nbsp;    @Override
+<i class="no-highlight">250</i>&nbsp;    protected void configureSnap(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        dataSource = DATA_SOURCE_INPUT_VIEW;</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        accountType = ((SnowflakeAccountTypeProvider) account).getAccountType();</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        doNullSchemaCheck();</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        setTempDir(propertyValues);</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        deleteCond = propertyValues.get(DELETE_MERGE_PROP);</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        List&lt;String&gt; viewOrder = viewNameUtil.sortViewNames(inputViews.getAll()</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                .keySet(), INPUT_ROWS_VIEW_NAME);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        if (!viewOrder.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;            rowViewName = viewOrder.get(0);</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            if (viewOrder.size() &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                schemaViewName = viewOrder.get(1);</b>
+<i class="no-highlight">263</i>&nbsp;            }
+<i class="no-highlight">264</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        readStagingLocationProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        if (STAGING_LOCATION_INTERNAL.equals(stagingLocation)) {</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;            readFlushChunkSizeProperty(propertyValues);</b>
+<i class="no-highlight">268</i>&nbsp;        }
+<i class="no-highlight">269</i>&nbsp;        // this checks if account is S3
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        if (SnowflakeAccountType.S3.equals(accountType)) {</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            retrieveAwsS3Info();</b>
+<i class="no-highlight">272</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        examineStorageCredentials(false);</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        readFileFormatProperties(propertyValues);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        readErrorProperties(propertyValues);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        encryptionType = S3EncryptionType.toEnum(propertyValues.get(ENCRYPT_TYPE_PROP));</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        kmsKeyExpression = propertyValues.getAsExpression(KMS_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        bufferSizeExpr = propertyValues.getAsExpression(BUFFER_SIZE_PROP);</b>
+<i class="no-highlight">279</i>&nbsp;        // Expression properties for key columns support only pipeline parameters.
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; keyColumnList = propertyValues.get(COLUMN_NAMES_PATH);</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        keyColumnNames = keyColumnList.stream()</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                .map(p -&gt; (String) propertyValues.getExpressionPropertyFor(p, COLUMN_PROP)</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                        .eval(null))</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                .collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        if (!StringUtils.isEmpty(tableName) &amp;&amp; CollectionUtils.isEmpty(keyColumnNames)) {</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            throw new ExecutionException(ERR_NO_COLUMN)</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                    .withReason(ERR_NO_COLUMN_REASON)</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                    .withResolution(ERR_NO_COLUMN_RESOLUTION);</b>
+<i class="no-highlight">289</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        loadEmptyString = !Boolean.FALSE.equals(propertyValues.get(LOAD_EMPTY_STRINGS_PROP));</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        readPreserveCaseSensitivityProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        readParallelismProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        initCopyOptions();</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        queryManagementOption = SqlQueryManagementOptions.toEnum(</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                propertyValues.get(SnowflakeUtils.SQL_QUERY_MANAGEMENT_PROP));</b>
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;        //GCS isn’t supported for external staging when the data source is input view.
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        if (((SnowflakeAccountTypeProvider) account).getAccountType()</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                .equals(SnowflakeAccountType.GoogleCloudStorage)) {</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;            if (!STAGING_LOCATION_INTERNAL.equals(stagingLocation)) {</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                throw new SnapDataException(ERR_INVALID_SNAP_CONFIG_MSG)</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                        .withReason(ERR_GCS_EXTERNAL_STAGE_INPUT_VIEW_DATA_REASON)</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                        .withResolution(ERR_GCS_EXTERNAL_STAGE_INPUT_VIEW_DATA_RESOLUTION);</b>
+<i class="no-highlight">304</i>&nbsp;            }
+<i class="no-highlight">305</i>&nbsp;        }
+<i class="no-highlight">306</i>&nbsp;    }
+<i class="no-highlight">307</i>&nbsp;
+<i class="no-highlight">308</i>&nbsp;    private void initCopyOptions() {
+<i class="no-highlight">309</i>&nbsp;        // Since the COPY command options are not exposed to the user, we need to intelligently
+<i class="no-highlight">310</i>&nbsp;        //  choose the settings that preserve the backward compatibility
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        sizeLimit = BigInteger.ZERO;</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        force = false;</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        purge = true;</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        validationMode = NONE;</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        rowsToReturn = BigInteger.ZERO;</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        stagingInputType = SnowflakeUtils.StagingInputType.NOT_PROVIDED;</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        if (StringUtils.isBlank(onError)){</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            onError = ABORT_STMT;</b>
+<i class="no-highlight">319</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        initSubstituteValueForNull();</b>
+<i class="no-highlight">321</i>&nbsp;    }
+<i class="no-highlight">322</i>&nbsp;
+<i class="no-highlight">323</i>&nbsp;    @Override
+<i class="no-highlight">324</i>&nbsp;    protected void processDocument(Document document, String inputViewName) {
+<b class="nc"><i class="no-highlight">325</i>&nbsp;        formatName = formatNameExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        fileFormatOption = fileFormatOptionExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        if (StringUtils.isNotBlank(fileFormatOption)) {</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;            verifyFileFormatOption();</b>
+<i class="no-highlight">329</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">330</i>&nbsp;        kmsKey = kmsKeyExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        bufferSizeInMB = bufferSizeExpr.eval(document);</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;        if(queryManagementOption.equals(SqlQueryManagementOptions.CANCEL_QUEUED_QUERIES) &amp;&amp;</b>
+<i class="no-highlight">333</i>&nbsp;                !queryIDThreadStarted) {
+<b class="nc"><i class="no-highlight">334</i>&nbsp;            startQueryIDThread(snowflakeConnection);</b>
+<i class="no-highlight">335</i>&nbsp;        }
+<i class="no-highlight">336</i>&nbsp;        // if the document is from schema input view then generate column translation
+<b class="nc"><i class="no-highlight">337</i>&nbsp;        if (inputViewName != null &amp;&amp; inputViewName.equals(schemaViewName)) {</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;            if (document != null) {</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                schema = document;</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                columnTranslation = databaseUtils.buildColumnTranslation(schema);</b>
+<i class="no-highlight">341</i>&nbsp;            }
+<i class="no-highlight">342</i>&nbsp;            return;
+<i class="no-highlight">343</i>&nbsp;        }
+<i class="no-highlight">344</i>&nbsp;        // if the document is from data input view then write it to temp file
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        Map&lt;String, Object&gt; mapData = document.get(Map.class);</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;        Map&lt;Object, Object&gt; data = new TreeMap&lt;&gt;(mapData);</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;        if (data.isEmpty()) {</b>
+<i class="no-highlight">348</i>&nbsp;            return;
+<i class="no-highlight">349</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">350</i>&nbsp;        if (firstRecord) {</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;            if (lazyLoadTableMetadata()) {</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                tableMetaData = jdbcOperations.getTableMetaData(conn,</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                        account.getDatabaseConfig().getDatabaseName(), tableName);</b>
+<i class="no-highlight">355</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            if (preserveCaseSensitivity) {</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                snowflakeMetadataProvider.setUseUpperCaseIdentifiers(false);</b>
+<i class="no-highlight">358</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">359</i>&nbsp;            if (tmpTableCreated = createTempTable() &amp;&amp; generateCopyColumns(data, document)) {</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                databaseUtils.translateColumnNamesInDoc(columnTranslation, document);</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                List&lt;String&gt; normalizeKeyColumnNames = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                for (String column : keyColumnNames) {</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                    if (StringUtils.isBlank(column)) {</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                        throw new ExecutionException(ERROR)</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                                .withReason(EMPTY_PRIMARY_KEY)</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                                .withResolution(ERR_INVALID_COLUMN_RESOLUTION);</b>
+<i class="no-highlight">367</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                    String normalizedColumn = jdbcOperations.normalize(column);</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                    if (!tableMetaData.containsKey(normalizedColumn)) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                        throw new ExecutionException(ERR_INVALID_COLUMN)</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                                .withReason(ERR_INVALID_COLUMN_REASON)</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                                .withResolution(ERR_INVALID_COLUMN_RESOLUTION);</b>
+<i class="no-highlight">373</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                    normalizeKeyColumnNames.add(normalizedColumn);</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                keyColumnNames = normalizeKeyColumnNames;</b>
+<i class="no-highlight">377</i>&nbsp;            }
+<i class="no-highlight">378</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        writeDataToFile(data, chunkFlushSize, snowflakeConnection);</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;        inputCount++;</b>
+<i class="no-highlight">381</i>&nbsp;    }
+<i class="no-highlight">382</i>&nbsp;
+<i class="no-highlight">383</i>&nbsp;    private boolean createTempTable() {
+<b class="nc"><i class="no-highlight">384</i>&nbsp;        try (Statement stmt = snowflakeConnection.createStatement()) {</b>
+<i class="no-highlight">385</i>&nbsp;            // Create a temp table with the schema same as that of the target table
+<b class="nc"><i class="no-highlight">386</i>&nbsp;            String schemaForTempTable = schemaName;</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            if (StringUtils.isBlank(schemaName)) {</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                schemaForTempTable = schemaNameProvidedInTargetTable;</b>
+<i class="no-highlight">389</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">390</i>&nbsp;            mergeTable = updateTableName(schemaForTempTable, String.format(TEMP_TABLE_NAME,</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                    randomString().replaceAll(HYPHEN, UNDERSCORE)));</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            String statement = String.format(CREATE_TEMP_TABLE, mergeTable, tableName);</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;            stmt.execute(statement);</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;            LOGGER.info(&quot;Successfully created temp table {}&quot;, mergeTable);</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;        } catch (SQLException ex) {</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;            LOGGER.error(&quot;Failed to create temp table {}&quot;, mergeTable, ex);</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;            SnapDataException snapException = new SnapDataException(ERROR_PERFORMING_UPSERT)</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;                    .withReason(ex.getMessage())</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;            errorViews.write(snapException);</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;            return false;</b>
+<i class="no-highlight">403</i>&nbsp;        }
+<i class="no-highlight">404</i>&nbsp;    }
+<i class="no-highlight">405</i>&nbsp;
+<i class="no-highlight">406</i>&nbsp;    private boolean generateCopyColumns(Map data, Document document) {
+<i class="no-highlight">407</i>&nbsp;        // Initialize copyColumns and quotedCopyColumns
+<b class="nc"><i class="no-highlight">408</i>&nbsp;        initCopyColumns(data);</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;        if (copyColumns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;            Map&lt;String, String&gt; errorMap = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            errorMap.put(ERROR, ERROR_INVALID_INPUT);</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;            SnapDataException snapException = new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                    documentUtility.newDocumentFor(document, errorMap), ERROR_INVALID_INPUT)</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                    .withReason(ERROR_INVALID_INPUT_REASON)</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                    .withResolution(ERROR_INVALID_INPUT_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;            errorViews.write(snapException);</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;            return false;</b>
+<i class="no-highlight">418</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">419</i>&nbsp;        return true;</b>
+<i class="no-highlight">420</i>&nbsp;    }
+<i class="no-highlight">421</i>&nbsp;
+<i class="no-highlight">422</i>&nbsp;    @Override
+<i class="no-highlight">423</i>&nbsp;    public void handle(LifecycleEvent event) {
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        switch (event) {</b>
+<i class="no-highlight">425</i>&nbsp;            case SUCCESS:
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                LOGGER.debug(&quot;Got success lifecycle event: {}&quot;, String.valueOf(event));</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                closeDataWriter();</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                if (inputCount &gt; 0 &amp;&amp; !copyColumns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                    if (STAGING_LOCATION_INTERNAL.equals(stagingLocation)) {</b>
+<i class="no-highlight">430</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                            waitForPutChunksCompletion();</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                            deleteTempFile();</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                        } catch (java.util.concurrent.ExecutionException | InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                            throw new ExecutionException(e, ERR_SENDING_LAST_CHUNK)</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                                    .withResolution(ERR_SENDING_LAST_CHUNK_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;                        }</b>
+<i class="no-highlight">438</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                    if (loadTempFileIntoTempTable()) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                        mergeTempTableIntoTargetTable();</b>
+<i class="no-highlight">441</i>&nbsp;                    }
+<i class="no-highlight">442</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">443</i>&nbsp;                deleteTempTable();</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                break;</b>
+<i class="no-highlight">445</i>&nbsp;            case CLOSE:
+<i class="no-highlight">446</i>&nbsp;            case STOP:
+<i class="no-highlight">447</i>&nbsp;            case FAILURE:
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                LOGGER.debug(STOP_LIFECYCLE_MSG, String.valueOf(event));</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                closeDataWriter();</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                deleteTempFile();</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                if (queryManagementOption.equals(SqlQueryManagementOptions.CANCEL_QUEUED_QUERIES)</b>
+<i class="no-highlight">452</i>&nbsp;                        &amp;&amp; queryIDThreadStarted) {
+<b class="nc"><i class="no-highlight">453</i>&nbsp;                    stopQuery(snowflakeConnection);</b>
+<i class="no-highlight">454</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                deleteTempTable();</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                break;</b>
+<i class="no-highlight">457</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                LOGGER.debug(OTHER_LIFECYCLE_MSG, String.valueOf(event));</b>
+<i class="no-highlight">459</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">460</i>&nbsp;        super.handle(event);</b>
+<i class="no-highlight">461</i>&nbsp;    }
+<i class="no-highlight">462</i>&nbsp;
+<i class="no-highlight">463</i>&nbsp;    private void closeDataWriter() {
+<b class="nc"><i class="no-highlight">464</i>&nbsp;        if (!STAGING_LOCATION_EXTERNAL.equals(stagingLocation)) {</b>
+<i class="no-highlight">465</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                if (dataWriter != null) {</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                    dataWriter.close();</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                    putLocalDataToSnowflakeStage(chunkedFileName, true);</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                    dataWriter = null;</b>
+<i class="no-highlight">470</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">471</i>&nbsp;            } catch (IOException | InterruptedException e1) {</b>
+<i class="no-highlight">472</i>&nbsp;                // NO OP
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                LOGGER.error(&quot;Error while closing the temp file {}&quot;, chunkedFileName, e1);</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;            }</b>
+<i class="no-highlight">475</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">476</i>&nbsp;            if (bulkLoadWrapper != null) {</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;                bulkLoadWrapper.close();</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;                bulkLoadWrapperClosed = true;</b>
+<i class="no-highlight">479</i>&nbsp;            }
+<i class="no-highlight">480</i>&nbsp;        }
+<i class="no-highlight">481</i>&nbsp;    }
+<i class="no-highlight">482</i>&nbsp;
+<i class="no-highlight">483</i>&nbsp;    private void deleteTempTable() {
+<b class="nc"><i class="no-highlight">484</i>&nbsp;        if (tmpTableCreated) {</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;            snowflakeConnection = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;            try (Statement stmt = snowflakeConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                stmt.execute(String.format(DROP_TEMP_TABLE_COMMAND, mergeTable));</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                LOGGER.info(&quot;Successfully deleted temp table {}&quot;, mergeTable);</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;            } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                LOGGER.error(&quot;Error trying to delete the temp table {}&quot;, mergeTable, e1);</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                DELETING_TEMP_TABLE_WARN.report(() -&gt; new String[]{mergeTable});</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;            }</b>
+<i class="no-highlight">493</i>&nbsp;        }
+<i class="no-highlight">494</i>&nbsp;    }
+<i class="no-highlight">495</i>&nbsp;
+<i class="no-highlight">496</i>&nbsp;    private boolean loadTempFileIntoTempTable() {
+<b class="nc"><i class="no-highlight">497</i>&nbsp;        if (snowflakeConnection == null) {</b>
+<i class="no-highlight">498</i>&nbsp;            // Connection might have been created already if truncate was done
+<b class="nc"><i class="no-highlight">499</i>&nbsp;            snowflakeConnection = jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">500</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">501</i>&nbsp;        try (Statement stmt = snowflakeConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;            loadFromInputView(mergeTable, stmt);</b>
+<i class="no-highlight">503</i>&nbsp;            // Output results
+<b class="nc"><i class="no-highlight">504</i>&nbsp;            try (ResultSet rs = stmt.getResultSet()) {</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;                if (!canExecuteValidateCommand()){</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                    WARNING_MESSAGE_S3.report();</b>
+<i class="no-highlight">507</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">508</i>&nbsp;                    if (!writeErrorView()) {</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;                        return false;</b>
+<i class="no-highlight">510</i>&nbsp;                    }
+<i class="no-highlight">511</i>&nbsp;                }
+<i class="no-highlight">512</i>&nbsp;                // Save COPY SQL results to be added if error happened
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                if (rs != null) {</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;                    saveCopyToTempTableResultForOutputView(rs);</b>
+<i class="no-highlight">515</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">516</i>&nbsp;            } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;                SnapDataException snapException = new SnapDataException(e,</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;                        String.format(ERR_FAILED_TO_WRITE_DATA_TO_TEMP_TABLE_MSG, mergeTable))</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;                errorViews.write(snapException);</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                return false;</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;            }</b>
+<i class="no-highlight">524</i>&nbsp;
+<b class="nc"><i class="no-highlight">525</i>&nbsp;            cleanupTempStageFolder();</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;        } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;            SnapDataException snapException = new SnapDataException(e1,</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                    String.format(ERR_FAILED_TO_WRITE_DATA_TO_TEMP_TABLE_MSG, mergeTable))</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                    .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;            errorViews.write(snapException);</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;            return false;</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;        } catch (Exception e2) {</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;            SnapDataException snapException = new SnapDataException(e2,</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                    String.format(ERR_OTHER_WHILE_WRITE_TO_TEMP_TABLE_MSG, mergeTable))</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;                    .withReason(e2.getMessage())</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;            errorViews.write(snapException);</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;            return false;</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;        }</b>
+<i class="no-highlight">541</i>&nbsp;
+<b class="nc"><i class="no-highlight">542</i>&nbsp;        return true;</b>
+<i class="no-highlight">543</i>&nbsp;    }
+<i class="no-highlight">544</i>&nbsp;
+<i class="no-highlight">545</i>&nbsp;    protected boolean writeErrorView() {
+<b class="nc"><i class="no-highlight">546</i>&nbsp;        String ERROR_SQL_STATEMENT =</b>
+<i class="no-highlight">547</i>&nbsp;                &quot;SELECT * FROM TABLE(VALIDATE(&quot; + mergeTable + &quot; ,&quot; +
+<i class="no-highlight">548</i>&nbsp;                        &quot; job_id =&gt; &#39;_last&#39;))&quot;;
+<b class="nc"><i class="no-highlight">549</i>&nbsp;        try (Statement stmt = snowflakeConnection.createStatement();</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;             ResultSet rs = stmt.executeQuery(ERROR_SQL_STATEMENT)) {</b>
+<i class="no-highlight">551</i>&nbsp;            // here should return true if no errors else false
+<b class="nc"><i class="no-highlight">552</i>&nbsp;            if (!rs.isBeforeFirst()){ //checking if result has some records</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;                addErrorsToErrorView(rs, null);</b>
+<b class="nc"><i class="no-highlight">554</i>&nbsp;                return false;</b>
+<i class="no-highlight">555</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">556</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;        } catch (SQLException e3) {</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;            if (STAGING_LOCATION_EXTERNAL.equals(stagingLocation)) {</b>
+<i class="no-highlight">559</i>&nbsp;                // NOTE: If Bulk Upsert is done using external staging (S3 or Azure) then the
+<i class="no-highlight">560</i>&nbsp;                //  above ERROR_SQL_STATEMENT is throwing &quot;resource not found error&quot;.
+<i class="no-highlight">561</i>&nbsp;                // Not sure why its doing so but I am preventing the snap from writing to
+<i class="no-highlight">562</i>&nbsp;                //  error view in this scenario as the required operations
+<i class="no-highlight">563</i>&nbsp;                //  (loading external file into temp table, and merging temp table into target
+<i class="no-highlight">564</i>&nbsp;                //  table) are working fine.
+<b class="nc"><i class="no-highlight">565</i>&nbsp;                LOGGER.debug(&quot;Error encountered while running the {} statement but it has &quot; +</b>
+<i class="no-highlight">566</i>&nbsp;                        &quot;been suppressed&quot;, ERROR_SQL_STATEMENT, e3);
+<b class="nc"><i class="no-highlight">567</i>&nbsp;                return true;</b>
+<i class="no-highlight">568</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                SnapDataException snapException = new SnapDataException(e3,</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;                        String.format(ERR_FAILED_TO_WRITE_DATA_TO_TEMP_TABLE_MSG, mergeTable))</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;                        .withReason(e3.getMessage())</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;                        .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">573</i>&nbsp;                errorViews.write(snapException);</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;                return false;</b>
+<i class="no-highlight">575</i>&nbsp;            }
+<i class="no-highlight">576</i>&nbsp;        }
+<i class="no-highlight">577</i>&nbsp;    }
+<i class="no-highlight">578</i>&nbsp;
+<i class="no-highlight">579</i>&nbsp;    private void mergeTempTableIntoTargetTable() {
+<i class="no-highlight">580</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">581</i>&nbsp;            loadActionWithOAuthRetry(tableName, null);</b>
+<b class="nc"><i class="no-highlight">582</i>&nbsp;            writeOutputView();</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;        } catch (ExecutionException | ConfigurationException e) {</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;            SnapDataException snapException = new SnapDataException(ERROR_PERFORMING_UPSERT)</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;                    .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;                    .withResolution(e.getResolution());</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;            errorViews.write(snapException);</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;            SnapDataException snapException = new SnapDataException(ERROR_PERFORMING_UPSERT)</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">592</i>&nbsp;            errorViews.write(snapException);</b>
+<b class="nc"><i class="no-highlight">593</i>&nbsp;        }</b>
+<i class="no-highlight">594</i>&nbsp;    }
+<i class="no-highlight">595</i>&nbsp;
+<i class="no-highlight">596</i>&nbsp;    @Override
+<i class="no-highlight">597</i>&nbsp;    public void cleanup() throws ExecutionException {
+<b class="nc"><i class="no-highlight">598</i>&nbsp;        super.cleanup();</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;        stopQueryIDThread();</b>
+<i class="no-highlight">600</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">601</i>&nbsp;            closeDataWriter();</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;            deleteTempFile();</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;            if (bulkLoadWrapper != null) {</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;                if (!bulkLoadWrapperClosed) {</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;                    bulkLoadWrapper.close();</b>
+<i class="no-highlight">606</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">607</i>&nbsp;                bulkLoadWrapper.cleanup();</b>
+<i class="no-highlight">608</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">609</i>&nbsp;            if (s3 != null) {</b>
+<b class="nc"><i class="no-highlight">610</i>&nbsp;                s3.shutdown();</b>
+<i class="no-highlight">611</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">612</i>&nbsp;            if (account != null) {</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;                account.disconnect();</b>
+<i class="no-highlight">614</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">615</i>&nbsp;            if (snowflakeConnection != null &amp;&amp; !snowflakeConnection.isClosed()) {</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;                snowflakeConnection.close();</b>
+<i class="no-highlight">617</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">618</i>&nbsp;        } catch (SQLException e2) {</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;            LOGGER.error(&quot;Error closing the database connection&quot;, e2);</b>
+<b class="nc"><i class="no-highlight">620</i>&nbsp;            SnapDataException snapException = new SnapDataException(ERROR_PERFORMING_UPSERT)</b>
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                    .withReason(e2.getMessage())</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;            errorViews.write(snapException);</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;        } catch (AmazonS3Exception e3) {</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;            LOGGER.error(&quot;Error communicating with the s3 services&quot;, e3);</b>
+<b class="nc"><i class="no-highlight">626</i>&nbsp;            handleS3Exception(e3, bulkLoadWrapper,</b>
+<i class="no-highlight">627</i>&nbsp;                    FAILED_TO_DELETE_OBJECT, ERROR_PERFORMING_UPSERT);
+<b class="nc"><i class="no-highlight">628</i>&nbsp;        }</b>
+<i class="no-highlight">629</i>&nbsp;    }
+<i class="no-highlight">630</i>&nbsp;
+<i class="no-highlight">631</i>&nbsp;    @Override
+<i class="no-highlight">632</i>&nbsp;    protected void loadAction(String targetTable, Document ignored) {
+<b class="nc"><i class="no-highlight">633</i>&nbsp;        StringBuilder joinList = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">634</i>&nbsp;        boolean firstColumn = true;</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;        String mergeStmt = null;</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;        if (!preserveCaseSensitivity) {</b>
+<i class="no-highlight">637</i>&nbsp;            // If case-insensitive, get copyColumns from quotedCopyColumns because column names from
+<i class="no-highlight">638</i>&nbsp;            // table metadata (not from input document) should be used.
+<b class="nc"><i class="no-highlight">639</i>&nbsp;            copyColumns = quotedCopyColumns.stream()</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;                    .map(p -&gt; p.substring(1, p.length() - 1))</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                    .collect(Collectors.toList());</b>
+<i class="no-highlight">642</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">643</i>&nbsp;        for (String column : copyColumns) {</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;            if (!keyColumnNames.contains(jdbcOperations.normalize(column))) {</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                if (!firstColumn) {</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;                    joinList.append(COMMA_DELIMITER);</b>
+<i class="no-highlight">647</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">648</i>&nbsp;                firstColumn = false;</b>
+<b class="nc"><i class="no-highlight">649</i>&nbsp;                joinList.append(String.format(UPDATE_ENTRY, column, column));</b>
+<i class="no-highlight">650</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">651</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">652</i>&nbsp;        StringBuilder joinExpList = getPredicateList(targetTable, keyColumnNames);</b>
+<i class="no-highlight">653</i>&nbsp;
+<b class="nc"><i class="no-highlight">654</i>&nbsp;        try (Statement stmt = snowflakeConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;            deleteCond = encloseQuotes(deleteCond);</b>
+<b class="nc"><i class="no-highlight">656</i>&nbsp;            String deleteCommand = String.format(DELETE_MERGE_COMMAND, deleteCond);</b>
+<b class="nc"><i class="no-highlight">657</i>&nbsp;            String updateStmt = createUpdateStmt();</b>
+<b class="nc"><i class="no-highlight">658</i>&nbsp;            String insertStmt = createInsertStmt();</b>
+<i class="no-highlight">659</i>&nbsp;
+<b class="nc"><i class="no-highlight">660</i>&nbsp;            if (StringUtils.isNotEmpty(deleteCond)) {</b>
+<i class="no-highlight">661</i>&nbsp;
+<b class="nc"><i class="no-highlight">662</i>&nbsp;                mergeStmt = String.format(MERGE_COMMAND_DELETE, targetTable, mergeTable,</b>
+<i class="no-highlight">663</i>&nbsp;                        joinExpList, deleteCommand, updateStmt, insertStmt);
+<i class="no-highlight">664</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">665</i>&nbsp;                mergeStmt = String.format(MERGE_COMMAND, targetTable, mergeTable,</b>
+<i class="no-highlight">666</i>&nbsp;                        joinExpList, updateStmt, insertStmt);
+<i class="no-highlight">667</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">668</i>&nbsp;            DatabaseUtils.submitQueryToThread(mergeStmt, queryQueue);</b>
+<i class="no-highlight">669</i>&nbsp;            // SNAP-6456: We have to use executeQuery here to get the resultSet for DDL statement
+<i class="no-highlight">670</i>&nbsp;            // Since Snowflake JDBC 3.8.1, execute() method won&#39;t return resultSet for DDL.
+<i class="no-highlight">671</i>&nbsp;            // Corresponding Snowflake ticket: SNOW-76035
+<b class="nc"><i class="no-highlight">672</i>&nbsp;            try (ResultSet rs = stmt.executeQuery(mergeStmt)) {</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;                if (rs != null &amp;&amp; rs.next()) {</b>
+<b class="nc"><i class="no-highlight">674</i>&nbsp;                    insertCount = rs.getInt(RESPONSE_ROWS_INSERTED_COUNT);</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                    updateCount = rs.getInt(RESPONSE_ROWS_UPDATED_COUNT);</b>
+<i class="no-highlight">676</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">677</i>&nbsp;                    insertCount = 0;</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;                    updateCount = 0;</b>
+<i class="no-highlight">679</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">680</i>&nbsp;            }</b>
+<i class="no-highlight">681</i>&nbsp;
+<b class="nc"><i class="no-highlight">682</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">683</i>&nbsp;            throw new ConfigurationException(INVALID_MERGE_CONDITION)</b>
+<b class="nc"><i class="no-highlight">684</i>&nbsp;                    .formatWith(mergeStmt)</b>
+<b class="nc"><i class="no-highlight">685</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">686</i>&nbsp;                    .withResolution(PLEASE_CORRECT_THE_MERGE_CONDITION_SYNTAX);</b>
+<b class="nc"><i class="no-highlight">687</i>&nbsp;        }</b>
+<i class="no-highlight">688</i>&nbsp;    }
+<i class="no-highlight">689</i>&nbsp;
+<i class="no-highlight">690</i>&nbsp;    private String encloseQuotes(String deleteCond) {
+<b class="nc"><i class="no-highlight">691</i>&nbsp;        if (StringUtils.isNotBlank(deleteCond)) {</b>
+<b class="nc"><i class="no-highlight">692</i>&nbsp;            String[] delArray = deleteCond.split(&quot;=&quot;);</b>
+<b class="nc"><i class="no-highlight">693</i>&nbsp;            String finalCommand = deleteCond;</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;            if (delArray.length &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">695</i>&nbsp;                finalCommand = String.format(QUOTED_DELETE_CONDITION_FMT, delArray[0], delArray[1]);</b>
+<i class="no-highlight">696</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">697</i>&nbsp;            return finalCommand;</b>
+<i class="no-highlight">698</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">699</i>&nbsp;        return null;</b>
+<i class="no-highlight">700</i>&nbsp;    }
+<i class="no-highlight">701</i>&nbsp;
+<i class="no-highlight">702</i>&nbsp;    private StringBuilder getPredicateList(final String targetTable,
+<i class="no-highlight">703</i>&nbsp;            final List&lt;String&gt; columnNames) {
+<b class="nc"><i class="no-highlight">704</i>&nbsp;        boolean firstColumn = true;</b>
+<b class="nc"><i class="no-highlight">705</i>&nbsp;        StringBuilder predicateList = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;        for (String column : columnNames) {</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;            if (!firstColumn) {</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;                predicateList.append(AND_DELIMITER);</b>
+<i class="no-highlight">709</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">710</i>&nbsp;            firstColumn = false;</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;            predicateList.append(String.format(PREDICATE_ENTRY, targetTable, column, column));</b>
+<b class="nc"><i class="no-highlight">712</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">713</i>&nbsp;        return predicateList;</b>
+<i class="no-highlight">714</i>&nbsp;    }
+<i class="no-highlight">715</i>&nbsp;
+<i class="no-highlight">716</i>&nbsp;    private String createUpdateStmt() {
+<b class="nc"><i class="no-highlight">717</i>&nbsp;        boolean firstColumn = true;</b>
+<b class="nc"><i class="no-highlight">718</i>&nbsp;        StringBuilder primaryKeyList = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">719</i>&nbsp;        for (String column : tableMetaData.keySet()) {</b>
+<b class="nc"><i class="no-highlight">720</i>&nbsp;            if (!keyColumnNames.contains(column)) {</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;                if (!firstColumn) {</b>
+<b class="nc"><i class="no-highlight">722</i>&nbsp;                    primaryKeyList.append(AND_DELIMITER);</b>
+<i class="no-highlight">723</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">724</i>&nbsp;                firstColumn = false;</b>
+<b class="nc"><i class="no-highlight">725</i>&nbsp;                primaryKeyList.append(String.format(PRIMARY_KEY_ENTRY, column));</b>
+<i class="no-highlight">726</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">727</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">728</i>&nbsp;        List&lt;String&gt; allInputColumns = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">729</i>&nbsp;        for (String columnName : copyColumns) {</b>
+<b class="nc"><i class="no-highlight">730</i>&nbsp;            if (checkIdentity(columnName)) {</b>
+<b class="nc"><i class="no-highlight">731</i>&nbsp;                allInputColumns.add(String.format(ID_QUOTE_FORMAT, columnName));</b>
+<i class="no-highlight">732</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">733</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">734</i>&nbsp;        List&lt;String&gt; transformedList = allInputColumns.stream()</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;                .map(input -&gt; String.format(UPDATE_ENTRY, input, input))</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;                .collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">737</i>&nbsp;        String selectColumns = Joiner.on(COMMA_DELIMITER).join(transformedList);</b>
+<b class="nc"><i class="no-highlight">738</i>&nbsp;        if (StringUtils.isBlank(selectColumns)) {</b>
+<b class="nc"><i class="no-highlight">739</i>&nbsp;            return null;</b>
+<i class="no-highlight">740</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">741</i>&nbsp;        return String.format(UPDATE_COMMAND, selectColumns);</b>
+<i class="no-highlight">742</i>&nbsp;    }
+<i class="no-highlight">743</i>&nbsp;
+<i class="no-highlight">744</i>&nbsp;    private boolean checkIdentity(String columnName){
+<b class="nc"><i class="no-highlight">745</i>&nbsp;        if (tableMetaData.get(jdbcOperations.normalize(columnName))!= null) {</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;            if (!tableMetaData.get(jdbcOperations.normalize(columnName)).isIdentity()) {</b>
+<b class="nc"><i class="no-highlight">747</i>&nbsp;                return true;</b>
+<i class="no-highlight">748</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">749</i>&nbsp;        } else if (tableMetaData.get(columnName)!= null) {</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;            if (!tableMetaData.get(columnName).isIdentity()) {</b>
+<b class="nc"><i class="no-highlight">751</i>&nbsp;                return true;</b>
+<i class="no-highlight">752</i>&nbsp;            }
+<i class="no-highlight">753</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">754</i>&nbsp;        return false;</b>
+<i class="no-highlight">755</i>&nbsp;    }
+<i class="no-highlight">756</i>&nbsp;    private String createInsertStmt() {
+<b class="nc"><i class="no-highlight">757</i>&nbsp;        StringBuilder primaryKeyList = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">758</i>&nbsp;        boolean firstColumn = true;</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;        for (String column : tableMetaData.keySet()) {</b>
+<b class="nc"><i class="no-highlight">760</i>&nbsp;            if (!keyColumnNames.contains(column)) {</b>
+<b class="nc"><i class="no-highlight">761</i>&nbsp;                if (!firstColumn) {</b>
+<b class="nc"><i class="no-highlight">762</i>&nbsp;                    primaryKeyList.append(AND_DELIMITER);</b>
+<i class="no-highlight">763</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">764</i>&nbsp;                firstColumn = false;</b>
+<b class="nc"><i class="no-highlight">765</i>&nbsp;                primaryKeyList.append(String.format(PRIMARY_KEY_ENTRY, column));</b>
+<i class="no-highlight">766</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">767</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">768</i>&nbsp;        List&lt;String&gt; allInputColumns = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">769</i>&nbsp;        for (String columnName : copyColumns) {</b>
+<b class="nc"><i class="no-highlight">770</i>&nbsp;            if (checkIdentity(columnName)) {</b>
+<b class="nc"><i class="no-highlight">771</i>&nbsp;                allInputColumns.add(String.format(ID_QUOTE_FORMAT, columnName));</b>
+<i class="no-highlight">772</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">773</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">774</i>&nbsp;        List&lt;String&gt; transformedList = allInputColumns.stream()</b>
+<b class="nc"><i class="no-highlight">775</i>&nbsp;                .map(input -&gt; String.format(SELECT_COLUMN, input))</b>
+<b class="nc"><i class="no-highlight">776</i>&nbsp;                .collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">777</i>&nbsp;        String insertColumns = Joiner.on(COMMA_DELIMITER).join(allInputColumns);</b>
+<b class="nc"><i class="no-highlight">778</i>&nbsp;        String selectColumns = Joiner.on(COMMA_DELIMITER).join(transformedList);</b>
+<b class="nc"><i class="no-highlight">779</i>&nbsp;        return String.format(INSERT_COMMAND, insertColumns, selectColumns);</b>
+<i class="no-highlight">780</i>&nbsp;    }
+<i class="no-highlight">781</i>&nbsp;
+<i class="no-highlight">782</i>&nbsp;    /**
+<i class="no-highlight">783</i>&nbsp;     * Set up resultsForCopyToTempTable from COPY statement response from Snowflake
+<i class="no-highlight">784</i>&nbsp;     * by adding only error containing rows.
+<i class="no-highlight">785</i>&nbsp;     *
+<i class="no-highlight">786</i>&nbsp;     * @param rs    ResultSet of COPY statement to temporary table
+<i class="no-highlight">787</i>&nbsp;     */
+<i class="no-highlight">788</i>&nbsp;    private void saveCopyToTempTableResultForOutputView(final ResultSet rs) throws SQLException {
+<b class="nc"><i class="no-highlight">789</i>&nbsp;        resultsForCopyToTempTable = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">790</i>&nbsp;        ResultSetMetaData metaData = rs.getMetaData();</b>
+<b class="nc"><i class="no-highlight">791</i>&nbsp;        int columnCount = metaData.getColumnCount();</b>
+<b class="nc"><i class="no-highlight">792</i>&nbsp;        while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">793</i>&nbsp;            if (rs.getInt(RESPONSE_ERRORS_SEEN) &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;                Map&lt;String, Object&gt; resultMap = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;                for (int i = 1; i &lt;= columnCount; i++) {</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;                    resultMap.put(metaData.getColumnName(i), rs.getString(i));</b>
+<i class="no-highlight">797</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">798</i>&nbsp;                resultsForCopyToTempTable.add(resultMap);</b>
+<b class="nc"><i class="no-highlight">799</i>&nbsp;            }</b>
+<i class="no-highlight">800</i>&nbsp;        }
+<i class="no-highlight">801</i>&nbsp;    }
+<i class="no-highlight">802</i>&nbsp;
+<i class="no-highlight">803</i>&nbsp;    private Map&lt;String, Object&gt; createOutputViewInfo() {
+<b class="nc"><i class="no-highlight">804</i>&nbsp;        Map&lt;String, Object&gt; outputInfo = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">805</i>&nbsp;        outputInfo.put(KEY_TABLE, tableName);</b>
+<b class="nc"><i class="no-highlight">806</i>&nbsp;        outputInfo.put(KEY_INPUT_RECORDS, BigInteger.valueOf(inputCount));</b>
+<b class="nc"><i class="no-highlight">807</i>&nbsp;        outputInfo.put(KEY_UPDATED_RECORDS, BigInteger.valueOf(updateCount));</b>
+<b class="nc"><i class="no-highlight">808</i>&nbsp;        outputInfo.put(KEY_INSERT_RECORDS, BigInteger.valueOf(insertCount));</b>
+<b class="nc"><i class="no-highlight">809</i>&nbsp;        outputInfo.put(KEY_FAILED_RECORDS, inputCount - (updateCount + insertCount));</b>
+<i class="no-highlight">810</i>&nbsp;
+<b class="nc"><i class="no-highlight">811</i>&nbsp;        if (CollectionUtils.isNotEmpty(resultsForCopyToTempTable)) {</b>
+<b class="nc"><i class="no-highlight">812</i>&nbsp;            outputInfo.put(KEY_COPY_INTO_RESULTS, resultsForCopyToTempTable);</b>
+<i class="no-highlight">813</i>&nbsp;        }
+<i class="no-highlight">814</i>&nbsp;
+<b class="nc"><i class="no-highlight">815</i>&nbsp;        return outputInfo;</b>
+<i class="no-highlight">816</i>&nbsp;    }
+<i class="no-highlight">817</i>&nbsp;
+<i class="no-highlight">818</i>&nbsp;    private void writeOutputView() {
+<b class="nc"><i class="no-highlight">819</i>&nbsp;        if (outputViews.getAll().isEmpty()) {</b>
+<i class="no-highlight">820</i>&nbsp;            return;
+<i class="no-highlight">821</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">822</i>&nbsp;        outputViews.write(documentUtility.newDocument(createOutputViewInfo()));</b>
+<i class="no-highlight">823</i>&nbsp;    }
+<i class="no-highlight">824</i>&nbsp;
+<i class="no-highlight">825</i>&nbsp;    @Override
+<i class="no-highlight">826</i>&nbsp;    public Logger getLogger() {
+<b class="nc"><i class="no-highlight">827</i>&nbsp;        return LOGGER;</b>
+<i class="no-highlight">828</i>&nbsp;    }
+<i class="no-highlight">829</i>&nbsp;
+<i class="no-highlight">830</i>&nbsp;    @Override
+<i class="no-highlight">831</i>&nbsp;    public void setConnectionOnRetry(Connection connection) {
+<b class="nc"><i class="no-highlight">832</i>&nbsp;        this.snowflakeConnection = connection;</b>
+<i class="no-highlight">833</i>&nbsp;    }
+<i class="no-highlight">834</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

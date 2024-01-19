@@ -1,0 +1,381 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkWriteRequest</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.request</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkWriteRequest (com.snaplogic.snaps.salesforce.request)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkWriteRequest</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/114)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.request;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.input.JobDocument;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.BatchInfo;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.BulkWriteResult;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.XMLHandler;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snaps.salesforce.common.SObject;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snaps.salesforce.response.BulkWriteResponse;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.util.SnapObjectMapper;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import org.apache.commons.csv.CSVFormat;
+<i class="no-highlight">27</i>&nbsp;import org.apache.commons.csv.CSVPrinter;
+<i class="no-highlight">28</i>&nbsp;import org.apache.commons.csv.QuoteMode;
+<i class="no-highlight">29</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">30</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">33</i>&nbsp;import java.io.StringReader;
+<i class="no-highlight">34</i>&nbsp;import java.io.StringWriter;
+<i class="no-highlight">35</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">36</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">37</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">38</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">39</i>&nbsp;import java.util.List;
+<i class="no-highlight">40</i>&nbsp;import java.util.Map;
+<i class="no-highlight">41</i>&nbsp;import java.util.Set;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import javax.xml.namespace.QName;
+<i class="no-highlight">44</i>&nbsp;import javax.xml.stream.XMLEventFactory;
+<i class="no-highlight">45</i>&nbsp;import javax.xml.stream.XMLEventReader;
+<i class="no-highlight">46</i>&nbsp;import javax.xml.stream.XMLEventWriter;
+<i class="no-highlight">47</i>&nbsp;import javax.xml.stream.XMLOutputFactory;
+<i class="no-highlight">48</i>&nbsp;import javax.xml.stream.XMLStreamException;
+<i class="no-highlight">49</i>&nbsp;import javax.xml.stream.events.Namespace;
+<i class="no-highlight">50</i>&nbsp;import javax.xml.stream.events.StartElement;
+<i class="no-highlight">51</i>&nbsp;import javax.xml.stream.events.XMLEvent;
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;import de.odysseus.staxon.json.JsonXMLConfig;
+<i class="no-highlight">54</i>&nbsp;import de.odysseus.staxon.json.JsonXMLConfigBuilder;
+<i class="no-highlight">55</i>&nbsp;import de.odysseus.staxon.json.JsonXMLInputFactory;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snaps.salesforce.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snaps.salesforce.bulk2.Messages.ERR_INTILIZING_CSV_FORMATTER;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.ERR_ADD_BATCH;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.ERR_ADD_BATCH_DETAIL;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.ERR_BULK_WRITE_RESPONSE;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.ERR_CANNOT_CONVERT_XML;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.ERR_CLOSING_IN_MEMORY_XML_READER;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.ERR_EMPTY_RECORD;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.RESOLUTION_CHECK_INPUT_DATA;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;/**
+<i class="no-highlight">68</i>&nbsp; * Abstract class for Bulk API write type of http request operations.
+<i class="no-highlight">69</i>&nbsp; *
+<i class="no-highlight">70</i>&nbsp; * @author psung, terry
+<i class="no-highlight">71</i>&nbsp; */
+<i class="no-highlight">72</i>&nbsp;public abstract class BulkWriteRequest extends BulkRequest&lt;Map&lt;String, Object&gt;, List&lt;SObject&gt;&gt; {
+<i class="no-highlight">73</i>&nbsp;    private static final String FORMAT_WITH_COMMA = &quot;%s, %s&quot;;
+<i class="no-highlight">74</i>&nbsp;    private static final String SOBJECTS = &quot;sObjects&quot;;
+<i class="no-highlight">75</i>&nbsp;    private static final String SOBJECT = &quot;sObject&quot;;
+<i class="no-highlight">76</i>&nbsp;    private static final String INVALID_NULL = &quot;/&gt;&lt;&quot;;
+<i class="no-highlight">77</i>&nbsp;    private static final String VALID_NULL = &quot; xsi:nil=\&quot;true\&quot;/&gt;&lt;&quot;;
+<b class="nc"><i class="no-highlight">78</i>&nbsp;    private final XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;    private final XMLEventFactory eventFactory = XMLEventFactory.newInstance();</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;    private final JsonXMLConfig config = new JsonXMLConfigBuilder().multiplePI(false).build();</b>
+<i class="no-highlight">81</i>&nbsp;    private SnapObjectMapper snapObjectMapper;
+<i class="no-highlight">82</i>&nbsp;    private ErrorViews errorViews;
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;    protected BulkWriteRequest(HttpRequestHandler httpRequestHandler,
+<i class="no-highlight">85</i>&nbsp;            SnapObjectMapper snapObjectMapper) {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        super(httpRequestHandler);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        this.snapObjectMapper = snapObjectMapper;</b>
+<i class="no-highlight">88</i>&nbsp;    }
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;    protected BulkWriteRequest initialize(Options options, Login login, ErrorViews errorViews) {
+<i class="no-highlight">91</i>&nbsp;        // TODO - MK: use assisted injection, but that requires configuring the child injector,
+<i class="no-highlight">92</i>&nbsp;        //            which we currently dont&#39; have access to.
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        super.initialize(options, login);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        this.errorViews = errorViews;</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        bulkResponse = injector.getInstance(BulkWriteResponse.class);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        bulkResponse.initialize(options, login);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        errMessage = ERR_BULK_WRITE_RESPONSE;</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        return this;</b>
+<i class="no-highlight">99</i>&nbsp;    }
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;    public void setLoginInfo(Login login) {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        loginInfo = login;</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        bulkResponse.initialize(options, login);</b>
+<i class="no-highlight">104</i>&nbsp;    }
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;    /**
+<i class="no-highlight">107</i>&nbsp;     * Closes the Bulk API job so that no more batch can be added to it.
+<i class="no-highlight">108</i>&nbsp;     */
+<i class="no-highlight">109</i>&nbsp;    protected abstract void closeBatchJob();
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    /**
+<i class="no-highlight">112</i>&nbsp;     * Adds a new batch to a job. The request body contains a list of records to be written at
+<i class="no-highlight">113</i>&nbsp;     * Force.com.
+<i class="no-highlight">114</i>&nbsp;     *
+<i class="no-highlight">115</i>&nbsp;     * @param serviceUrl - URL to add a batch to a Bulk API job in Force.com
+<i class="no-highlight">116</i>&nbsp;     * @param jobId      - job ID
+<i class="no-highlight">117</i>&nbsp;     * @param sObjects   - list of SObjects
+<i class="no-highlight">118</i>&nbsp;     *
+<i class="no-highlight">119</i>&nbsp;     * @return information on the batch added to the job
+<i class="no-highlight">120</i>&nbsp;     * @throws IOException if an error occurs while adding the batch to the job
+<i class="no-highlight">121</i>&nbsp;     */
+<i class="no-highlight">122</i>&nbsp;    protected BatchInfo addBatch(String serviceUrl, String jobId, List&lt;SObject&gt; sObjects)
+<i class="no-highlight">123</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        String batchUrl = String.format(FORMAT_BATCH_URL, serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        if (sObjects.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;            String error = String.format(FORMAT_WITH_COMMA, ERR_ADD_BATCH, ERR_EMPTY_RECORD);</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            throw new IOException(error);</b>
+<i class="no-highlight">128</i>&nbsp;        }
+<i class="no-highlight">129</i>&nbsp;        BatchInfo batchInfo;
+<i class="no-highlight">130</i>&nbsp;        try {
+<i class="no-highlight">131</i>&nbsp;            // TODO - psung: pass in the outputstream of the http request and serialize and write
+<i class="no-highlight">132</i>&nbsp;            // directly into the output stream, instead of converting the entire batch of records
+<i class="no-highlight">133</i>&nbsp;            // to a string object in the memory.
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            BulkWriteResponse writeResponse = (BulkWriteResponse) bulkResponse;</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            bulkResponse.setCsvRequestContentType(isPayloadContentTypeCsv());</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            BulkWriteResult writeResult = writeResponse.getResponse(batchUrl,</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                    isPayloadContentTypeCsv() ? getCsvData(sObjects) : getXmlData(sObjects),</b>
+<i class="no-highlight">138</i>&nbsp;                    HttpPost.METHOD_NAME);
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            batchInfo = (BatchInfo) XMLHandler.deserialize(writeResult.getResult(),</b>
+<i class="no-highlight">140</i>&nbsp;                    BatchInfo.class);
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        } catch (Throwable e) {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            String error = String.format(ERR_ADD_BATCH_DETAIL, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            throw new IOException(error);</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        return batchInfo;</b>
+<i class="no-highlight">146</i>&nbsp;    }
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">149</i>&nbsp;    protected String getCsvData(List&lt;SObject&gt; sobjects) {
+<i class="no-highlight">150</i>&nbsp;        // extract header row
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        Set&lt;String&gt; headers = sobjects.get(0).getAllFields().keySet();</b>
+<i class="no-highlight">152</i>&nbsp;        // prepare CSV payload
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        StringBuilder csvBuilder = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        CSVFormat csvFormat = CSVFormat.Builder.create(CSVFormat.DEFAULT)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                .setQuoteMode(QuoteMode.MINIMAL).setEscape(&#39;&quot;&#39;).build();</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        try (CSVPrinter csvPrinter = new CSVPrinter(csvBuilder, csvFormat)) {</b>
+<i class="no-highlight">157</i>&nbsp;            // write header row
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            csvPrinter.printRecord(headers);</b>
+<i class="no-highlight">159</i>&nbsp;            // write data rows
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            List&lt;Object&gt; values = new ArrayList&lt;&gt;(headers.size());</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            for (SObject object : sobjects) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                Map&lt;String, Object&gt; allFields = object.getAllFields();</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                values.clear();</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                for (String key : headers) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                    values.add(allFields.get(key));</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                csvPrinter.printRecord(values);</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;            throw new SnapDataException(e, ERR_INTILIZING_CSV_FORMATTER)</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        return csvBuilder.toString();</b>
+<i class="no-highlight">174</i>&nbsp;    }
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;    private String getXmlData(List&lt;SObject&gt; sObjects) throws Throwable {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        StringWriter strWriter = new StringWriter();</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        outputFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, false);</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        QName bulkQName = new QName(JobDocument.XMLNS, SOBJECTS);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        XMLEventWriter xmlWriter = null;</b>
+<i class="no-highlight">181</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            xmlWriter = outputFactory.createXMLEventWriter(strWriter);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            xmlWriter.add(eventFactory.createStartDocument());</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;            StartElement startElement = eventFactory.createStartElement(bulkQName, null, null);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            xmlWriter.add(setupNamespace(startElement));</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            writeSObjectsToXml(sObjects, xmlWriter);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            xmlWriter.add(eventFactory.createEndDocument());</b>
+<i class="no-highlight">188</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            if (xmlWriter != null) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                xmlWriter.flush();</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                xmlWriter.close();</b>
+<i class="no-highlight">192</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        String strXml = strWriter.toString();</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        return options.isNullSettingWithBulkApi() ?</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                strXml.replaceAll(INVALID_NULL, VALID_NULL) : strXml;</b>
+<i class="no-highlight">197</i>&nbsp;    }
+<i class="no-highlight">198</i>&nbsp;
+<i class="no-highlight">199</i>&nbsp;    private StartElement setupNamespace(StartElement startElement) {
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        List&lt;Namespace&gt; namespaces = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        namespaces.add(eventFactory.createNamespace(JobDocument.XMLNS));</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        namespaces.add(eventFactory.createNamespace(JobDocument.PREFIX_XSI, JobDocument.XMLNS_XSI));</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        Iterator&lt;Namespace&gt; originalNamespaces = startElement.getNamespaces();</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        while (originalNamespaces.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            namespaces.add(originalNamespaces.next());</b>
+<i class="no-highlight">206</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        return eventFactory.createStartElement(new QName(JobDocument.XMLNS, startElement.getName()</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .getLocalPart()), startElement.getAttributes(), namespaces.iterator());</b>
+<i class="no-highlight">209</i>&nbsp;    }
+<i class="no-highlight">210</i>&nbsp;
+<i class="no-highlight">211</i>&nbsp;    private void writeSObjectsToXml(List&lt;SObject&gt; sObjects, XMLEventWriter xmlWriter) {
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        for (SObject sObject : sObjects) {</b>
+<i class="no-highlight">213</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                xmlWriter.add(eventFactory.createStartElement(StringUtils.EMPTY, StringUtils.EMPTY,</b>
+<i class="no-highlight">215</i>&nbsp;                        SOBJECT));
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                XMLEventReader xmlReader = null;</b>
+<i class="no-highlight">217</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                    Map&lt;String, Object&gt; fields = processRelationshipFields(sObject.getAllFields());</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                    StringReader stringReader = new StringReader(</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                            snapObjectMapper.writeValueAsString(fields));</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                    xmlReader = new JsonXMLInputFactory(config).createXMLEventReader(stringReader);</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                    copyXmlEvents(xmlWriter, xmlReader);</b>
+<i class="no-highlight">223</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                    if (xmlReader != null) {</b>
+<i class="no-highlight">225</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                            xmlReader.close();</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                        } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                            String error = String.format(ERR_CLOSING_IN_MEMORY_XML_READER,</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                                    e.getMessage());</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                            throw new IOException(error);</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                        }</b>
+<i class="no-highlight">232</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                xmlWriter.add(eventFactory.createEndElement(StringUtils.EMPTY, StringUtils.EMPTY,</b>
+<i class="no-highlight">235</i>&nbsp;                        SOBJECT));
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            } catch (Throwable e) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                SnapDataException ex = new SnapDataException(e, ERR_CANNOT_CONVERT_XML)</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                        .withResolution(RESOLUTION_CHECK_INPUT_DATA);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                errorViews.write(ex, sObject.getAllFields());</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        }</b>
+<i class="no-highlight">243</i>&nbsp;    }
+<i class="no-highlight">244</i>&nbsp;
+<i class="no-highlight">245</i>&nbsp;    private Map&lt;String, Object&gt; processRelationshipFields(Map&lt;String, Object&gt; fields) {
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        Map&lt;String, Object&gt; processedFields = new LinkedHashMap&lt;&gt;(fields.size());</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; field : fields.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;            String key = field.getKey();</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;            Object value = field.getValue();</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;            if (value instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                Map&lt;String, Object&gt; sObjectField = new HashMap&lt;&gt;(1);</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                sObjectField.put(SOBJECT, value);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                processedFields.put(key, sObjectField);</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                processedFields.put(key, value);</b>
+<i class="no-highlight">256</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        return processedFields;</b>
+<i class="no-highlight">259</i>&nbsp;    }
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;    private void copyXmlEvents(XMLEventWriter xmlWriter, XMLEventReader jsonReader)
+<i class="no-highlight">262</i>&nbsp;            throws XMLStreamException {
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        while (jsonReader.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            XMLEvent xmlEvent = jsonReader.nextEvent();</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            switch (xmlEvent.getEventType()) {</b>
+<i class="no-highlight">266</i>&nbsp;                // START &amp; END Document events should be ignored as they are written
+<i class="no-highlight">267</i>&nbsp;                // by the Event writer once for all the documents.
+<i class="no-highlight">268</i>&nbsp;                case XMLEvent.START_DOCUMENT:
+<i class="no-highlight">269</i>&nbsp;                case XMLEvent.END_DOCUMENT:
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                    continue;</b>
+<i class="no-highlight">271</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                    xmlWriter.add(xmlEvent);</b>
+<i class="no-highlight">273</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        }</b>
+<i class="no-highlight">275</i>&nbsp;    }
+<i class="no-highlight">276</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

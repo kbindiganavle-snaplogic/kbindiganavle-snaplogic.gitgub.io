@@ -1,0 +1,200 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > PrivateKeyUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.util</a>
+</div>
+
+<h1>Coverage Summary for Class: PrivateKeyUtils (com.snaplogic.snap.api.sql.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PrivateKeyUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package com.snaplogic.snap.api.sql.util;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import org.apache.commons.lang.StringUtils;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;/**
+<i class="no-highlight">6</i>&nbsp; * Common functions in support of working with private keys.
+<i class="no-highlight">7</i>&nbsp; *
+<i class="no-highlight">8</i>&nbsp; * @author arentz
+<i class="no-highlight">9</i>&nbsp; */
+<i class="no-highlight">10</i>&nbsp;public class PrivateKeyUtils {
+<i class="no-highlight">11</i>&nbsp;    private static final String HEADER_START = &quot;-----&quot;;
+<i class="no-highlight">12</i>&nbsp;    private static final String BEGIN_HEADER_START = HEADER_START + &quot;BEGIN&quot;;
+<i class="no-highlight">13</i>&nbsp;    private static final String END_HEADER_START = HEADER_START + &quot;END&quot;;
+<i class="no-highlight">14</i>&nbsp;
+<b class="nc"><i class="no-highlight">15</i>&nbsp;    private PrivateKeyUtils() {</b>
+<i class="no-highlight">16</i>&nbsp;        // May not be instantiated.
+<i class="no-highlight">17</i>&nbsp;    }
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;    /**
+<i class="no-highlight">20</i>&nbsp;     * If a private key is provided via a pipeline parameter or other input method which does not
+<i class="no-highlight">21</i>&nbsp;     * allow newline characters, it will be considered invalid. This method attempts to make an
+<i class="no-highlight">22</i>&nbsp;     * invalid private key adhere to the format expected of a private key. If the private key passed
+<i class="no-highlight">23</i>&nbsp;     * to this method contains newline characters, the private key will be returned as-is.
+<i class="no-highlight">24</i>&nbsp;     * @param privateKey the single-line private key.
+<i class="no-highlight">25</i>&nbsp;     * @return the corrected private key (never null).
+<i class="no-highlight">26</i>&nbsp;     */
+<i class="no-highlight">27</i>&nbsp;    public static String convertPrivateKeyToMultiline(String privateKey) {
+<b class="nc"><i class="no-highlight">28</i>&nbsp;        if (StringUtils.isBlank(privateKey)) {</b>
+<b class="nc"><i class="no-highlight">29</i>&nbsp;            throw new IllegalArgumentException(&quot;privateKey cannot be blank, empty, or null.&quot;);</b>
+<i class="no-highlight">30</i>&nbsp;        }
+<i class="no-highlight">31</i>&nbsp;        // Detect if privateKey is a single-line string, and insert newlines as needed.
+<i class="no-highlight">32</i>&nbsp;        // This method expects the proper formatting of the private key, except for the
+<i class="no-highlight">33</i>&nbsp;        // following: Spaces have been substituted for newline characters, and the key contains
+<i class="no-highlight">34</i>&nbsp;        // no newlines.
+<b class="nc"><i class="no-highlight">35</i>&nbsp;        if (privateKey.contains(&quot;\n&quot;)) {</b>
+<b class="nc"><i class="no-highlight">36</i>&nbsp;            return privateKey;</b>
+<i class="no-highlight">37</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">38</i>&nbsp;        StringBuilder newPrivateKey = new StringBuilder(privateKey);</b>
+<i class="no-highlight">39</i>&nbsp;        try {
+<i class="no-highlight">40</i>&nbsp;            // Fix begin header
+<b class="nc"><i class="no-highlight">41</i>&nbsp;            int startBeginHeaderIndex = newPrivateKey.indexOf(BEGIN_HEADER_START);</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;            int endBeginHeaderIndex = newPrivateKey.indexOf(HEADER_START, startBeginHeaderIndex +</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;                    BEGIN_HEADER_START.length()) + HEADER_START.length();</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;            newPrivateKey.insert(endBeginHeaderIndex, &#39;\n&#39;);</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;            removeSpaces(newPrivateKey, endBeginHeaderIndex + 1);</b>
+<i class="no-highlight">46</i>&nbsp;            // Fix information section.
+<b class="nc"><i class="no-highlight">47</i>&nbsp;            int currentIndex = endBeginHeaderIndex + 2;</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;            boolean foundInfoSection = false;</b>
+<b class="nc"><i class="no-highlight">49</i>&nbsp;            while ((currentIndex = newPrivateKey.indexOf(&quot;:&quot;, currentIndex)) &gt; -1) {</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;                foundInfoSection = true;</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;                currentIndex = newPrivateKey.indexOf(&quot; &quot;, currentIndex + 3) + 1;</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;                newPrivateKey.insert(currentIndex, &#39;\n&#39;);</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;                removeSpaces(newPrivateKey, currentIndex - 1);</b>
+<i class="no-highlight">54</i>&nbsp;            }
+<i class="no-highlight">55</i>&nbsp;            // Get back to the end.
+<b class="nc"><i class="no-highlight">56</i>&nbsp;            currentIndex = newPrivateKey.lastIndexOf(&quot;\n&quot;);</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;            if (foundInfoSection) {</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;                currentIndex = newPrivateKey.indexOf(&quot; &quot;, currentIndex + 1) + 1;</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;                newPrivateKey.insert(currentIndex, &#39;\n&#39;);</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;                removeSpaces(newPrivateKey, currentIndex - 1);</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;                currentIndex = newPrivateKey.lastIndexOf(&quot;\n&quot;);</b>
+<i class="no-highlight">62</i>&nbsp;            }
+<i class="no-highlight">63</i>&nbsp;            // Fix base64-encoded key to be formatted to 64 columns.
+<b class="nc"><i class="no-highlight">64</i>&nbsp;            int columns = 0;</b>
+<i class="no-highlight">65</i>&nbsp;            do {
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                if (++columns &gt; 64) {</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;                    newPrivateKey.insert(currentIndex + 1, &#39;\n&#39;);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;                    removeSpaces(newPrivateKey, currentIndex + 2);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                    columns = 0;</b>
+<i class="no-highlight">70</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">71</i>&nbsp;            } while (++currentIndex &lt; newPrivateKey.indexOf(END_HEADER_START));</b>
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;            // Insert newline if less than 64 columns on last part.
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            if (columns &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                newPrivateKey.insert(currentIndex, &#39;\n&#39;);</b>
+<i class="no-highlight">76</i>&nbsp;                // We&#39;re technically just past the beginning of the end header here.
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                removeSpaces(newPrivateKey, currentIndex - 1);</b>
+<i class="no-highlight">78</i>&nbsp;            }
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;            // Fix end of file.
+<b class="nc"><i class="no-highlight">81</i>&nbsp;            newPrivateKey.append(&#39;\n&#39;);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        } catch (IndexOutOfBoundsException e) {</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;            throw new IllegalArgumentException(&quot;privateKey formatting is invalid&quot;);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        }</b>
+<i class="no-highlight">85</i>&nbsp;
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        return newPrivateKey.toString();</b>
+<i class="no-highlight">87</i>&nbsp;    }
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;    private static void removeSpaces(StringBuilder sb, int currentIndex) {
+<i class="no-highlight">90</i>&nbsp;        // New lines get converted to spaces when copy-pasted into a pipeline parameter.
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        while (sb.charAt(currentIndex) == &#39; &#39;) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            sb.deleteCharAt(currentIndex);</b>
+<i class="no-highlight">93</i>&nbsp;        }
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

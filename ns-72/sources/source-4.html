@@ -1,0 +1,696 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > HttpUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.openapi</a>
+</div>
+
+<h1>Coverage Summary for Class: HttpUtils (com.snaplogic.snap.openapi)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HttpUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/219)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">HttpUtils$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/220)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.openapi;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.core.type.TypeReference;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+<i class="no-highlight">15</i>&nbsp;import com.fasterxml.jackson.datatype.joda.JodaModule;
+<i class="no-highlight">16</i>&nbsp;import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.JsonFactoryModule;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.read.JsonDataIterator;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.xml.XmlUtils;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.view.DocumentOutputView;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import org.apache.commons.csv.CSVFormat;
+<i class="no-highlight">31</i>&nbsp;import org.apache.commons.csv.CSVRecord;
+<i class="no-highlight">32</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">33</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">34</i>&nbsp;import org.apache.http.Header;
+<i class="no-highlight">35</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">36</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">37</i>&nbsp;import org.apache.http.StatusLine;
+<i class="no-highlight">38</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">39</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import java.io.BufferedInputStream;
+<i class="no-highlight">42</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">43</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">44</i>&nbsp;import java.io.InputStreamReader;
+<i class="no-highlight">45</i>&nbsp;import java.io.UnsupportedEncodingException;
+<i class="no-highlight">46</i>&nbsp;import java.nio.charset.IllegalCharsetNameException;
+<i class="no-highlight">47</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">48</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">49</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">50</i>&nbsp;import java.util.List;
+<i class="no-highlight">51</i>&nbsp;import java.util.Map;
+<i class="no-highlight">52</i>&nbsp;import java.util.zip.GZIPInputStream;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snap.openapi.Constants.*;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snap.openapi.Messages.ERR_OPENAPI;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snap.openapi.Messages.ERR_PARSING_DATA;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snap.openapi.Messages.REASON_EMPTY_ENTITY;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snap.openapi.Messages.REASON_ERROR_ENTITY;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snap.openapi.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snap.openapi.Messages.RESOLUTION_EMPTY_ENTITY;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snap.openapi.OpenApiHelper.readJsonPath;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snap.openapi.Utilities.parseXML;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;import static org.apache.http.HttpStatus.SC_OK;
+<i class="no-highlight">65</i>&nbsp;import static org.apache.http.HttpStatus.SC_TEMPORARY_REDIRECT;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+<i class="no-highlight">68</i>&nbsp;import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;/**
+<i class="no-highlight">71</i>&nbsp; * Utilities to process HTTP response for OpenAPI 2.0 and 3.0
+<i class="no-highlight">72</i>&nbsp; *
+<i class="no-highlight">73</i>&nbsp; * @since Sep, 2020
+<i class="no-highlight">74</i>&nbsp; */
+<i class="no-highlight">75</i>&nbsp;public class HttpUtils {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(HttpUtils.class);</b>
+<i class="no-highlight">77</i>&nbsp;    private static final String JAVASCRIPT = &quot;javascript&quot;;
+<b class="nc"><i class="no-highlight">78</i>&nbsp;    private static final String[] TEXT_TYPES = {&quot;text&quot;, JSON, XML, &quot;html&quot;, JAVASCRIPT, CSV, SSV,</b>
+<i class="no-highlight">79</i>&nbsp;            TSV};
+<b class="nc"><i class="no-highlight">80</i>&nbsp;    public static final TypeReference&lt;Object&gt; OBJECT_TYPE_REFERENCE =</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        new TypeReference&lt;Object&gt;() {</b>
+<i class="no-highlight">82</i>&nbsp;        };
+<b class="nc"><i class="no-highlight">83</i>&nbsp;    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;            .registerModule(new JsonFactoryModule())</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;            .registerModule(new JodaModule())</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;            .registerModule(new JavaTimeModule());</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;    private static final CSVFormat DEFAULT_CSV_FORMAT = CSVFormat.DEFAULT.builder()</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            .setEscape(&#39;\\&#39;).setIgnoreSurroundingSpaces(true).build();</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;    private static final CSVFormat DEFAULT_TSV_FORMAT = CSVFormat.DEFAULT.builder()</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            .setEscape(&#39;\\&#39;).setIgnoreSurroundingSpaces(true).setDelimiter(&#39;\t&#39;).build();</b>
+<i class="no-highlight">91</i>&nbsp;    private static final CSVFormat DEFAULT_SSV_FORMAT = CSVFormat.DEFAULT.builder()
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            .setEscape(&#39;\\&#39;).setIgnoreSurroundingSpaces(true).setDelimiter(&#39; &#39;).build();</b>
+<i class="no-highlight">93</i>&nbsp;    private DocumentOutputView firstOutputView;
+<i class="no-highlight">94</i>&nbsp;    private OpenApiHelper openApiHelper;
+<i class="no-highlight">95</i>&nbsp;    protected final OutputViews outputViews;
+<i class="no-highlight">96</i>&nbsp;    protected ErrorViews errorViews;
+<i class="no-highlight">97</i>&nbsp;    protected final DocumentUtility documentUtility;
+<i class="no-highlight">98</i>&nbsp;    protected boolean isVersion2;
+<b class="nc"><i class="no-highlight">99</i>&nbsp;    protected boolean enableProcessArray = true;</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;    private boolean writeOutputView = true;</b>
+<i class="no-highlight">101</i>&nbsp;    private XmlUtils xmlUtils;
+<i class="no-highlight">102</i>&nbsp;    private boolean passThrough;
+<i class="no-highlight">103</i>&nbsp;    private boolean displayHeadersGet;
+<i class="no-highlight">104</i>&nbsp;    private CSVFormat csvFormat;
+<i class="no-highlight">105</i>&nbsp;    private CSVFormat tsvFormat;
+<i class="no-highlight">106</i>&nbsp;    private CSVFormat ssvFormat;
+<i class="no-highlight">107</i>&nbsp;    private Map&lt;String, Object&gt; additionalOutputData;
+<i class="no-highlight">108</i>&nbsp;
+<b class="nc"><i class="no-highlight">109</i>&nbsp;    public CSVFormat getCsvFormat() {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        if (csvFormat == null) {</b>
+<i class="no-highlight">111</i>&nbsp;            return DEFAULT_CSV_FORMAT;
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        }</b>
+<i class="no-highlight">113</i>&nbsp;        return csvFormat;
+<i class="no-highlight">114</i>&nbsp;    }
+<i class="no-highlight">115</i>&nbsp;
+<b class="nc"><i class="no-highlight">116</i>&nbsp;    public void setCsvFormat(CSVFormat csvFormat) {</b>
+<i class="no-highlight">117</i>&nbsp;        this.csvFormat = csvFormat;
+<i class="no-highlight">118</i>&nbsp;    }
+<i class="no-highlight">119</i>&nbsp;
+<b class="nc"><i class="no-highlight">120</i>&nbsp;    public CSVFormat getTsvFormat() {</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        if (tsvFormat == null) {</b>
+<i class="no-highlight">122</i>&nbsp;            return DEFAULT_TSV_FORMAT;
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        }</b>
+<i class="no-highlight">124</i>&nbsp;        return tsvFormat;
+<i class="no-highlight">125</i>&nbsp;    }
+<i class="no-highlight">126</i>&nbsp;
+<b class="nc"><i class="no-highlight">127</i>&nbsp;    public void setTsvFormat(CSVFormat tsvFormat) {</b>
+<i class="no-highlight">128</i>&nbsp;        this.tsvFormat = tsvFormat;
+<i class="no-highlight">129</i>&nbsp;    }
+<i class="no-highlight">130</i>&nbsp;
+<b class="nc"><i class="no-highlight">131</i>&nbsp;    public CSVFormat getSsvFormat() {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        if (ssvFormat == null) {</b>
+<i class="no-highlight">133</i>&nbsp;            return DEFAULT_SSV_FORMAT;
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        }</b>
+<i class="no-highlight">135</i>&nbsp;        return ssvFormat;
+<i class="no-highlight">136</i>&nbsp;    }
+<i class="no-highlight">137</i>&nbsp;
+<b class="nc"><i class="no-highlight">138</i>&nbsp;    public void setSsvFormat(CSVFormat ssvFormat) {</b>
+<i class="no-highlight">139</i>&nbsp;        this.ssvFormat = ssvFormat;
+<i class="no-highlight">140</i>&nbsp;    }
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;    public HttpUtils(OutputViews outputViews, ErrorViews errorViews,
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            DocumentUtility documentUtility, OpenApiHelper openApiHelper,</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                     boolean passThrough, boolean displayHeadersGet) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        this.outputViews = outputViews;</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        this.errorViews = errorViews;</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        this.documentUtility = documentUtility;</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        this.openApiHelper = openApiHelper;</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        this.passThrough = passThrough;</b>
+<i class="no-highlight">150</i>&nbsp;        this.displayHeadersGet = displayHeadersGet;
+<i class="no-highlight">151</i>&nbsp;    }
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    public Document processHttpResponse(HttpResponse httpResponse, List&lt;Header&gt; requestHeaders,
+<i class="no-highlight">154</i>&nbsp;                      Document document, Map&lt;String, Object&gt; responsesSpec, Map&lt;String, Object&gt;
+<i class="no-highlight">155</i>&nbsp;                      additionalOutputData) throws IOException {
+<i class="no-highlight">156</i>&nbsp;        this.additionalOutputData = additionalOutputData;
+<i class="no-highlight">157</i>&nbsp;        return processHttpResponse(httpResponse, requestHeaders, document, responsesSpec);
+<i class="no-highlight">158</i>&nbsp;    }
+<i class="no-highlight">159</i>&nbsp;
+<i class="no-highlight">160</i>&nbsp;    /**
+<i class="no-highlight">161</i>&nbsp;     * Processes HttpResponse, and writes output document to the output view.
+<i class="no-highlight">162</i>&nbsp;     *
+<i class="no-highlight">163</i>&nbsp;     * @param httpResponse   - HttpResponse object
+<i class="no-highlight">164</i>&nbsp;     * @param requestHeaders - headers sent to the server to execute HTTP request
+<i class="no-highlight">165</i>&nbsp;     * @param document       - input document to be passed through
+<b class="nc"><i class="no-highlight">166</i>&nbsp;     * @param responsesSpec  - response part of OpenAPI spec</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;     * @return output document written to the output view</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;     * @throws IOException if it fails while processing response entity</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;    public Document processHttpResponse(HttpResponse httpResponse, List&lt;Header&gt; requestHeaders,</b>
+<i class="no-highlight">172</i>&nbsp;            Document document, Map&lt;String, Object&gt; responsesSpec) throws IOException {
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        // get status line</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        StatusLine statusLine = httpResponse.getStatusLine();</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        Map&lt;String, Object&gt; statusMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        int statusCode = statusLine.getStatusCode();</b>
+<i class="no-highlight">177</i>&nbsp;        statusMap.put(STATUS_CODE, statusCode);
+<i class="no-highlight">178</i>&nbsp;        statusMap.put(STATUS_PHRASE, statusLine.getReasonPhrase());
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        statusMap.put(PROTO_VERSION, statusLine.getProtocolVersion().toString());</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        // get response headers</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        Header[] headers = httpResponse.getAllHeaders();</b>
+<i class="no-highlight">182</i>&nbsp;        Map&lt;String, Object&gt; headerMap = new LinkedHashMap&lt;&gt;(headers.length);
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        for (Header header : headers) {</b>
+<i class="no-highlight">184</i>&nbsp;            headerMap.put(header.getName(), header.getValue());
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        // prepare output document</b>
+<i class="no-highlight">187</i>&nbsp;        Map&lt;String, Object&gt; outMap = new LinkedHashMap&lt;&gt;();
+<i class="no-highlight">188</i>&nbsp;        outMap.put(STATUS_LINE, statusMap);
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        outMap.put(HEADERS, headerMap);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        // get response http entity</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        HttpEntity httpEntity = httpResponse.getEntity();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        Object entity;</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        if (httpEntity == null) {</b>
+<i class="no-highlight">194</i>&nbsp;            entity = NO_CONTENT;
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            // get Content-Type</b>
+<i class="no-highlight">197</i>&nbsp;            Header header = httpEntity.getContentType();
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            String contentType = header == null ? null : header.getValue();</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;            boolean isJsonContentType = StringUtils.containsIgnoreCase(contentType, JSON) ||</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                    StringUtils.containsIgnoreCase(contentType, JAVASCRIPT);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            boolean isXmlContentType = StringUtils.containsIgnoreCase(contentType, XML);</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            // get Content-Encoding</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;            header = httpEntity.getContentEncoding();</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;            String contentEncoding = header == null ? null : header.getValue().toLowerCase();</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            // if response entity type is array, parse the array and stream documents to output view</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;            if (isJsonContentType &amp;&amp; enableProcessArray &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                    isProcessArray(statusCode, responsesSpec) ||</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                    StringUtils.containsIgnoreCase(contentType, CSV) ||</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                    StringUtils.containsIgnoreCase(contentType, SSV) ||</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                    StringUtils.containsIgnoreCase(contentType, TSV)) {</b>
+<i class="no-highlight">211</i>&nbsp;                Object data = null;
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                if (displayHeadersGet) {</b>
+<i class="no-highlight">213</i>&nbsp;                    data = collectData(httpEntity, contentType, contentEncoding);
+<i class="no-highlight">214</i>&nbsp;                    outMap.put(ENTITY, data);
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                    Document outDoc = documentUtility.newDocument(outMap);</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                    if (writeOutputView) {</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        if (firstOutputView == null) {</b>
+<i class="no-highlight">218</i>&nbsp;                            writeOutput(outputViews, outMap, document, passThrough);
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                        } else {</b>
+<i class="no-highlight">220</i>&nbsp;                            firstOutputView.write(documentUtility.newDocument(outDoc, document));
+<i class="no-highlight">221</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                    data = streamContent(httpEntity, contentType, contentEncoding);</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                    outMap.put(ENTITY, data);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                }</b>
+<i class="no-highlight">227</i>&nbsp;                return documentUtility.newDocument(outMap);
+<i class="no-highlight">228</i>&nbsp;            }
+<i class="no-highlight">229</i>&nbsp;            // process http entity
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            entity = getContent(httpEntity, contentEncoding);</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            if (entity instanceof String) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                String entityStr = (String) entity;</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                if (entityStr.isEmpty()) {</b>
+<i class="no-highlight">234</i>&nbsp;                    entity = NO_CONTENT;
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                    try {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                        // attempt to parse json or xml</b>
+<i class="no-highlight">238</i>&nbsp;                        if (isJsonContentType) {
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                            entity = OBJECT_MAPPER.readValue(entityStr, OBJECT_TYPE_REFERENCE);</b>
+<i class="no-highlight">240</i>&nbsp;                        } else if (isXmlContentType) {
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                            entity = parseXML(entityStr, xmlUtils);</b>
+<i class="no-highlight">242</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                    } catch (SuggestViewAbortException e) {</b>
+<i class="no-highlight">244</i>&nbsp;                        throw e;
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                    } catch (Exception e) {</b>
+<i class="no-highlight">246</i>&nbsp;                        // if it fails to parse json or xml, leave text as is
+<i class="no-highlight">247</i>&nbsp;                        LOG.warn(&quot;Content-Type header: {}, Content: {}, failed to parse&quot;,
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                                contentType, entityStr);</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;            } else if (entity == null ||</b>
+<i class="no-highlight">252</i>&nbsp;                    entity instanceof byte[] &amp;&amp; ((byte[]) entity).length == 0) {
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                entity = NO_CONTENT;</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;            }</b>
+<i class="no-highlight">255</i>&nbsp;        }
+<i class="no-highlight">256</i>&nbsp;        if (statusCode &gt;= SC_OK &amp;&amp; statusCode &lt;= SC_TEMPORARY_REDIRECT) {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            if (entityHasErrors(entity)) {</b>
+<i class="no-highlight">258</i>&nbsp;                processError(entity,document);
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                return null;</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                if (entityHasWarnings(entity)) {</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                    processWarnings(entity);</b>
+<i class="no-highlight">263</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                // write output document</b>
+<i class="no-highlight">265</i>&nbsp;                outMap.put(ENTITY, entity);
+<i class="no-highlight">266</i>&nbsp;                // passThrough
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                Document outDoc = documentUtility.newDocument(outMap);</b>
+<i class="no-highlight">268</i>&nbsp;                if (writeOutputView) {
+<i class="no-highlight">269</i>&nbsp;                    if (firstOutputView == null) {
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                        writeOutput(outputViews, outMap, document, passThrough);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                    } else {</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                        firstOutputView.write(documentUtility.newDocument(outDoc, document));</b>
+<i class="no-highlight">273</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                return outDoc;</b>
+<i class="no-highlight">276</i>&nbsp;            }
+<i class="no-highlight">277</i>&nbsp;        } else {
+<i class="no-highlight">278</i>&nbsp;            outMap.put(ERROR_ENTITY, entity);
+<i class="no-highlight">279</i>&nbsp;            outMap.put(REQUEST_HEADERS, getHeaderMap(requestHeaders.toArray(new Header[0])));
+<i class="no-highlight">280</i>&nbsp;            throw new SnapDataException(documentUtility.newDocumentFor(document, outMap),
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                    ERR_OPENAPI)</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                .withReason(REASON_ERROR_ENTITY)</b>
+<i class="no-highlight">283</i>&nbsp;                .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        }</b>
+<i class="no-highlight">285</i>&nbsp;    }
+<i class="no-highlight">286</i>&nbsp;
+<i class="no-highlight">287</i>&nbsp;    private void writeOutput(OutputViews outputView, Map&lt;String, Object&gt; outMap, Document document,
+<i class="no-highlight">288</i>&nbsp;                             boolean passThrough){
+<i class="no-highlight">289</i>&nbsp;        if (passThrough) {
+<i class="no-highlight">290</i>&nbsp;            outputView.write(documentUtility.newDocument(outMap), document);
+<i class="no-highlight">291</i>&nbsp;        } else {
+<i class="no-highlight">292</i>&nbsp;            outputView.write(documentUtility.newDocumentFor(document, outMap));
+<i class="no-highlight">293</i>&nbsp;        }
+<i class="no-highlight">294</i>&nbsp;    }
+<i class="no-highlight">295</i>&nbsp;
+<b class="nc"><i class="no-highlight">296</i>&nbsp;    /**</b>
+<i class="no-highlight">297</i>&nbsp;     * Checks the entity for errors, some OpenAPI clients have status codes in the entity (Marketo)
+<i class="no-highlight">298</i>&nbsp;     *
+<i class="no-highlight">299</i>&nbsp;     * @param entity The result from the execute call
+<i class="no-highlight">300</i>&nbsp;     *
+<i class="no-highlight">301</i>&nbsp;     * @return true if there were errors in the entity
+<i class="no-highlight">302</i>&nbsp;     */
+<i class="no-highlight">303</i>&nbsp;    protected boolean entityHasErrors(Object entity) {
+<i class="no-highlight">304</i>&nbsp;        return false; // Standard implementation does not check the entity for errors
+<b class="nc"><i class="no-highlight">305</i>&nbsp;    }</b>
+<i class="no-highlight">306</i>&nbsp;
+<i class="no-highlight">307</i>&nbsp;    /**
+<i class="no-highlight">308</i>&nbsp;     * Checks to see if there are any warnings in the entity (Marketo)
+<i class="no-highlight">309</i>&nbsp;     *
+<i class="no-highlight">310</i>&nbsp;     * @param entity The result from the execute call
+<i class="no-highlight">311</i>&nbsp;     */
+<i class="no-highlight">312</i>&nbsp;    protected boolean entityHasWarnings(Object entity) {
+<i class="no-highlight">313</i>&nbsp;        return false; // Standard implementation does not check for warnings
+<i class="no-highlight">314</i>&nbsp;    }
+<i class="no-highlight">315</i>&nbsp;
+<i class="no-highlight">316</i>&nbsp;    /**
+<i class="no-highlight">317</i>&nbsp;     * Processes the errors that may be stored in the entity by some clients (Marketo)
+<i class="no-highlight">318</i>&nbsp;     *
+<i class="no-highlight">319</i>&nbsp;     * @param entity The result from the execute call
+<i class="no-highlight">320</i>&nbsp;     */
+<i class="no-highlight">321</i>&nbsp;    protected void processError(Object entity,Document document) {
+<i class="no-highlight">322</i>&nbsp;        // Standard implementation does not process errors, there are none
+<i class="no-highlight">323</i>&nbsp;    }
+<i class="no-highlight">324</i>&nbsp;
+<i class="no-highlight">325</i>&nbsp;    /**
+<i class="no-highlight">326</i>&nbsp;     * Process the warnings that may be stored in teh entity by some clients (Marketo)
+<i class="no-highlight">327</i>&nbsp;     *
+<i class="no-highlight">328</i>&nbsp;     * @param entity The result from the execute call
+<i class="no-highlight">329</i>&nbsp;     */
+<i class="no-highlight">330</i>&nbsp;    protected void processWarnings(Object entity) {
+<i class="no-highlight">331</i>&nbsp;        // Standard implementation does not process warnings, by default there are none
+<i class="no-highlight">332</i>&nbsp;    }
+<i class="no-highlight">333</i>&nbsp;
+<i class="no-highlight">334</i>&nbsp;    /**
+<i class="no-highlight">335</i>&nbsp;     * Checks the response part of OpenAPI spec to find if the response entity is an array type
+<b class="nc"><i class="no-highlight">336</i>&nbsp;     * so that it can be parsed into a document stream.</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;     * @param statusCode    - status code in HttpResponse</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;     * @param responsesSpec - response part of OpenAPI spec</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;     * @return true if the response entity is an array type, false otherwise</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;     */</b>
+<i class="no-highlight">343</i>&nbsp;    protected boolean isProcessArray(Integer statusCode, Map&lt;String, Object&gt; responsesSpec) {
+<b class="nc"><i class="no-highlight">344</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; entry : responsesSpec.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;            if (entry.getKey().equals(statusCode.toString())) {</b>
+<i class="no-highlight">346</i>&nbsp;                Map&lt;String, Object&gt; value = (Map&lt;String, Object&gt;) entry.getValue();
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                Object type = isVersion2 ? readJsonPath(value, SCHEMA, TYPE) :</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                    readJsonPath(value, CONTENT, APPLICATION_JSON, SCHEMA, TYPE);</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                if (type == null) {</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                    type = readJsonPath(value, CONTENT, APPLICATION_XML, SCHEMA, TYPE);</b>
+<i class="no-highlight">351</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                if (type != null) {</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                    return ARRAY.equalsIgnoreCase((String) type);</b>
+<i class="no-highlight">354</i>&nbsp;                } else {
+<i class="no-highlight">355</i>&nbsp;                    Object object = isVersion2 ? readJsonPath(value, SCHEMA, REF) :
+<i class="no-highlight">356</i>&nbsp;                        readJsonPath(value, CONTENT, APPLICATION_JSON, SCHEMA, REF);
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                    if (object instanceof String) {</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                        Map&lt;String, Object&gt; refSpec = openApiHelper.getRefSpec((String) object,</b>
+<i class="no-highlight">359</i>&nbsp;                                false);
+<i class="no-highlight">360</i>&nbsp;                        object = refSpec.get(TYPE);
+<i class="no-highlight">361</i>&nbsp;                        return object instanceof String &amp;&amp; ARRAY.equalsIgnoreCase((String) object);
+<i class="no-highlight">362</i>&nbsp;                    }
+<i class="no-highlight">363</i>&nbsp;                }
+<i class="no-highlight">364</i>&nbsp;            }
+<i class="no-highlight">365</i>&nbsp;        }
+<i class="no-highlight">366</i>&nbsp;        return false;
+<i class="no-highlight">367</i>&nbsp;    }
+<i class="no-highlight">368</i>&nbsp;
+<i class="no-highlight">369</i>&nbsp;    /**
+<i class="no-highlight">370</i>&nbsp;     * Parses the array in the response entity and streams documents to output view.
+<i class="no-highlight">371</i>&nbsp;     *
+<i class="no-highlight">372</i>&nbsp;     * @param httpEntity      - response entity
+<b class="nc"><i class="no-highlight">373</i>&nbsp;     * @param contentType     - content-type of entity</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;     * @param contentEncoding - content-encoding of entity</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;     * @return data in the last document</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;     * @throws IOException if it fails in processing stream</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;    protected Object streamContent(HttpEntity httpEntity, String contentType,</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            String contentEncoding) throws IOException {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;        try (InputStream is = httpEntity.getContent()) {</b>
+<i class="no-highlight">382</i>&nbsp;            InputStream inputStream = StringUtils.containsIgnoreCase(contentEncoding, GZIP) ?
+<i class="no-highlight">383</i>&nbsp;                new GZIPInputStream(is) : is;
+<b class="nc"><i class="no-highlight">384</i>&nbsp;            if (StringUtils.containsIgnoreCase(contentType, CSV)) {</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                return parseDelimitedData(inputStream, getCsvFormat());</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;            } else if (StringUtils.containsIgnoreCase(contentType, SSV)) {</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                return parseDelimitedData(inputStream, getSsvFormat());</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;            } else if (StringUtils.containsIgnoreCase(contentType, TSV)) {</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                return parseDelimitedData(inputStream, getTsvFormat());</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            Iterator&lt;Object&gt; iterator =</b>
+<i class="no-highlight">392</i>&nbsp;                StringUtils.containsIgnoreCase(contentType, APPLICATION_JSON) ?
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                    new JsonDataIterator(inputStream) : getXmlDataIterator(inputStream);</b>
+<i class="no-highlight">394</i>&nbsp;            Object data = null;
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            while (iterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                data = iterator.next();</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                Document outDoc = documentUtility.newDocument(data);</b>
+<i class="no-highlight">398</i>&nbsp;                if (firstOutputView == null) {
+<i class="no-highlight">399</i>&nbsp;                    outputViews.write(outDoc);
+<i class="no-highlight">400</i>&nbsp;                } else {
+<i class="no-highlight">401</i>&nbsp;                    firstOutputView.write(outDoc);
+<i class="no-highlight">402</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">403</i>&nbsp;            }</b>
+<i class="no-highlight">404</i>&nbsp;            return data;
+<i class="no-highlight">405</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">406</i>&nbsp;    }</b>
+<i class="no-highlight">407</i>&nbsp;
+<b class="nc"><i class="no-highlight">408</i>&nbsp;    private Object parseDelimitedData(InputStream inputStream, CSVFormat format)</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;            throws IOException {</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        // init input stream reader</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;        InputStreamReader inputStreamReader = new InputStreamReader(</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                new BufferedInputStream(inputStream), StandardCharsets.UTF_8);</b>
+<i class="no-highlight">413</i>&nbsp;        // init delimited-document parser iterator
+<b class="nc"><i class="no-highlight">414</i>&nbsp;        Iterator&lt;CSVRecord&gt; it = format.parse(inputStreamReader).iterator();</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;        // init delimited-document headers</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;        CSVRecord headerRecord = it.hasNext() ? it.next() : null;</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;        if (headerRecord == null) {</b>
+<i class="no-highlight">418</i>&nbsp;            throw new SnapDataException(ERR_PARSING_DATA)
+<i class="no-highlight">419</i>&nbsp;                    .withReason(REASON_EMPTY_ENTITY)
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                    .withReason(RESOLUTION_EMPTY_ENTITY);</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        List&lt;String&gt; headers = Lists.newArrayListWithExpectedSize(headerRecord.size());</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        Iterator&lt;String&gt; headerIterator = headerRecord.iterator();</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        while (headerIterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;            headers.add(headerIterator.next());</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;        // parse and write output view</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;        Map&lt;String, Object&gt; data = null;</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;        while (it.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;            CSVRecord record = it.next();</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;            data = new LinkedHashMap&lt;&gt;(headers.size());</b>
+<i class="no-highlight">432</i>&nbsp;            int headerIndex = 0;
+<i class="no-highlight">433</i>&nbsp;            for (String header : headers) {
+<i class="no-highlight">434</i>&nbsp;                Object value = record.get(headerIndex++);
+<i class="no-highlight">435</i>&nbsp;                data.put(header, value);
+<i class="no-highlight">436</i>&nbsp;            }
+<i class="no-highlight">437</i>&nbsp;            if (additionalOutputData != null) {
+<i class="no-highlight">438</i>&nbsp;                data.putAll(additionalOutputData);
+<i class="no-highlight">439</i>&nbsp;            }
+<i class="no-highlight">440</i>&nbsp;            outputViews.write(documentUtility.newDocument(data));
+<i class="no-highlight">441</i>&nbsp;        }
+<i class="no-highlight">442</i>&nbsp;        return data;
+<i class="no-highlight">443</i>&nbsp;    }
+<i class="no-highlight">444</i>&nbsp;
+<b class="nc"><i class="no-highlight">445</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;     * Parses the array in the response entity and collects documents.</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;     *</b>
+<i class="no-highlight">448</i>&nbsp;     * @param httpEntity - response entity
+<b class="nc"><i class="no-highlight">449</i>&nbsp;     * @param contentType - content-type of entity</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;     * @param contentEncoding - content-encoding of entity</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;     * @return collects the list of data</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;     * @throws IOException if it fails in processing stream</b>
+<i class="no-highlight">453</i>&nbsp;     */
+<i class="no-highlight">454</i>&nbsp;    protected Iterator&lt;Object&gt; collectData(HttpEntity httpEntity, String contentType,
+<i class="no-highlight">455</i>&nbsp;                                   String contentEncoding) throws IOException {
+<i class="no-highlight">456</i>&nbsp;        try (InputStream is = httpEntity.getContent()) {
+<i class="no-highlight">457</i>&nbsp;            InputStream inputStream = StringUtils.containsIgnoreCase(contentEncoding, GZIP) ?
+<i class="no-highlight">458</i>&nbsp;                    new GZIPInputStream(is) : is;
+<i class="no-highlight">459</i>&nbsp;            Iterator&lt;Object&gt; iterator =
+<i class="no-highlight">460</i>&nbsp;                    StringUtils.containsIgnoreCase(contentType, APPLICATION_JSON) ?
+<i class="no-highlight">461</i>&nbsp;                            new JsonDataIterator(inputStream) : getXmlDataIterator(inputStream);
+<i class="no-highlight">462</i>&nbsp;            return iterator;
+<i class="no-highlight">463</i>&nbsp;        }
+<i class="no-highlight">464</i>&nbsp;    }
+<i class="no-highlight">465</i>&nbsp;
+<i class="no-highlight">466</i>&nbsp;
+<i class="no-highlight">467</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">468</i>&nbsp;     * Converts HTTP entity to string or byte array depending on the content-type.</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;     *</b>
+<i class="no-highlight">470</i>&nbsp;     * @param httpEntity      - HTTP entity
+<b class="nc"><i class="no-highlight">471</i>&nbsp;     * @param contentEncoding - content-encoding of the entity</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;     * @return string or byte array</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;     * @throws IOException if it fails in processing HTTP entity</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;     */</b>
+<i class="no-highlight">476</i>&nbsp;    protected static Object getContent(HttpEntity httpEntity, String contentEncoding)
+<b class="nc"><i class="no-highlight">477</i>&nbsp;            throws IOException {</b>
+<i class="no-highlight">478</i>&nbsp;        // get content-type header
+<b class="nc"><i class="no-highlight">479</i>&nbsp;        Header header = httpEntity.getContentType();</b>
+<i class="no-highlight">480</i>&nbsp;        String contentType = header == null ? null : header.getValue().toLowerCase();
+<i class="no-highlight">481</i>&nbsp;        // try to get character set from content-type with default UTF-8
+<b class="nc"><i class="no-highlight">482</i>&nbsp;        String charset = StandardCharsets.UTF_8.name();</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;        if (contentType != null) {</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;            int charsetEqualToIndex = contentType.indexOf(CHARSET_EQUAL_TO);</b>
+<i class="no-highlight">485</i>&nbsp;            if (charsetEqualToIndex &gt; -1) {
+<i class="no-highlight">486</i>&nbsp;                charset = contentType.substring(charsetEqualToIndex + CHARSET_EQUAL_TO.length());
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                // the content-type may be of pattern &quot;...;charset=utf-8;...&quot;</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                charset = substringTo(charset, &#39;;&#39;);</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                // the content-type may be of pattern &quot;..., charset=utf-8, ...&quot;</b>
+<i class="no-highlight">490</i>&nbsp;                charset = substringTo(charset, &#39;,&#39;);
+<i class="no-highlight">491</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">492</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;        try (InputStream is = httpEntity.getContent()) {</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;            if (is == null) {</b>
+<i class="no-highlight">495</i>&nbsp;                return null;
+<i class="no-highlight">496</i>&nbsp;            }
+<i class="no-highlight">497</i>&nbsp;            // if Content-Encoding contains &#39;gzip&#39;, unzip the content
+<b class="nc"><i class="no-highlight">498</i>&nbsp;            InputStream inputStream = StringUtils.containsIgnoreCase(contentEncoding, GZIP) ?</b>
+<i class="no-highlight">499</i>&nbsp;                    new GZIPInputStream(is) : is;
+<b class="nc"><i class="no-highlight">500</i>&nbsp;            if (StringUtils.containsAny(contentType, TEXT_TYPES)) {</b>
+<i class="no-highlight">501</i>&nbsp;                // convert input stream to string
+<i class="no-highlight">502</i>&nbsp;                try {
+<i class="no-highlight">503</i>&nbsp;                    return IOUtils.toString(inputStream, charset);
+<i class="no-highlight">504</i>&nbsp;                } catch (IllegalCharsetNameException | UnsupportedEncodingException e) {
+<i class="no-highlight">505</i>&nbsp;                    return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+<i class="no-highlight">506</i>&nbsp;                }
+<i class="no-highlight">507</i>&nbsp;            } else {
+<i class="no-highlight">508</i>&nbsp;                // convert input stream to byte array
+<i class="no-highlight">509</i>&nbsp;                return IOUtils.toByteArray(inputStream);
+<i class="no-highlight">510</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">511</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;</b>
+<i class="no-highlight">514</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">515</i>&nbsp;     * Converts header array to header map.</b>
+<i class="no-highlight">516</i>&nbsp;     *
+<i class="no-highlight">517</i>&nbsp;     * @param headers - header array
+<i class="no-highlight">518</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">519</i>&nbsp;     * @return header map</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;    protected Map&lt;String, Object&gt; getHeaderMap(Header[] headers) {</b>
+<i class="no-highlight">522</i>&nbsp;        Map&lt;String, Object&gt; headerMap = new LinkedHashMap&lt;&gt;(headers.length);
+<b class="nc"><i class="no-highlight">523</i>&nbsp;        for (Header header : headers) {</b>
+<i class="no-highlight">524</i>&nbsp;            headerMap.put(header.getName(), header.getValue());
+<i class="no-highlight">525</i>&nbsp;        }
+<i class="no-highlight">526</i>&nbsp;        return headerMap;
+<i class="no-highlight">527</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">528</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;    private Iterator&lt;Object&gt; getXmlDataIterator(InputStream inputStream) throws IOException {</b>
+<i class="no-highlight">530</i>&nbsp;        Object result = parseXML(IOUtils.toString(inputStream), xmlUtils);
+<i class="no-highlight">531</i>&nbsp;        if (result instanceof List) {
+<i class="no-highlight">532</i>&nbsp;            return ((List&lt;Object&gt;) result).iterator();
+<b class="nc"><i class="no-highlight">533</i>&nbsp;        } else {</b>
+<i class="no-highlight">534</i>&nbsp;            return ImmutableList.of(result).iterator();
+<i class="no-highlight">535</i>&nbsp;        }
+<i class="no-highlight">536</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">537</i>&nbsp;</b>
+<i class="no-highlight">538</i>&nbsp;    private static String substringTo(String string, char lastChar) {
+<i class="no-highlight">539</i>&nbsp;        int index = string.indexOf(lastChar);
+<i class="no-highlight">540</i>&nbsp;        return index &gt; -1 ? string.substring(0, index).trim() : string;
+<b class="nc"><i class="no-highlight">541</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;</b>
+<i class="no-highlight">543</i>&nbsp;    public void setIsVersion2(boolean isVersion2) {
+<i class="no-highlight">544</i>&nbsp;        this.isVersion2 = isVersion2;
+<i class="no-highlight">545</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">546</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;    public void setEnableProcessArray(boolean enableProcessArray) {</b>
+<i class="no-highlight">548</i>&nbsp;        this.enableProcessArray = enableProcessArray;
+<i class="no-highlight">549</i>&nbsp;    }
+<i class="no-highlight">550</i>&nbsp;
+<b class="nc"><i class="no-highlight">551</i>&nbsp;    public HttpUtils withFirstOutputView(DocumentOutputView firstOutputView) {</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;        this.firstOutputView = firstOutputView;</b>
+<i class="no-highlight">553</i>&nbsp;        return this;
+<i class="no-highlight">554</i>&nbsp;    }
+<i class="no-highlight">555</i>&nbsp;
+<i class="no-highlight">556</i>&nbsp;    public  HttpUtils withWriteOutputView(boolean writeOutputView) {
+<i class="no-highlight">557</i>&nbsp;        this.writeOutputView = writeOutputView;
+<i class="no-highlight">558</i>&nbsp;        return this;
+<i class="no-highlight">559</i>&nbsp;    }
+<i class="no-highlight">560</i>&nbsp;
+<i class="no-highlight">561</i>&nbsp;    public HttpUtils withXmlUtils(XmlUtils xmlUtils) {
+<i class="no-highlight">562</i>&nbsp;        this.xmlUtils = xmlUtils;
+<i class="no-highlight">563</i>&nbsp;        return this;
+<i class="no-highlight">564</i>&nbsp;    }
+<i class="no-highlight">565</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

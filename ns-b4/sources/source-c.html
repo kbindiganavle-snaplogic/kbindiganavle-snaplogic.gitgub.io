@@ -1,0 +1,370 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EltExecute</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt</a>
+</div>
+
+<h1>Coverage Summary for Class: EltExecute (com.snaplogic.snaps.elt)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EltExecute</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/82)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.SuggestExecutionProvider;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseAccount;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseCursor;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snaps.elt.utils.CommentHandler;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snaps.elt.utils.EltUtils;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">39</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">40</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">41</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">44</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">45</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">46</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">47</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">48</i>&nbsp;import java.util.List;
+<i class="no-highlight">49</i>&nbsp;import java.util.Map;
+<i class="no-highlight">50</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">51</i>&nbsp;import java.util.Set;
+<i class="no-highlight">52</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snap.api.capabilities.ViewType.DOCUMENT;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.*;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ELT_EXECUTE_DOC_LINK;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ELT_EXECUTE_PURPOSE;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ELT_EXECUTE_TITLE;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_MGS_INTERMEDIATE_SNAP;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_MSG_EXECUTE;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_MSG_REASON_DQL;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_MSG_REASON_EMPTY_SQL_EDITOR;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_REASON_INTERMEDIATE_SNAP;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_RES_DQL;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_RES_EMPTY_SQL_EDITOR;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_RES_EXECUTE;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_RES_INTERMEDIATE_SNAP;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.SQL_STATEMENTS_DESC;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.SQL_STATEMENTS_LABEL;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.SQL_STATEMENT_EDITOR_DESC;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.SQL_STATEMENT_EDITOR_LABEL;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.isIntermediateSnap;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.isQuery;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.sql.SimpleSqlMultiExecuteSnap.SQL_STATEMENT;
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;/**
+<i class="no-highlight">77</i>&nbsp; * Executes DDL, DCL and other DML operations.
+<i class="no-highlight">78</i>&nbsp; * &lt;p&gt;This component supports the following DDL SQL Statements:
+<i class="no-highlight">79</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">80</i>&nbsp; * CREATE TABLE
+<i class="no-highlight">81</i>&nbsp; * DROP TABLE
+<i class="no-highlight">82</i>&nbsp; * TRUNCATE TABLE
+<i class="no-highlight">83</i>&nbsp; * COMMENT
+<i class="no-highlight">84</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">85</i>&nbsp; * Also, DCL SQL Statements:
+<i class="no-highlight">86</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">87</i>&nbsp; * GRANT &lt;privileges&gt; … TO ROLE
+<i class="no-highlight">88</i>&nbsp; * REVOKE &lt;privileges&gt; … FROM ROLE
+<i class="no-highlight">89</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">90</i>&nbsp; * And DML SQL Statements like this:
+<i class="no-highlight">91</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">92</i>&nbsp; * INSERT
+<i class="no-highlight">93</i>&nbsp; * MERGE
+<i class="no-highlight">94</i>&nbsp; * UPDATE
+<i class="no-highlight">95</i>&nbsp; * DELETE
+<i class="no-highlight">96</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">97</i>&nbsp; * &lt;p/&gt;
+<i class="no-highlight">98</i>&nbsp; */
+<i class="no-highlight">99</i>&nbsp;@Inputs(min = 0, max = 1, accepts = {DOCUMENT})
+<i class="no-highlight">100</i>&nbsp;@Outputs(min = 0, max = 1, offers = {DOCUMENT})
+<i class="no-highlight">101</i>&nbsp;@Version
+<i class="no-highlight">102</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">103</i>&nbsp;@General(title = ELT_EXECUTE_TITLE, purpose = ELT_EXECUTE_PURPOSE, docLink = ELT_EXECUTE_DOC_LINK)
+<i class="no-highlight">104</i>&nbsp;@Accounts(provides = {EltDatabaseAccount.class})
+<b class="nc"><i class="no-highlight">105</i>&nbsp;public class EltExecute extends BaseElt implements SuggestExecutionProvider {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(EltExecute.class);</b>
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    private static final String SQL_STATEMENTS_PROP = &quot;sqlStatements&quot;;
+<i class="no-highlight">109</i>&nbsp;    private static final String ALL_SQL_STATEMENTS = new JsonPathBuilder(SQL_STATEMENTS_PROP)
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            .appendAllListElements()</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            .build();</b>
+<i class="no-highlight">112</i>&nbsp;    private List&lt;String&gt; sqlStatements;
+<i class="no-highlight">113</i>&nbsp;    List&lt;Map&lt;String, String&gt;&gt; allSqlStatements;
+<i class="no-highlight">114</i>&nbsp;    PropertyValues copyOfPropertyValues;
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;    @Override
+<i class="no-highlight">117</i>&nbsp;    public void defineProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        SnapProperty sqlStatementProperty = builder</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                .describe(SQL_STATEMENT,</b>
+<i class="no-highlight">120</i>&nbsp;                        SQL_STATEMENT_EDITOR_LABEL, SQL_STATEMENT_EDITOR_DESC)
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .defaultValue(StringUtils.EMPTY)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                .uiRowCount(5)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        builder</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                .describe(SQL_STATEMENTS_PROP, SQL_STATEMENTS_LABEL, SQL_STATEMENTS_DESC)</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .withEntry(sqlStatementProperty)</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        super.hideSnapExecutionMode(builder);</b>
+<i class="no-highlight">133</i>&nbsp;    }
+<i class="no-highlight">134</i>&nbsp;
+<i class="no-highlight">135</i>&nbsp;    @Override
+<i class="no-highlight">136</i>&nbsp;    protected void configureSnap(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        if (isIntermediateSnap(inputViews, outputViews)) {</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            throw new ConfigurationException(ERR_MGS_INTERMEDIATE_SNAP)</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    .withReason(ERR_REASON_INTERMEDIATE_SNAP)</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                    .withResolution(ERR_RES_INTERMEDIATE_SNAP);</b>
+<i class="no-highlight">141</i>&nbsp;        }
+<i class="no-highlight">142</i>&nbsp;
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        allSqlStatements = propertyValues.get(ALL_SQL_STATEMENTS);</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        copyOfPropertyValues = propertyValues;</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        if (CollectionUtils.isEmpty(allSqlStatements)) {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            throw new ConfigurationException(ERR_MSG_REASON_EMPTY_SQL_EDITOR)</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                    .withReason(ERR_MSG_REASON_EMPTY_SQL_EDITOR)</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                    .withResolution(ERR_RES_EMPTY_SQL_EDITOR);</b>
+<i class="no-highlight">149</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        setSnapLevelSubQueryPushDownParam(DISABLE_EXECUTE_SUBQUERY_PUSHDOWN);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<i class="no-highlight">152</i>&nbsp;    }
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;    private String normalize(final PropertyValues propertyValues,
+<i class="no-highlight">155</i>&nbsp;                             final ExpressionProperty expressionProperty,
+<i class="no-highlight">156</i>&nbsp;                             final Document document) {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        return Optional.ofNullable(expressionProperty.&lt;String&gt;eval(document))</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .filter(StringUtils::isNotBlank)</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                .map(sqlStmt -&gt; CommentHandler.removeComments(sqlStmt,</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                        getQuotationHandler().getQuotationMarker()))</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                .map(EltUtils::removeStatementSeparatorSymbol)</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                .filter(EltUtils::isOneStatement)</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                .map(sqlStmt -&gt; transformSql(propertyValues, sqlStmt))</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                .map(this::addSemicolonInCaseOfMergeIntoQuery)</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                .filter(this::isAllowedStatement)</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .orElseThrow(() -&gt; new ConfigurationException(ERR_MSG_REASON_EMPTY_SQL_EDITOR)</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                        .withReason(ERR_MSG_REASON_EMPTY_SQL_EDITOR)</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                        .&lt;ConfigurationException&gt;withResolution(ERR_RES_EMPTY_SQL_EDITOR));</b>
+<i class="no-highlight">169</i>&nbsp;    }
+<i class="no-highlight">170</i>&nbsp;
+<i class="no-highlight">171</i>&nbsp;    @Override
+<i class="no-highlight">172</i>&nbsp;    protected void processDocument(final Document document, final String inputViewName) {
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        Map&lt;String, Object&gt; output = getOutputViewMap(document, ELT_EXECUTE_OUTPUT_QUERY,</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                Collections.singletonList(ELT_EXECUTE_TITLE));</b>
+<i class="no-highlight">175</i>&nbsp;
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        sqlStatements = allSqlStatements.stream()</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .map(sqlStatement -&gt;</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                        copyOfPropertyValues.getExpressionPropertyFor(sqlStatement, SQL_STATEMENT))</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .map(expressionProperty -&gt; normalize(</b>
+<i class="no-highlight">180</i>&nbsp;                        copyOfPropertyValues, expressionProperty, document))
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                .collect(Collectors.toList());</b>
+<i class="no-highlight">182</i>&nbsp;
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        if (handlePreview(documentUtility.newDocument(output), document, account,</b>
+<i class="no-highlight">184</i>&nbsp;                validationInProgress, previewRowCount, executionMode, executeSqlInPreview)) {
+<i class="no-highlight">185</i>&nbsp;            return;
+<i class="no-highlight">186</i>&nbsp;        }
+<i class="no-highlight">187</i>&nbsp;
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        if (isExecutionInProgress()) {</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            sqlStatements.forEach(this::executeStmt);</b>
+<i class="no-highlight">190</i>&nbsp;        }
+<i class="no-highlight">191</i>&nbsp;
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        outputViews.write(documentUtility.newDocument(output), document);</b>
+<i class="no-highlight">193</i>&nbsp;    }
+<i class="no-highlight">194</i>&nbsp;
+<i class="no-highlight">195</i>&nbsp;    /**
+<i class="no-highlight">196</i>&nbsp;     * Method to execute a block of code in manual commit mode.
+<i class="no-highlight">197</i>&nbsp;     */
+<i class="no-highlight">198</i>&nbsp;    private void executeStmt(String sql) {
+<i class="no-highlight">199</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            executeStatementFromEditor(sql, bindValues, account);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            throw new ExecutionException(e, &quot;Failed to execute sql statement: %s&quot;, sql)</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                    .withReason(e.getMessage());</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        }</b>
+<i class="no-highlight">205</i>&nbsp;    }
+<i class="no-highlight">206</i>&nbsp;
+<i class="no-highlight">207</i>&nbsp;    @Override
+<i class="no-highlight">208</i>&nbsp;    public void configureForSuggest(final PropertyValues propertyValues,
+<i class="no-highlight">209</i>&nbsp;                                    final BigInteger maxSuggestValue) {
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        configurePreviewProps(maxSuggestValue);</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        configure(propertyValues);</b>
+<i class="no-highlight">212</i>&nbsp;    }
+<i class="no-highlight">213</i>&nbsp;
+<i class="no-highlight">214</i>&nbsp;    // Disabling this method to get passed Document from a superclass
+<i class="no-highlight">215</i>&nbsp;    // so that an input sql is processed correctly.
+<i class="no-highlight">216</i>&nbsp;    @Override
+<i class="no-highlight">217</i>&nbsp;    public void execute() {
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        Set&lt;String&gt; pendingViews = new HashSet&lt;&gt;(inputViews.names());</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        if (!pendingViews.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            pollInputView(pendingViews);</b>
+<i class="no-highlight">221</i>&nbsp;        }
+<i class="no-highlight">222</i>&nbsp;
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        processDocument(inputDocument, inputViewName);</b>
+<i class="no-highlight">224</i>&nbsp;    }
+<i class="no-highlight">225</i>&nbsp;
+<i class="no-highlight">226</i>&nbsp;    @Override
+<i class="no-highlight">227</i>&nbsp;    public void executeForSuggest() {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        execute();</b>
+<i class="no-highlight">229</i>&nbsp;    }
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;    private boolean isAllowedStatement(final String sqlStatement) {
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        if (isQuery(sqlStatement)) {</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;            throw new ConfigurationException(ERR_MSG_REASON_DQL)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                    .withReason(ERR_MSG_REASON_DQL)</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                    .withResolution(ERR_RES_DQL);</b>
+<i class="no-highlight">236</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        return true;</b>
+<i class="no-highlight">238</i>&nbsp;    }
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;    private void executeStatementFromEditor(final String sqlStatement,
+<i class="no-highlight">241</i>&nbsp;                                            final List&lt;Object&gt; bindValues,
+<i class="no-highlight">242</i>&nbsp;                                            final DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        try (DatabaseCursor ignored =</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                     executeSqlStmt(sqlStatement, bindValues, account)) {</b>
+<i class="no-highlight">245</i>&nbsp;            // no op
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        } catch (IOException | SQLException ex) {</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;            throw new SnapDataException(ex, ERR_MSG_EXECUTE)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                    .withReason(ex.getMessage())</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                    .withResolution(ERR_RES_EXECUTE);</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        }</b>
+<i class="no-highlight">251</i>&nbsp;    }
+<i class="no-highlight">252</i>&nbsp;
+<i class="no-highlight">253</i>&nbsp;    private String addSemicolonInCaseOfMergeIntoQuery(final String sqlStatement) {
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        if (isAzureSynapseDb() &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                StringUtils.startsWithIgnoreCase(sqlStatement, MERGE_INTO_STATEMENT)) {</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;            return sqlStatement + &quot;;&quot;;</b>
+<i class="no-highlight">257</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        return sqlStatement;</b>
+<i class="no-highlight">259</i>&nbsp;    }
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">262</i>&nbsp;    public List&lt;String&gt; getSqlStatements() {
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        return sqlStatements;</b>
+<i class="no-highlight">264</i>&nbsp;    }
+<i class="no-highlight">265</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

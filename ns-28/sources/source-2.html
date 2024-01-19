@@ -1,0 +1,281 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > KerberosAuthentication</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.authentication</a>
+</div>
+
+<h1>Coverage Summary for Class: KerberosAuthentication (com.snaplogic.snap.api.authentication)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">KerberosAuthentication</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snap.api.authentication;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import org.apache.hadoop.security.UserGroupInformation;
+<i class="no-highlight">18</i>&nbsp;import org.ietf.jgss.GSSException;
+<i class="no-highlight">19</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">20</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">23</i>&nbsp;import java.lang.reflect.UndeclaredThrowableException;
+<i class="no-highlight">24</i>&nbsp;import java.security.PrivilegedExceptionAction;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import javax.security.auth.login.LoginException;
+<i class="no-highlight">27</i>&nbsp;import javax.security.sasl.SaslException;
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snap.api.authentication.Messages
+<i class="no-highlight">30</i>&nbsp;        .ERROR_INTERRUPTED_GETTING_CONNECTION_MESSAGE;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snap.api.authentication.Messages
+<i class="no-highlight">32</i>&nbsp;        .ERROR_INTERRUPTED_GETTING_CONNECTION_REASON;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snap.api.authentication.Messages
+<i class="no-highlight">34</i>&nbsp;        .ERROR_INTERRUPTED_GETTING_CONNECTION_RESOLUTION;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snap.api.authentication.Messages
+<i class="no-highlight">36</i>&nbsp;        .ERROR_KERBEROS_REQUIRED_NOT_CONFIGURED_MESSAGE;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snap.api.authentication.Messages
+<i class="no-highlight">38</i>&nbsp;        .ERROR_KERBEROS_REQUIRED_NOT_CONFIGURED_REASON;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snap.api.authentication.Messages
+<i class="no-highlight">40</i>&nbsp;        .ERROR_KERBEROS_REQUIRED_NOT_CONFIGURED_RESOLUTION;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snap.api.authentication.Messages.ERROR_UNABLE_TO_CONNECT_TO_SERVER;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snap.api.authentication.Messages.PLEASE_ADDRESS_ISSUE;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;import static org.apache.commons.lang3.StringUtils.isEmpty;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;/**
+<i class="no-highlight">48</i>&nbsp; * Kerberos utilities.
+<i class="no-highlight">49</i>&nbsp; *
+<i class="no-highlight">50</i>&nbsp; * FIXME: for the moment this is a static class. We need to refactor this so that it&#39;s an
+<i class="no-highlight">51</i>&nbsp; * injected interface in order to facilitate testing - we don&#39;t want tests to require a
+<i class="no-highlight">52</i>&nbsp; * fully configured Kerberos environment.
+<i class="no-highlight">53</i>&nbsp; *
+<i class="no-highlight">54</i>&nbsp; * Kerberos notes
+<i class="no-highlight">55</i>&nbsp; *
+<i class="no-highlight">56</i>&nbsp; * Kerberos requires a standard /etc/krb5.conf file (or equivalence). If it is not possible,
+<i class="no-highlight">57</i>&nbsp; * or the user wants to override those values for some reason, two system properties can be
+<i class="no-highlight">58</i>&nbsp; * used in its place:
+<i class="no-highlight">59</i>&nbsp; *
+<i class="no-highlight">60</i>&nbsp; * - java.security.krb5.realm
+<i class="no-highlight">61</i>&nbsp; * - java.security.krb5.kdc
+<i class="no-highlight">62</i>&nbsp; *
+<i class="no-highlight">63</i>&nbsp; * There are two useful system properties for debugging
+<i class="no-highlight">64</i>&nbsp; *
+<i class="no-highlight">65</i>&nbsp; * - sun.security.krb5.debug=true
+<i class="no-highlight">66</i>&nbsp; * - java.security.debug=gssloginconfig,configfile,configparser,logincontext
+<i class="no-highlight">67</i>&nbsp; *
+<i class="no-highlight">68</i>&nbsp; * Hadoop-based Kerberos (Hive, Impala, others?) requires the location of the Hadoop
+<i class="no-highlight">69</i>&nbsp; * configuration files. Note: we only need the configuration files, not a full Hadoop
+<i class="no-highlight">70</i>&nbsp; * installation. The location of these files is specified via a system property:
+<i class="no-highlight">71</i>&nbsp; *
+<i class="no-highlight">72</i>&nbsp; * - hadoop.home.dir
+<i class="no-highlight">73</i>&nbsp; *
+<i class="no-highlight">74</i>&nbsp; * For convenience if this value is not set but HADOOP_HOME is set then we&#39;ll set the property.
+<i class="no-highlight">75</i>&nbsp; * We do not attempt to set it to the default value of /etc/hadoop.
+<i class="no-highlight">76</i>&nbsp; *
+<i class="no-highlight">77</i>&nbsp; * As an alternative the following system properties can be set explicitly in getJaasDataSource(),
+<i class="no-highlight">78</i>&nbsp; * getHadoopDataSource(), and (probably) {@link PrivilegedDataSourceAction#run()}.
+<i class="no-highlight">79</i>&nbsp; *
+<i class="no-highlight">80</i>&nbsp; * - hadoop.security.authentication=kerberos
+<i class="no-highlight">81</i>&nbsp; * - hadoop.security.authorization=true
+<i class="no-highlight">82</i>&nbsp; * - hive.server.authentication=KERBEROS
+<i class="no-highlight">83</i>&nbsp; * - hive.server2.authentication=KERBEROS
+<i class="no-highlight">84</i>&nbsp; *
+<i class="no-highlight">85</i>&nbsp; * Note that this will cause complications of the JVM requires a mixture of Kerberos- and
+<i class="no-highlight">86</i>&nbsp; * non-Kerberos-authenticated connections.
+<i class="no-highlight">87</i>&nbsp; *
+<i class="no-highlight">88</i>&nbsp; * The location of the &#39;kinit&#39; command should be specified by a system property. (It defaults
+<i class="no-highlight">89</i>&nbsp; * to &#39;kinit&#39; if unspecified but that it may not be on the classpath.
+<i class="no-highlight">90</i>&nbsp; *
+<i class="no-highlight">91</i>&nbsp; * - hadoop.kerberos.kinit.command
+<i class="no-highlight">92</i>&nbsp; *
+<i class="no-highlight">93</i>&nbsp; * Finally with Cloudera, at least, this system property must be set.
+<i class="no-highlight">94</i>&nbsp; *
+<i class="no-highlight">95</i>&nbsp; * - javax.security.auth.useSubjectCredsOnly=false
+<i class="no-highlight">96</i>&nbsp; *
+<i class="no-highlight">97</i>&nbsp; * (from https://community.cloudera.com/t5/Batch-SQL-Apache-Hive/
+<i class="no-highlight">98</i>&nbsp; * Hive-JDBC-client-error-when-connecting-to-Kerberos-Cloudera/td-p/30829)
+<i class="no-highlight">99</i>&nbsp; */
+<b class="nc"><i class="no-highlight">100</i>&nbsp;public class KerberosAuthentication {</b>
+<i class="no-highlight">101</i>&nbsp;    @SuppressWarnings(&quot;unused&quot;)
+<b class="nc"><i class="no-highlight">102</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(KerberosAuthentication.class);</b>
+<i class="no-highlight">103</i>&nbsp;    private static final String USE_SUBJECT_CREDS_ONLY_PROPERTY =
+<i class="no-highlight">104</i>&nbsp;            &quot;javax.security.auth.useSubjectCredsOnly&quot;;
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;    public static synchronized &lt;T&gt; T runHadoopPrivilegedAction(PrivilegedExceptionAction&lt;T&gt; action,
+<i class="no-highlight">107</i>&nbsp;            KerberosConfig krb5Config)
+<i class="no-highlight">108</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        if (isEmpty(krb5Config.getClientPrincipal()) ||</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                isEmpty(krb5Config.getKeytabFile())) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            throw new ConfigurationException(ERROR_KERBEROS_REQUIRED_NOT_CONFIGURED_MESSAGE)</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                    .withReason(ERROR_KERBEROS_REQUIRED_NOT_CONFIGURED_REASON)</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                    .withResolution(ERROR_KERBEROS_REQUIRED_NOT_CONFIGURED_RESOLUTION);</b>
+<i class="no-highlight">114</i>&nbsp;        }
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;        // find appropriate hadoop.home.dir value.
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        String useSubjectCredsOnly = System.getProperty(USE_SUBJECT_CREDS_ONLY_PROPERTY);</b>
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            System.setProperty(USE_SUBJECT_CREDS_ONLY_PROPERTY, &quot;false&quot;);</b>
+<i class="no-highlight">121</i>&nbsp;            // attempt to connect to server. This could fail since the server does
+<i class="no-highlight">122</i>&nbsp;            // not support Kerberos, is unknown to the KDC, etc. Again we try to be more
+<i class="no-highlight">123</i>&nbsp;            // precise about the problem.
+<i class="no-highlight">124</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                UserGroupInformation loggedInUser = UserGroupInformation.</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                                loginUserFromKeytabAndReturnUGI(krb5Config.getClientPrincipal(),</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                                        krb5Config.getKeytabFile());</b>
+<i class="no-highlight">128</i>&nbsp;
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                loggedInUser.setAuthenticationMethod(UserGroupInformation.</b>
+<i class="no-highlight">130</i>&nbsp;                        AuthenticationMethod.KERBEROS);
+<i class="no-highlight">131</i>&nbsp;
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                if (krb5Config.getUserImpersonation()) {</b>
+<i class="no-highlight">133</i>&nbsp;                    // User Impersonation in the kerberos context,
+<i class="no-highlight">134</i>&nbsp;                    // Already authenticated with Kerberos
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                    UserGroupInformation impersonatedUGI =</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                            UserGroupInformation.createProxyUser(</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                                    krb5Config.getProxyUser(),</b>
+<i class="no-highlight">138</i>&nbsp;                                    loggedInUser);
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    return impersonatedUGI.doAs(action);</b>
+<i class="no-highlight">140</i>&nbsp;                } else {
+<i class="no-highlight">141</i>&nbsp;                    // Only Kerberos Authentication, user impersonation isn&#39;t
+<i class="no-highlight">142</i>&nbsp;                    // required.
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                    return loggedInUser.doAs(action);</b>
+<i class="no-highlight">144</i>&nbsp;                }
+<i class="no-highlight">145</i>&nbsp;
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            } catch (UndeclaredThrowableException e) {</b>
+<i class="no-highlight">147</i>&nbsp;                // unwrap the most likely exceptions. This can make subsequent handling
+<i class="no-highlight">148</i>&nbsp;                // a little cleaner since it hides the fact we used a privileged block.
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                Throwable cause = e.getCause();</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                if (cause instanceof SaslException || cause instanceof GSSException ||</b>
+<i class="no-highlight">151</i>&nbsp;                        cause instanceof LoginException) {
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                    throw new ConfigurationException(cause, ERROR_UNABLE_TO_CONNECT_TO_SERVER)</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                            .withReason(cause.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                            .withResolution(PLEASE_ADDRESS_ISSUE);</b>
+<i class="no-highlight">155</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                throw e;</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                throw e;</b>
+<i class="no-highlight">159</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            throw new SnapException(ERROR_INTERRUPTED_GETTING_CONNECTION_MESSAGE)</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                    .withReason(ERROR_INTERRUPTED_GETTING_CONNECTION_REASON)</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                    .withResolution(ERROR_INTERRUPTED_GETTING_CONNECTION_RESOLUTION);</b>
+<i class="no-highlight">164</i>&nbsp;        } finally {
+<i class="no-highlight">165</i>&nbsp;            // restore hadoop.home.dir system property. Besides avoiding messing up other
+<i class="no-highlight">166</i>&nbsp;            // applications (excepting race conditions) this helps us detect that the
+<i class="no-highlight">167</i>&nbsp;            // environment variables have changed.
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            if (useSubjectCredsOnly == null) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                System.clearProperty(USE_SUBJECT_CREDS_ONLY_PROPERTY);</b>
+<i class="no-highlight">170</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                System.setProperty(USE_SUBJECT_CREDS_ONLY_PROPERTY, useSubjectCredsOnly);</b>
+<i class="no-highlight">172</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        }</b>
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;    }
+<i class="no-highlight">176</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

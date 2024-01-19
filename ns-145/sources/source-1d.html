@@ -1,0 +1,200 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SnapSessionReference</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.sap</a>
+</div>
+
+<h1>Coverage Summary for Class: SnapSessionReference (com.snaplogic.snaps.sap)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SnapSessionReference</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.sap;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">14</i>&nbsp;import com.sap.conn.jco.ext.JCoSessionReference;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">19</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import java.util.concurrent.CountDownLatch;
+<i class="no-highlight">22</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">23</i>&nbsp;import java.util.concurrent.atomic.AtomicLong;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import static com.snaplogic.snaps.sap.Messages.ERROR_EXCEED_COMMIT_TIMEOUT;
+<i class="no-highlight">26</i>&nbsp;import static com.snaplogic.snaps.sap.Messages.REASON_EXCEED_COMMIT_TIMEOUT;
+<i class="no-highlight">27</i>&nbsp;import static com.snaplogic.snaps.sap.Messages.RESOLUTION_EXCEED_COMMIT_TIMEOUT;
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;/**
+<i class="no-highlight">30</i>&nbsp; * The class that represent a JCo session used by the Snap
+<i class="no-highlight">31</i>&nbsp; *
+<i class="no-highlight">32</i>&nbsp; */
+<i class="no-highlight">33</i>&nbsp;public class SnapSessionReference implements JCoSessionReference {
+<b class="nc"><i class="no-highlight">34</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(SnapSessionReference.class);</b>
+<b class="nc"><i class="no-highlight">35</i>&nbsp;    private static AtomicLong atomicLong = new AtomicLong(0);</b>
+<i class="no-highlight">36</i>&nbsp;    private final String id;
+<i class="no-highlight">37</i>&nbsp;    private CountDownLatch latch;
+<i class="no-highlight">38</i>&nbsp;    @Inject
+<i class="no-highlight">39</i>&nbsp;    JCOSessionReferenceProvider jcoSessionReferenceProvider;
+<i class="no-highlight">40</i>&nbsp;
+<b class="nc"><i class="no-highlight">41</i>&nbsp;    SnapSessionReference() {</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;        id = &quot;session-&quot; + String.valueOf(atomicLong.addAndGet(1));</b>
+<i class="no-highlight">43</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">44</i>&nbsp;    SnapSessionReference(String id) {</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;        this.id = id;</b>
+<i class="no-highlight">46</i>&nbsp;    }
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;    /**
+<i class="no-highlight">49</i>&nbsp;     * This method will be executed when we called context.end()
+<i class="no-highlight">50</i>&nbsp;     */
+<i class="no-highlight">51</i>&nbsp;    @Override
+<i class="no-highlight">52</i>&nbsp;    public void contextFinished() {
+<b class="nc"><i class="no-highlight">53</i>&nbsp;        if (latch != null) {</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;            LOG.debug(&quot;[*] Unlock the current session: {}&quot;, id);</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;            latch.countDown();</b>
+<i class="no-highlight">56</i>&nbsp;        }
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;    }
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;    @Override
+<i class="no-highlight">61</i>&nbsp;    public void contextStarted() {
+<i class="no-highlight">62</i>&nbsp;    }
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;    public String getID() {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        return id;</b>
+<i class="no-highlight">66</i>&nbsp;    }
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    private boolean awaitCurrentTransaction(int timeout) {
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        if (latch != null ) {</b>
+<i class="no-highlight">70</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                LOG.debug(&quot;Awaiting the session {} to be available: {}&quot;, id, latch.getCount());</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                return latch.await(timeout, TimeUnit.SECONDS);</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;            } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                LOG.warn(&quot;Got interrupted when awaiting for the transaction finish&quot;);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                return false;</b>
+<i class="no-highlight">76</i>&nbsp;            }
+<i class="no-highlight">77</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        return true;</b>
+<i class="no-highlight">79</i>&nbsp;    }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    /**
+<i class="no-highlight">82</i>&nbsp;     *  Await the next transaction to start.
+<i class="no-highlight">83</i>&nbsp;     * @param timeoutSec
+<i class="no-highlight">84</i>&nbsp;     */
+<i class="no-highlight">85</i>&nbsp;    public void awaitTransactionStart(int timeoutSec) {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        if (awaitCurrentTransaction(timeoutSec)) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            LOG.debug(&quot;[*] Session {} unlocked, ready for a new transaction&quot;, id);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            latch = new CountDownLatch(1);</b>
+<i class="no-highlight">89</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            throw new ExecutionException(ERROR_EXCEED_COMMIT_TIMEOUT)</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                    .withReason(REASON_EXCEED_COMMIT_TIMEOUT)</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                    .withResolution(RESOLUTION_EXCEED_COMMIT_TIMEOUT);</b>
+<i class="no-highlight">93</i>&nbsp;        }
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

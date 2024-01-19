@@ -1,0 +1,384 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ZipFileWriterImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.binary.zip</a>
+</div>
+
+<h1>Coverage Summary for Class: ZipFileWriterImpl (com.snaplogic.snap.api.binary.zip)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ZipFileWriterImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/69)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.binary.zip;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.api.StatusMessage;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.BinaryInput;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.StatusReporter;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.binary.BinaryUtils;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.util.StatusReportingUtils;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import org.apache.commons.httpclient.URIException;
+<i class="no-highlight">22</i>&nbsp;import org.apache.commons.io.input.CloseShieldInputStream;
+<i class="no-highlight">23</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">24</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import java.io.BufferedInputStream;
+<i class="no-highlight">27</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">28</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">29</i>&nbsp;import java.io.OutputStream;
+<i class="no-highlight">30</i>&nbsp;import java.net.URI;
+<i class="no-highlight">31</i>&nbsp;import java.net.URISyntaxException;
+<i class="no-highlight">32</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">33</i>&nbsp;import java.nio.file.FileSystem;
+<i class="no-highlight">34</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">35</i>&nbsp;import java.nio.file.attribute.FileTime;
+<i class="no-highlight">36</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">37</i>&nbsp;import java.util.Map;
+<i class="no-highlight">38</i>&nbsp;import java.util.function.Consumer;
+<i class="no-highlight">39</i>&nbsp;import java.util.zip.ZipEntry;
+<i class="no-highlight">40</i>&nbsp;import java.util.zip.ZipOutputStream;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snap.api.binary.zip.Messages.ERR_IO_EXCEPTION;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snap.api.binary.zip.Messages.ERR_IO_EXCEPTION_FMT;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snap.api.binary.zip.Messages.ERR_URI_ENCODING;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snap.api.binary.zip.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snap.api.binary.zip.Messages.RESOLUTION_URI_ENCODING;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;/**
+<i class="no-highlight">49</i>&nbsp; * Implementation of ZipFileWriter.
+<i class="no-highlight">50</i>&nbsp; *
+<i class="no-highlight">51</i>&nbsp; * This implementation also returns a Map&lt;&gt; containing metadata information that can
+<i class="no-highlight">52</i>&nbsp; * be used by the calling class to provide additional information to assist debugging.
+<i class="no-highlight">53</i>&nbsp; *
+<i class="no-highlight">54</i>&nbsp; * Note: to use the CONTENT_LOCATION as the filename for the zip entry simply implement
+<i class="no-highlight">55</i>&nbsp; * the appropriate FilenameGenerator. There is no need to modify this class.
+<i class="no-highlight">56</i>&nbsp; *
+<i class="no-highlight">57</i>&nbsp; * Note: to properly set the content length we should read the data into a temporary
+<i class="no-highlight">58</i>&nbsp; * buffer to determine its size before calling putNextEntry(). However that either means
+<i class="no-highlight">59</i>&nbsp; * it&#39;s simple (one buffer full) but confusing since the size won&#39;t be specified for larger
+<i class="no-highlight">60</i>&nbsp; * entries or more complex (spilling to disk) but reliable.
+<i class="no-highlight">61</i>&nbsp; */
+<i class="no-highlight">62</i>&nbsp;public class ZipFileWriterImpl implements ZipFileWriter, Consumer&lt;BinaryInput&gt; {
+<b class="nc"><i class="no-highlight">63</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(ZipFileWriterImpl.class);</b>
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    // constants
+<i class="no-highlight">66</i>&nbsp;    private static final String FORWARD_SLASH = &quot;/&quot;;
+<i class="no-highlight">67</i>&nbsp;    private static final String DISPOSITION_FMT = &quot;attachment; filename=\&quot;%s\&quot;&quot;;
+<i class="no-highlight">68</i>&nbsp;    private static final String DEFAULT_MEDIA_TYPE = &quot;application/octet-stream&quot;;
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;    // constructor arguments
+<i class="no-highlight">71</i>&nbsp;    private final String filename;
+<i class="no-highlight">72</i>&nbsp;    private final FilenameGenerator filenameGenerator;
+<i class="no-highlight">73</i>&nbsp;    private final StatusReporter statusReporter;
+<i class="no-highlight">74</i>&nbsp;    private final StatusMessage writeFile;
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    // instance variables.
+<i class="no-highlight">77</i>&nbsp;    private ZipOutputStream zipOutput;
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;    /**
+<i class="no-highlight">80</i>&nbsp;     * Constructor that should be used when there are multiple input views so the writeDocument()
+<i class="no-highlight">81</i>&nbsp;     * method that takes an explicit filename generator will be used.
+<i class="no-highlight">82</i>&nbsp;     *
+<i class="no-highlight">83</i>&nbsp;     * This constructor provides a fallback filename generator to prevent an NPE if one of the
+<i class="no-highlight">84</i>&nbsp;     * other methods is called. We have to create it here, not use a static one, so the counters
+<i class="no-highlight">85</i>&nbsp;     * are reset on each use.
+<i class="no-highlight">86</i>&nbsp;     *
+<i class="no-highlight">87</i>&nbsp;     * @param filename
+<i class="no-highlight">88</i>&nbsp;     * @param os
+<i class="no-highlight">89</i>&nbsp;     * @param statusReporter
+<i class="no-highlight">90</i>&nbsp;     * @param writeFile
+<i class="no-highlight">91</i>&nbsp;     */
+<i class="no-highlight">92</i>&nbsp;    public ZipFileWriterImpl(String filename, OutputStream os, StatusReporter statusReporter,
+<i class="no-highlight">93</i>&nbsp;            StatusMessage writeFile) throws IOException {
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        this(filename, os, new DefaultFilenameGenerator(false, &quot;&quot;, &quot;name&quot;, &quot;label&quot;), statusReporter,</b>
+<i class="no-highlight">95</i>&nbsp;                writeFile);
+<i class="no-highlight">96</i>&nbsp;    }
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;    /**
+<i class="no-highlight">99</i>&nbsp;     * Constructor that takes explicit filename generator. This should be used when the
+<i class="no-highlight">100</i>&nbsp;     * Consumer interface will be used or there will only be a single input view.
+<i class="no-highlight">101</i>&nbsp;     *
+<i class="no-highlight">102</i>&nbsp;     * @param filename
+<i class="no-highlight">103</i>&nbsp;     * @param os
+<i class="no-highlight">104</i>&nbsp;     * @param filenameGenerator
+<i class="no-highlight">105</i>&nbsp;     * @param statusReporter
+<i class="no-highlight">106</i>&nbsp;     * @param writeFile
+<i class="no-highlight">107</i>&nbsp;     */
+<i class="no-highlight">108</i>&nbsp;    public ZipFileWriterImpl(String filename, OutputStream os, FilenameGenerator filenameGenerator,
+<b class="nc"><i class="no-highlight">109</i>&nbsp;            StatusReporter statusReporter, StatusMessage writeFile) throws IOException {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        this.filename = filename;</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        this.filenameGenerator = filenameGenerator;</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        this.zipOutput = new ZipOutputStream(os);</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        this.statusReporter = statusReporter;</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        this.writeFile = writeFile;</b>
+<i class="no-highlight">115</i>&nbsp;    }
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;    /**
+<i class="no-highlight">118</i>&nbsp;     * Write a single (binary) document. The binary input must include a valid header (metadata)
+<i class="no-highlight">119</i>&nbsp;     * Document.
+<i class="no-highlight">120</i>&nbsp;     *
+<i class="no-highlight">121</i>&nbsp;     * @param binaryData
+<i class="no-highlight">122</i>&nbsp;     * @return zipfile entry&#39;s metadata
+<i class="no-highlight">123</i>&nbsp;     * @throws SnapDataException
+<i class="no-highlight">124</i>&nbsp;     * @throws IOException
+<i class="no-highlight">125</i>&nbsp;     */
+<i class="no-highlight">126</i>&nbsp;    @Override
+<i class="no-highlight">127</i>&nbsp;    public Map&lt;String, Object&gt; writeDocument(BinaryInput binaryData)
+<i class="no-highlight">128</i>&nbsp;            throws SnapDataException, IOException {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        return writeDocument(binaryData, this.filenameGenerator);</b>
+<i class="no-highlight">130</i>&nbsp;    }
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;    /**
+<i class="no-highlight">133</i>&nbsp;     * Write a single (binary) document. The binary input must include a valid header (metadata)
+<i class="no-highlight">134</i>&nbsp;     * Document.
+<i class="no-highlight">135</i>&nbsp;     *
+<i class="no-highlight">136</i>&nbsp;     * @param binaryData
+<i class="no-highlight">137</i>&nbsp;     * @param filenameGenerator
+<i class="no-highlight">138</i>&nbsp;     * @return zipfile entry&#39;s metadata
+<i class="no-highlight">139</i>&nbsp;     * @throws SnapDataException
+<i class="no-highlight">140</i>&nbsp;     * @throws IOException
+<i class="no-highlight">141</i>&nbsp;     */
+<i class="no-highlight">142</i>&nbsp;    @Override
+<i class="no-highlight">143</i>&nbsp;    public Map&lt;String, Object&gt; writeDocument(BinaryInput binaryData,
+<i class="no-highlight">144</i>&nbsp;            FilenameGenerator filenameGenerator) throws SnapDataException, IOException {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        final Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        String zipEntryFilename = null;</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        if (zipOutput != null) {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            final Document header = binaryData.getHeader();</b>
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;            // copy existing content-type, if available.
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            final String contentType = BinaryUtils.getBinaryDocumentHeaderContentType(header);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            if (contentType != null) {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                BinaryUtils.setBinaryDocumentHeaderContentType(header, contentType);</b>
+<i class="no-highlight">154</i>&nbsp;            }
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;            // actually copy the data.
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            try (InputStream inputStream = Channels.newInputStream(binaryData.getChannel())) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                zipEntryFilename = filenameGenerator.apply(header);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                statusReporter.notify(writeFile, zipEntryFilename);</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                map.putAll(performActualWrite(header, inputStream, zipEntryFilename));</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            } catch (URIException | URISyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                throw new SnapDataException(e, ERR_URI_ENCODING)</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                        .formatWith(zipEntryFilename)</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                        .withResolution(RESOLUTION_URI_ENCODING);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;            } catch (IOException e) {</b>
+<i class="no-highlight">167</i>&nbsp;                // wrap the IOException with one that provides the name of the zipfile entry.
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                throw new IOException(String.format(ERR_IO_EXCEPTION_FMT,</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                        zipEntryFilename, e.getMessage()), e);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;            }</b>
+<i class="no-highlight">171</i>&nbsp;        }
+<i class="no-highlight">172</i>&nbsp;
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        return map;</b>
+<i class="no-highlight">174</i>&nbsp;    }
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;    /**
+<i class="no-highlight">177</i>&nbsp;     * Implementation of Consumer functional interface. This can greatly simplify
+<i class="no-highlight">178</i>&nbsp;     * our code at the cost of slightly more generic error messages.
+<i class="no-highlight">179</i>&nbsp;     *
+<i class="no-highlight">180</i>&nbsp;     * @see java.util.function.Consumer#accept(java.lang.Object)
+<i class="no-highlight">181</i>&nbsp;     */
+<i class="no-highlight">182</i>&nbsp;    @Override
+<i class="no-highlight">183</i>&nbsp;    public void accept(BinaryInput binaryData) {
+<i class="no-highlight">184</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            writeDocument(binaryData);</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            throw new SnapDataException(e, ERR_IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        }</b>
+<i class="no-highlight">191</i>&nbsp;    }
+<i class="no-highlight">192</i>&nbsp;
+<i class="no-highlight">193</i>&nbsp;    /**
+<i class="no-highlight">194</i>&nbsp;     * Write TOC but do not close stream - it needs to be done in calling try-with-resources
+<i class="no-highlight">195</i>&nbsp;     * block.
+<i class="no-highlight">196</i>&nbsp;     *
+<i class="no-highlight">197</i>&nbsp;     * @throws IOException
+<i class="no-highlight">198</i>&nbsp;     */
+<i class="no-highlight">199</i>&nbsp;    @Override
+<i class="no-highlight">200</i>&nbsp;    public void close() throws IOException {
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        if (zipOutput != null) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            zipOutput.finish();</b>
+<i class="no-highlight">203</i>&nbsp;        }
+<i class="no-highlight">204</i>&nbsp;    }
+<i class="no-highlight">205</i>&nbsp;
+<i class="no-highlight">206</i>&nbsp;    /**
+<i class="no-highlight">207</i>&nbsp;     * Perform the actual write. This method can be overridden to support additional
+<i class="no-highlight">208</i>&nbsp;     * formats.
+<i class="no-highlight">209</i>&nbsp;     *
+<i class="no-highlight">210</i>&nbsp;     * @param header
+<i class="no-highlight">211</i>&nbsp;     * @param inputStream
+<i class="no-highlight">212</i>&nbsp;     * @param zipEntryFilename
+<i class="no-highlight">213</i>&nbsp;     * @return output metadata
+<i class="no-highlight">214</i>&nbsp;     * @throws IOException
+<i class="no-highlight">215</i>&nbsp;     */
+<i class="no-highlight">216</i>&nbsp;    protected Map&lt;String, Object&gt; performActualWrite(final Document header,
+<i class="no-highlight">217</i>&nbsp;            final InputStream inputStream, final String zipEntryFilename) throws IOException {
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        final Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        map.put(Constants.ZIP_FILENAME, filename);</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        BinaryUtils.setBinaryDocumentHeaderContentDisposition(map,</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                String.format(DISPOSITION_FMT, zipEntryFilename));</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        BinaryUtils.setBinaryDocumentHeaderContentLocation(map, filename);</b>
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;        // retrieve initial guess of content type
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        String contentType = BinaryUtils.getBinaryDocumentHeaderContentType(header);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        if (contentType != null) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;            BinaryUtils.setBinaryDocumentHeaderContentType(header, contentType);</b>
+<i class="no-highlight">228</i>&nbsp;        }
+<i class="no-highlight">229</i>&nbsp;
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        final ZipEntry entry = new ZipEntry(zipEntryFilename);</b>
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;        // add last modified time. We set both &#39;time&#39; and &#39;lastModifiedTime&#39; for backward
+<i class="no-highlight">233</i>&nbsp;        // compatibility.
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        final long time = BinaryUtils.getBinaryDocumentHeaderLastModified(header);</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        if (time &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            entry.setTime(time);</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;            entry.setLastModifiedTime(FileTime.fromMillis(time));</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;            BinaryUtils.setBinaryDocumentHeaderLastModified(map, time);</b>
+<i class="no-highlight">239</i>&nbsp;        }
+<i class="no-highlight">240</i>&nbsp;
+<b class="nc"><i class="no-highlight">241</i>&nbsp;        zipOutput.putNextEntry(entry);</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        try (InputStream is = new CloseShieldInputStream(inputStream);</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                BufferedInputStream pis = new BufferedInputStream(is,</b>
+<i class="no-highlight">244</i>&nbsp;                        BinaryUtils.FileType.MAX_STREAM_HEADER_SIZE)) {
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;                // attempt to refine content type by examining data stream
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                contentType = BinaryUtils.FileType.determineContentType(pis,</b>
+<i class="no-highlight">248</i>&nbsp;                        zipEntryFilename, contentType);
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                if ((contentType != null) &amp;&amp; !DEFAULT_MEDIA_TYPE.equals(contentType)) {</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                    BinaryUtils.setBinaryDocumentHeaderContentType(map, contentType);</b>
+<i class="no-highlight">251</i>&nbsp;                }
+<i class="no-highlight">252</i>&nbsp;
+<i class="no-highlight">253</i>&nbsp;                // copy the data
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                final long bytesWritten = StatusReportingUtils.copy(statusReporter, pis,</b>
+<i class="no-highlight">255</i>&nbsp;                        zipOutput, Long.MAX_VALUE);
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                BinaryUtils.setBinaryDocumentHeaderContentLength(map, bytesWritten);</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        } finally {</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            zipOutput.closeEntry();</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        }</b>
+<i class="no-highlight">260</i>&nbsp;
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        return map;</b>
+<i class="no-highlight">262</i>&nbsp;    }
+<i class="no-highlight">263</i>&nbsp;
+<i class="no-highlight">264</i>&nbsp;    /**
+<i class="no-highlight">265</i>&nbsp;     * Convert URI to path within filesystem.
+<i class="no-highlight">266</i>&nbsp;     * @param fs
+<i class="no-highlight">267</i>&nbsp;     * @param uri
+<i class="no-highlight">268</i>&nbsp;     * @return
+<i class="no-highlight">269</i>&nbsp;     */
+<i class="no-highlight">270</i>&nbsp;    protected Path getPath(FileSystem fs, URI uri) {
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        final String[] components = uri.getPath().split(FORWARD_SLASH);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        final String[] more = new String[components.length - 1];</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        if (more.length &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;            System.arraycopy(components, 1, more, 0, more.length);</b>
+<i class="no-highlight">275</i>&nbsp;        }
+<i class="no-highlight">276</i>&nbsp;
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        return fs.getPath(components[0], more);</b>
+<i class="no-highlight">278</i>&nbsp;    }
+<i class="no-highlight">279</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

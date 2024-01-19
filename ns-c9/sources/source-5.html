@@ -1,0 +1,443 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > HistValidDataHonorNulls</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt.scd2</a>
+</div>
+
+<h1>Coverage Summary for Class: HistValidDataHonorNulls (com.snaplogic.snaps.elt.scd2)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HistValidDataHonorNulls</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/72)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt.scd2;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snaps.elt.EltSCD2;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">16</i>&nbsp;import java.util.List;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import static com.snaplogic.snaps.elt.EltSCD2.AND_SPACE;
+<i class="no-highlight">19</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.CURRENT_ROW_LABEL;
+<i class="no-highlight">20</i>&nbsp;import static com.snaplogic.snaps.elt.scd2.SCD2Utils.getAliasDotColumnStr;
+<i class="no-highlight">21</i>&nbsp;import static com.snaplogic.snaps.elt.scd2.SCD2Utils.getColCompareColStr;
+<i class="no-highlight">22</i>&nbsp;import static com.snaplogic.snaps.elt.scd2.SCD2Utils.getColEqualsColStr;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;/**
+<i class="no-highlight">25</i>&nbsp; * A class to build merge into sql for Valid Data (ignore invalid rows) Honor Nulls usecase (VDHN)
+<i class="no-highlight">26</i>&nbsp; * for the Historical end date config
+<i class="no-highlight">27</i>&nbsp; */
+<i class="no-highlight">28</i>&nbsp;public class HistValidDataHonorNulls extends SCD2SqlBuilder {
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;    public HistValidDataHonorNulls(EltSCD2 eltSCD2) {
+<b class="nc"><i class="no-highlight">31</i>&nbsp;        super(eltSCD2);</b>
+<i class="no-highlight">32</i>&nbsp;    }
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;    private static final String BRANCH_1_OF_UNION_ALL_FMT = &quot;(%s) %s&quot;;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;    @Override
+<i class="no-highlight">37</i>&nbsp;    public String buildMergeIntoSql() {
+<b class="nc"><i class="no-highlight">38</i>&nbsp;        buildMostUsedConditions();</b>
+<b class="nc"><i class="no-highlight">39</i>&nbsp;        return String.format(MERGE_INTO_SQL_2_UNION_BRANCH_FMT, targetTableName, targetAlias,</b>
+<b class="nc"><i class="no-highlight">40</i>&nbsp;                             getUpdateRowsBranch(), getQualifyingSourceRowsForInsertBranch(),</b>
+<b class="nc"><i class="no-highlight">41</i>&nbsp;                             getOnCondForMergeInto(), getWhenMatchedUpdateStmt(),</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;                             getWhenNotMatchedInsertStmt());</b>
+<i class="no-highlight">43</i>&nbsp;    }
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;    @Override
+<i class="no-highlight">46</i>&nbsp;    public List&lt;String&gt; buildRedshiftInsertUpdateSqls() {
+<b class="nc"><i class="no-highlight">47</i>&nbsp;        List&lt;String&gt; retList = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">48</i>&nbsp;
+<b class="nc"><i class="no-highlight">49</i>&nbsp;        buildMostUsedConditions();</b>
+<i class="no-highlight">50</i>&nbsp;
+<b class="nc"><i class="no-highlight">51</i>&nbsp;        String insertStr = String</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;                .format(INSERT_STMT_FMT_REDSHIFT, getInsertSelectStmtRedshift(),</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;                        getQualifyingSourceRowsForInsertStatementRedshift());</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;        retList.add(insertStr);</b>
+<i class="no-highlight">55</i>&nbsp;
+<b class="nc"><i class="no-highlight">56</i>&nbsp;        String updateStr = getUpdateStmtRedshift();</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        retList.add(updateStr);</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;        return retList;</b>
+<i class="no-highlight">59</i>&nbsp;    }
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;    //******** start of branch 1 - UpdateRowsBranch ************//
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;    private String getUpdateRowsBranch() {
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        return String.format(BRANCH_1_OF_UNION_ALL_FMT, getBranch1Subquery(), sourceAlias);</b>
+<i class="no-highlight">65</i>&nbsp;    }
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;    private String getSelectColsForBranch1() {
+<i class="no-highlight">68</i>&nbsp;//        String selectColsStr = getSelectColsForUpdateBranchAllUsecases();
+<i class="no-highlight">69</i>&nbsp;//
+<i class="no-highlight">70</i>&nbsp;//        // if honor nulls, project additional constant as a field
+<i class="no-highlight">71</i>&nbsp;//        // &#39;mergeinto update&#39; as operation_type
+<i class="no-highlight">72</i>&nbsp;//        return selectColsStr + COMMA_SPACE + UPDATE_IDENTIFIER_AS_COL;
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        return getSelectColsForUpdateBranchAllUsecases();</b>
+<i class="no-highlight">74</i>&nbsp;    }
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    private String getLeftJoinLHSSubqueryBranch1() {
+<i class="no-highlight">77</i>&nbsp;         /*
+<i class="no-highlight">78</i>&nbsp;        (SELECT srcalias.*,
+<i class="no-highlight">79</i>&nbsp;        start_date AS snapstartdate,
+<i class="no-highlight">80</i>&nbsp;        NULL AS L2,
+<i class="no-highlight">81</i>&nbsp;        NULL AS previous_customer_id,
+<i class="no-highlight">82</i>&nbsp;        NULL AS previousrow_start_date,
+<i class="no-highlight">83</i>&nbsp;        NULL AS rownum_before_join,
+<i class="no-highlight">84</i>&nbsp;        CURRENT_DATE () AS historical_end_date
+<i class="no-highlight">85</i>&nbsp;        FROM srccat1 srcalias
+<i class="no-highlight">86</i>&nbsp;        WHERE &lt;clause&gt;) srcalias
+<i class="no-highlight">87</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        return getHistEndRowLeftJoinLHSBranch1(false, true);</b>
+<i class="no-highlight">89</i>&nbsp;    }
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;    private String getTargetTableQueryWithCurrentRowAsTrue() {
+<i class="no-highlight">92</i>&nbsp;        // Left join RHS subquery branch 1
+<i class="no-highlight">93</i>&nbsp;        /*
+<i class="no-highlight">94</i>&nbsp;        (SELECT &#39;NNC&#39; AS NOT_NULLABLE, * FROM tgtcat WHERE currentrow = true
+<i class="no-highlight">95</i>&nbsp;        AND srcalias.START_DATE IS NOT NULL) pink_shark
+<i class="no-highlight">96</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        return histHonorNullsTgtTblQueryWithCurrRowTrue();</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    private String getQualifyingCondForChangedCauseHistFields() {
+<i class="no-highlight">101</i>&nbsp;        // Branch 1 (update rows branch) left join on condition
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        return honorNullsUpdateBranchLeftJoinOnCond();</b>
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    private String getBranch1LeftJoinWhereClause() {
+<i class="no-highlight">106</i>&nbsp;        /*
+<i class="no-highlight">107</i>&nbsp;            pink_weasel.NOT_NULLABLE IS NOT NULL
+<i class="no-highlight">108</i>&nbsp;            AND srcalias.START_DATE &gt; pink_weasel.START_DATE
+<i class="no-highlight">109</i>&nbsp;            AND srcalias.historical_end_date &gt; pink_weasel.START_DATE
+<i class="no-highlight">110</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        String cond1 = String.format(NOTNULLABLE_COL_IS_NOT_NULL_FMT, targetAlias);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        String cond2 = getColCompareColStr(getStartDateColFromSource(),</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                                           getStartDateColFromTarget(),</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                                           getStartDateComparator());</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        String cond3 = getColCompareColStr(getAliasDotColumnStr(sourceAlias, HIST_END_DATE_ALIAS),</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                                           getStartDateColFromTarget(), getStartDateComparator());</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        return String.format(&quot;%s AND %s AND %s&quot;, cond1, cond2, cond3);</b>
+<i class="no-highlight">118</i>&nbsp;    }
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;    private String getBranch1Subquery() {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        return String</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .format(&quot;SELECT %s FROM %s LEFT JOIN %s ON %s WHERE %s&quot;, getSelectColsForBranch1(),</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                        getLeftJoinLHSSubqueryBranch1(), getTargetTableQueryWithCurrentRowAsTrue(),</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                        getQualifyingCondForChangedCauseHistFields(),</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                        getBranch1LeftJoinWhereClause());</b>
+<i class="no-highlight">126</i>&nbsp;    }
+<i class="no-highlight">127</i>&nbsp;
+<i class="no-highlight">128</i>&nbsp;    //******** end of branch 1 ************//
+<i class="no-highlight">129</i>&nbsp;
+<i class="no-highlight">130</i>&nbsp;    //******** start of branch 2 - QualifyingSourceRowsForInsertBranch ************//
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;    private String getQualifyingSourceRowsForInsertBranch() {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        return String.format(&quot;SELECT %s FROM (%s) %s LEFT JOIN %s ON %s WHERE %s&quot;,</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                             getSelectColsForBranch2(),</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                             getLeftJoinLHSSubqueryBranch2(), sourceAlias,</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                             getLeftJoinRHSSubqueryBranch2(),</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                             getBranch2LeftJoinOnCondition(), getBranch2LeftJoinWhereClause());</b>
+<i class="no-highlight">138</i>&nbsp;    }
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    private String getSelectColsForBranch2() {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        return getSelectColsForHonorNullsInsertBranch(false);</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    private String getLeftJoinLHSSubqueryBranch2() {
+<i class="no-highlight">145</i>&nbsp;       /*
+<i class="no-highlight">146</i>&nbsp;        SELECT srcalias.*,
+<i class="no-highlight">147</i>&nbsp;        srcalias.start_date AS snapstartdate,
+<i class="no-highlight">148</i>&nbsp;        LAG(srcalias.address) OVER (PARTITION BY srcalias.customer_id ORDER BY srcalias.start_date
+<i class="no-highlight">149</i>&nbsp;        ASC NULLS LAST) AS l2,
+<i class="no-highlight">150</i>&nbsp;        NULL AS previous_customer_id,
+<i class="no-highlight">151</i>&nbsp;        LAG(srcalias.start_date)
+<i class="no-highlight">152</i>&nbsp;        OVER (PARTITION BY srcalias.customer_id ORDER BY srcalias.start_date ASC NULLS LAST)
+<i class="no-highlight">153</i>&nbsp;        AS previousrow_start_date,
+<i class="no-highlight">154</i>&nbsp;        ROW_NUMBER() OVER (PARTITION BY srcalias.customer_id ORDER BY srcalias.start_date)
+<i class="no-highlight">155</i>&nbsp;        AS rownum_before_join,
+<i class="no-highlight">156</i>&nbsp;        CURRENT_DATE () AS historical_end_date
+<i class="no-highlight">157</i>&nbsp;        FROM srccat1 srcalias
+<i class="no-highlight">158</i>&nbsp;        WHERE %s
+<i class="no-highlight">159</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        return histIgnoreNullsLeftJoinLHSSubqueryBranch2(false, true);</b>
+<i class="no-highlight">161</i>&nbsp;    }
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;    private String getLeftJoinRHSSubqueryBranch2() {
+<i class="no-highlight">164</i>&nbsp;        /*
+<i class="no-highlight">165</i>&nbsp;        SELECT &#39;NNC&#39; AS NOT_NULLABLE, * FROM tgtcat3 WHERE
+<i class="no-highlight">166</i>&nbsp;            CURRENTROW = CAST (TRUE AS BOOLEAN) AND START_DATE IS NOT NULL
+<i class="no-highlight">167</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        return getTargetTableQueryWithCurrentRowAsTrue();</b>
+<i class="no-highlight">169</i>&nbsp;    }
+<i class="no-highlight">170</i>&nbsp;
+<i class="no-highlight">171</i>&nbsp;    private String getBranch2LeftJoinOnCondition() {
+<i class="no-highlight">172</i>&nbsp;        /*
+<i class="no-highlight">173</i>&nbsp;        ((srcalias.customer_id IS NULL AND pink_shark.customer_id IS NULL)
+<i class="no-highlight">174</i>&nbsp;          OR
+<i class="no-highlight">175</i>&nbsp;         (srcalias.customer_id = pink_shark.customer_id))
+<i class="no-highlight">176</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        List&lt;String&gt; onConditions = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">178</i>&nbsp;        // natural key conditions
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        onConditions.add(getNaturalKeyOnConditions());</b>
+<i class="no-highlight">180</i>&nbsp;
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        return String.join(AND_SPACE, onConditions);</b>
+<i class="no-highlight">182</i>&nbsp;    }
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;    private String getBranch2LeftJoinWhereClause() {
+<i class="no-highlight">185</i>&nbsp;        /*
+<i class="no-highlight">186</i>&nbsp;                /*
+<i class="no-highlight">187</i>&nbsp;        (pink_weasel.NOT_NULLABLE IS NOT NULL
+<i class="no-highlight">188</i>&nbsp;        AND
+<i class="no-highlight">189</i>&nbsp;        (CASE
+<i class="no-highlight">190</i>&nbsp;            WHEN srcalias.START_DATE &lt;= pink_weasel.START_DATE THEN 0
+<i class="no-highlight">191</i>&nbsp;            WHEN srcalias.historical_end_date IS NULL THEN 0
+<i class="no-highlight">192</i>&nbsp;            WHEN srcalias.historical_end_date &lt;= pink_weasel.START_DATE THEN 0
+<i class="no-highlight">193</i>&nbsp;            WHEN srcalias.historical_end_date &lt;= srcalias.START_DATE THEN 0
+<i class="no-highlight">194</i>&nbsp;            WHEN (srcalias.rownum_before_join = 1)
+<i class="no-highlight">195</i>&nbsp;                OR (srcalias.previousrow_start_date IS NULL
+<i class="no-highlight">196</i>&nbsp;                    OR srcalias.previousrow_start_date &lt;= pink_weasel.START_DATE) THEN
+<i class="no-highlight">197</i>&nbsp;                (CASE WHEN (srcalias.ADDRESS = pink_weasel.ADDRESS
+<i class="no-highlight">198</i>&nbsp;                        AND srcalias.SAL = pink_weasel.SAL) THEN 0
+<i class="no-highlight">199</i>&nbsp;                      ELSE 1
+<i class="no-highlight">200</i>&nbsp;                END)
+<i class="no-highlight">201</i>&nbsp;            WHEN (srcalias.ADDRESS = srcalias.L1 AND srcalias.SAL = srcalias.L2) THEN 0
+<i class="no-highlight">202</i>&nbsp;            ELSE 1
+<i class="no-highlight">203</i>&nbsp;        END) = 1)
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;        OR
+<i class="no-highlight">206</i>&nbsp;
+<i class="no-highlight">207</i>&nbsp;        (pink_weasel.NOT_NULLABLE IS NULL
+<i class="no-highlight">208</i>&nbsp;        AND
+<i class="no-highlight">209</i>&nbsp;        (CASE WHEN srcalias.historical_end_date IS NULL THEN 0
+<i class="no-highlight">210</i>&nbsp;              WHEN srcalias.historical_end_date &lt;= srcalias.START_DATE THEN 0
+<i class="no-highlight">211</i>&nbsp;              WHEN srcalias.previousrow_start_date IS NULL
+<i class="no-highlight">212</i>&nbsp;                   AND srcalias.rownum_before_join = 1 THEN 1
+<i class="no-highlight">213</i>&nbsp;              WHEN srcalias.previousrow_start_date IS NOT NULL
+<i class="no-highlight">214</i>&nbsp;                   AND srcalias.previousrow_start_date = srcalias.START_DATE THEN 0
+<i class="no-highlight">215</i>&nbsp;              WHEN srcalias.L1 IS NULL
+<i class="no-highlight">216</i>&nbsp;                   AND srcalias.L2 IS NULL
+<i class="no-highlight">217</i>&nbsp;                   AND srcalias.rownum_before_join = 1 THEN 1
+<i class="no-highlight">218</i>&nbsp;              WHEN srcalias.ADDRESS = srcalias.L1
+<i class="no-highlight">219</i>&nbsp;                   AND srcalias.SAL = srcalias.L2 THEN 0
+<i class="no-highlight">220</i>&nbsp;              ELSE 1
+<i class="no-highlight">221</i>&nbsp;         END) = 1)
+<i class="no-highlight">222</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        return getHistEndRowBranch2LeftJoinWhereClause();</b>
+<i class="no-highlight">224</i>&nbsp;    }
+<i class="no-highlight">225</i>&nbsp;
+<i class="no-highlight">226</i>&nbsp;    //******** end of branch 2 ************//
+<i class="no-highlight">227</i>&nbsp;
+<i class="no-highlight">228</i>&nbsp;    //******** ON condition for merge into sql ************//
+<i class="no-highlight">229</i>&nbsp;
+<i class="no-highlight">230</i>&nbsp;    private String getOnCondForMergeInto() {
+<i class="no-highlight">231</i>&nbsp;        /*
+<i class="no-highlight">232</i>&nbsp;        (
+<i class="no-highlight">233</i>&nbsp;            (pink_weasel.CUSTOMER_ID IS NULL AND mergeKey1 IS NULL)
+<i class="no-highlight">234</i>&nbsp;            OR
+<i class="no-highlight">235</i>&nbsp;            (pink_weasel.CUSTOMER_ID = mergeKey1)
+<i class="no-highlight">236</i>&nbsp;        )
+<i class="no-highlight">237</i>&nbsp;        AND
+<i class="no-highlight">238</i>&nbsp;        (
+<i class="no-highlight">239</i>&nbsp;            (pink_weasel.name IS NULL AND mergeKey2 IS NULL)
+<i class="no-highlight">240</i>&nbsp;            OR
+<i class="no-highlight">241</i>&nbsp;            (pink_weasel.name = mergeKey2)
+<i class="no-highlight">242</i>&nbsp;        )
+<i class="no-highlight">243</i>&nbsp;        AND (operation_type = &#39;MERGEINTO UPDATE&#39;)
+<i class="no-highlight">244</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        return buildHonorNullsTgtNaturalKeyOnCondForMergeInto();</b>
+<i class="no-highlight">246</i>&nbsp;    }
+<i class="no-highlight">247</i>&nbsp;
+<i class="no-highlight">248</i>&nbsp;    //******** WHEN MATCHED UPDATE ************//
+<i class="no-highlight">249</i>&nbsp;
+<i class="no-highlight">250</i>&nbsp;    private String getWhenMatchedUpdateStmt() {
+<i class="no-highlight">251</i>&nbsp;        // WHEN MATCHED AND tgtcat1.currentrow = TRUE THEN UPDATE SET %s
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        String lhs =</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                getAliasDotColumnStr(targetAlias, scdMeaningToColumnName.get(CURRENT_ROW_LABEL));</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        String rhs = scdMeaningToColumnValue.get(CURRENT_ROW_LABEL);</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        String whenMatchedAndCond = getColEqualsColStr(lhs, rhs);</b>
+<i class="no-highlight">256</i>&nbsp;
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        return String.format(WHEN_MATCHED_UPDATE_FMT, whenMatchedAndCond,</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                             getWhenMatchedUpdateSetColumns());</b>
+<i class="no-highlight">259</i>&nbsp;    }
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;    @Override
+<i class="no-highlight">262</i>&nbsp;    protected String getCurrentRowUpdateValue() {
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        if (eltSCD2.isRedshiftDb()) {</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            return buildCurrentRowUpdateValueRedshift();</b>
+<i class="no-highlight">265</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        return buildCurrentRowUpdateValue();</b>
+<i class="no-highlight">267</i>&nbsp;    }
+<i class="no-highlight">268</i>&nbsp;
+<i class="no-highlight">269</i>&nbsp;    @Override
+<i class="no-highlight">270</i>&nbsp;    protected String getEndDateUpdateValue() {
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        if (eltSCD2.isRedshiftDb()) {</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            return buildEndDateUpdateValueRedshift();</b>
+<i class="no-highlight">273</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        return buildEndDateUpdateValue();</b>
+<i class="no-highlight">275</i>&nbsp;    }
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;    @Override
+<i class="no-highlight">278</i>&nbsp;    protected String getInvalidRowFlagUpdateValue() {
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        return buildInvalidRowFlagUpdateValue();</b>
+<i class="no-highlight">280</i>&nbsp;    }
+<i class="no-highlight">281</i>&nbsp;
+<i class="no-highlight">282</i>&nbsp;    //******** WHEN NOT MATCHED INSERT ************//
+<i class="no-highlight">283</i>&nbsp;    @Override
+<i class="no-highlight">284</i>&nbsp;    protected String getCurrentRowInsertValue() {
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        return buildCurrentRowInsertValue();</b>
+<i class="no-highlight">286</i>&nbsp;    }
+<i class="no-highlight">287</i>&nbsp;
+<i class="no-highlight">288</i>&nbsp;    @Override
+<i class="no-highlight">289</i>&nbsp;    protected String getStartDateInsertValue() {
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        return buildStartDateInsertValue();</b>
+<i class="no-highlight">291</i>&nbsp;    }
+<i class="no-highlight">292</i>&nbsp;
+<i class="no-highlight">293</i>&nbsp;    @Override
+<i class="no-highlight">294</i>&nbsp;    protected String getEndDateInsertValue() {
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        return buildEndDateInsertValue();</b>
+<i class="no-highlight">296</i>&nbsp;    }
+<i class="no-highlight">297</i>&nbsp;
+<i class="no-highlight">298</i>&nbsp;    @Override
+<i class="no-highlight">299</i>&nbsp;    protected String getInvalidRowFlagInsertValue() {
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        return buildInvalidRowFlagInsertValue();</b>
+<i class="no-highlight">301</i>&nbsp;    }
+<i class="no-highlight">302</i>&nbsp;
+<i class="no-highlight">303</i>&nbsp;    //******** start of INSERT and UPDATE for Redshift ************//
+<i class="no-highlight">304</i>&nbsp;
+<i class="no-highlight">305</i>&nbsp;    private String getQualifyingSourceRowsForInsertStatementRedshift() {
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        String BRANCH_2_FMT = &quot;SELECT %s FROM (%s) %s LEFT JOIN %s ON %s WHERE %s&quot;;</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        return String.format(BRANCH_2_FMT, getSelectColsForInsertStatementRedshift(),</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                getLeftJoinLHSSubqueryBranch2(), sourceAlias,</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                getLeftJoinRHSSubqueryBranch2(),</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                getBranch2LeftJoinOnCondition(), getBranch2LeftJoinWhereClause());</b>
+<i class="no-highlight">311</i>&nbsp;    }
+<i class="no-highlight">312</i>&nbsp;
+<i class="no-highlight">313</i>&nbsp;    private String getSelectColsForInsertStatementRedshift() {
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        return getSelectColsForInsertBranch(false);</b>
+<i class="no-highlight">315</i>&nbsp;    }
+<i class="no-highlight">316</i>&nbsp;
+<i class="no-highlight">317</i>&nbsp;    @Override
+<i class="no-highlight">318</i>&nbsp;    protected String getWhereClauseForUpdateRedshift() {
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        return honorNullsWhereClauseForUpdateRedshift();</b>
+<i class="no-highlight">320</i>&nbsp;    }
+<i class="no-highlight">321</i>&nbsp;
+<i class="no-highlight">322</i>&nbsp;    private final String getUpdateStmtRedshift() {
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        return buildUpdateStmtRedshift();</b>
+<i class="no-highlight">324</i>&nbsp;    }
+<i class="no-highlight">325</i>&nbsp;
+<i class="no-highlight">326</i>&nbsp;    @Override
+<i class="no-highlight">327</i>&nbsp;    protected String getBranch1ForUpdateRedshift() {
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        return getUpdateRowsBranch();</b>
+<i class="no-highlight">329</i>&nbsp;    }
+<i class="no-highlight">330</i>&nbsp;
+<i class="no-highlight">331</i>&nbsp;    @Override
+<i class="no-highlight">332</i>&nbsp;    protected String getOnClauseForUpdateFromClauseRedshift() {
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        return honorNullsOnClauseForUpdateFromClauseRedshift();</b>
+<i class="no-highlight">334</i>&nbsp;    }
+<i class="no-highlight">335</i>&nbsp;    //******** end of INSERT and UPDATE for Redshift ************//
+<i class="no-highlight">336</i>&nbsp;
+<i class="no-highlight">337</i>&nbsp;//    //******** HELPER METHODS ************//
+<i class="no-highlight">338</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

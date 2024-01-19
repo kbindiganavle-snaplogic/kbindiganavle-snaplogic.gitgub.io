@@ -1,0 +1,188 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BinaryCopy</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.flow</a>
+</div>
+
+<h1>Coverage Summary for Class: BinaryCopy (com.snaplogic.snaps.flow)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BinaryCopy</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">7</i>&nbsp; *
+<i class="no-highlight">8</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">9</i>&nbsp; */
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.flow;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.SchemaPropagator;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.BinaryInput;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.SimpleBinarySnap;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.view.BinaryOutputView;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.view.OutputView;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import java.nio.ByteBuffer;
+<i class="no-highlight">31</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">32</i>&nbsp;import java.util.List;
+<i class="no-highlight">33</i>&nbsp;import java.util.concurrent.ExecutorService;
+<i class="no-highlight">34</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">35</i>&nbsp;import java.util.concurrent.ThreadFactory;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.flow.Messages.BINARY_COPY_PURPOSE;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snaps.flow.Messages.BINARY_COPY_TITLE;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.BINARY})
+<i class="no-highlight">41</i>&nbsp;@Outputs(min = 2, offers = {ViewType.BINARY})
+<i class="no-highlight">42</i>&nbsp;@Errors(offers = {ViewType.DOCUMENT})
+<i class="no-highlight">43</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">44</i>&nbsp;@Category(snap = SnapCategory.FLOW)
+<i class="no-highlight">45</i>&nbsp;@General(title = BINARY_COPY_TITLE, purpose = BINARY_COPY_PURPOSE)
+<b class="nc"><i class="no-highlight">46</i>&nbsp;public class BinaryCopy extends SimpleBinarySnap implements SchemaPropagator.Passthrough {</b>
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;    private static final int BUFFER_SIZE = 1024 * 1024; // 1 MB
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;    @Inject ThreadFactory threadFactory;
+<i class="no-highlight">51</i>&nbsp;    private ExecutorService executorService;
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;    @Override
+<i class="no-highlight">54</i>&nbsp;    protected void doWork() {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;        final ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;        final List&lt;BinaryCopyTask&gt; tasks = new ArrayList&lt;&gt;(outputViews.size());</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        executorService = Executors.newFixedThreadPool(outputViews.size(), threadFactory);</b>
+<i class="no-highlight">58</i>&nbsp;
+<b class="nc"><i class="no-highlight">59</i>&nbsp;        for (BinaryInput binaryInput : inputViews.binaryInputs(inputViews.get())) {</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;            final Document header = binaryInput.getHeader();</b>
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;            // for each output view, create a task to copy the data to that view
+<b class="nc"><i class="no-highlight">63</i>&nbsp;            for (OutputView view : outputViews.views()) {</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;                BinaryOutputView bview = (BinaryOutputView) view;</b>
+<i class="no-highlight">65</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                    tasks.add(BinaryCopyTask.create(bview, header, errorViews, executorService));</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;                } catch (SnapDataException ex) {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;                    errorViews.write(ex, header);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;            }</b>
+<i class="no-highlight">71</i>&nbsp;            // copy input to each output using the tasks
+<b class="nc"><i class="no-highlight">72</i>&nbsp;            BinaryCopyTask.copy(binaryInput, buf, tasks, errorViews);</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;            tasks.clear();</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        }</b>
+<i class="no-highlight">75</i>&nbsp;    }
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;    @Override
+<i class="no-highlight">78</i>&nbsp;    public void cleanup() throws com.snaplogic.api.ExecutionException {
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        if (executorService != null) {</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;            executorService.shutdownNow();</b>
+<i class="no-highlight">81</i>&nbsp;        }
+<i class="no-highlight">82</i>&nbsp;    }
+<i class="no-highlight">83</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

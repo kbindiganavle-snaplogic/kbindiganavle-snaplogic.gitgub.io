@@ -1,0 +1,429 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JsonParser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform</a>
+</div>
+
+<h1>Coverage Summary for Class: JsonParser (com.snaplogic.snaps.transform)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JsonParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/124)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2012 - 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.transform;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.MetricsProvider;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.metrics.Counter;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.document.provider.ReadObjectMapper;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.BinaryInput;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.MetricsBuilder;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.SimpleBinarySnap;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.read.JsonDataIterator;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">45</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">46</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">47</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import java.io.BufferedReader;
+<i class="no-highlight">50</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">51</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">52</i>&nbsp;import java.io.InputStreamReader;
+<i class="no-highlight">53</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">54</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">55</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">56</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">57</i>&nbsp;import java.util.List;
+<i class="no-highlight">58</i>&nbsp;import java.util.Map;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;import javax.ws.rs.core.MediaType;
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.consumeClose;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.*;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;import static java.nio.charset.StandardCharsets.UTF_8;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;/**
+<i class="no-highlight">68</i>&nbsp; * JsonParser
+<i class="no-highlight">69</i>&nbsp; *
+<i class="no-highlight">70</i>&nbsp; * &lt;p&gt;Snap that reads BinaryData in Json format and outputs documents that contain a string array.
+<i class="no-highlight">71</i>&nbsp; *
+<i class="no-highlight">72</i>&nbsp; * &lt;p&gt;The snap accepts the following properties:
+<i class="no-highlight">73</i>&nbsp; * &lt;ul&gt;
+<i class="no-highlight">74</i>&nbsp; * &lt;li&gt;Allow Non Standard - Specify whether or not allow non-standard json feature such as
+<i class="no-highlight">75</i>&nbsp; * backslash char, single quoted character, and so on&lt;/li&gt;
+<i class="no-highlight">76</i>&nbsp; * &lt;/ul&gt;
+<i class="no-highlight">77</i>&nbsp; *
+<i class="no-highlight">78</i>&nbsp; * @author terry
+<i class="no-highlight">79</i>&nbsp; */
+<i class="no-highlight">80</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">81</i>&nbsp;@General(title = JSON_PARSER_LABEL, purpose = JSON_PARSER_DESC)
+<i class="no-highlight">82</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.BINARY})
+<i class="no-highlight">83</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">84</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">85</i>&nbsp;@Category(snap = SnapCategory.PARSE)
+<b class="nc"><i class="no-highlight">86</i>&nbsp;public class JsonParser extends SimpleBinarySnap implements MetricsProvider, InputSchemaProvider {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(JsonParser.class);</b>
+<i class="no-highlight">88</i>&nbsp;    private static final String ALLOW_NON_STANDARD_PROP = &quot;allowNonStandardJson&quot;;
+<i class="no-highlight">89</i>&nbsp;    private static final boolean ALLOW_NON_STANDARD_DEFAULT = true;
+<i class="no-highlight">90</i>&nbsp;    private static final String ARRAY_ELEMENTS_AS_DOCUMENTS_PROP = &quot;arrayElementsAsDocuments&quot;;
+<i class="no-highlight">91</i>&nbsp;    private static final boolean ARRAY_ELEMENTS_AS_DOCUMENTS_DEFAULT = true;
+<i class="no-highlight">92</i>&nbsp;    private static final String JSON_FILTER_PROP = &quot;jsonFilterPath&quot;;
+<i class="no-highlight">93</i>&nbsp;    private static final String JSON_FILTER_DEFAULT = StringUtils.EMPTY;
+<i class="no-highlight">94</i>&nbsp;    private static final String JSON_DOC_PROCESSED = &quot;JsonDocProcessed&quot;;
+<i class="no-highlight">95</i>&nbsp;    private static final String DOCUMENTS = &quot;Documents&quot;;
+<i class="no-highlight">96</i>&nbsp;    private static final String FORMAT_REASON = &quot;%s, %s&quot;;
+<i class="no-highlight">97</i>&nbsp;    private static final String JSON_LINES_PROP = &quot;jsonLines&quot;;
+<i class="no-highlight">98</i>&nbsp;    private static final String JSON_LINE = &quot;JSON line&quot;;
+<i class="no-highlight">99</i>&nbsp;    private static final String LINE_NUMBER = &quot;Line number&quot;;
+<i class="no-highlight">100</i>&nbsp;    private JsonPath jsonPathStmt;
+<b class="nc"><i class="no-highlight">101</i>&nbsp;    private Counter documentCounter = null;</b>
+<i class="no-highlight">102</i>&nbsp;    private boolean allowNonStandard;
+<i class="no-highlight">103</i>&nbsp;    private boolean arrayElementsAsDocuments;
+<i class="no-highlight">104</i>&nbsp;    private InputStream inputStream;
+<i class="no-highlight">105</i>&nbsp;    private boolean jsonLines;
+<i class="no-highlight">106</i>&nbsp;    private boolean supportTypeExts;
+<b class="nc"><i class="no-highlight">107</i>&nbsp;    private long lineNumber = 0;</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;    private static final ReadObjectMapper READ_OBJECT_MAPPER = new ReadObjectMapper();</b>
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    @Override
+<i class="no-highlight">112</i>&nbsp;    public void defineProperties(final PropertyBuilder propBuilder) {
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        propBuilder.describe(JSON_FILTER_PROP, JSON_FILTER_LABEL, JSON_FILTER_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                .defaultValue(JSON_FILTER_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        propBuilder</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .describe(ALLOW_NON_STANDARD_PROP, ALLOW_NON_STANDARD_LABEL,</b>
+<i class="no-highlight">118</i>&nbsp;                        ALLOW_NON_STANDARD_DESCRIPTION)
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                .defaultValue(ALLOW_NON_STANDARD_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        propBuilder</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                .describe(ARRAY_ELEMENTS_AS_DOCUMENTS_PROP, ARRAY_ELEMENTS_AS_DOCUMENTS_LABEL,</b>
+<i class="no-highlight">124</i>&nbsp;                        ARRAY_ELEMENTS_AS_DOCUMENTS_DESC)
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .defaultValue(ARRAY_ELEMENTS_AS_DOCUMENTS_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                .runtimeModes(SnapProperty.TargetRuntime.STANDARD)</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        propBuilder.describe(JSON_LINES_PROP, JSON_LINES_LABEL, JSON_LINES_PARSER_DESC)</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        propBuilder.describe(SUPPORT_TYPE_EXTS_PROP, SUPPORT_TYPE_EXTS_LABEL, SUPPORT_TYPE_EXTS_DESC)</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                .add();</b>
+<i class="no-highlight">135</i>&nbsp;    }
+<i class="no-highlight">136</i>&nbsp;
+<i class="no-highlight">137</i>&nbsp;    @Override
+<i class="no-highlight">138</i>&nbsp;    public void configure(final PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        jsonPathStmt = propertyValues.getAsJsonPath(JSON_FILTER_PROP);</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        allowNonStandard = propertyValues.getBoolean(ALLOW_NON_STANDARD_PROP, true);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        arrayElementsAsDocuments = propertyValues.getBoolean(</b>
+<i class="no-highlight">142</i>&nbsp;                ARRAY_ELEMENTS_AS_DOCUMENTS_PROP, true);
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        jsonLines = propertyValues.getBoolean(JSON_LINES_PROP, false);</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        supportTypeExts = propertyValues.getBoolean(SUPPORT_TYPE_EXTS_PROP, false);</b>
+<i class="no-highlight">145</i>&nbsp;    }
+<i class="no-highlight">146</i>&nbsp;
+<i class="no-highlight">147</i>&nbsp;    @Override
+<i class="no-highlight">148</i>&nbsp;    public void defineMetrics(final MetricsBuilder builder) {
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        documentCounter = builder.describe(JSON_DOC_PROCESSED, JSON_WRITTEN_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                .measuredIn(DOCUMENTS).counter();</b>
+<i class="no-highlight">151</i>&nbsp;    }
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    @Override
+<i class="no-highlight">154</i>&nbsp;    protected void doWork() {
+<i class="no-highlight">155</i>&nbsp;        // do nothing if input view is not connected
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        if (inputViews.isEmpty()) {</b>
+<i class="no-highlight">157</i>&nbsp;            return;
+<i class="no-highlight">158</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        for (BinaryInput binaryInput : inputViews.binaryInputs(inputViews.get())) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            Document header = binaryInput.getHeader();</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            if (binaryInput != null) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                inputStream = getInputStream(binaryInput);</b>
+<i class="no-highlight">163</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                    if (jsonLines) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                        parseJsonLines(header, inputStream);</b>
+<i class="no-highlight">166</i>&nbsp;                    } else {
+<i class="no-highlight">167</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                            parseInputStream(header, inputStream);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                            throw e;</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                        } catch (final Throwable e) {</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                            SnapDataException ex = new SnapDataException(e, ERR_CANNOT_PARSE_JSON)</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                                    .withReason(formatReason(e))</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                                    .withResolution(ERR_CANNOT_PARSE_JSON_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                            errorViews.write(ex, header);</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                        }</b>
+<i class="no-highlight">177</i>&nbsp;                    }
+<i class="no-highlight">178</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                    cleanup(); // input stream is closed in the method</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                }</b>
+<i class="no-highlight">181</i>&nbsp;            } else {
+<i class="no-highlight">182</i>&nbsp;                break;
+<i class="no-highlight">183</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        }</b>
+<i class="no-highlight">185</i>&nbsp;    }
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;    private void parseJsonLines(Document header, InputStream inputStream) {
+<i class="no-highlight">188</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, UTF_8));</b>
+<i class="no-highlight">190</i>&nbsp;            String jsonLine;
+<i class="no-highlight">191</i>&nbsp;            // null jsonLine is the end of stream
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            while ((jsonLine = reader.readLine()) != null) {</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                lineNumber++;</b>
+<i class="no-highlight">194</i>&nbsp;                // skip a line with all white space
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                if (StringUtils.isNotBlank(jsonLine)) {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                    try (InputStream jsonLineStream = IOUtils.toInputStream(jsonLine, UTF_8)) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                        parseInputStream(header, jsonLineStream);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                    } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                        throw e;</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                    } catch (final Throwable e) {</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                        Map&lt;String, Object&gt; original = new LinkedHashMap&lt;&gt;(2);</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                        original.put(LINE_NUMBER, BigInteger.valueOf(lineNumber));</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                        original.put(JSON_LINE, jsonLine);</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                        Document errorDoc = documentUtility.newDocument(original);</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                        SnapDataException ex = new SnapDataException(errorDoc, e,</b>
+<i class="no-highlight">206</i>&nbsp;                                ERR_CANNOT_PARSE_JSON)
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                                .withReason(formatReason(e))</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                                .withResolution(ERR_CANNOT_PARSE_JSON_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                        errorViews.write(ex, header);</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                    }</b>
+<i class="no-highlight">211</i>&nbsp;                }
+<i class="no-highlight">212</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_CANNOT_PARSE_JSON)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                    .withReason(formatReason(e))</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                    .withResolution(ERR_CANNOT_PARSE_JSON_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            errorViews.write(ex, header);</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        }</b>
+<i class="no-highlight">219</i>&nbsp;    }
+<i class="no-highlight">220</i>&nbsp;
+<i class="no-highlight">221</i>&nbsp;    private void parseInputStream(Document header, InputStream inputStream) {
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        JsonDataIterator dataIterator = createDataIterator(inputStream);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        if (!dataIterator.hasNext() &amp;&amp; header != null) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            outputViews.write(documentUtility.newDocumentFor(header,</b>
+<i class="no-highlight">225</i>&nbsp;                    new LinkedHashMap&lt;&gt;(0)));
+<b class="nc"><i class="no-highlight">226</i>&nbsp;            documentCounter.inc();</b>
+<i class="no-highlight">227</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;            while (dataIterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                Object data = dataIterator.next();</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                if (jsonPathStmt != null) {</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    data = applyFilterOnData(data);</b>
+<i class="no-highlight">232</i>&nbsp;                }
+<i class="no-highlight">233</i>&nbsp;                // Creates new document from original binary data header.
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                outputViews.write(documentUtility.newDocumentFor(header, data));</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                documentCounter.inc();</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            }</b>
+<i class="no-highlight">237</i>&nbsp;        }
+<i class="no-highlight">238</i>&nbsp;    }
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;    private String formatReason(Throwable t) {
+<b class="nc"><i class="no-highlight">241</i>&nbsp;        Throwable cause = t.getCause();</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        if (cause == null) {</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            return t.getMessage();</b>
+<i class="no-highlight">244</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            return String.format(FORMAT_REASON, t.getMessage(), cause.getMessage());</b>
+<i class="no-highlight">246</i>&nbsp;        }
+<i class="no-highlight">247</i>&nbsp;    }
+<i class="no-highlight">248</i>&nbsp;
+<i class="no-highlight">249</i>&nbsp;    /**
+<i class="no-highlight">250</i>&nbsp;     * Write json objects applying to the filter condition.
+<i class="no-highlight">251</i>&nbsp;     *
+<i class="no-highlight">252</i>&nbsp;     * @param object
+<i class="no-highlight">253</i>&nbsp;     */
+<i class="no-highlight">254</i>&nbsp;    private Object applyFilterOnData(Object object) {
+<i class="no-highlight">255</i>&nbsp;        Object data;
+<i class="no-highlight">256</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            data = jsonPathStmt.read(object);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            throw new SnapDataException(documentUtility.newDocument(object),</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                    String.format(UNABLE_TO_READ_DATA_FROM_PATH, e.getPath()))</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                    .withResolution(e.getResolution());</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        if (data instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            if (((Map&lt;?, ?&gt;) data).isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                generateErrorView(object, ERR_NO_MATCHING_DATA);</b>
+<i class="no-highlight">267</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        } else if (data instanceof List) {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            if (((List&lt;?&gt;) data).isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                generateErrorView(object, ERR_NO_MATCHING_DATA);</b>
+<i class="no-highlight">271</i>&nbsp;            }
+<i class="no-highlight">272</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        return data;</b>
+<i class="no-highlight">274</i>&nbsp;    }
+<i class="no-highlight">275</i>&nbsp;
+<i class="no-highlight">276</i>&nbsp;    private void generateErrorView(Object data, String errorMessage) {
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        String msg = String.format(errorMessage, jsonPathStmt);</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        throw new SnapDataException(documentUtility.newDocument(data), msg)</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                .withReason(msg)</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                .withResolution(ERR_FILTER_RESOLUTION);</b>
+<i class="no-highlight">281</i>&nbsp;    }
+<i class="no-highlight">282</i>&nbsp;
+<i class="no-highlight">283</i>&nbsp;    @Override
+<i class="no-highlight">284</i>&nbsp;    public void cleanup() throws ExecutionException {
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        consumeClose(inputStream, LOG);</b>
+<i class="no-highlight">286</i>&nbsp;    }
+<i class="no-highlight">287</i>&nbsp;
+<i class="no-highlight">288</i>&nbsp;    /**
+<i class="no-highlight">289</i>&nbsp;     * Creates Data Iterator for the input stream.
+<i class="no-highlight">290</i>&nbsp;     *
+<i class="no-highlight">291</i>&nbsp;     * @param inputStream as the input stream being parsed.
+<i class="no-highlight">292</i>&nbsp;     * @return jsonDataIterator
+<i class="no-highlight">293</i>&nbsp;     */
+<i class="no-highlight">294</i>&nbsp;    protected JsonDataIterator createDataIterator(InputStream inputStream) {
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        if (supportTypeExts) {</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;            return new JsonDataIterator(inputStream, allowNonStandard, arrayElementsAsDocuments,</b>
+<i class="no-highlight">297</i>&nbsp;                    READ_OBJECT_MAPPER);
+<i class="no-highlight">298</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">299</i>&nbsp;            return new JsonDataIterator(inputStream, allowNonStandard, arrayElementsAsDocuments);</b>
+<i class="no-highlight">300</i>&nbsp;        }
+<i class="no-highlight">301</i>&nbsp;    }
+<i class="no-highlight">302</i>&nbsp;
+<i class="no-highlight">303</i>&nbsp;    private InputStream getInputStream(final BinaryInput binaryInput) {
+<i class="no-highlight">304</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">305</i>&nbsp;            return Channels.newInputStream(binaryInput.getChannel());</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;            String reason = String.format(ERR_READ_REASON, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;            throw new ExecutionException(e, ERR_READ)</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                    .withResolution(ERR_CUSTOMER_SUPPORT);</b>
+<i class="no-highlight">311</i>&nbsp;        }
+<i class="no-highlight">312</i>&nbsp;    }
+<i class="no-highlight">313</i>&nbsp;
+<i class="no-highlight">314</i>&nbsp;    @Override
+<i class="no-highlight">315</i>&nbsp;    public void defineInputSchema(final SchemaProvider provider) {
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        for (String viewName : provider.getRegisteredInputViewNames()) {</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;            SchemaBuilder builder = provider.getSchemaBuilder(viewName);</b>
+<i class="no-highlight">318</i>&nbsp;
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            builder.name(&quot;content-type&quot;)</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                    .allowedValues(Collections.singleton(MediaType.APPLICATION_JSON))</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        }</b>
+<i class="no-highlight">323</i>&nbsp;    }
+<i class="no-highlight">324</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

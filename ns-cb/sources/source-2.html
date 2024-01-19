@@ -1,0 +1,400 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CSVDetectorInputFileImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt.schema_detector.inputFile</a>
+</div>
+
+<h1>Coverage Summary for Class: CSVDetectorInputFileImpl (com.snaplogic.snaps.elt.schema_detector.inputFile)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CSVDetectorInputFileImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/114)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package com.snaplogic.snaps.elt.schema_detector.inputFile;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">4</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">5</i>&nbsp;import com.snaplogic.snaps.elt.schema_detector.SchemaDetectionResult;
+<i class="no-highlight">6</i>&nbsp;import com.snaplogic.snaps.elt.schema_detector.utils.TypeInferenceUtils;
+<i class="no-highlight">7</i>&nbsp;
+<i class="no-highlight">8</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">9</i>&nbsp;import org.apache.commons.csv.CSVFormat;
+<i class="no-highlight">10</i>&nbsp;import org.apache.commons.csv.CSVParser;
+<i class="no-highlight">11</i>&nbsp;import org.apache.commons.csv.CSVRecord;
+<i class="no-highlight">12</i>&nbsp;import org.apache.commons.lang.StringUtils;
+<i class="no-highlight">13</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import java.io.BufferedReader;
+<i class="no-highlight">16</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">17</i>&nbsp;import java.nio.channels.ClosedChannelException;
+<i class="no-highlight">18</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">19</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">20</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">21</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">22</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">23</i>&nbsp;import java.util.List;
+<i class="no-highlight">24</i>&nbsp;import java.util.Map;
+<i class="no-highlight">25</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.DEFAULT_READ_RECORD_COUNT;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.FORMAT_COLUMN_NAME_PREFIX;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.UNKNOWN_COLUMN_TYPE;
+<i class="no-highlight">30</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.CSV_RECORD_HAS_LESS_FIELDS;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.DETECT_SCHEMA;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERROR_PROCESSING_CSV_FILE_RESOLUTION;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERROR_PROCESSING_RECORD_AT;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.elt.schema_detector.utils
+<i class="no-highlight">35</i>&nbsp;        .FileSchemaDetectorUtils.buildSchemaMap;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.elt.schema_detector.utils
+<i class="no-highlight">37</i>&nbsp;        .FileSchemaDetectorUtils.throwExceptionClassCastException;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;/**
+<i class="no-highlight">40</i>&nbsp; * Automatic Schema Detector CSV input file implementation
+<i class="no-highlight">41</i>&nbsp; */
+<i class="no-highlight">42</i>&nbsp;public class CSVDetectorInputFileImpl implements DetectorInputFile {
+<i class="no-highlight">43</i>&nbsp;    private String targetDatabase;
+<i class="no-highlight">44</i>&nbsp;    private DetectorInputFileConfig detectorInputFileConfig;
+<b class="nc"><i class="no-highlight">45</i>&nbsp;    private long lineNumber = 0;</b>
+<i class="no-highlight">46</i>&nbsp;    protected Logger LOGGER;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;    public CSVDetectorInputFileImpl(
+<b class="nc"><i class="no-highlight">49</i>&nbsp;            DetectorInputFileConfig config, String targetDatabase, Logger LOGGER) {</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;        this.detectorInputFileConfig = config;</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;        this.targetDatabase = targetDatabase;</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;        this.LOGGER = LOGGER;</b>
+<i class="no-highlight">53</i>&nbsp;    }
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;    /**
+<i class="no-highlight">56</i>&nbsp;     * Detect schema
+<i class="no-highlight">57</i>&nbsp;     *
+<i class="no-highlight">58</i>&nbsp;     * @param reader  Buffered reader for the source input file
+<i class="no-highlight">59</i>&nbsp;     * @return SchemaDetectionResult
+<i class="no-highlight">60</i>&nbsp;     */
+<i class="no-highlight">61</i>&nbsp;    @Override
+<i class="no-highlight">62</i>&nbsp;    public SchemaDetectionResult detectSchemaWithReader(
+<i class="no-highlight">63</i>&nbsp;            Object reader, Map&lt;String, Pattern&gt; typePatternMap)
+<i class="no-highlight">64</i>&nbsp;            throws IOException {
+<i class="no-highlight">65</i>&nbsp;
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        List&lt;String&gt; columnNames = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        List&lt;String&gt; dataTypes = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        LinkedHashMap&lt;String, String&gt; schemaMap = new LinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        boolean foundCompleteRecord = false;</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        SchemaDetectionResult result = new SchemaDetectionResult(schemaMap, foundCompleteRecord);</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        BufferedReader bufferedreader = null;</b>
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            bufferedreader = (BufferedReader) reader;</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        } catch (ClassCastException ex) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            throwExceptionClassCastException(ex);</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        }</b>
+<i class="no-highlight">78</i>&nbsp;
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        detectionLabel: try (CSVParser parser = createCSVParser(bufferedreader)) {</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;            Iterator&lt;CSVRecord&gt; dataIterator = parser.iterator();</b>
+<i class="no-highlight">81</i>&nbsp;            // Read or build header to create columnNames.
+<b class="nc"><i class="no-highlight">82</i>&nbsp;            CSVRecord firstDataRecord = null;</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;            if (detectorInputFileConfig.getIgnoreHeader() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                columnNames = readColumnNames(dataIterator);</b>
+<i class="no-highlight">85</i>&nbsp;            } else {
+<i class="no-highlight">86</i>&nbsp;                // We assume there is no header since ignoreHeader &lt;= 0.
+<i class="no-highlight">87</i>&nbsp;                // Thus create a column name set.
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                if (dataIterator.hasNext()) {</b>
+<i class="no-highlight">89</i>&nbsp;                    // Read the first record to determine length
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                    firstDataRecord = dataIterator.next();</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                    columnNames = createUserDefinedHeaders(firstDataRecord.size());</b>
+<i class="no-highlight">92</i>&nbsp;                } else {
+<i class="no-highlight">93</i>&nbsp;                    // nothing to read
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    columnNames = Collections.emptyList();</b>
+<i class="no-highlight">95</i>&nbsp;                }
+<i class="no-highlight">96</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">97</i>&nbsp;            lineNumber++;</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            if (CollectionUtils.isEmpty(columnNames)) {</b>
+<i class="no-highlight">99</i>&nbsp;                // Return empty SchemaDetectionResult.
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                return result;</b>
+<i class="no-highlight">101</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            for (int i = 0; i &lt; columnNames.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                dataTypes.add(UNKNOWN_COLUMN_TYPE);</b>
+<i class="no-highlight">104</i>&nbsp;            }
+<i class="no-highlight">105</i>&nbsp;            // Read a chunk of CSV records.
+<b class="nc"><i class="no-highlight">106</i>&nbsp;            List&lt;CSVRecord&gt; chunk =</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                    readRecordChunk(firstDataRecord, dataIterator,</b>
+<i class="no-highlight">108</i>&nbsp;                            DEFAULT_READ_RECORD_COUNT, parser);
+<b class="nc"><i class="no-highlight">109</i>&nbsp;            if (CollectionUtils.isEmpty(chunk)) {</b>
+<i class="no-highlight">110</i>&nbsp;                // We have columnNames but no data row in the source input file.
+<i class="no-highlight">111</i>&nbsp;                // Thus break to return a result with columnNames with UNKNOWN type
+<i class="no-highlight">112</i>&nbsp;                break detectionLabel;
+<i class="no-highlight">113</i>&nbsp;            }
+<i class="no-highlight">114</i>&nbsp;            // Build a table.
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            String[][] tab = buildTable(chunk, columnNames.size());</b>
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;            // Detect data type for each column
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            for (int i = 0; i &lt; columnNames.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                String typeDetected =</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                        TypeInferenceUtils.detectColumnDataType(</b>
+<i class="no-highlight">121</i>&nbsp;                                this.targetDatabase, typePatternMap, tab, i,
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                                detectorInputFileConfig.checkUnknownType());</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                dataTypes.set(i, typeDetected);</b>
+<i class="no-highlight">124</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        }</b>
+<i class="no-highlight">126</i>&nbsp;
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        foundCompleteRecord = buildSchemaMap(columnNames, dataTypes, schemaMap);</b>
+<i class="no-highlight">128</i>&nbsp;
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        return new SchemaDetectionResult(schemaMap, foundCompleteRecord);</b>
+<i class="no-highlight">130</i>&nbsp;    }
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;    protected List&lt;String&gt; createUserDefinedHeaders(int size) {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        List&lt;String&gt; headers = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        for (int i = 1; i &lt;= size; i++) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            headers.add(String.format(FORMAT_COLUMN_NAME_PREFIX, i));</b>
+<i class="no-highlight">136</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        return headers;</b>
+<i class="no-highlight">138</i>&nbsp;    }
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    private List&lt;String&gt; readColumnNames(final Iterator&lt;CSVRecord&gt; iterator) {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        List&lt;String&gt; columnNames = null;</b>
+<i class="no-highlight">142</i>&nbsp;
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        if (iterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            final CSVRecord headerRecord = iterator.next();</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            Iterator&lt;String&gt; header = headerRecord.iterator();</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            columnNames = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            while (header.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                columnNames.add(header.next());</b>
+<i class="no-highlight">149</i>&nbsp;            }
+<i class="no-highlight">150</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        return columnNames;</b>
+<i class="no-highlight">152</i>&nbsp;    }
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;    private List&lt;String&gt; readColumnNames(final String[] chunk) {
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        String[] names = StringUtils.split(</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                chunk[0], &quot;&quot; + detectorInputFileConfig.getFieldDelimiter());</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        List&lt;String&gt; columnNames = Arrays.asList(names);</b>
+<i class="no-highlight">158</i>&nbsp;
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        return columnNames;</b>
+<i class="no-highlight">160</i>&nbsp;    }
+<i class="no-highlight">161</i>&nbsp;
+<i class="no-highlight">162</i>&nbsp;    /**
+<i class="no-highlight">163</i>&nbsp;     * Try to read &quot;chunkSizeToRead&quot; records until EOF
+<i class="no-highlight">164</i>&nbsp;     * and return a list of records read.
+<i class="no-highlight">165</i>&nbsp;     * This also skips record per &quot;ignoreHeader&quot;.
+<i class="no-highlight">166</i>&nbsp;     *
+<i class="no-highlight">167</i>&nbsp;     * @param firstRecord       IN: firstRecord
+<i class="no-highlight">168</i>&nbsp;     * @param dataIterator      IN: CSVRecord iterator to read from
+<i class="no-highlight">169</i>&nbsp;     * @param chunkSizeToRead   IN: Requesting Chunk size
+<i class="no-highlight">170</i>&nbsp;     * @param parser            IN: CSVParser
+<i class="no-highlight">171</i>&nbsp;     * @return      List of CSVRecord
+<i class="no-highlight">172</i>&nbsp;     * @throws Exception    Exception thrown while reading
+<i class="no-highlight">173</i>&nbsp;     */
+<i class="no-highlight">174</i>&nbsp;    List&lt;CSVRecord&gt; readRecordChunk(
+<i class="no-highlight">175</i>&nbsp;            final CSVRecord firstRecord, Iterator&lt;CSVRecord&gt; dataIterator,
+<i class="no-highlight">176</i>&nbsp;            int chunkSizeToRead, CSVParser parser) {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        int chunkRecordCount = 0;</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        List&lt;CSVRecord&gt; chunk = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        if (firstRecord != null) {</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;            chunk.add(firstRecord);</b>
+<i class="no-highlight">181</i>&nbsp;        }
+<i class="no-highlight">182</i>&nbsp;        while (true) {
+<i class="no-highlight">183</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                if (dataIterator.hasNext() &amp;&amp;</b>
+<i class="no-highlight">185</i>&nbsp;                        chunkRecordCount++ &lt; chunkSizeToRead) {
+<i class="no-highlight">186</i>&nbsp;                    // Skip record per ignoreHeader
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                    if (lineNumber++ &lt; detectorInputFileConfig.getIgnoreHeader()) {</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                        continue;</b>
+<i class="no-highlight">189</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                    chunk.add(dataIterator.next());</b>
+<i class="no-highlight">191</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                    break;</b>
+<i class="no-highlight">193</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">194</i>&nbsp;            } catch (ExecutionException e) {</b>
+<i class="no-highlight">195</i>&nbsp;                // The entry point of this will handle this exception.
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                throw e;</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                Throwable cause = e.getCause();</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                if (cause instanceof ClosedChannelException) {</b>
+<i class="no-highlight">200</i>&nbsp;                    // When the pipeline execution is interrupted, just return.
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                    return Collections.emptyList();</b>
+<i class="no-highlight">202</i>&nbsp;                }
+<i class="no-highlight">203</i>&nbsp;                // We log and continue the loop since the exception is for the current record.
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                SnapDataException ex = new SnapDataException(e, ERROR_PROCESSING_RECORD_AT)</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                        .formatWith(lineNumber)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                        .withResolution(String.format(ERROR_PROCESSING_CSV_FILE_RESOLUTION,</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                                parser.getCurrentLineNumber()));</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                LOGGER.warn(DETECT_SCHEMA, ex);</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;            }</b>
+<i class="no-highlight">211</i>&nbsp;        }
+<i class="no-highlight">212</i>&nbsp;
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        return chunk;</b>
+<i class="no-highlight">214</i>&nbsp;    }
+<i class="no-highlight">215</i>&nbsp;
+<i class="no-highlight">216</i>&nbsp;    /**
+<i class="no-highlight">217</i>&nbsp;     * Read values from the given &quot;recordChunk&quot;, and
+<i class="no-highlight">218</i>&nbsp;     * build and return a two-dimensional array.
+<i class="no-highlight">219</i>&nbsp;     * @param recordChunk   CSVRecord list
+<i class="no-highlight">220</i>&nbsp;     * @param nCol          number of columns
+<i class="no-highlight">221</i>&nbsp;     * @return      Two dimentional String array
+<i class="no-highlight">222</i>&nbsp;     */
+<i class="no-highlight">223</i>&nbsp;    String[][] buildTable(List&lt;CSVRecord&gt; recordChunk, int nCol) {
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        String[][] tab = new String[recordChunk.size()][nCol];</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        for (int i = 0; i &lt; recordChunk.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;            for (int j = 0; j &lt; nCol; j++) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                if (j &lt; recordChunk.get(i).size()) {</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    tab[i][j] = recordChunk.get(i).get(j);</b>
+<i class="no-highlight">229</i>&nbsp;                } else {
+<i class="no-highlight">230</i>&nbsp;                    // We log and continue the loop since the exception is for the current record.
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    SnapDataException ex = new SnapDataException(ERROR_PROCESSING_RECORD_AT)</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                            .formatWith(i)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                            .withReason(CSV_RECORD_HAS_LESS_FIELDS)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                            .withResolution(String.format(ERROR_PROCESSING_CSV_FILE_RESOLUTION, i));</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                    LOGGER.warn(DETECT_SCHEMA, ex);</b>
+<i class="no-highlight">236</i>&nbsp;                }
+<i class="no-highlight">237</i>&nbsp;            }
+<i class="no-highlight">238</i>&nbsp;        }
+<i class="no-highlight">239</i>&nbsp;
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        return tab;</b>
+<i class="no-highlight">241</i>&nbsp;    }
+<i class="no-highlight">242</i>&nbsp;
+<i class="no-highlight">243</i>&nbsp;    /**
+<i class="no-highlight">244</i>&nbsp;     * Read values from the given &quot;recordChunk&quot;, and
+<i class="no-highlight">245</i>&nbsp;     * build and return a two-dimensional array.
+<i class="no-highlight">246</i>&nbsp;     *
+<i class="no-highlight">247</i>&nbsp;     * @param recordChunk   CSV record array
+<i class="no-highlight">248</i>&nbsp;     * @param nCol          number of columns
+<i class="no-highlight">249</i>&nbsp;     * @return      Two dimentional String array
+<i class="no-highlight">250</i>&nbsp;     */
+<i class="no-highlight">251</i>&nbsp;    String[][] buildTable(String[] recordChunk, int nCol) {
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        int nRows = recordChunk.length - (int)lineNumber;</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        String[][] tab =</b>
+<i class="no-highlight">254</i>&nbsp;                new String[nRows][nCol];
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        for (int i = 0; i &lt; nRows; i++) {</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;            String[] fieldValues = StringUtils.split(</b>
+<i class="no-highlight">257</i>&nbsp;                    recordChunk[(int)lineNumber++],
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                    &quot;&quot; + detectorInputFileConfig.getFieldDelimiter());</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            for (int j = 0; j &lt; nCol; j++) {</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                if (j &lt; fieldValues.length) {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                    tab[i][j] = fieldValues[j];</b>
+<i class="no-highlight">262</i>&nbsp;
+<i class="no-highlight">263</i>&nbsp;                } else {
+<i class="no-highlight">264</i>&nbsp;                    // We log and continue the loop since the exception is for the current record.
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                    SnapDataException ex = new SnapDataException(ERROR_PROCESSING_RECORD_AT)</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                            .formatWith(i)</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                            .withReason(CSV_RECORD_HAS_LESS_FIELDS)</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                            .withResolution(String.format(ERROR_PROCESSING_CSV_FILE_RESOLUTION, i));</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                    LOGGER.warn(DETECT_SCHEMA, ex);</b>
+<i class="no-highlight">270</i>&nbsp;                }
+<i class="no-highlight">271</i>&nbsp;            }
+<i class="no-highlight">272</i>&nbsp;        }
+<i class="no-highlight">273</i>&nbsp;
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        return tab;</b>
+<i class="no-highlight">275</i>&nbsp;    }
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;    private CSVParser createCSVParser(BufferedReader reader) throws IOException {
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        CSVFormat format = CSVFormat.Builder.create(CSVFormat.DEFAULT)</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                .setDelimiter(detectorInputFileConfig.getFieldDelimiter())</b>
+<i class="no-highlight">280</i>&nbsp;                //.setRecordSeparator(detectorInputFileConfig.get.getRecordSeparator())
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                .setQuote(detectorInputFileConfig.getQuoteCharacter())</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                .setEscape(detectorInputFileConfig.getEscapeCharacter())</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                .setIgnoreEmptyLines(true)</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                .setIgnoreSurroundingSpaces(!detectorInputFileConfig.preserveSurroundingSpaces())</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        return CSVParser.parse(reader, format);</b>
+<i class="no-highlight">287</i>&nbsp;    }
+<i class="no-highlight">288</i>&nbsp;
+<i class="no-highlight">289</i>&nbsp;    @Override
+<i class="no-highlight">290</i>&nbsp;    public SchemaDetectionResult detectSchemaWithReaderColumnTypeMap(
+<i class="no-highlight">291</i>&nbsp;            Object reader, Map&lt;String, String&gt; inputFileColumnTypeMap,
+<i class="no-highlight">292</i>&nbsp;            final Map&lt;String, Pattern&gt; typePatternMap) throws IOException {
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        return null;</b>
+<i class="no-highlight">294</i>&nbsp;    }
+<i class="no-highlight">295</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

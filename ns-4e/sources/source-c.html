@@ -1,0 +1,616 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DatabaseConfigImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql</a>
+</div>
+
+<h1>Coverage Summary for Class: DatabaseConfigImpl (com.snaplogic.snap.api.sql)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DatabaseConfigImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/69)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/147)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2012 - 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.base.MoreObjects;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.base.Objects;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.sql.config.HadoopConfig;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.sql.config.HiveConfig;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.sql.config.KerberosConfig;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.sql.config.SSLConfig;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">21</i>&nbsp;import org.jooq.SQLDialect;
+<i class="no-highlight">22</i>&nbsp;import org.jooq.conf.RenderNameStyle;
+<i class="no-highlight">23</i>&nbsp;import org.jooq.conf.Settings;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">26</i>&nbsp;import java.util.Properties;
+<i class="no-highlight">27</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;/**
+<i class="no-highlight">30</i>&nbsp; * Wraps properties used to connect to SQL data sources.
+<i class="no-highlight">31</i>&nbsp; */
+<i class="no-highlight">32</i>&nbsp;public class DatabaseConfigImpl implements DatabaseConfig {
+<i class="no-highlight">33</i>&nbsp;    private static final int MIN_TO_MS_MULTIPLIER = 60000;
+<i class="no-highlight">34</i>&nbsp;    protected static final int DEFAULT_IDLE_TIMEOUT_MS = (int) TimeUnit.MINUTES
+<b class="nc"><i class="no-highlight">35</i>&nbsp;            .toMillis(10); // 10 mins</b>
+<i class="no-highlight">36</i>&nbsp;    protected String driver;
+<i class="no-highlight">37</i>&nbsp;    protected ClassLoader classLoader;
+<i class="no-highlight">38</i>&nbsp;    protected String jdbcUrl;
+<i class="no-highlight">39</i>&nbsp;    protected String databaseName;
+<i class="no-highlight">40</i>&nbsp;    protected boolean autoCommit;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;    protected final String username;
+<i class="no-highlight">43</i>&nbsp;    protected final String password;
+<i class="no-highlight">44</i>&nbsp;    protected BigInteger port;
+<i class="no-highlight">45</i>&nbsp;    protected final int minimumIdle;
+<i class="no-highlight">46</i>&nbsp;    protected final int maximumPoolSize;
+<i class="no-highlight">47</i>&nbsp;    protected final int acquireIncrement;
+<i class="no-highlight">48</i>&nbsp;    protected final int maxLifetime;
+<i class="no-highlight">49</i>&nbsp;    protected final int idleTimeout;
+<i class="no-highlight">50</i>&nbsp;    protected final int connectionTimeout;
+<i class="no-highlight">51</i>&nbsp;    protected final int retryAttempts;
+<i class="no-highlight">52</i>&nbsp;    protected final int fetchSize;
+<i class="no-highlight">53</i>&nbsp;    protected int batchSize;
+<i class="no-highlight">54</i>&nbsp;    protected final Properties urlProperties;
+<i class="no-highlight">55</i>&nbsp;    protected SQLDialect dialect;
+<i class="no-highlight">56</i>&nbsp;    protected final Settings settings;
+<i class="no-highlight">57</i>&nbsp;    protected String hostName;
+<i class="no-highlight">58</i>&nbsp;    protected String dbOperations;
+<i class="no-highlight">59</i>&nbsp;    protected String testQuery;
+<i class="no-highlight">60</i>&nbsp;    protected String dbType;
+<i class="no-highlight">61</i>&nbsp;
+<b class="nc"><i class="no-highlight">62</i>&nbsp;    protected HadoopConfig hadoopConfig = HadoopConfig.UNINITIALIZED;</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;    protected HiveConfig hiveConfig = HiveConfig.UNINITIALIZED;</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;    protected KerberosConfig kerberosConfig = KerberosConfig.UNINITIALIZED;</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;    protected SSLConfig sslConfig = SSLConfig.UNINITIALIZED;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    protected String serviceAccountEmail = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;    protected String serviceAccountKeyPath = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;    protected String oAuth2AccessToken = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;    protected String oAuth2RefreshToken = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    protected String clientId = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;    protected String clientSecret = &quot;&quot;;</b>
+<i class="no-highlight">72</i>&nbsp;    protected boolean evictConnectionOnClose;
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;    public DatabaseConfigImpl(String username, String password, String jdbcUrl, int batchSize,
+<i class="no-highlight">75</i>&nbsp;            int fetchSize, int minimumIdle, int maximumPoolSize, int acquireIncrement,
+<i class="no-highlight">76</i>&nbsp;            int maxLifetime, int connectionTimeout, int retryAttempts, Properties urlProperties,
+<i class="no-highlight">77</i>&nbsp;            SQLDialect dialect, String driver, boolean autoCommit) {
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        this(username, password, jdbcUrl, batchSize, fetchSize, minimumIdle, maximumPoolSize,</b>
+<i class="no-highlight">79</i>&nbsp;                acquireIncrement, maxLifetime, connectionTimeout, retryAttempts, urlProperties,
+<i class="no-highlight">80</i>&nbsp;                dialect, driver, autoCommit, HadoopConfig.UNINITIALIZED, HiveConfig.UNINITIALIZED,
+<i class="no-highlight">81</i>&nbsp;                KerberosConfig.UNINITIALIZED, SSLConfig.UNINITIALIZED);
+<i class="no-highlight">82</i>&nbsp;    }
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;    public DatabaseConfigImpl(String username, String password, String jdbcUrl, int batchSize,
+<i class="no-highlight">85</i>&nbsp;            int fetchSize, int minimumIdle, int maximumPoolSize, int acquireIncrement,
+<i class="no-highlight">86</i>&nbsp;            int maxLifetime, int connectionTimeout, int retryAttempts, Properties urlProperties,
+<i class="no-highlight">87</i>&nbsp;            SQLDialect dialect, String driver, boolean autoCommit, HadoopConfig hadoopConfig,
+<i class="no-highlight">88</i>&nbsp;            HiveConfig hiveConfig, KerberosConfig kerberosConfig, SSLConfig sslConfig) {
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        this(username, password, jdbcUrl, batchSize, fetchSize, minimumIdle, maximumPoolSize,</b>
+<i class="no-highlight">90</i>&nbsp;                acquireIncrement, maxLifetime, connectionTimeout, retryAttempts, dialect,
+<i class="no-highlight">91</i>&nbsp;                DEFAULT_IDLE_TIMEOUT_MS, urlProperties, autoCommit, null, hadoopConfig,
+<i class="no-highlight">92</i>&nbsp;                hiveConfig, kerberosConfig, sslConfig);
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        this.driver = driver;</b>
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    public DatabaseConfigImpl(String username, String password, String jdbcUrl, int batchSize,
+<i class="no-highlight">97</i>&nbsp;            int fetchSize, int minimumIdle, int maximumPoolSize, int acquireIncrement,
+<i class="no-highlight">98</i>&nbsp;            int maxLifetime, int connectionTimeout, int retryAttempts, SQLDialect dialect, int
+<i class="no-highlight">99</i>&nbsp;            idleTimeout, Properties urlProperties, boolean autoCommit, String databaseName,
+<i class="no-highlight">100</i>&nbsp;            HadoopConfig hadoopConfig, HiveConfig hiveConfig, KerberosConfig kerberosConfig,
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            SSLConfig sslConfig) {</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        this.username = username == null ? StringUtils.EMPTY : username;</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        this.password = password == null ? StringUtils.EMPTY : password;</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        this.jdbcUrl = jdbcUrl;</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        this.batchSize = batchSize;</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        this.fetchSize = fetchSize;</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        this.minimumIdle = minimumIdle;</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        this.maximumPoolSize = maximumPoolSize;</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        this.acquireIncrement = acquireIncrement;</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        this.maxLifetime = maxLifetime;</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        this.connectionTimeout = connectionTimeout;</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        this.retryAttempts = retryAttempts;</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        this.urlProperties = urlProperties;</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        this.dialect = dialect;</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        this.idleTimeout = idleTimeout;</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        this.autoCommit = autoCommit;</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        this.databaseName = databaseName;</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        if (dialect.getName() == null) {</b>
+<i class="no-highlight">119</i>&nbsp;            // 1. No identifier quoting if using Generic JDBC Snaps
+<i class="no-highlight">120</i>&nbsp;            // 2. sap hana account has to execute this branch due to SQL99 dialect, but will change
+<i class="no-highlight">121</i>&nbsp;            // the render name style back to QUOTED in SAPHanaDatabaseAccount.configure()
+<i class="no-highlight">122</i>&nbsp;            settings = new Settings()
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                    .withRenderNameStyle(RenderNameStyle.AS_IS);</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        } else {</b>
+<i class="no-highlight">125</i>&nbsp;            settings = new Settings()
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                    .withRenderNameStyle(RenderNameStyle.QUOTED);</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        }</b>
+<i class="no-highlight">128</i>&nbsp;        this.port = null;
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        this.hadoopConfig = hadoopConfig;</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        this.hiveConfig = hiveConfig;</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        this.kerberosConfig = kerberosConfig;</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        this.sslConfig = sslConfig;</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        this.evictConnectionOnClose = false;</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;    }</b>
+<i class="no-highlight">135</i>&nbsp;
+<i class="no-highlight">136</i>&nbsp;    @Override
+<i class="no-highlight">137</i>&nbsp;    public String getDriver() {
+<i class="no-highlight">138</i>&nbsp;        return driver;
+<b class="nc"><i class="no-highlight">139</i>&nbsp;    }</b>
+<i class="no-highlight">140</i>&nbsp;
+<i class="no-highlight">141</i>&nbsp;    @Override
+<i class="no-highlight">142</i>&nbsp;    public ClassLoader getClassLoader() {
+<i class="no-highlight">143</i>&nbsp;        return classLoader;
+<b class="nc"><i class="no-highlight">144</i>&nbsp;    }</b>
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;    @Override
+<i class="no-highlight">147</i>&nbsp;    public String getUsername() {
+<i class="no-highlight">148</i>&nbsp;        return username;
+<b class="nc"><i class="no-highlight">149</i>&nbsp;    }</b>
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    @Override
+<i class="no-highlight">152</i>&nbsp;    public String getPassword() {
+<i class="no-highlight">153</i>&nbsp;        return password;
+<b class="nc"><i class="no-highlight">154</i>&nbsp;    }</b>
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;    @Override
+<i class="no-highlight">157</i>&nbsp;    public BigInteger getPort() {
+<i class="no-highlight">158</i>&nbsp;        return port;
+<b class="nc"><i class="no-highlight">159</i>&nbsp;    }</b>
+<i class="no-highlight">160</i>&nbsp;
+<i class="no-highlight">161</i>&nbsp;    @Override
+<i class="no-highlight">162</i>&nbsp;    public String getDatabaseName() {
+<i class="no-highlight">163</i>&nbsp;        return databaseName;
+<b class="nc"><i class="no-highlight">164</i>&nbsp;    }</b>
+<i class="no-highlight">165</i>&nbsp;
+<i class="no-highlight">166</i>&nbsp;    @Override
+<i class="no-highlight">167</i>&nbsp;    public boolean getAutoCommit() {
+<i class="no-highlight">168</i>&nbsp;        return autoCommit;
+<b class="nc"><i class="no-highlight">169</i>&nbsp;    }</b>
+<i class="no-highlight">170</i>&nbsp;
+<i class="no-highlight">171</i>&nbsp;    @Override
+<i class="no-highlight">172</i>&nbsp;    public String getJdbcUrl() {
+<i class="no-highlight">173</i>&nbsp;        return jdbcUrl;
+<b class="nc"><i class="no-highlight">174</i>&nbsp;    }</b>
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;    @Override
+<i class="no-highlight">177</i>&nbsp;    public Properties getUrlProperties() {
+<i class="no-highlight">178</i>&nbsp;        return urlProperties;
+<b class="nc"><i class="no-highlight">179</i>&nbsp;    }</b>
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;    @Override
+<i class="no-highlight">182</i>&nbsp;    @Deprecated
+<i class="no-highlight">183</i>&nbsp;    public int getRetryAttempts() {
+<i class="no-highlight">184</i>&nbsp;        return retryAttempts;
+<b class="nc"><i class="no-highlight">185</i>&nbsp;    }</b>
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;    @Override
+<i class="no-highlight">188</i>&nbsp;    public SQLDialect getSQLDialect() {
+<i class="no-highlight">189</i>&nbsp;        return dialect;
+<b class="nc"><i class="no-highlight">190</i>&nbsp;    }</b>
+<i class="no-highlight">191</i>&nbsp;
+<i class="no-highlight">192</i>&nbsp;    @Override
+<i class="no-highlight">193</i>&nbsp;    public Settings getSettings() {
+<i class="no-highlight">194</i>&nbsp;        return settings;
+<b class="nc"><i class="no-highlight">195</i>&nbsp;    }</b>
+<i class="no-highlight">196</i>&nbsp;
+<i class="no-highlight">197</i>&nbsp;    @Override
+<i class="no-highlight">198</i>&nbsp;    public void setJdbcUrl(final String jdbcUrl) {
+<i class="no-highlight">199</i>&nbsp;        this.jdbcUrl = jdbcUrl;
+<b class="nc"><i class="no-highlight">200</i>&nbsp;    }</b>
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;    @Override
+<i class="no-highlight">203</i>&nbsp;    public void setDriver(final String driver) {
+<i class="no-highlight">204</i>&nbsp;        this.driver = driver;
+<b class="nc"><i class="no-highlight">205</i>&nbsp;    }</b>
+<i class="no-highlight">206</i>&nbsp;
+<i class="no-highlight">207</i>&nbsp;    @Override
+<i class="no-highlight">208</i>&nbsp;    public void setClassLoader(final ClassLoader classLoader) {
+<i class="no-highlight">209</i>&nbsp;        this.classLoader = classLoader;
+<b class="nc"><i class="no-highlight">210</i>&nbsp;    }</b>
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;    @Override
+<i class="no-highlight">213</i>&nbsp;    public void setAutoCommit(final boolean autoCommit) {
+<i class="no-highlight">214</i>&nbsp;        this.autoCommit = autoCommit;
+<b class="nc"><i class="no-highlight">215</i>&nbsp;    }</b>
+<i class="no-highlight">216</i>&nbsp;
+<i class="no-highlight">217</i>&nbsp;    @Override
+<i class="no-highlight">218</i>&nbsp;    public void setDatabaseName(final String databaseName) {
+<i class="no-highlight">219</i>&nbsp;        this.databaseName = databaseName;
+<b class="nc"><i class="no-highlight">220</i>&nbsp;    }</b>
+<i class="no-highlight">221</i>&nbsp;
+<i class="no-highlight">222</i>&nbsp;    @Override
+<i class="no-highlight">223</i>&nbsp;    public void setServiceAccountEmail(final String serviceAccountEmail) {
+<i class="no-highlight">224</i>&nbsp;        this.serviceAccountEmail = serviceAccountEmail;
+<b class="nc"><i class="no-highlight">225</i>&nbsp;    }</b>
+<i class="no-highlight">226</i>&nbsp;
+<i class="no-highlight">227</i>&nbsp;    @Override
+<i class="no-highlight">228</i>&nbsp;    public void setServiceAccountKeyPath(final String serviceAccountKeyPath) {
+<i class="no-highlight">229</i>&nbsp;        this.serviceAccountKeyPath = serviceAccountKeyPath;
+<b class="nc"><i class="no-highlight">230</i>&nbsp;    }</b>
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;    @Override
+<i class="no-highlight">233</i>&nbsp;    public void setOAuth2AccessToken(final String oAuth2AccessToken) {
+<i class="no-highlight">234</i>&nbsp;        this.oAuth2AccessToken = oAuth2AccessToken;
+<b class="nc"><i class="no-highlight">235</i>&nbsp;    }</b>
+<i class="no-highlight">236</i>&nbsp;
+<i class="no-highlight">237</i>&nbsp;    @Override
+<i class="no-highlight">238</i>&nbsp;    public void setOAuth2RefreshToken(final String oAuth2RefreshToken) {
+<i class="no-highlight">239</i>&nbsp;        this.oAuth2RefreshToken = oAuth2RefreshToken;
+<b class="nc"><i class="no-highlight">240</i>&nbsp;    }</b>
+<i class="no-highlight">241</i>&nbsp;
+<i class="no-highlight">242</i>&nbsp;    @Override
+<i class="no-highlight">243</i>&nbsp;    public void setClientId(final String clientId) {
+<i class="no-highlight">244</i>&nbsp;        this.clientId = clientId;
+<b class="nc"><i class="no-highlight">245</i>&nbsp;    }</b>
+<i class="no-highlight">246</i>&nbsp;
+<i class="no-highlight">247</i>&nbsp;    @Override
+<i class="no-highlight">248</i>&nbsp;    public void setClientSecret(final String clientSecret) {
+<i class="no-highlight">249</i>&nbsp;        this.clientSecret = clientSecret;
+<b class="nc"><i class="no-highlight">250</i>&nbsp;    }</b>
+<i class="no-highlight">251</i>&nbsp;
+<i class="no-highlight">252</i>&nbsp;    @Override
+<i class="no-highlight">253</i>&nbsp;    public String getServiceAccountEmail() {
+<i class="no-highlight">254</i>&nbsp;        return serviceAccountEmail;
+<b class="nc"><i class="no-highlight">255</i>&nbsp;    }</b>
+<i class="no-highlight">256</i>&nbsp;
+<i class="no-highlight">257</i>&nbsp;    @Override
+<i class="no-highlight">258</i>&nbsp;    public String getServiceAccountKeyPath() {
+<i class="no-highlight">259</i>&nbsp;        return serviceAccountKeyPath;
+<b class="nc"><i class="no-highlight">260</i>&nbsp;    }</b>
+<i class="no-highlight">261</i>&nbsp;
+<i class="no-highlight">262</i>&nbsp;    @Override
+<i class="no-highlight">263</i>&nbsp;    public String getOAuth2AccessToken() {
+<i class="no-highlight">264</i>&nbsp;        return oAuth2AccessToken;
+<b class="nc"><i class="no-highlight">265</i>&nbsp;    }</b>
+<i class="no-highlight">266</i>&nbsp;
+<i class="no-highlight">267</i>&nbsp;    @Override
+<i class="no-highlight">268</i>&nbsp;    public String getOAuth2RefreshToken() {
+<i class="no-highlight">269</i>&nbsp;        return oAuth2RefreshToken;
+<b class="nc"><i class="no-highlight">270</i>&nbsp;    }</b>
+<i class="no-highlight">271</i>&nbsp;
+<i class="no-highlight">272</i>&nbsp;    @Override
+<i class="no-highlight">273</i>&nbsp;    public String getClientId() {
+<i class="no-highlight">274</i>&nbsp;        return clientId;
+<b class="nc"><i class="no-highlight">275</i>&nbsp;    }</b>
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;    @Override
+<i class="no-highlight">278</i>&nbsp;    public String getClientSecret() {
+<i class="no-highlight">279</i>&nbsp;        return clientSecret;
+<b class="nc"><i class="no-highlight">280</i>&nbsp;    }</b>
+<i class="no-highlight">281</i>&nbsp;
+<i class="no-highlight">282</i>&nbsp;    @Override
+<i class="no-highlight">283</i>&nbsp;    public int getMinimumIdle() {
+<i class="no-highlight">284</i>&nbsp;        return minimumIdle;
+<b class="nc"><i class="no-highlight">285</i>&nbsp;    }</b>
+<i class="no-highlight">286</i>&nbsp;
+<i class="no-highlight">287</i>&nbsp;    @Override
+<i class="no-highlight">288</i>&nbsp;    public int getMaximumPoolSize() {
+<i class="no-highlight">289</i>&nbsp;        return maximumPoolSize;
+<b class="nc"><i class="no-highlight">290</i>&nbsp;    }</b>
+<i class="no-highlight">291</i>&nbsp;
+<i class="no-highlight">292</i>&nbsp;    @Override
+<i class="no-highlight">293</i>&nbsp;    public int getFetchSize() {
+<i class="no-highlight">294</i>&nbsp;        return fetchSize;
+<b class="nc"><i class="no-highlight">295</i>&nbsp;    }</b>
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;    @Override
+<i class="no-highlight">298</i>&nbsp;    public int getBatchSize() {
+<i class="no-highlight">299</i>&nbsp;        return batchSize;
+<b class="nc"><i class="no-highlight">300</i>&nbsp;    }</b>
+<i class="no-highlight">301</i>&nbsp;
+<i class="no-highlight">302</i>&nbsp;    @Override
+<i class="no-highlight">303</i>&nbsp;    public int hashCode() {
+<i class="no-highlight">304</i>&nbsp;        // dialect, batchSize and fetchSize are not included as they are not related to connection
+<i class="no-highlight">305</i>&nbsp;        // pool. This implementation should be reconsidered if you need to compare two instances of
+<i class="no-highlight">306</i>&nbsp;        // it directly other than using it as key of the connection pool cache.
+<i class="no-highlight">307</i>&nbsp;        return Objects.hashCode(driver, jdbcUrl, username, password, port, databaseName, autoCommit,
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                minimumIdle, maximumPoolSize, acquireIncrement, maxLifetime, connectionTimeout,</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                urlProperties, retryAttempts, idleTimeout, kerberosConfig, evictConnectionOnClose);</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;    }</b>
+<i class="no-highlight">311</i>&nbsp;
+<i class="no-highlight">312</i>&nbsp;    @Override
+<i class="no-highlight">313</i>&nbsp;    public boolean equals(final Object obj) {
+<i class="no-highlight">314</i>&nbsp;        if (this == obj) {
+<b class="nc"><i class="no-highlight">315</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        }</b>
+<i class="no-highlight">317</i>&nbsp;        if (obj == null || getClass() != obj.getClass()) {
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            return false;</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        }</b>
+<i class="no-highlight">320</i>&nbsp;        final DatabaseConfigImpl other = (DatabaseConfigImpl) obj;
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        // dialect, batchSize and fetchSize are not included as they are not related to connection</b>
+<i class="no-highlight">322</i>&nbsp;        // pool. This implementation should be reconsidered if you need to compare two instances of
+<i class="no-highlight">323</i>&nbsp;        // it directly other than using it as key of the connection pool cache.
+<i class="no-highlight">324</i>&nbsp;        return Objects.equal(this.driver, other.driver) &amp;&amp;
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                Objects.equal(this.jdbcUrl, other.jdbcUrl) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                Objects.equal(this.username, other.username) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;                Objects.equal(this.password, other.password) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                Objects.equal(this.port, other.port) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                Objects.equal(this.databaseName, other.databaseName) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                Objects.equal(this.serviceAccountEmail, other.serviceAccountEmail) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                Objects.equal(this.serviceAccountKeyPath, other.serviceAccountKeyPath) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                Objects.equal(this.autoCommit, other.autoCommit) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                Objects.equal(this.minimumIdle, other.minimumIdle) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                Objects.equal(this.maximumPoolSize, other.maximumPoolSize) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                Objects.equal(this.acquireIncrement, other.acquireIncrement) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                Objects.equal(this.maxLifetime, other.maxLifetime) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                Objects.equal(this.idleTimeout, other.idleTimeout) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                Objects.equal(this.connectionTimeout, other.connectionTimeout) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                Objects.equal(this.urlProperties, other.urlProperties) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                Objects.equal(this.retryAttempts, other.retryAttempts) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                Objects.equal(this.kerberosConfig, other.kerberosConfig) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                Objects.equal(this.evictConnectionOnClose, other.evictConnectionOnClose);</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;    }</b>
+<i class="no-highlight">344</i>&nbsp;
+<i class="no-highlight">345</i>&nbsp;    @Override
+<i class="no-highlight">346</i>&nbsp;    public boolean isAutoCommit() {
+<i class="no-highlight">347</i>&nbsp;        return autoCommit;
+<b class="nc"><i class="no-highlight">348</i>&nbsp;    }</b>
+<i class="no-highlight">349</i>&nbsp;
+<i class="no-highlight">350</i>&nbsp;    @Override
+<i class="no-highlight">351</i>&nbsp;    public int getAcquireIncrement() {
+<i class="no-highlight">352</i>&nbsp;        return acquireIncrement;
+<b class="nc"><i class="no-highlight">353</i>&nbsp;    }</b>
+<i class="no-highlight">354</i>&nbsp;
+<i class="no-highlight">355</i>&nbsp;    @Override
+<i class="no-highlight">356</i>&nbsp;    public int getMaxLifetime() {
+<i class="no-highlight">357</i>&nbsp;        return maxLifetime * MIN_TO_MS_MULTIPLIER;
+<b class="nc"><i class="no-highlight">358</i>&nbsp;    }</b>
+<i class="no-highlight">359</i>&nbsp;
+<i class="no-highlight">360</i>&nbsp;    @Override
+<i class="no-highlight">361</i>&nbsp;    public int getIdleTimeout() {
+<i class="no-highlight">362</i>&nbsp;        return idleTimeout * MIN_TO_MS_MULTIPLIER;
+<b class="nc"><i class="no-highlight">363</i>&nbsp;    }</b>
+<i class="no-highlight">364</i>&nbsp;
+<i class="no-highlight">365</i>&nbsp;    @Override
+<i class="no-highlight">366</i>&nbsp;    public int getConnectionTimeout() {
+<i class="no-highlight">367</i>&nbsp;        return connectionTimeout;
+<b class="nc"><i class="no-highlight">368</i>&nbsp;    }</b>
+<i class="no-highlight">369</i>&nbsp;
+<i class="no-highlight">370</i>&nbsp;    @Override
+<i class="no-highlight">371</i>&nbsp;    @SuppressWarnings({&quot;HardCodedStringLiteral&quot;, &quot;nls&quot;})
+<i class="no-highlight">372</i>&nbsp;    public String toString() {
+<i class="no-highlight">373</i>&nbsp;        return getToStringHelper().toString();
+<b class="nc"><i class="no-highlight">374</i>&nbsp;    }</b>
+<i class="no-highlight">375</i>&nbsp;
+<i class="no-highlight">376</i>&nbsp;    protected MoreObjects.ToStringHelper getToStringHelper() {
+<i class="no-highlight">377</i>&nbsp;        return MoreObjects.toStringHelper(this)
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                .add(&quot;username&quot;, &quot;protected&quot;)</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                .add(&quot;password&quot;, &quot;protected&quot;)</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                .add(&quot;jdbcUrl&quot;, jdbcUrl)</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                .add(&quot;driverClass&quot;, driver)</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                .add(&quot;port&quot;, port)</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                .add(&quot;databaseName&quot;, databaseName)</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                .add(&quot;autoCommit&quot;, autoCommit)</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                .add(&quot;minimumIdle&quot;, minimumIdle)</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                .add(&quot;maximumPoolSize&quot;, maximumPoolSize)</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                .add(&quot;maxIdleTime&quot;, maxLifetime)</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                .add(&quot;connectionTimeout&quot;, connectionTimeout)</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                .add(&quot;fetchSize&quot;, fetchSize)</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                .add(&quot;batchSize&quot;, batchSize)</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                .add(&quot;urlProperties&quot;, urlProperties)</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                .add(&quot;evictConnectionOnClose&quot;, evictConnectionOnClose);</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;    }</b>
+<i class="no-highlight">394</i>&nbsp;
+<i class="no-highlight">395</i>&nbsp;    @Override
+<i class="no-highlight">396</i>&nbsp;    public void setDialect(SQLDialect dialect) {
+<i class="no-highlight">397</i>&nbsp;        this.dialect = dialect;
+<b class="nc"><i class="no-highlight">398</i>&nbsp;    }</b>
+<i class="no-highlight">399</i>&nbsp;
+<i class="no-highlight">400</i>&nbsp;    @Override
+<i class="no-highlight">401</i>&nbsp;    public HadoopConfig getHadoopConfig() {
+<i class="no-highlight">402</i>&nbsp;        return hadoopConfig;
+<b class="nc"><i class="no-highlight">403</i>&nbsp;    }</b>
+<i class="no-highlight">404</i>&nbsp;
+<i class="no-highlight">405</i>&nbsp;    @Override
+<i class="no-highlight">406</i>&nbsp;    public void setHadoopConfig(HadoopConfig config) {
+<i class="no-highlight">407</i>&nbsp;        this.hadoopConfig = config;
+<b class="nc"><i class="no-highlight">408</i>&nbsp;    }</b>
+<i class="no-highlight">409</i>&nbsp;
+<i class="no-highlight">410</i>&nbsp;    @Override
+<i class="no-highlight">411</i>&nbsp;    public HiveConfig getHiveConfig() {
+<i class="no-highlight">412</i>&nbsp;        return hiveConfig;
+<b class="nc"><i class="no-highlight">413</i>&nbsp;    }</b>
+<i class="no-highlight">414</i>&nbsp;
+<i class="no-highlight">415</i>&nbsp;    @Override
+<i class="no-highlight">416</i>&nbsp;    public void setHiveConfig(HiveConfig config) {
+<i class="no-highlight">417</i>&nbsp;        this.hiveConfig = config;
+<b class="nc"><i class="no-highlight">418</i>&nbsp;    }</b>
+<i class="no-highlight">419</i>&nbsp;
+<i class="no-highlight">420</i>&nbsp;    @Override
+<i class="no-highlight">421</i>&nbsp;    public boolean useKerberos() {
+<i class="no-highlight">422</i>&nbsp;        // currently only Hadoop (Hive) supports Kerberos.
+<i class="no-highlight">423</i>&nbsp;        return HadoopConfig.AuthenticationMethod.KERBEROS == hadoopConfig.getAuthenticationMethod();
+<b class="nc"><i class="no-highlight">424</i>&nbsp;    }</b>
+<i class="no-highlight">425</i>&nbsp;
+<i class="no-highlight">426</i>&nbsp;    @Override
+<i class="no-highlight">427</i>&nbsp;    public KerberosConfig getKerberosConfig() {
+<i class="no-highlight">428</i>&nbsp;        return kerberosConfig;
+<b class="nc"><i class="no-highlight">429</i>&nbsp;    }</b>
+<i class="no-highlight">430</i>&nbsp;
+<i class="no-highlight">431</i>&nbsp;    @Override
+<i class="no-highlight">432</i>&nbsp;    public void setKerberosConfig(KerberosConfig config) {
+<i class="no-highlight">433</i>&nbsp;        this.kerberosConfig = config;
+<b class="nc"><i class="no-highlight">434</i>&nbsp;    }</b>
+<i class="no-highlight">435</i>&nbsp;
+<i class="no-highlight">436</i>&nbsp;    @Override
+<i class="no-highlight">437</i>&nbsp;    public boolean useSSL() {
+<i class="no-highlight">438</i>&nbsp;        // currently only Hadoop snaps supports SSL although other databases also support it.
+<i class="no-highlight">439</i>&nbsp;        return hadoopConfig.useSSL();
+<b class="nc"><i class="no-highlight">440</i>&nbsp;    }</b>
+<i class="no-highlight">441</i>&nbsp;
+<i class="no-highlight">442</i>&nbsp;    @Override
+<i class="no-highlight">443</i>&nbsp;    public SSLConfig getSSLConfig() {
+<i class="no-highlight">444</i>&nbsp;        return sslConfig;
+<b class="nc"><i class="no-highlight">445</i>&nbsp;    }</b>
+<i class="no-highlight">446</i>&nbsp;
+<i class="no-highlight">447</i>&nbsp;    @Override
+<i class="no-highlight">448</i>&nbsp;    public void setSSLConfig(SSLConfig config) {
+<i class="no-highlight">449</i>&nbsp;        this.sslConfig = config;
+<b class="nc"><i class="no-highlight">450</i>&nbsp;    }</b>
+<i class="no-highlight">451</i>&nbsp;
+<i class="no-highlight">452</i>&nbsp;    @Override
+<i class="no-highlight">453</i>&nbsp;    public void setHostName(final String hostName) {
+<i class="no-highlight">454</i>&nbsp;        this.hostName = hostName;
+<b class="nc"><i class="no-highlight">455</i>&nbsp;    }</b>
+<i class="no-highlight">456</i>&nbsp;
+<i class="no-highlight">457</i>&nbsp;    @Override
+<i class="no-highlight">458</i>&nbsp;    public void setPort(final BigInteger port) {
+<i class="no-highlight">459</i>&nbsp;        this.port = port;
+<b class="nc"><i class="no-highlight">460</i>&nbsp;    }</b>
+<i class="no-highlight">461</i>&nbsp;
+<i class="no-highlight">462</i>&nbsp;    @Override
+<i class="no-highlight">463</i>&nbsp;    public String getHostName() {
+<i class="no-highlight">464</i>&nbsp;        return hostName;
+<b class="nc"><i class="no-highlight">465</i>&nbsp;    }</b>
+<i class="no-highlight">466</i>&nbsp;
+<i class="no-highlight">467</i>&nbsp;    @Override
+<i class="no-highlight">468</i>&nbsp;    public void setBatchSize(int newBatchSize) {
+<i class="no-highlight">469</i>&nbsp;        this.batchSize = newBatchSize;
+<b class="nc"><i class="no-highlight">470</i>&nbsp;    }</b>
+<i class="no-highlight">471</i>&nbsp;
+<i class="no-highlight">472</i>&nbsp;    @Override
+<i class="no-highlight">473</i>&nbsp;    public void setJdbcOperations(final String jdbcOperations) {
+<i class="no-highlight">474</i>&nbsp;        this.dbOperations = jdbcOperations;
+<b class="nc"><i class="no-highlight">475</i>&nbsp;    }</b>
+<i class="no-highlight">476</i>&nbsp;
+<i class="no-highlight">477</i>&nbsp;    @Override
+<i class="no-highlight">478</i>&nbsp;    public String getJdbcOperations() {
+<i class="no-highlight">479</i>&nbsp;        return dbOperations;
+<b class="nc"><i class="no-highlight">480</i>&nbsp;    }</b>
+<i class="no-highlight">481</i>&nbsp;
+<i class="no-highlight">482</i>&nbsp;    @Override
+<i class="no-highlight">483</i>&nbsp;    public void setTestQuery(String testQuery){
+<i class="no-highlight">484</i>&nbsp;        this.testQuery = testQuery;
+<b class="nc"><i class="no-highlight">485</i>&nbsp;    }</b>
+<i class="no-highlight">486</i>&nbsp;
+<i class="no-highlight">487</i>&nbsp;    @Override
+<i class="no-highlight">488</i>&nbsp;    public String getTestQuery() {
+<i class="no-highlight">489</i>&nbsp;        return testQuery;
+<b class="nc"><i class="no-highlight">490</i>&nbsp;    }</b>
+<i class="no-highlight">491</i>&nbsp;
+<i class="no-highlight">492</i>&nbsp;    @Override
+<i class="no-highlight">493</i>&nbsp;    public void setDBType(String dbType) {
+<i class="no-highlight">494</i>&nbsp;        this.dbType = dbType;
+<b class="nc"><i class="no-highlight">495</i>&nbsp;    }</b>
+<i class="no-highlight">496</i>&nbsp;
+<i class="no-highlight">497</i>&nbsp;    @Override
+<i class="no-highlight">498</i>&nbsp;    public String getDBType() {
+<i class="no-highlight">499</i>&nbsp;        return dbType;
+<b class="nc"><i class="no-highlight">500</i>&nbsp;    }</b>
+<i class="no-highlight">501</i>&nbsp;
+<i class="no-highlight">502</i>&nbsp;    @Override
+<i class="no-highlight">503</i>&nbsp;    public boolean isEvictConnectionOnClose() {
+<i class="no-highlight">504</i>&nbsp;        return evictConnectionOnClose;
+<b class="nc"><i class="no-highlight">505</i>&nbsp;    }</b>
+<i class="no-highlight">506</i>&nbsp;
+<i class="no-highlight">507</i>&nbsp;    @Override
+<i class="no-highlight">508</i>&nbsp;    public void setEvictConnectionOnClose(boolean enableEviction) {
+<i class="no-highlight">509</i>&nbsp;        evictConnectionOnClose = enableEviction;
+<b class="nc"><i class="no-highlight">510</i>&nbsp;    }</b>
+<i class="no-highlight">511</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

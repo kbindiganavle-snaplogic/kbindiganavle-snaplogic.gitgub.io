@@ -1,0 +1,225 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RedshiftUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.redshift</a>
+</div>
+
+<h1>Coverage Summary for Class: RedshiftUtils (com.snaplogic.snaps.redshift)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RedshiftUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.redshift;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">19</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">20</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">23</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">24</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">25</i>&nbsp;import java.util.Set;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.APN_SQL_TAG_FORMAT;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.ERR_VACUUM;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.LOG_RUNNING_VACUUM;
+<i class="no-highlight">30</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.VACUUM_THRESHOLD_DESC;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.VACUUM_THRESHOLD_LABEL;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.VACUUM_TYPE_DESC;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.VACUUM_TYPE_LABEL;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;/**
+<i class="no-highlight">37</i>&nbsp; * Utilities for Redshift Snap pack
+<i class="no-highlight">38</i>&nbsp; *
+<i class="no-highlight">39</i>&nbsp; * @since Jan, 2017
+<i class="no-highlight">40</i>&nbsp; */
+<b class="nc"><i class="no-highlight">41</i>&nbsp;public class RedshiftUtils {</b>
+<b class="nc"><i class="no-highlight">42</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(RedshiftUtils.class);</b>
+<i class="no-highlight">43</i>&nbsp;    private static final String NONE = &quot;NONE&quot;;
+<i class="no-highlight">44</i>&nbsp;    private static final String REINDEX = &quot;REINDEX&quot;;
+<b class="nc"><i class="no-highlight">45</i>&nbsp;    private static final Set&lt;String&gt; VACUUM_TYPES = ImmutableSet.of(</b>
+<i class="no-highlight">46</i>&nbsp;            NONE, &quot;FULL&quot;, &quot;SORT ONLY&quot;, &quot;DELETE ONLY&quot;, REINDEX);
+<i class="no-highlight">47</i>&nbsp;    private static final String VACUUM_COMMAND = &quot;VACUUM &quot;;
+<i class="no-highlight">48</i>&nbsp;    private static final String VACUUM_THRESHOLD_FORMAT = &quot; TO %d PERCENT&quot;;
+<i class="no-highlight">49</i>&nbsp;    static final String VACUUM_TYPE_PROP = &quot;vacuumType&quot;;
+<i class="no-highlight">50</i>&nbsp;    static final String VACUUM_THRESHOLD_PROP = &quot;vacuumThreshold&quot;;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;    static void defineVacuumProperties(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">53</i>&nbsp;        builder.describe(VACUUM_TYPE_PROP, VACUUM_TYPE_LABEL, VACUUM_TYPE_DESC)</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;                .withAllowedValues(VACUUM_TYPES)</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;                .defaultValue(NONE)</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        builder.describe(VACUUM_THRESHOLD_PROP, VACUUM_THRESHOLD_LABEL, VACUUM_THRESHOLD_DESC)</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;                .withMaxValue(100)</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;                .add();</b>
+<i class="no-highlight">62</i>&nbsp;    }
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;    /**
+<i class="no-highlight">65</i>&nbsp;     * Executes VACUUM command.
+<i class="no-highlight">66</i>&nbsp;     *
+<i class="no-highlight">67</i>&nbsp;     * @param isVacuum        - an old boolean property retained for backward compatibility
+<i class="no-highlight">68</i>&nbsp;     * @param tableName       - name of table to operate VACUUM on
+<i class="no-highlight">69</i>&nbsp;     * @param vacuumType      - VACUUM parameter
+<i class="no-highlight">70</i>&nbsp;     * @param vacuumThreshold - specifies the threshold above which VACUUM skips the sort phase
+<i class="no-highlight">71</i>&nbsp;     * @param stmt            - Statement object
+<i class="no-highlight">72</i>&nbsp;     *
+<i class="no-highlight">73</i>&nbsp;     * @return vacuum command executed
+<i class="no-highlight">74</i>&nbsp;     *
+<i class="no-highlight">75</i>&nbsp;     * @throws SnapDataException if VACUUM fails
+<i class="no-highlight">76</i>&nbsp;     */
+<i class="no-highlight">77</i>&nbsp;    static String vacuumTable(boolean isVacuum, String tableName, String vacuumType,
+<i class="no-highlight">78</i>&nbsp;            BigInteger vacuumThreshold, Statement stmt) {
+<i class="no-highlight">79</i>&nbsp;        // init vacuum command
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        StringBuilder command = new StringBuilder(VACUUM_COMMAND);</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        if (StringUtils.isBlank(vacuumType) &amp;&amp; !isVacuum || NONE.equals(vacuumType)) {</b>
+<i class="no-highlight">82</i>&nbsp;            // this is needed to be backward-compatible for pipelines built before &#39;Vacuum type&#39;
+<i class="no-highlight">83</i>&nbsp;            // and &#39;Vacuum threshold&#39; properties were added
+<b class="nc"><i class="no-highlight">84</i>&nbsp;            return StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        } else if (StringUtils.isNotBlank(vacuumType)) {</b>
+<i class="no-highlight">86</i>&nbsp;            // append vacuum type
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            command.append(vacuumType);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            command.append(StringUtils.SPACE);</b>
+<i class="no-highlight">89</i>&nbsp;        }
+<i class="no-highlight">90</i>&nbsp;        // append table name
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        command.append(tableName);</b>
+<i class="no-highlight">92</i>&nbsp;        // append &quot;TO threshold PERCENT&quot;
+<i class="no-highlight">93</i>&nbsp;        // REINDEX is not supported with &quot;TO threshold PERCENT&quot;
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        if (vacuumThreshold != null &amp;&amp; !REINDEX.equals(vacuumType)) {</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;            command.append(String.format(VACUUM_THRESHOLD_FORMAT, vacuumThreshold));</b>
+<i class="no-highlight">96</i>&nbsp;        }
+<i class="no-highlight">97</i>&nbsp;        // execute vacuum command
+<i class="no-highlight">98</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            String vacuumCommand = command.toString();</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            LOG.debug(LOG_RUNNING_VACUUM, vacuumCommand);</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            String trackedVacuumCommand = addApnTaggingPrefix(vacuumCommand);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            stmt.execute(trackedVacuumCommand);</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            return vacuumCommand;</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            throw new SnapDataException(e, ERR_VACUUM)</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                    .formatWith(command)</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">109</i>&nbsp;        }
+<i class="no-highlight">110</i>&nbsp;    }
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;    static String addApnTaggingPrefix(String redshiftQuery) {
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        String apnTaggingPrefix = String.format(APN_SQL_TAG_FORMAT,</b>
+<i class="no-highlight">114</i>&nbsp;                Version.APPLICATION_NAME, Version.VERSION);
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        return apnTaggingPrefix + redshiftQuery;</b>
+<i class="no-highlight">116</i>&nbsp;    }
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;    //------------------------------------ Private Methods ---------------------------------------//
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

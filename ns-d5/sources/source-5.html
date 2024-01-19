@@ -1,0 +1,351 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BigQueryAccountValidator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt.validator.account</a>
+</div>
+
+<h1>Coverage Summary for Class: BigQueryAccountValidator (com.snaplogic.snaps.elt.validator.account)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BigQueryAccountValidator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/92)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package com.snaplogic.snaps.elt.validator.account;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import com.amazonaws.auth.AWSStaticCredentialsProvider;
+<i class="no-highlight">4</i>&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+<i class="no-highlight">5</i>&nbsp;import com.amazonaws.regions.Regions;
+<i class="no-highlight">6</i>&nbsp;import com.amazonaws.services.s3.AmazonS3;
+<i class="no-highlight">7</i>&nbsp;import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+<i class="no-highlight">8</i>&nbsp;import com.amazonaws.services.s3.model.AmazonS3Exception;
+<i class="no-highlight">9</i>&nbsp;import com.google.api.client.auth.oauth2.Credential;
+<i class="no-highlight">10</i>&nbsp;import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+<i class="no-highlight">11</i>&nbsp;import com.google.api.services.bigquery.Bigquery;
+<i class="no-highlight">12</i>&nbsp;import com.google.api.services.bigquery.BigqueryScopes;
+<i class="no-highlight">13</i>&nbsp;import com.google.api.services.bigquery.model.ProjectList;
+<i class="no-highlight">14</i>&nbsp;import com.google.auth.Credentials;
+<i class="no-highlight">15</i>&nbsp;import com.google.cloud.storage.Bucket;
+<i class="no-highlight">16</i>&nbsp;import com.google.cloud.storage.Storage;
+<i class="no-highlight">17</i>&nbsp;import com.google.cloud.storage.StorageOptions;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseConfig;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcDataSourceRegistry;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snaps.elt.EltDatabaseAccount;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snaps.elt.utils.BigQueryUtils;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">26</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import java.io.FileInputStream;
+<i class="no-highlight">29</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">30</i>&nbsp;import java.util.List;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.AMAZON_S3;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.BIGQUERY_OAUTH2_ACCESS_TOKEN_AUTH;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.BIGQUERY_OAUTH2_REFRESH_TOKEN_AUTH;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.BIGQUERY_SERVICE_ACCOUNT_AUTH;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.GOOGLE_CLOUD_STORAGE;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.elt.EltDatabaseAccount.SOURCE_LOCATION_BIGQUERY_PROP;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snaps.elt.EltDatabaseAccount.SOURCE_LOCATION_S3_ACCESS_KEY_PROP;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snaps.elt.EltDatabaseAccount.SOURCE_LOCATION_S3_BUCKET_PROP;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snaps.elt.EltDatabaseAccount.SOURCE_LOCATION_S3_SECRET_KEY_PROP;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_SERVICE_ACC_FAILED_TO_LOAD;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.elt.suggest.factories.BigQuerySuggestionsFactory.HTTP_TRANSPORT;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.elt.suggest.factories.BigQuerySuggestionsFactory.JSON_FACTORY;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.unquote;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.elt.validator.account.AccountValidationUtils.allNotBlank;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.elt.validator.account.AccountValidationUtils.assertTrue;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.elt.validator.account.AccountValidationUtils.fail;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.elt.validator.account.AccountValidationUtils.notBlank;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;import static java.util.Objects.nonNull;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;/**
+<i class="no-highlight">53</i>&nbsp; * BigQueryAccountValidator
+<i class="no-highlight">54</i>&nbsp; */
+<i class="no-highlight">55</i>&nbsp;public class BigQueryAccountValidator extends AccountValidator {
+<b class="nc"><i class="no-highlight">56</i>&nbsp;    private static final Logger log = LoggerFactory.getLogger(BigQueryAccountValidator.class);</b>
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;    protected BigQueryAccountValidator(final PropertyValues propertyValues,
+<i class="no-highlight">59</i>&nbsp;                                       final EltDatabaseAccount eltDatabaseAccount,
+<i class="no-highlight">60</i>&nbsp;                                       final DatabaseConfig databaseConfig,
+<i class="no-highlight">61</i>&nbsp;                                       final JdbcDataSourceRegistry dataSourceRegistry) {
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        super(databaseConfig, eltDatabaseAccount, propertyValues, dataSourceRegistry);</b>
+<i class="no-highlight">63</i>&nbsp;    }
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    protected String getSourceLocation() {
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        return getConnectionPropValue(SOURCE_LOCATION_BIGQUERY_PROP);</b>
+<i class="no-highlight">67</i>&nbsp;    }
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;    public void validateSourceLocation() {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        switch (getSourceLocation()) {</b>
+<i class="no-highlight">71</i>&nbsp;            case GOOGLE_CLOUD_STORAGE:
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                validateGCSBucket();</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                break;</b>
+<i class="no-highlight">74</i>&nbsp;            case AMAZON_S3:
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                validateS3Credentials();</b>
+<i class="no-highlight">76</i>&nbsp;                break;
+<i class="no-highlight">77</i>&nbsp;        }
+<i class="no-highlight">78</i>&nbsp;    }
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;    private Credential validateAndGetCredential() {
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        DatabaseConfig databaseConfig = eltDatabaseAccount.getDatabaseConfig();</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        String bigQueryAuthType = eltDatabaseAccount.getBigQueryAuthType();</b>
+<i class="no-highlight">83</i>&nbsp;
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        switch (bigQueryAuthType) {</b>
+<i class="no-highlight">85</i>&nbsp;            case BIGQUERY_OAUTH2_ACCESS_TOKEN_AUTH: {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                String oAuth2AccessToken = notBlank(</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                        databaseConfig.getOAuth2AccessToken(), &quot;OAuth2 Access Token&quot;);</b>
+<i class="no-highlight">88</i>&nbsp;
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                return new GoogleCredential.Builder()</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                        .build()</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                        .setAccessToken(oAuth2AccessToken);</b>
+<i class="no-highlight">92</i>&nbsp;            }
+<i class="no-highlight">93</i>&nbsp;            case BIGQUERY_OAUTH2_REFRESH_TOKEN_AUTH: {
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                String oAuth2RefreshToken = notBlank(</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                        databaseConfig.getOAuth2RefreshToken(), &quot;OAuth2 Refresh Token&quot;);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                String clientId = notBlank(</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                        databaseConfig.getClientId(), &quot;OAuth2 Client ID&quot;);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                String clientSecret = notBlank(</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                        databaseConfig.getClientSecret(), &quot;OAuth2 Client Secret&quot;);</b>
+<i class="no-highlight">100</i>&nbsp;
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                allNotBlank(</b>
+<i class="no-highlight">102</i>&nbsp;                        oAuth2RefreshToken, &quot;OAuth2 Refresh Token&quot;,
+<i class="no-highlight">103</i>&nbsp;                        clientId, &quot;OAuth2 Client ID&quot;,
+<i class="no-highlight">104</i>&nbsp;                        clientSecret, &quot;OAuth2 Client Secret&quot;
+<i class="no-highlight">105</i>&nbsp;                );
+<i class="no-highlight">106</i>&nbsp;
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                Credential credential = new GoogleCredential.Builder()</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                        .setClientSecrets(clientId, clientSecret)</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                        .setJsonFactory(JSON_FACTORY)</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                        .setTransport(HTTP_TRANSPORT)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                credential.setRefreshToken(oAuth2RefreshToken);</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                return credential;</b>
+<i class="no-highlight">114</i>&nbsp;            }
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;            case BIGQUERY_SERVICE_ACCOUNT_AUTH: {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                String serviceAccountEmail = databaseConfig.getServiceAccountEmail();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                String serviceAccountKeyPath = databaseConfig.getServiceAccountKeyPath();</b>
+<i class="no-highlight">119</i>&nbsp;
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                allNotBlank(</b>
+<i class="no-highlight">121</i>&nbsp;                        serviceAccountEmail, &quot;Service Account Email&quot;,
+<i class="no-highlight">122</i>&nbsp;                        serviceAccountKeyPath, &quot;Service Account Key File Path&quot;
+<i class="no-highlight">123</i>&nbsp;                );
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                return fromAccountServiceFile(serviceAccountKeyPath);</b>
+<i class="no-highlight">125</i>&nbsp;            }
+<i class="no-highlight">126</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                throw new ConfigurationException(&quot;Wrong Auth Type: &quot; + bigQueryAuthType);</b>
+<i class="no-highlight">128</i>&nbsp;        }
+<i class="no-highlight">129</i>&nbsp;    }
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;    private GoogleCredential fromAccountServiceFile(String serviceAccountKeyPath) {
+<i class="no-highlight">132</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            GoogleCredential credential = GoogleCredential.fromStream(</b>
+<i class="no-highlight">134</i>&nbsp;                    new FileInputStream(serviceAccountKeyPath));
+<i class="no-highlight">135</i>&nbsp;
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            if (credential.createScopedRequired()) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                credential = credential.createScoped(BigqueryScopes.all());</b>
+<i class="no-highlight">138</i>&nbsp;            }
+<i class="no-highlight">139</i>&nbsp;
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            return credential;</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            throw new ConfigurationException(e, ERR_SERVICE_ACC_FAILED_TO_LOAD)</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                    .withReason(e.getMessage());</b>
+<i class="no-highlight">144</i>&nbsp;        }
+<i class="no-highlight">145</i>&nbsp;    }
+<i class="no-highlight">146</i>&nbsp;
+<i class="no-highlight">147</i>&nbsp;    @Override
+<i class="no-highlight">148</i>&nbsp;    public void validate() {
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        validateDatabaseName();</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        validateSourceLocation();</b>
+<i class="no-highlight">151</i>&nbsp;    }
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    protected void validateDatabaseName() {
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        String actualProjectId = notBlank(</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                unquote(getQuotationHandler(), databaseConfig.getDatabaseName()),</b>
+<i class="no-highlight">156</i>&nbsp;                &quot;Default Database Name (Project Id)&quot;);
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">159</i>&nbsp;            Credential credential = validateAndGetCredential();</b>
+<i class="no-highlight">160</i>&nbsp;
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            Bigquery bigQuery = new Bigquery.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                    .build();</b>
+<i class="no-highlight">163</i>&nbsp;
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            Bigquery.Projects.List listProjectsRequest = bigQuery.projects().list();</b>
+<i class="no-highlight">165</i>&nbsp;            ProjectList projectList;
+<i class="no-highlight">166</i>&nbsp;            String nextPageToken;
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;            do {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                projectList = listProjectsRequest.execute();</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                List&lt;ProjectList.Projects&gt; projects = projectList.getProjects();</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                for (ProjectList.Projects project : projects) {</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                    String projectId = project.getProjectReference().getProjectId();</b>
+<i class="no-highlight">173</i>&nbsp;
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                    if (projectId.equals(actualProjectId)) {</b>
+<i class="no-highlight">175</i>&nbsp;                        return;
+<i class="no-highlight">176</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                nextPageToken = projectList.getNextPageToken();</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                listProjectsRequest.setPageToken(nextPageToken);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;            } while (nextPageToken != null);</b>
+<i class="no-highlight">181</i>&nbsp;
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            fail(&quot;Project Id &#39;%s&#39; not found&quot;, actualProjectId);</b>
+<i class="no-highlight">183</i>&nbsp;
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            log.warn(&quot;Failed to initialize BigQuery backend request&quot;, e);</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            fail(&quot;Failed to initialize BigQuery backend request&quot;, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        }</b>
+<i class="no-highlight">188</i>&nbsp;    }
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;    private void validateGCSBucket() {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        String gcsBucket = notBlank(</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                eltDatabaseAccount.getGCSBucketName(), &quot;Google Cloud Storage (GCS) Bucket&quot;);</b>
+<i class="no-highlight">193</i>&nbsp;
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        Credentials credentials = BigQueryUtils.getCredentialsFromBQAcct(eltDatabaseAccount);</b>
+<i class="no-highlight">195</i>&nbsp;
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        Storage service = StorageOptions.newBuilder()</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                .setCredentials(credentials)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                .setProjectId(eltDatabaseAccount.getDatabaseConfig().getDatabaseName())</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                .build()</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                .getService();</b>
+<i class="no-highlight">201</i>&nbsp;
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        Bucket bucket = service.get(gcsBucket);</b>
+<i class="no-highlight">203</i>&nbsp;
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        assertTrue(nonNull(bucket) &amp;&amp; bucket.exists(),</b>
+<i class="no-highlight">205</i>&nbsp;                &quot;Incorrect Google Cloud Storage (GCS) Bucket provided&quot;,
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                String.format(&quot;GCS Bucket [%s] does not exist&quot;, gcsBucket),</b>
+<i class="no-highlight">207</i>&nbsp;                &quot;Please provide a valid  Google Cloud Storage (GCS) Bucket&quot;);
+<i class="no-highlight">208</i>&nbsp;    }
+<i class="no-highlight">209</i>&nbsp;
+<i class="no-highlight">210</i>&nbsp;    private void validateS3Credentials() {
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        final String accessKey = getConnectionPropValue(SOURCE_LOCATION_S3_ACCESS_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        final String secretKey = getConnectionPropValue(SOURCE_LOCATION_S3_SECRET_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        final String s3Bucket = getConnectionPropValue(SOURCE_LOCATION_S3_BUCKET_PROP);</b>
+<i class="no-highlight">214</i>&nbsp;
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        allNotBlank(</b>
+<i class="no-highlight">216</i>&nbsp;                accessKey, &quot;Access Key&quot;,
+<i class="no-highlight">217</i>&nbsp;                secretKey, &quot;Secret Key&quot;,
+<i class="no-highlight">218</i>&nbsp;                s3Bucket, &quot;S3 Bucket&quot;
+<i class="no-highlight">219</i>&nbsp;        );
+<i class="no-highlight">220</i>&nbsp;
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        final BasicAWSCredentials awsCredentials = new BasicAWSCredentials(</b>
+<i class="no-highlight">222</i>&nbsp;                accessKey,
+<i class="no-highlight">223</i>&nbsp;                secretKey);
+<i class="no-highlight">224</i>&nbsp;
+<i class="no-highlight">225</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">226</i>&nbsp;            AmazonS3 s3 = AmazonS3ClientBuilder.standard()</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                    .withRegion(Regions.DEFAULT_REGION)</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                    .build();</b>
+<i class="no-highlight">230</i>&nbsp;
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            s3.getS3AccountOwner();</b>
+<i class="no-highlight">232</i>&nbsp;
+<b class="nc"><i class="no-highlight">233</i>&nbsp;            assertTrue(s3.doesBucketExistV2(s3Bucket),</b>
+<i class="no-highlight">234</i>&nbsp;                    &quot;Incorrect S3 bucket name provided&quot;,
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                    String.format(&quot;Bucket [%s] does not exists.&quot;, s3Bucket),</b>
+<i class="no-highlight">236</i>&nbsp;                    &quot;Please provide a valid S3 bucket name&quot;);
+<i class="no-highlight">237</i>&nbsp;
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        } catch (AmazonS3Exception e) {</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;            log.warn(&quot;Failed to validate S3 Credentials&quot;, e);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;            if (e.getStatusCode() == 403) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                fail(&quot;Amazon S3 Credentials are invalid.&quot;,</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                        e.getErrorCode(), &quot;Please provide a valid Amazon S3 Credentials&quot;);</b>
+<i class="no-highlight">243</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        }</b>
+<i class="no-highlight">245</i>&nbsp;    }
+<i class="no-highlight">246</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

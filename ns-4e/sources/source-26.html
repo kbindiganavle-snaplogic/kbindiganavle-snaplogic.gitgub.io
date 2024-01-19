@@ -1,0 +1,228 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > PostgresDatabaseCursor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql</a>
+</div>
+
+<h1>Coverage Summary for Class: PostgresDatabaseCursor (com.snaplogic.snap.api.sql)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PostgresDatabaseCursor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snap.api.sql.bindings.PostgresJsonBinding;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import org.jooq.Cursor;
+<i class="no-highlight">16</i>&nbsp;import org.jooq.DataType;
+<i class="no-highlight">17</i>&nbsp;import org.jooq.Field;
+<i class="no-highlight">18</i>&nbsp;import org.jooq.Record;
+<i class="no-highlight">19</i>&nbsp;import org.jooq.RecordMapper;
+<i class="no-highlight">20</i>&nbsp;import org.jooq.SQLDialect;
+<i class="no-highlight">21</i>&nbsp;import org.jooq.impl.DSL;
+<i class="no-highlight">22</i>&nbsp;import org.jooq.impl.DefaultDataType;
+<i class="no-highlight">23</i>&nbsp;import org.jooq.impl.SQLDataType;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">26</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">27</i>&nbsp;import java.sql.ResultSetMetaData;
+<i class="no-highlight">28</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">29</i>&nbsp;import java.util.Map;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;/**
+<i class="no-highlight">32</i>&nbsp; * PostgreSQL database cursor.
+<i class="no-highlight">33</i>&nbsp; *
+<i class="no-highlight">34</i>&nbsp; * @author psung
+<i class="no-highlight">35</i>&nbsp; */
+<i class="no-highlight">36</i>&nbsp;public class PostgresDatabaseCursor extends DatabaseCursorImpl {
+<i class="no-highlight">37</i>&nbsp;    private static final String TIMETZ = &quot;timetz&quot;;
+<i class="no-highlight">38</i>&nbsp;    private static final String JSON_TYPE_NAME = &quot;json&quot;;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;    public PostgresDatabaseCursor(final Connection conn, final Cursor&lt;Record&gt; cursor,
+<i class="no-highlight">41</i>&nbsp;            RecordMapper&lt;Record, Map&lt;String, Object&gt;&gt; mapper, int fetchSize) {
+<b class="nc"><i class="no-highlight">42</i>&nbsp;        super(conn, cursor, mapper, fetchSize);</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;        if (cursor == null) {</b>
+<i class="no-highlight">44</i>&nbsp;           return;
+<i class="no-highlight">45</i>&nbsp;        }
+<i class="no-highlight">46</i>&nbsp;        Field field;
+<b class="nc"><i class="no-highlight">47</i>&nbsp;        for (int i = 0; i &lt; cursor.fields().length; i++) {</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;            field = cursor.fields()[i];</b>
+<b class="nc"><i class="no-highlight">49</i>&nbsp;            DataType dataType = field.getDataType();</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;            if (dataType != null) {</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;                if (JSON_TYPE_NAME.equals(dataType.getCastTypeName())) {</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;                    DataType&lt;String&gt; newDataType = dataType.asConvertedDataType(</b>
+<i class="no-highlight">53</i>&nbsp;                            new PostgresJsonBinding());
+<b class="nc"><i class="no-highlight">54</i>&nbsp;                    cursor.fields()[i] = DSL.field(DSL.name(field.getName()), newDataType);</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;                } else if (SQLDataType.NUMERIC.getTypeName().equals(dataType.getTypeName())) {</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;                    DataType&lt;Object&gt; newDataType = new DefaultDataType&lt;&gt;(SQLDialect.POSTGRES,</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;                            Object.class, dataType.getTypeName(), dataType.getCastTypeName())</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;                            .precision(dataType.precision(), dataType.scale());</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;                    cursor.fields()[i] = DSL.field(DSL.name(field.getName()), newDataType);</b>
+<i class="no-highlight">60</i>&nbsp;                }
+<i class="no-highlight">61</i>&nbsp;            }
+<i class="no-highlight">62</i>&nbsp;        }
+<i class="no-highlight">63</i>&nbsp;    }
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    @Override
+<i class="no-highlight">66</i>&nbsp;    public boolean hasNext() {
+<i class="no-highlight">67</i>&nbsp;        // iterator is null if fetch size is 0
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        if (iterator != null) {</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;            if (iterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                return iterator.hasNext();</b>
+<i class="no-highlight">71</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                iterator = null;</b>
+<i class="no-highlight">73</i>&nbsp;            }
+<i class="no-highlight">74</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        if (cursor != null) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            return cursor.hasNext();</b>
+<i class="no-highlight">77</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        return false;</b>
+<i class="no-highlight">79</i>&nbsp;    }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    @Override
+<i class="no-highlight">82</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">83</i>&nbsp;    public Map&lt;String, Object&gt; fetchOne() {
+<i class="no-highlight">84</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">85</i>&nbsp;            ResultSet resultSet = cursor.resultSet();</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;            Record record = cursor.fetchOne();</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            ResultSetMetaData metaData = resultSet.getMetaData();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            int columnCount = metaData.getColumnCount();</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            for (int i = 1; i &lt;= columnCount; i++) {</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                String typeName = metaData.getColumnTypeName(i);</b>
+<i class="no-highlight">91</i>&nbsp;                // For &#39;time with time zone&#39; data type, the record object does not have the
+<i class="no-highlight">92</i>&nbsp;                // time zone value. Get the string value from resultSet and replace the
+<i class="no-highlight">93</i>&nbsp;                // value in the record object. Since there is no java object equivalent to
+<i class="no-highlight">94</i>&nbsp;                // &#39;time with time zone&#39;, we will convert it to a string.
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                if (TIMETZ.equalsIgnoreCase(typeName)) {</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                    String string = resultSet.getString(i);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                    Field&lt;String&gt; field = (Field&lt;String&gt;) record.field(i - 1);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                    record.setValue(field, string);</b>
+<i class="no-highlight">99</i>&nbsp;                }
+<i class="no-highlight">100</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            Map&lt;String, Object&gt; row = mapper.map(record);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            int i = 1;</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            for (Map.Entry&lt;String, Object&gt; entry : row.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                if (entry.getValue() == null) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                    for (int j = i; j &lt;= columnCount; j++) {</b>
+<i class="no-highlight">106</i>&nbsp;                        //This condition is make sure the columnNames matches in case
+<i class="no-highlight">107</i>&nbsp;                        // of duplicate rows in query
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                        String valueFromResultSet = resultSet.getString(j);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                        if (valueFromResultSet != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                                metaData.getColumnName(j).equals(entry.getKey())) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                            entry.setValue(valueFromResultSet);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                            break;</b>
+<i class="no-highlight">113</i>&nbsp;                        }
+<i class="no-highlight">114</i>&nbsp;                    }
+<i class="no-highlight">115</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                ++i;</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            return row;</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            return null;</b>
+<i class="no-highlight">121</i>&nbsp;        }
+<i class="no-highlight">122</i>&nbsp;    }
+<i class="no-highlight">123</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

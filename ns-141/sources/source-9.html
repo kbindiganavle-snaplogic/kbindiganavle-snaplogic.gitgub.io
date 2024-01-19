@@ -1,0 +1,242 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SyncWriteRequest</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.request</a>
+</div>
+
+<h1>Coverage Summary for Class: SyncWriteRequest (com.snaplogic.snaps.salesforce.request)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SyncWriteRequest</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SyncWriteRequest$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.request;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">14</i>&nbsp;import com.google.inject.Injector;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snaps.salesforce.common.SObject;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snaps.salesforce.response.RestWriteResponse;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snaps.salesforce.sync.output.RestWriteResult;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.util.SnapObjectMapper;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import org.apache.http.client.methods.HttpDelete;
+<i class="no-highlight">23</i>&nbsp;import org.apache.http.client.methods.HttpPatch;
+<i class="no-highlight">24</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.snaps.salesforce.BatchCreate.COMPOSITE_TREE;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snaps.salesforce.SFWriteCommon.ID;
+<i class="no-highlight">30</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceCommon.FORMAT_APPEND;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.ERR_OPERATION;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.salesforce.sync.SalesforceObjects.SOBJECTS;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;/**
+<i class="no-highlight">35</i>&nbsp; * Abstract class for synchronous write type of http request operations. It may be implemented
+<i class="no-highlight">36</i>&nbsp; * for synchronous create, delete, update and upsert in Salesforce REST API.
+<i class="no-highlight">37</i>&nbsp; *
+<i class="no-highlight">38</i>&nbsp; * @author psung, terry
+<i class="no-highlight">39</i>&nbsp; */
+<i class="no-highlight">40</i>&nbsp;public abstract class SyncWriteRequest extends AbstractRequest&lt;RestWriteResult, SObject&gt; {
+<i class="no-highlight">41</i>&nbsp;    private static final String FORMAT_URL_SOBJECT = &quot;%s/%s/&quot;;
+<i class="no-highlight">42</i>&nbsp;    private static final String FORMAT_URL_ID = &quot;%s%s/%s&quot;;
+<i class="no-highlight">43</i>&nbsp;    private static final String FORMAT_URL_UPSERT = &quot;%s%s/%s/%s&quot;;
+<i class="no-highlight">44</i>&nbsp;    protected RestWriteResponse restWriteResponse;
+<i class="no-highlight">45</i>&nbsp;    private final SnapObjectMapper snapObjectMapper;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;    protected SyncWriteRequest(HttpRequestHandler httpRequestHandler,
+<i class="no-highlight">48</i>&nbsp;            SnapObjectMapper snapObjectMapper) {
+<b class="nc"><i class="no-highlight">49</i>&nbsp;        super(httpRequestHandler);</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;        this.snapObjectMapper = snapObjectMapper;</b>
+<i class="no-highlight">51</i>&nbsp;    }
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;    @Inject
+<i class="no-highlight">54</i>&nbsp;    private Injector injector;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;    public SyncWriteRequest initialize(Options options, Login loginInfo) {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        super.initialize(options, loginInfo);</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;        restWriteResponse = injector.getInstance(RestWriteResponse.class);</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;        restWriteResponse.initialize(options, loginInfo);</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;        return this;</b>
+<i class="no-highlight">61</i>&nbsp;    }
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;    @Override
+<i class="no-highlight">64</i>&nbsp;    public RestWriteResult execute(SObject sObject) throws IOException {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        String url = COMPOSITE_TREE.equals(sObject.getResource()) ?</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                String.format(FORMAT_URL_SOBJECT, options.getServiceUrl(), COMPOSITE_TREE) :</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;                String.format(FORMAT_URL_SOBJECT, options.getServiceUrl(), SOBJECTS);</b>
+<i class="no-highlight">68</i>&nbsp;        String method;
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        switch (options.getOperation()) {</b>
+<i class="no-highlight">70</i>&nbsp;            case INSERT:
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                url = String.format(FORMAT_APPEND, url, sObject.getObjectType());</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                method = HttpPost.METHOD_NAME;</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                break;</b>
+<i class="no-highlight">74</i>&nbsp;            case DELETE:
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                url = String.format(FORMAT_URL_ID, url, sObject.getObjectType(),</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                        sObject.getField(ID));</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                sObject.removeField(ID);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                method = HttpDelete.METHOD_NAME;</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                break;</b>
+<i class="no-highlight">80</i>&nbsp;            case UPDATE:
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                url = String.format(FORMAT_URL_ID, url, sObject.getObjectType(),</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                        sObject.getField(ID));</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                sObject.removeField(ID);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                method = HttpPatch.METHOD_NAME;</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                break;</b>
+<i class="no-highlight">86</i>&nbsp;            case UPSERT:
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                String externalIdFieldName = sObject.getExternalIdFieldName();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                url = String.format(FORMAT_URL_UPSERT, url, sObject.getObjectType(),</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                        externalIdFieldName, sObject.getField(externalIdFieldName));</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                sObject.removeField(externalIdFieldName);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                method = HttpPatch.METHOD_NAME;</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                break;</b>
+<i class="no-highlight">93</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                throw new IOException(String.format(ERR_OPERATION,</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                        options.getOperation().toString()));</b>
+<i class="no-highlight">96</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        String result = snapObjectMapper.writeValueAsString(sObject.getAllFields());</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        return restWriteResponse.getResponse(url, result, method);</b>
+<i class="no-highlight">99</i>&nbsp;    }
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;    @Override
+<i class="no-highlight">102</i>&nbsp;    public void close() {
+<i class="no-highlight">103</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;            if (restWriteResponse != null) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                restWriteResponse.close();</b>
+<i class="no-highlight">106</i>&nbsp;            }
+<i class="no-highlight">107</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            super.close();</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        }</b>
+<i class="no-highlight">110</i>&nbsp;    }
+<i class="no-highlight">111</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,666 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JMSProducer</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.jms</a>
+</div>
+
+<h1>Coverage Summary for Class: JMSProducer (com.snaplogic.snaps.jms)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JMSProducer</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/240)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">JMSProducer$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">JMSProducer$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/245)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.jms;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.util.Throwables;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.cache.Cache;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.cache.CacheBuilder;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">18</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">19</i>&nbsp;import com.google.inject.Module;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.account.api.Account;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.account.api.capabilities.MultiAccountBinding;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.api.MetricsProvider;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.common.metrics.Counter;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.common.properties.Suggestions;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.MetricsBuilder;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snap.api.write.SimpleBinaryWriteSnap;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snaps.jms.util.JMSUtils;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.util.SnapObjectMapper;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">56</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">57</i>&nbsp;import org.apache.commons.io.Charsets;
+<i class="no-highlight">58</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">59</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">60</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">61</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">64</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">65</i>&nbsp;import java.lang.reflect.InvocationTargetException;
+<i class="no-highlight">66</i>&nbsp;import java.math.BigDecimal;
+<i class="no-highlight">67</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">68</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">69</i>&nbsp;import java.nio.channels.ReadableByteChannel;
+<i class="no-highlight">70</i>&nbsp;import java.util.EnumSet;
+<i class="no-highlight">71</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">72</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">73</i>&nbsp;import java.util.List;
+<i class="no-highlight">74</i>&nbsp;import java.util.Map;
+<i class="no-highlight">75</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">76</i>&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;import javax.jms.BytesMessage;
+<i class="no-highlight">79</i>&nbsp;import javax.jms.DeliveryMode;
+<i class="no-highlight">80</i>&nbsp;import javax.jms.Destination;
+<i class="no-highlight">81</i>&nbsp;import javax.jms.JMSException;
+<i class="no-highlight">82</i>&nbsp;import javax.jms.MapMessage;
+<i class="no-highlight">83</i>&nbsp;import javax.jms.Message;
+<i class="no-highlight">84</i>&nbsp;import javax.jms.MessageProducer;
+<i class="no-highlight">85</i>&nbsp;import javax.jms.Session;
+<i class="no-highlight">86</i>&nbsp;import javax.jms.StreamMessage;
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;import net.jodah.failsafe.Execution;
+<i class="no-highlight">89</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">90</i>&nbsp;import net.jodah.failsafe.FailsafeException;
+<i class="no-highlight">91</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">92</i>&nbsp;
+<i class="no-highlight">93</i>&nbsp;import static com.snaplogic.snaps.jms.JMSHeaderConstants.CORRELATION_ID;
+<i class="no-highlight">94</i>&nbsp;import static com.snaplogic.snaps.jms.JMSHeaderConstants.JMS_HEADER_LIST;
+<i class="no-highlight">95</i>&nbsp;import static com.snaplogic.snaps.jms.JMSHeaderConstants.MESSAGE_ID;
+<i class="no-highlight">96</i>&nbsp;import static com.snaplogic.snaps.jms.Messages.*;
+<i class="no-highlight">97</i>&nbsp;import static com.snaplogic.snaps.jms.util.JMSUtils.computeIntValue;
+<i class="no-highlight">98</i>&nbsp;import static com.snaplogic.snaps.jms.util.JMSUtils.createRetryPolicy;
+<i class="no-highlight">99</i>&nbsp;import static com.snaplogic.snaps.jms.util.JMSUtils.defineRetryIntervalProp;
+<i class="no-highlight">100</i>&nbsp;import static com.snaplogic.snaps.jms.util.JMSUtils.defineRetryLimitProp;
+<i class="no-highlight">101</i>&nbsp;import static com.snaplogic.snaps.jms.util.JMSUtils.DEFAULT_RETRY_COUNT;
+<i class="no-highlight">102</i>&nbsp;import static com.snaplogic.snaps.jms.util.JMSUtils.DEFAULT_RETRY_INTERVAL_MILLIS;
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;/**
+<i class="no-highlight">105</i>&nbsp; * This class represents a JMS producer snap that creates messages and puts
+<i class="no-highlight">106</i>&nbsp; * them in the given destination.
+<i class="no-highlight">107</i>&nbsp; *
+<i class="no-highlight">108</i>&nbsp; * @author slad@snaplogic.com (Samarth Lad)
+<i class="no-highlight">109</i>&nbsp; * @author smudassir@snaplogic.com (Syed Mudassir)
+<i class="no-highlight">110</i>&nbsp; */
+<i class="no-highlight">111</i>&nbsp;@General(title = PRODUCER_SNAP_TITLE, purpose = PRODUCER_SNAP_PURPOSE)
+<i class="no-highlight">112</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.BINARY})
+<i class="no-highlight">113</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">114</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">115</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">116</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">117</i>&nbsp;@Accounts(provides = {JMSAccount.class, SQSAccount.class})
+<b class="nc"><i class="no-highlight">118</i>&nbsp;public class JMSProducer extends SimpleBinaryWriteSnap</b>
+<i class="no-highlight">119</i>&nbsp;        implements MultiAccountBinding&lt;Account&lt;Session&gt;&gt;, MetricsProvider {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(JMSProducer.class);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;    private static final EnumSet&lt;DestinationType&gt; DESTINATION_TYPE_DOMAIN =</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            EnumSet.allOf(DestinationType.class);</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;    private static final EnumSet&lt;MessageType&gt; MESSAGE_TYPE_DOMAIN =</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            EnumSet.allOf(MessageType.class);</b>
+<i class="no-highlight">125</i>&nbsp;    private static final String MESSAGE_PROPERTIES_PROP = &quot;messageProperties&quot;;
+<i class="no-highlight">126</i>&nbsp;    static final String MESSAGE_PROPERTY_KEY_PROP = &quot;messagePropertyKey&quot;;
+<i class="no-highlight">127</i>&nbsp;    static final String MESSAGE_PROPERTY_VALUE_PROP = &quot;messagePropertyValue&quot;;
+<b class="nc"><i class="no-highlight">128</i>&nbsp;    private static final String MESSAGE_PROPERTY_KEY_PATH = new JsonPathBuilder(</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;            JMSProducer.MESSAGE_PROPERTY_KEY_PROP).appendValueElement().build();</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;    private static final JsonPath KEY_JSON_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">131</i>&nbsp;            MESSAGE_PROPERTY_KEY_PATH);
+<i class="no-highlight">132</i>&nbsp;    private static final int MAX_PRODUCERS = 10000;
+<i class="no-highlight">133</i>&nbsp;    private static final int SIXTY = 60;
+<i class="no-highlight">134</i>&nbsp;    private Cache&lt;String, MessageProducer&gt; producerCache =
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            CacheBuilder.newBuilder().maximumSize(MAX_PRODUCERS)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    .expireAfterAccess(SIXTY, TimeUnit.MINUTES)</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                    .removalListener(notification -&gt; {</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                        MessageProducer messageProducer = (MessageProducer) notification.getValue();</b>
+<i class="no-highlight">139</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                            messageProducer.close();</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                        } catch (JMSException e) {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                            LOGGER.debug(&quot;Producer did not close for {} with message {}&quot;,</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                                    notification.getKey(), Throwables.getRootCause(e).getMessage());</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                        }</b>
+<i class="no-highlight">145</i>&nbsp;                    })
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                    .build();</b>
+<i class="no-highlight">147</i>&nbsp;    private static final String TRANSACTED_SESSION_PROP = &quot;transactedSession&quot;;
+<i class="no-highlight">148</i>&nbsp;    private static final String ACTIVEMQ_MESSAGE_CLASS_NAME = &quot;ActiveMQMessage&quot;;
+<i class="no-highlight">149</i>&nbsp;    private static final String GET_TRANSACTION_ID_METHOD_NAME = &quot;getTransactionId&quot;;
+<i class="no-highlight">150</i>&nbsp;    private static final String GET_TRANSACTION_KEY_METHOD_NAME = &quot;getTransactionKey&quot;;
+<i class="no-highlight">151</i>&nbsp;    private static final String TRANSACTION_ID_KEY = &quot;TransactionID&quot;;
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    @Inject
+<i class="no-highlight">154</i>&nbsp;    private Account&lt;Session&gt; account;
+<i class="no-highlight">155</i>&nbsp;    @Inject
+<i class="no-highlight">156</i>&nbsp;    private OutputViews outputViews;
+<i class="no-highlight">157</i>&nbsp;    private Session session;
+<i class="no-highlight">158</i>&nbsp;    private Counter messageCounter;
+<i class="no-highlight">159</i>&nbsp;    private MessageType msgType;
+<i class="no-highlight">160</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; messageProperties;
+<i class="no-highlight">161</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; messageHeaderProperties;
+<i class="no-highlight">162</i>&nbsp;    private DestinationType destinationType;
+<i class="no-highlight">163</i>&nbsp;    private ExpressionProperty destinationNameExp;
+<i class="no-highlight">164</i>&nbsp;    private boolean isTransacted;
+<i class="no-highlight">165</i>&nbsp;    private int retryLimit;
+<i class="no-highlight">166</i>&nbsp;    private int retryIntervalMillis;
+<i class="no-highlight">167</i>&nbsp;    private RetryPolicy retryPolicy;
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;    @Override
+<i class="no-highlight">170</i>&nbsp;    public Module getManagedAccountModule(final Account&lt;Session&gt; account) {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        return JMSUtils.createModule(account);</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    @Override
+<i class="no-highlight">175</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        propertyBuilder.describe(DESTINATION_PROP, DESTINATION_LABEL, DESTINATION_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                .dataLocationIdentifier(&quot;jms.destination&quot;)</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        propertyBuilder.describe(DESTINATION_TYPE_PROP, DESTINATION_TYPE_LABEL,</b>
+<i class="no-highlight">183</i>&nbsp;                DESTINATION_TYPE_DESCRIPTION)
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                .withAllowedValues(DESTINATION_TYPE_DOMAIN)</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .defaultValue(DestinationType.QUEUE.name())</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .dataLocationIdentifier(&quot;jms.destination_type&quot;)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        propertyBuilder.describe(MESSAGE_TYPE_PROP, MESSAGE_TYPE_LABEL, MESSAGE_TYPE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                .withAllowedValues(MESSAGE_TYPE_DOMAIN)</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                .defaultValue(MessageType.TEXT)</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                .dataLocationIdentifier(&quot;jms.message_type&quot;)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        SnapProperty keyProperty = propertyBuilder.describe(MESSAGE_PROPERTY_KEY_PROP,</b>
+<i class="no-highlight">196</i>&nbsp;                MESSAGE_PROPERTY_KEY_LABEL, MESSAGE_PROPERTY_KEY_DESCRIPTION)
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                .withSuggestions(new Suggestions() {</b>
+<i class="no-highlight">198</i>&nbsp;                    @Override
+<i class="no-highlight">199</i>&nbsp;                    public void suggest(final SuggestionBuilder suggestionBuilder,
+<i class="no-highlight">200</i>&nbsp;                            final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                        suggestionBuilder.node(MESSAGE_PROPERTIES_PROP)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                                .over(MESSAGE_PROPERTY_KEY_PROP)</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                                .suggestions(JMS_HEADER_LIST.toArray(new String[0]));</b>
+<i class="no-highlight">204</i>&nbsp;                    }
+<i class="no-highlight">205</i>&nbsp;                })
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        SnapProperty valueProperty = propertyBuilder.describe(MESSAGE_PROPERTY_VALUE_PROP,</b>
+<i class="no-highlight">208</i>&nbsp;                MESSAGE_PROPERTY_VALUE_LABEL, MESSAGE_PROPERTY_VALUE_DESCRIPTION)
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        propertyBuilder.describe(MESSAGE_PROPERTIES_PROP, MESSAGE_PROPERTIES_LABEL,</b>
+<i class="no-highlight">212</i>&nbsp;                MESSAGE_PROPERTIES_DESCRIPTION)
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                .withEntry(keyProperty)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                .withEntry(valueProperty)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;        propertyBuilder.describe(TRANSACTED_SESSION_PROP, TRANSACTED_SESSION_LABEL, TRANSACTED_SESSION_DESC)</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        defineRetryLimitProp(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        defineRetryIntervalProp(propertyBuilder);</b>
+<i class="no-highlight">223</i>&nbsp;    }
+<i class="no-highlight">224</i>&nbsp;
+<i class="no-highlight">225</i>&nbsp;    @Override
+<i class="no-highlight">226</i>&nbsp;    public void defineMetrics(final MetricsBuilder metricsBuilder) {
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        messageCounter = metricsBuilder</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                .describe(MESSAGE_COUNTER_NAME, MESSAGE_PRODUCED_COUNTER_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                .measuredIn(MESSAGE_COUNTER_UNIT)</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                .counter();</b>
+<i class="no-highlight">231</i>&nbsp;    }
+<i class="no-highlight">232</i>&nbsp;
+<i class="no-highlight">233</i>&nbsp;    @Override
+<i class="no-highlight">234</i>&nbsp;    public void configure(PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        if (account == null) {</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            throw new ConfigurationException(ERROR_ACCOUNT_NOT_DEFINED)</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                    .withReason(REASON_ACCOUNT_NOT_DEFINED)</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                    .withResolution(RESOLUTION_ACCOUNT_NOT_DEFINED);</b>
+<i class="no-highlight">239</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        destinationNameExp = propertyValues.getAsExpression(DESTINATION_PROP);</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;        destinationType = DestinationType.valueOf(String.valueOf(</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                propertyValues.&lt;Object&gt;get(DESTINATION_TYPE_PROP)));</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        msgType = MessageType.valueOf(String.valueOf(propertyValues.&lt;Object&gt;get(MESSAGE_TYPE_PROP)));</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        messageProperties = propertyValues.get(MESSAGE_PROPERTIES_PROP);</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        if (CollectionUtils.isNotEmpty(messageProperties)) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            messageHeaderProperties = Lists.newArrayListWithExpectedSize(messageProperties.size());</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;            for (Map&lt;String, Object&gt; messageProp : messageProperties) {</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                Map&lt;String, Object&gt; def = Maps.newHashMapWithExpectedSize(2);</b>
+<i class="no-highlight">249</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                    String headerName = KEY_JSON_PATH.read(messageProp, null);</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                    def.put(MESSAGE_PROPERTY_KEY_PROP, headerName);</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                    continue;</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                ExpressionProperty valueProp = propertyValues</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                        .getExpressionPropertyFor(messageProp, MESSAGE_PROPERTY_VALUE_PROP);</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                def.put(MESSAGE_PROPERTY_VALUE_PROP, valueProp);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                messageHeaderProperties.add(def);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            }</b>
+<i class="no-highlight">260</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        isTransacted = Boolean.TRUE.equals(propertyValues.get(TRANSACTED_SESSION_PROP));</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;        ((JMSAccount) account).setConnectionSessionProps(isTransacted, Session.AUTO_ACKNOWLEDGE, null,</b>
+<i class="no-highlight">263</i>&nbsp;                false, false, false);
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        readRetryProps(propertyValues);</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        retryPolicy = createRetryPolicy(retryLimit, retryIntervalMillis, LOGGER);</b>
+<i class="no-highlight">266</i>&nbsp;    }
+<i class="no-highlight">267</i>&nbsp;
+<i class="no-highlight">268</i>&nbsp;    private void readRetryProps(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        ExpressionProperty retryLimitExp = propertyValues.getAsExpression(KEY_RETRY_LIMIT);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        ExpressionProperty retryIntervalExp = propertyValues.getAsExpression(KEY_RETRY_INTERVAL_MILLIS);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        retryLimit = computeIntValue(retryLimitExp, null, KEY_RETRY_LIMIT_LABEL,</b>
+<i class="no-highlight">272</i>&nbsp;                DEFAULT_RETRY_COUNT);
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        retryIntervalMillis = computeIntValue(retryIntervalExp, null,</b>
+<i class="no-highlight">274</i>&nbsp;                KEY_RETRY_INTERVAL_MILLIS_LABEL, DEFAULT_RETRY_INTERVAL_MILLIS);
+<i class="no-highlight">275</i>&nbsp;    }
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;    protected MessageProducer createProducer(String destinationName) throws ConfigurationException{
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        if (StringUtils.isBlank(destinationName)) {</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;            throw new ConfigurationException(JMS_PRODUCER_DESTINATION_ERROR_MSG)</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                    .withReason(JMS_DESTINATION_ERROR_REASON)</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                    .withResolution(JMS_DESTINATION_ERROR_RESOLUTION);</b>
+<i class="no-highlight">282</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        MessageProducer messageProducer = producerCache.getIfPresent(destinationName);</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        if (messageProducer == null) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            Destination destination = JMSUtils.createDestination(session, destinationType,</b>
+<i class="no-highlight">286</i>&nbsp;                    destinationName);
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            JMSUtils.checkDestinationType(destinationType, destination, destinationName);</b>
+<i class="no-highlight">288</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                messageProducer = session.createProducer(destination);</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                producerCache.put(destinationName, messageProducer);</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;            } catch (JMSException e) {</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                throw new SnapDataException(e, ERROR_WHILE_CREATING_PRODUCER)</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                        .withResolution(PLEASE_REVIEW_AND_ADDRESS_JMS_EXCEPTION_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;            }</b>
+<i class="no-highlight">296</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        return messageProducer;</b>
+<i class="no-highlight">298</i>&nbsp;
+<i class="no-highlight">299</i>&nbsp;    }
+<i class="no-highlight">300</i>&nbsp;
+<i class="no-highlight">301</i>&nbsp;    @Override
+<i class="no-highlight">302</i>&nbsp;    protected void process(Document header, ReadableByteChannel readChannel) {
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        String evalDestinationName = destinationNameExp.eval(header);</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        AtomicBoolean firstRun = new AtomicBoolean(true);</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        AtomicBoolean createMessage = new AtomicBoolean();</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        StringBuffer inputMessage = new StringBuffer();</b>
+<i class="no-highlight">307</i>&nbsp;        final byte[] inputByte;
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        boolean exceptionOccurred = false;</b>
+<i class="no-highlight">309</i>&nbsp;
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        try (InputStream inputStream = Channels.newInputStream(readChannel)) {</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;            if (msgType.equals(MessageType.BYTES) || msgType.equals(MessageType.STREAM)) {</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                inputByte = IOUtils.toByteArray(inputStream);</b>
+<i class="no-highlight">313</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                inputMessage.setLength(0);</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                inputMessage.append(IOUtils.toString(inputStream, Charsets.UTF_8));</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                inputByte = new byte[0];</b>
+<i class="no-highlight">317</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            Failsafe</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                    .with(retryPolicy)</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                    .get(context -&gt; {</b>
+<i class="no-highlight">321</i>&nbsp;                        // handle retry
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                        Execution execution = (Execution) context;</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                        if (execution.getAttemptCount() &gt; 0) {</b>
+<i class="no-highlight">324</i>&nbsp;                            // its  retry
+<i class="no-highlight">325</i>&nbsp;                            // close prev resources
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                            releaseResourcesAndCleanupCache();</b>
+<i class="no-highlight">327</i>&nbsp;                            // reconnect
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                            session = account.connect();</b>
+<i class="no-highlight">329</i>&nbsp;                        }
+<i class="no-highlight">330</i>&nbsp;
+<i class="no-highlight">331</i>&nbsp;                        // initialise resources for first run
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                        if (firstRun.get() &amp;&amp; session == null) {</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                            session = account.connect();</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                            firstRun.set(false);</b>
+<i class="no-highlight">335</i>&nbsp;                        }
+<i class="no-highlight">336</i>&nbsp;
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                        final MessageProducer producer = createProducer(evalDestinationName);</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                        createMessage.set(false);</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                        Message message = null;</b>
+<i class="no-highlight">340</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                            switch (msgType) {</b>
+<i class="no-highlight">342</i>&nbsp;                                case TEXT:
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                                    message = session.createTextMessage(inputMessage.toString());</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                                    break;</b>
+<i class="no-highlight">345</i>&nbsp;                                case MAP:
+<i class="no-highlight">346</i>&nbsp;                                    // TODO: Support MapMessage via a different snap that has DOCUMENT as an
+<i class="no-highlight">347</i>&nbsp;                                    // input view
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                                    SnapObjectMapper mapper = new SnapObjectMapper();</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                                    Map&lt;String, Object&gt; jsonMap = mapper.readValue(inputMessage.toString(), Map.class);</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                                    if (MapUtils.isNotEmpty(jsonMap)) {</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                                        Iterator&lt;String&gt; iter = jsonMap.keySet().iterator();</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                                        MapMessage mapmessage = session.createMapMessage();</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                                        while (iter.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                                            String key = iter.next();</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                                            Object value = jsonMap.get(key);</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                                            if (value == null) {</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                                                mapmessage.setString(key, StringUtils.EMPTY);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                                            } else if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                                                mapmessage.setString(key, (String) value);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                                            } else if (value instanceof BigInteger) {</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                                                mapmessage.setLong(key, ((BigInteger) value).longValue());</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                                            } else if (value instanceof BigDecimal) {</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                                                mapmessage.setDouble(key, ((BigDecimal) value).doubleValue());</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                                            } else if (value instanceof Boolean) {</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                                                mapmessage.setBoolean(key, ((Boolean) value));</b>
+<i class="no-highlight">366</i>&nbsp;                                            } else {
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                                                mapmessage.setObject(key, jsonMap.get(key));</b>
+<i class="no-highlight">368</i>&nbsp;                                            }
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                                        }</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                                        message = mapmessage;</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                                    }</b>
+<i class="no-highlight">372</i>&nbsp;                                    break;
+<i class="no-highlight">373</i>&nbsp;                                case STREAM:
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                                    message = session.createStreamMessage();</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                                    ((StreamMessage) message).writeBytes(inputByte);</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                                    break;</b>
+<i class="no-highlight">377</i>&nbsp;                                case BYTES:
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                                    message = session.createBytesMessage();</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                                    ((BytesMessage) message).writeBytes(inputByte);</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                                    break;</b>
+<i class="no-highlight">381</i>&nbsp;                                default:
+<i class="no-highlight">382</i>&nbsp;                                    // Will never reach here
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                                    throw new ExecutionException(INVALID_MESSAGE_TYPE, msgType.name());</b>
+<i class="no-highlight">384</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                        } catch (JMSException e2) {</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                            createMessage.set(true);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                            throw e2;</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                        }</b>
+<i class="no-highlight">389</i>&nbsp;
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                        if (header != null) {</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                            MessageHandler.populateMessageHeader(header, message);</b>
+<i class="no-highlight">392</i>&nbsp;                        }
+<i class="no-highlight">393</i>&nbsp;
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                        if (messageHeaderProperties != null) {</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                            MessageHandler.populateMessageProperties(messageHeaderProperties, message, header);</b>
+<i class="no-highlight">396</i>&nbsp;                        }
+<i class="no-highlight">397</i>&nbsp;
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                        Long msgExp = MessageHandler.getExpiration(header, messageHeaderProperties);</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;                        if (msgExp != null) {</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                            producer.send(message, DeliveryMode.NON_PERSISTENT, 0, msgExp);</b>
+<i class="no-highlight">401</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">402</i>&nbsp;                            producer.send(message);</b>
+<i class="no-highlight">403</i>&nbsp;                        }
+<i class="no-highlight">404</i>&nbsp;
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                        Map&lt;String, String&gt; data = new LinkedHashMap&lt;&gt;(2);</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                        data.put(CORRELATION_ID, message.getJMSCorrelationID());</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                        data.put(MESSAGE_ID, message.getJMSMessageID());</b>
+<i class="no-highlight">408</i>&nbsp;
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                        if (isTransacted) {</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                            data.put(TRANSACTION_ID_KEY, getTransactionID(message));</b>
+<i class="no-highlight">411</i>&nbsp;                        }
+<i class="no-highlight">412</i>&nbsp;
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                        outputViews.write(documentUtility.newDocumentFor(header, data), header);</b>
+<i class="no-highlight">414</i>&nbsp;
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                        if (isTransacted) {</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                            session.commit();</b>
+<i class="no-highlight">417</i>&nbsp;                        }
+<i class="no-highlight">418</i>&nbsp;
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                        messageCounter.inc();</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                        header.acknowledge();</b>
+<i class="no-highlight">421</i>&nbsp;
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                        return null;</b>
+<i class="no-highlight">423</i>&nbsp;                    });
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        } catch (Exception e1) {</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;            exceptionOccurred = true;</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;            Throwable cause = e1 instanceof FailsafeException ? e1.getCause() : e1;</b>
+<i class="no-highlight">427</i>&nbsp;
+<b class="nc"><i class="no-highlight">428</i>&nbsp;            if (cause instanceof SnapDataException) {</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                errorViews.write((SnapDataException) cause);</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;            } else if (cause instanceof JMSException) {</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                JMSException jmsException = (JMSException) cause;</b>
+<i class="no-highlight">432</i>&nbsp;
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                if (createMessage.get()) {</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                    throw new SnapDataException(jmsException, ERROR_WHILE_CREATING_MESSAGE)</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                            .withReason(String.format(JMS_PROVIDER_MESSAGE_CREATION_FAILURE,</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                                            jmsException.getMessage()))</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;                            .withResolution(JMS_RES_VERIFY_INPUT_DATA);</b>
+<i class="no-highlight">438</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                    if (isTransacted) {</b>
+<i class="no-highlight">440</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                            session.rollback();</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                        } catch (JMSException jme) {</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;                            throw new SnapDataException(jme, ERROR_ROLL_BACK_SESSION)</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                                    .withReason(jme.getMessage())</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                                    .withResolution(ERROR_ROLL_BACK_SESSION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                        }</b>
+<i class="no-highlight">447</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                    SnapDataException snapDataException =</b>
+<i class="no-highlight">449</i>&nbsp;                            new SnapDataException(jmsException, ERROR_WHILE_SENDING_MESSAGE)
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                                    .withReason(String.format(JMS_PROVIDER_MESSAGE_SENDING_FAILURE,</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                                            jmsException.getMessage()))</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                                    .withResolution(JMS_RES_VERIFY_INPUT_DATA);</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;                    errorViews.write(snapDataException, header);</b>
+<i class="no-highlight">454</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">455</i>&nbsp;            } else if (cause instanceof IOException) {</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                IOException ioException = (IOException) cause;</b>
+<i class="no-highlight">457</i>&nbsp;
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                SnapDataException snapDataException =</b>
+<i class="no-highlight">459</i>&nbsp;                        new SnapDataException(ioException,
+<i class="no-highlight">460</i>&nbsp;                                ERROR_WHILE_READING_STREAM_INTO_MESSAGE_BODY)
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                                .withReason(String.format(READING_FROM_INPUT_VIEW_FAILED,</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                                        ioException.getMessage()))</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                                .withResolution(JMS_RES_VERIFY_INPUT_DATA);</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                errorViews.write(snapDataException, header);</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;            } else if (cause instanceof SnapException) {</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                errorViews.write(MessageHandler.getSnapDataException((SnapException) cause, header,</b>
+<i class="no-highlight">467</i>&nbsp;                        documentUtility), header);
+<i class="no-highlight">468</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                throw new SnapDataException(cause, ERROR_WHILE_SENDING_MESSAGE)</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                        .withResolution(JMS_RES_VERIFY_INPUT_DATA);</b>
+<i class="no-highlight">471</i>&nbsp;            }
+<i class="no-highlight">472</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">473</i>&nbsp;            if (exceptionOccurred) {</b>
+<i class="no-highlight">474</i>&nbsp;                // there might be resource leak; so invoke cleanup() to be on safe side
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                releaseResourcesAndCleanupCache();</b>
+<i class="no-highlight">476</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">477</i>&nbsp;        }</b>
+<i class="no-highlight">478</i>&nbsp;    }
+<i class="no-highlight">479</i>&nbsp;
+<i class="no-highlight">480</i>&nbsp;    private void releaseResourcesAndCleanupCache() {
+<b class="nc"><i class="no-highlight">481</i>&nbsp;        account.disconnect();</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;        producerCache.invalidateAll();</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;        producerCache.cleanUp();</b>
+<i class="no-highlight">484</i>&nbsp;    }
+<i class="no-highlight">485</i>&nbsp;
+<i class="no-highlight">486</i>&nbsp;    @Override
+<i class="no-highlight">487</i>&nbsp;    public void cleanup() throws ExecutionException {
+<b class="nc"><i class="no-highlight">488</i>&nbsp;        releaseResourcesAndCleanupCache();</b>
+<i class="no-highlight">489</i>&nbsp;    }
+<i class="no-highlight">490</i>&nbsp;
+<i class="no-highlight">491</i>&nbsp;    /**
+<i class="no-highlight">492</i>&nbsp;     * Try to get the transaction ID from the Message. Should be called only when the producer is
+<i class="no-highlight">493</i>&nbsp;     * using a transacted session. The method should return values only for Active MQ.
+<i class="no-highlight">494</i>&nbsp;     *
+<i class="no-highlight">495</i>&nbsp;     */
+<i class="no-highlight">496</i>&nbsp;    private String getTransactionID(Message message) {
+<i class="no-highlight">497</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">498</i>&nbsp;            Class activeMQMessageClass = message.getClass().getSuperclass();</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;            if (activeMQMessageClass != null &amp;&amp; ACTIVEMQ_MESSAGE_CLASS_NAME.equals(activeMQMessageClass</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;                    .getSimpleName())) {</b>
+<i class="no-highlight">501</i>&nbsp;                // Invoke ActiveMQMessage.getTransactionId().getTransactionKey() to get the
+<i class="no-highlight">502</i>&nbsp;                // transaction Id for ActiveMQ. Using reflection here since the activemq jar is
+<i class="no-highlight">503</i>&nbsp;                // provided by users.
+<b class="nc"><i class="no-highlight">504</i>&nbsp;                Object transactionID = activeMQMessageClass.getSuperclass()</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;                        .getDeclaredMethod(GET_TRANSACTION_ID_METHOD_NAME)</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                        .invoke(message);</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                return (String) transactionID.getClass().getDeclaredMethod(GET_TRANSACTION_KEY_METHOD_NAME)</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;                        .invoke(transactionID);</b>
+<i class="no-highlight">509</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">510</i>&nbsp;        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;            LOGGER.debug(&quot;Could not return the transaction Id from the message object. Reason:{}&quot;,</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                    e.getMessage());</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;        return null;</b>
+<i class="no-highlight">515</i>&nbsp;    }
+<i class="no-highlight">516</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

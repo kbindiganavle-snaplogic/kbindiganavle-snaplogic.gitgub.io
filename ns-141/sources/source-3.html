@@ -1,0 +1,298 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkRequest</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.request</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkRequest (com.snaplogic.snaps.salesforce.request)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkRequest</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/55)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.request;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.input.CloseJobDocument;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.input.CreateJobDocument;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.input.DocumentManager;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.BatchInfo;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.JobInfo;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.XMLHandler;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options.ContentType;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snaps.salesforce.response.AbstractResponse;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snaps.salesforce.response.SFAPIError;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">26</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">27</i>&nbsp;import org.apache.http.client.methods.HttpGet;
+<i class="no-highlight">28</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">30</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">33</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.BATCH_ID;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.JOB_ID;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.RESOLUTION_SNAP_PROPERTIES;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;/**
+<i class="no-highlight">40</i>&nbsp; * Abstract class for Bulk API http request operations
+<i class="no-highlight">41</i>&nbsp; *
+<i class="no-highlight">42</i>&nbsp; * @author psung, terry
+<i class="no-highlight">43</i>&nbsp; */
+<i class="no-highlight">44</i>&nbsp;public abstract class BulkRequest&lt;R, P&gt; extends AbstractRequest&lt;R, P&gt; {
+<b class="nc"><i class="no-highlight">45</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(BulkRequest.class);</b>
+<i class="no-highlight">46</i>&nbsp;    protected static final String FORMAT_BATCH_URL = &quot;%s/%s/batch&quot;;
+<i class="no-highlight">47</i>&nbsp;    private static final String FORMAT_ERR_MESSAGE = &quot;%s: %s, %s&quot;;
+<b class="nc"><i class="no-highlight">48</i>&nbsp;    private final DocumentManager bulkDocManager = new DocumentManager();</b>
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;    protected AbstractResponse&lt;?&gt; bulkResponse;
+<i class="no-highlight">51</i>&nbsp;    protected String errMessage; // error message to be initialized in subclasses
+<i class="no-highlight">52</i>&nbsp;    protected ContentType contentType;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;    protected BulkRequest(HttpRequestHandler httpRequestHandler) {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;        super(httpRequestHandler);</b>
+<i class="no-highlight">56</i>&nbsp;    }
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;    protected String getBulkResponse(String url, String contents, String method)
+<i class="no-highlight">59</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">60</i>&nbsp;        HttpResponse httpResponse = httpRequestHandler.handleRequest(url, contents,</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;                httpRequestHandler.getRequestContentType(options), method, loginInfo);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        try (InputStream inputStream = bulkResponse.getInputStream(httpResponse).getDecompressedStream()) {</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;            String response = bulkResponse.getContents(inputStream);</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;            LOG.debug(&quot;SFDC response - status: {}, entity: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;                    httpResponse.getStatusLine().getStatusCode(), response);</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;            SFAPIError sfError = bulkResponse.checkStatusCode(httpResponse);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;            if (sfError.isError()) {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;                String error = String.format(errMessage, sfError.toString());</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                String reason = StringUtils.isBlank(response) ? error : response;</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                throw new SnapDataException(error)</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                        .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                        .withResolution(RESOLUTION_SNAP_PROPERTIES);</b>
+<i class="no-highlight">73</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            return response;</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        }</b>
+<i class="no-highlight">76</i>&nbsp;    }
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;    /**
+<i class="no-highlight">79</i>&nbsp;     * Creates a new job in Force.com.
+<i class="no-highlight">80</i>&nbsp;     *
+<i class="no-highlight">81</i>&nbsp;     * @param options - options for Bulk API operations
+<i class="no-highlight">82</i>&nbsp;     *
+<i class="no-highlight">83</i>&nbsp;     * @return information on the job created
+<i class="no-highlight">84</i>&nbsp;     * @throws IOException if an error occurs while creating a job
+<i class="no-highlight">85</i>&nbsp;     */
+<i class="no-highlight">86</i>&nbsp;    protected JobInfo createJob(Options options) throws IOException {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        contentType = options.getContentType();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        bulkDocManager.withBulkDoc(new CreateJobDocument(options.getOperation(),</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                options.getObjectType(), options.getExternalIdFieldName(),</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                isPayloadContentTypeCsv() ? ContentType.CSV : contentType,</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                options.getBulkAPIMode()));</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        String result = getBulkResponse(options.getServiceUrl(), bulkDocManager.generateJobDoc(),</b>
+<i class="no-highlight">93</i>&nbsp;                HttpPost.METHOD_NAME);
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        if (contentType == ContentType.JSON) {</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;            return new JobInfo(result);</b>
+<i class="no-highlight">96</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        return (JobInfo) XMLHandler.deserialize(result, JobInfo.class);</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    /**
+<i class="no-highlight">101</i>&nbsp;     * Checks the job status.
+<i class="no-highlight">102</i>&nbsp;     *
+<i class="no-highlight">103</i>&nbsp;     * @param serviceUrl - URL to create a job in Force.com
+<i class="no-highlight">104</i>&nbsp;     * @param jobId      - job ID
+<i class="no-highlight">105</i>&nbsp;     *
+<i class="no-highlight">106</i>&nbsp;     * @return status information of the job
+<i class="no-highlight">107</i>&nbsp;     * @throws IOException if an error occurs while checking the job status
+<i class="no-highlight">108</i>&nbsp;     */
+<i class="no-highlight">109</i>&nbsp;    protected JobInfo checkJobStatus(String serviceUrl, String jobId) throws IOException {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        String checkJobUrl = String.format(FORMAT_APPEND_WITH_SLASH, serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        String bulkResult = getBulkResponse(checkJobUrl, StringUtils.EMPTY, HttpGet.METHOD_NAME);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        LOG.debug(&quot;SFDC Bulk job status: {}&quot;, bulkResult);</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        if (contentType == ContentType.JSON) {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            return new JobInfo(bulkResult);</b>
+<i class="no-highlight">115</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        return (JobInfo) XMLHandler.deserialize(bulkResult, JobInfo.class);</b>
+<i class="no-highlight">117</i>&nbsp;    }
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;    /**
+<i class="no-highlight">120</i>&nbsp;     * Closes the job and no more batches can be submitted for the job.
+<i class="no-highlight">121</i>&nbsp;     *
+<i class="no-highlight">122</i>&nbsp;     * @param serviceUrl - URL to close the job
+<i class="no-highlight">123</i>&nbsp;     * @param jobId      - job ID
+<i class="no-highlight">124</i>&nbsp;     *
+<i class="no-highlight">125</i>&nbsp;     * @return information on the closed job
+<i class="no-highlight">126</i>&nbsp;     * @throws IOException if an error occurs while closing the job
+<i class="no-highlight">127</i>&nbsp;     */
+<i class="no-highlight">128</i>&nbsp;    protected JobInfo closeJob(String serviceUrl, String jobId) throws IOException {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        String closeJobUrl = String.format(FORMAT_APPEND_WITH_SLASH, serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        bulkDocManager.withBulkDoc(new CloseJobDocument());</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        if (contentType == ContentType.JSON) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            String content = CloseJobDocument.generateJson();</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            String bulkResult = getBulkResponse(closeJobUrl, content, HttpPost.METHOD_NAME);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            return new JobInfo(bulkResult);</b>
+<i class="no-highlight">135</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            String bulkResult = getBulkResponse(closeJobUrl, bulkDocManager.generateJobDoc(),</b>
+<i class="no-highlight">137</i>&nbsp;                    HttpPost.METHOD_NAME);
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            return (JobInfo) XMLHandler.deserialize(bulkResult, JobInfo.class);</b>
+<i class="no-highlight">139</i>&nbsp;        }
+<i class="no-highlight">140</i>&nbsp;    }
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;    /**
+<i class="no-highlight">143</i>&nbsp;     * Checks the status of a specific batch.
+<i class="no-highlight">144</i>&nbsp;     *
+<i class="no-highlight">145</i>&nbsp;     * @param serviceUrl - URL to check the batch status
+<i class="no-highlight">146</i>&nbsp;     *
+<i class="no-highlight">147</i>&nbsp;     * @return status information of the batch
+<i class="no-highlight">148</i>&nbsp;     * @throws IOException if an error occurs while checking the batch status
+<i class="no-highlight">149</i>&nbsp;     */
+<i class="no-highlight">150</i>&nbsp;    public BatchInfo checkBatchStatus(String serviceUrl) throws IOException {
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        String bulkResult = getBulkResponse(serviceUrl, StringUtils.EMPTY, HttpGet.METHOD_NAME);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        LOG.debug(&quot;SFDC Batch status: {}&quot;, bulkResult);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        return (BatchInfo) XMLHandler.deserialize(bulkResult, BatchInfo.class);</b>
+<i class="no-highlight">154</i>&nbsp;    }
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;    /**
+<i class="no-highlight">157</i>&nbsp;     * Checks the status of a specific batch.
+<i class="no-highlight">158</i>&nbsp;     *
+<i class="no-highlight">159</i>&nbsp;     * @param serviceUrl - URL to check the batch status
+<i class="no-highlight">160</i>&nbsp;     * @param jobId      - job ID
+<i class="no-highlight">161</i>&nbsp;     * @param batchId    - batch ID
+<i class="no-highlight">162</i>&nbsp;     *
+<i class="no-highlight">163</i>&nbsp;     * @return status information of the batch
+<i class="no-highlight">164</i>&nbsp;     * @throws IOException if an error occurs while checking the batch status
+<i class="no-highlight">165</i>&nbsp;     */
+<i class="no-highlight">166</i>&nbsp;    public BatchInfo checkBatchStatus(String serviceUrl, String jobId, String batchId)
+<i class="no-highlight">167</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        String batchUrl = String.format(FORMAT_BATCH_URL, serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        String checkBatchUrl = String.format(FORMAT_APPEND_WITH_SLASH, batchUrl, batchId);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        return checkBatchStatus(checkBatchUrl);</b>
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    protected String errorMessage(String error, String jobId, String batchId) {
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        String jobIdMessage = String.format(JOB_ID, jobId);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        String batchIdMessage = String.format(BATCH_ID, batchId);</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        return String.format(FORMAT_ERR_MESSAGE, error, jobIdMessage, batchIdMessage);</b>
+<i class="no-highlight">177</i>&nbsp;    }
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;    public AbstractResponse&lt;?&gt; getBulkResponse() {
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        return bulkResponse;</b>
+<i class="no-highlight">181</i>&nbsp;    }
+<i class="no-highlight">182</i>&nbsp;
+<i class="no-highlight">183</i>&nbsp;    @Override
+<i class="no-highlight">184</i>&nbsp;    public void close() {
+<i class="no-highlight">185</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            if (bulkResponse != null) {</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                bulkResponse.close();</b>
+<i class="no-highlight">188</i>&nbsp;            }
+<i class="no-highlight">189</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">190</i>&nbsp;            super.close();</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        }</b>
+<i class="no-highlight">192</i>&nbsp;    }
+<i class="no-highlight">193</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

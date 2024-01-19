@@ -1,0 +1,329 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ReltioAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.reltiosnapconnector</a>
+</div>
+
+<h1>Coverage Summary for Class: ReltioAccount (com.snaplogic.snaps.reltiosnapconnector)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ReltioAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/90)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.reltiosnapconnector;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.s3.AmazonS3Client;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.account.api.ValidatableAccount;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.fs.s3.S3UrlConnection;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.rest.RestHttpClient;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snaps.reltiosnapconnector.messages.ReltioSnapConnectorMessages;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.util.SnapObjectMapper;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">34</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">35</i>&nbsp;import org.apache.http.client.methods.HttpUriRequest;
+<i class="no-highlight">36</i>&nbsp;import org.apache.http.client.utils.URIBuilder;
+<i class="no-highlight">37</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">38</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import java.net.URI;
+<i class="no-highlight">41</i>&nbsp;import java.net.URISyntaxException;
+<i class="no-highlight">42</i>&nbsp;import java.util.Date;
+<i class="no-highlight">43</i>&nbsp;import java.util.Map;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.reltiosnapconnector.messages.ReltioSnapConnectorMessages.*;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.reltiosnapconnector.util.ReltioHttpUtils.makeRequest;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;/**
+<i class="no-highlight">49</i>&nbsp; * Represents an OAuth 2.0 password grant type account for Reltio
+<i class="no-highlight">50</i>&nbsp; */
+<i class="no-highlight">51</i>&nbsp;@General(title = RELTIO_ACCOUNT_TITLE, docLink = RELTIO_ACCOUNT_DOC_LINK)
+<i class="no-highlight">52</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">53</i>&nbsp;@AccountCategory(type = AccountType.BASIC_AUTH)
+<b class="nc"><i class="no-highlight">54</i>&nbsp;public class ReltioAccount implements ValidatableAccount&lt;String&gt; {</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;    final static Logger logger = LoggerFactory.getLogger(ReltioAccount.class);</b>
+<i class="no-highlight">56</i>&nbsp;    private static final String RELTIO_OAUTH_TOKEN_ENDPOINT_FORMAT = &quot;https://&lt;your_oauth_url&gt;&quot; +
+<i class="no-highlight">57</i>&nbsp;            &quot;/token&quot;;
+<i class="no-highlight">58</i>&nbsp;    private static final String RELTIO_OAUTH_TOKEN_API_KEY = &quot;cmVsdGlvX3VpOm1ha2l0YQ==&quot;;
+<i class="no-highlight">59</i>&nbsp;    private static final String TOKEN_ENDPOINT_PROP = &quot;token_endpoint&quot;;
+<i class="no-highlight">60</i>&nbsp;    @Inject
+<i class="no-highlight">61</i>&nbsp;    protected SnapObjectMapper snapObjectMapper;
+<i class="no-highlight">62</i>&nbsp;    @Inject
+<i class="no-highlight">63</i>&nbsp;    protected UserScope userScope;
+<i class="no-highlight">64</i>&nbsp;    private String oauthTokenURL;
+<i class="no-highlight">65</i>&nbsp;    private String oauthTokenAPIKey;
+<i class="no-highlight">66</i>&nbsp;    private String username;
+<i class="no-highlight">67</i>&nbsp;    private String password;
+<i class="no-highlight">68</i>&nbsp;    private String awsAccessId;
+<i class="no-highlight">69</i>&nbsp;    private String awsSecretKey;
+<i class="no-highlight">70</i>&nbsp;    private RestHttpClient httpClient;
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;    @Override
+<i class="no-highlight">73</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        propertyBuilder.describe(USERNAME_PROP, USERNAME_LABEL, USERNAME_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        propertyBuilder.describe(PASSWORD_PROP, PASSWORD_LABEL, PASSWORD_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        propertyBuilder.describe(TOKEN_ENDPOINT_PROP, TOKEN_ENDPOINT_LABEL, TOKEN_ENDPOINT_DESC)</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                .defaultValue(RELTIO_OAUTH_TOKEN_ENDPOINT_FORMAT)</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        propertyBuilder.describe(API_KEY_PROP, API_KEY_LABEL, API_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                .defaultValue(RELTIO_OAUTH_TOKEN_API_KEY)</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        propertyBuilder.describe(AWS_ACCESS_KEY_ID_PROP,</b>
+<i class="no-highlight">94</i>&nbsp;                AWS_ACCESS_KEY_ID_LABEL, AWS_ACCESS_KEY_ID_DESC)
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        propertyBuilder.describe(AWS_SECRET_KEY_PROP,</b>
+<i class="no-highlight">99</i>&nbsp;                AWS_SECRET_KEY_LABEL, AWS_SECRET_KEY_DESC)
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                .add();</b>
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    public String getAwsAccessId() {
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        return awsAccessId;</b>
+<i class="no-highlight">107</i>&nbsp;    }
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    public String getAwsSecretKey() {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        return awsSecretKey;</b>
+<i class="no-highlight">112</i>&nbsp;    }
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    @Override
+<i class="no-highlight">115</i>&nbsp;    public void configure(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        ExpressionProperty oauthTokenURLExpression = propertyValues.getAsExpression(TOKEN_ENDPOINT_PROP);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        ExpressionProperty usernameExpression = propertyValues.getAsExpression(USERNAME_PROP);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        ExpressionProperty passwordExpression = propertyValues.getAsExpression(PASSWORD_PROP);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        ExpressionProperty oauthTokenAPIKeyExpression = propertyValues.getAsExpression(API_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        ExpressionProperty accessIdExpression = propertyValues.getAsExpression(AWS_ACCESS_KEY_ID_PROP);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        ExpressionProperty secretKeyExpression = propertyValues.getAsExpression(AWS_SECRET_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        username = usernameExpression.eval(null);</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        password = passwordExpression.eval(null);</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        oauthTokenURL = oauthTokenURLExpression.eval(null);</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        oauthTokenAPIKey = oauthTokenAPIKeyExpression.eval(null);</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        awsAccessId = accessIdExpression.eval(null);</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        awsSecretKey = secretKeyExpression.eval(null);</b>
+<i class="no-highlight">128</i>&nbsp;
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        validateRequiredProp(username, USERNAME_LABEL);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        validateRequiredProp(password, PASSWORD_LABEL);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        validateRequiredProp(oauthTokenURL, TOKEN_ENDPOINT_LABEL);</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        validateRequiredProp(oauthTokenAPIKey, API_KEY_LABEL);</b>
+<i class="no-highlight">133</i>&nbsp;    }
+<i class="no-highlight">134</i>&nbsp;
+<i class="no-highlight">135</i>&nbsp;    public void validateRequiredProp(String value, String label) {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        if (StringUtils.isBlank(value)) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            throw new ConfigurationException(ERR_INVALID_ACCOUNT_CONFIG)</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                    .withReason(REASON_INVALID_ACCOUNT_CONFIG, label)</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    .withResolution(RESOLUTION_INVALID_ACCOUNT_CONFIG);</b>
+<i class="no-highlight">140</i>&nbsp;        }
+<i class="no-highlight">141</i>&nbsp;    }
+<i class="no-highlight">142</i>&nbsp;
+<i class="no-highlight">143</i>&nbsp;    @Override
+<i class="no-highlight">144</i>&nbsp;    public String connect() throws ExecutionException {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        triggerRequest(TYPE_REQUEST_TOKEN);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        return StringUtils.EMPTY;</b>
+<i class="no-highlight">147</i>&nbsp;    }
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;    @Override
+<i class="no-highlight">150</i>&nbsp;    public void disconnect() throws ExecutionException {
+<i class="no-highlight">151</i>&nbsp;        // NO OP
+<i class="no-highlight">152</i>&nbsp;    }
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;    public UserScope getUserScope() {
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        return userScope;</b>
+<i class="no-highlight">156</i>&nbsp;    }
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;    public AmazonS3Client getAWSClient() throws SnapDataException {
+<i class="no-highlight">159</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            BasicAWSCredentials awsCredentials = new BasicAWSCredentials(awsAccessId, awsSecretKey);</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            return new AmazonS3Client(awsCredentials, S3UrlConnection.createClientConfiguration());</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        } catch (IllegalArgumentException e) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            throw new SnapDataException(e,</b>
+<i class="no-highlight">164</i>&nbsp;                    ReltioSnapConnectorMessages.ACCOUNT_AWS_CREDENTIALS_ERROR)
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                    .withResolution(ACCOUNT_AWS_CREDENTIALS_RES);</b>
+<i class="no-highlight">167</i>&nbsp;        }
+<i class="no-highlight">168</i>&nbsp;    }
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;    public void setHttpClient(RestHttpClient httpClient) {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        this.httpClient = httpClient;</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    public void refresh() {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        triggerRequest(TYPE_REFRESH_TOKEN);</b>
+<i class="no-highlight">176</i>&nbsp;    }
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;    private void triggerRequest(String requestType) {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        HttpUriRequest request = getTokenRequest(requestType);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        Map&lt;String, Object&gt; responseMap = makeRequest(httpClient, request, requestType);</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        processTokenResponse(requestType, responseMap);</b>
+<i class="no-highlight">182</i>&nbsp;    }
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;    private void processTokenResponse(String action, Map&lt;String, Object&gt; responseMap) {
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        logger.trace(&quot;setting access token into userScope to {}&quot;, action);</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        userScope.setAccessToken((String) responseMap.get(FIELD_ACCESS_TOKEN));</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        userScope.setRefreshToken((String) responseMap.get(FIELD_REFRESH_TOKEN));</b>
+<i class="no-highlight">188</i>&nbsp;
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        Object expiresIn = responseMap.get(EXPIRES_IN);</b>
+<i class="no-highlight">190</i>&nbsp;
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        if (expiresIn instanceof Number) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            int expiryIn = ((Number) expiresIn).intValue();</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            long expirationTime = new Date().getTime() + expiryIn * 1000L;</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;            userScope.setExpiresIn(expirationTime);</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            logger.debug(&quot;No expiry_in parameter found&quot;);</b>
+<i class="no-highlight">197</i>&nbsp;        }
+<i class="no-highlight">198</i>&nbsp;    }
+<i class="no-highlight">199</i>&nbsp;
+<i class="no-highlight">200</i>&nbsp;    private HttpUriRequest getTokenRequest(String requestType) {
+<i class="no-highlight">201</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            URIBuilder uriBuilder = new URIBuilder(oauthTokenURL);</b>
+<i class="no-highlight">203</i>&nbsp;
+<b class="nc"><i class="no-highlight">204</i>&nbsp;            if (TYPE_REFRESH_TOKEN.equals(requestType)) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                uriBuilder.addParameter(GRANT_TYPE_KEY, GRANT_TYPE_REFRESH_VALUE)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                        .addParameter(REFRESH_TOKEN_KEY, userScope.getRefreshToken());</b>
+<i class="no-highlight">207</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                uriBuilder.addParameter(GRANT_TYPE_KEY, GRANT_TYPE_VALUE)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                        .addParameter(USER_NAME_KEY, username)</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                        .addParameter(PASSWORD_KEY, password);</b>
+<i class="no-highlight">211</i>&nbsp;            }
+<i class="no-highlight">212</i>&nbsp;
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            URI uri = uriBuilder.build();</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            HttpPost postRequest = new HttpPost(uri);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            postRequest.addHeader(AUTHORIZATION_KEY, String.format(BASIC_TOKEN, oauthTokenAPIKey));</b>
+<i class="no-highlight">216</i>&nbsp;
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            return postRequest;</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        } catch (URISyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            throw new ExecutionException(e, String.format(CANNOT_MAKE_REQUEST, oauthTokenURL))</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                    .withResolution(PLEASE_VERIFY_TENANT_URL_ON_ACCOUNT);</b>
+<i class="no-highlight">222</i>&nbsp;        }
+<i class="no-highlight">223</i>&nbsp;    }
+<i class="no-highlight">224</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

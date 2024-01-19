@@ -1,0 +1,238 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Lookup</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.netsuite</a>
+</div>
+
+<h1>Coverage Summary for Class: Lookup (com.snaplogic.snaps.netsuite)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Lookup</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.netsuite;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.xsd.schema.SchemaCollectionContext;
+<i class="no-highlight">25</i>&nbsp;import com.sun.xml.xsom.XSComplexType;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">28</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">31</i>&nbsp;import java.util.List;
+<i class="no-highlight">32</i>&nbsp;import java.util.Map;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.netsuite.Messages.LOOKUP_PURPOSE;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.netsuite.Messages.LOOKUP_TITLE;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.netsuite.Messages.UNEXPECTED_TYPE_ENCOUNTERED_FOR_CUSTOM_FIELDS;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;/**
+<i class="no-highlight">39</i>&nbsp; * Snap that performs a NetSuite &quot;get&quot; operation for each input document.
+<i class="no-highlight">40</i>&nbsp; */
+<i class="no-highlight">41</i>&nbsp;@General(title = LOOKUP_TITLE, purpose = LOOKUP_PURPOSE)
+<i class="no-highlight">42</i>&nbsp;@Version(snap = 3)
+<i class="no-highlight">43</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">44</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">45</i>&nbsp;@Category(snap = SnapCategory.READ)
+<b class="nc"><i class="no-highlight">46</i>&nbsp;public class Lookup extends NetSuiteCommon implements InputSchemaProvider {</b>
+<i class="no-highlight">47</i>&nbsp;
+<b class="nc"><i class="no-highlight">48</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(Lookup.class);</b>
+<i class="no-highlight">49</i>&nbsp;    private static final String RECORD_FIELD_PATH = &quot;soapenv:Body.getResponse.readResponse.record&quot;;
+<i class="no-highlight">50</i>&nbsp;    private static final String CUSTOM_FIELD_PATH = RECORD_FIELD_PATH + &quot;.%s:customFieldList.platformCore:customField&quot;;
+<i class="no-highlight">51</i>&nbsp;    private static final String XMLNS = &quot;@xmlns:&quot;;
+<i class="no-highlight">52</i>&nbsp;    private static final String SCRIPT_ID = &quot;@scriptId&quot;;
+<i class="no-highlight">53</i>&nbsp;    private static final String PLATFORM_CORE_VALUE = &quot;platformCore:value&quot;;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;    static final String OPERATION = &quot;get&quot;;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;    @Override
+<i class="no-highlight">58</i>&nbsp;    protected String getDefaultOperation() {
+<b class="nc"><i class="no-highlight">59</i>&nbsp;        return OPERATION;</b>
+<i class="no-highlight">60</i>&nbsp;    }
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;    @Override
+<i class="no-highlight">63</i>&nbsp;    protected Document postProcessResponse(final Document responseDocument) {
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        Object documentData = responseDocument.get();</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        Map&lt;String, Object&gt; records = jsonPathUtil.nullableRead(RECORD_FIELD_PATH, documentData);</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        String namespace = findObjectNameSpace(records);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        if (namespace != null) {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            String customFieldPath = String.format(CUSTOM_FIELD_PATH, namespace);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; customFields = null;</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;            Object customFieldObject = null;</b>
+<i class="no-highlight">71</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                customFieldObject = jsonPathUtil.nullableRead(customFieldPath,</b>
+<i class="no-highlight">73</i>&nbsp;                        documentData);
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                if (customFieldObject != null) {</b>
+<i class="no-highlight">75</i>&nbsp;                    // In case of more than one custom fields are returned
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                    customFields = (List&lt;Map&lt;String, Object&gt;&gt;) customFieldObject;</b>
+<i class="no-highlight">77</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">78</i>&nbsp;            } catch (ClassCastException e) {</b>
+<i class="no-highlight">79</i>&nbsp;                // In case of only one custom field is returned
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                if (customFieldObject instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                    Map&lt;String, Object&gt; customFieldMap = (Map&lt;String, Object&gt;) customFieldObject;</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                    customFields = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                    customFields.add(customFieldMap);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                    LOGGER.debug(UNEXPECTED_TYPE_ENCOUNTERED_FOR_CUSTOM_FIELDS,</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                            customFieldObject.getClass());</b>
+<i class="no-highlight">87</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            if (customFields != null &amp;&amp; customFields.size() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                jsonPathUtil.write(documentData, customFieldPath, null);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                Map&lt;String, Object&gt; newFieldDefs = Maps.newHashMapWithExpectedSize(customFields</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                        .size());</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                for (Map&lt;String, Object&gt; customFieldDef : customFields) {</b>
+<i class="no-highlight">94</i>&nbsp;                    // { &quot;some field label&quot; : &quot;its value&quot; }
+<i class="no-highlight">95</i>&nbsp;                    // internal id does not seem needed. We can map it on the write using the
+<i class="no-highlight">96</i>&nbsp;                    // label of the field def.
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                    String fieldName = jsonPathUtil.nullableRead(SCRIPT_ID, customFieldDef);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                    Object customFieldValue = jsonPathUtil.nullableRead(PLATFORM_CORE_VALUE,</b>
+<i class="no-highlight">99</i>&nbsp;                            customFieldDef);
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                    newFieldDefs.put(fieldName, customFieldValue);</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                jsonPathUtil.write(documentData, customFieldPath, newFieldDefs);</b>
+<i class="no-highlight">103</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">104</i>&nbsp;            return super.postProcessResponse(responseDocument);</b>
+<i class="no-highlight">105</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        return responseDocument;</b>
+<i class="no-highlight">107</i>&nbsp;    }
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;    /**
+<i class="no-highlight">110</i>&nbsp;     * Attempts to find the object namespace in the response, which is needed for the path that
+<i class="no-highlight">111</i>&nbsp;     * returns the custom fields.
+<i class="no-highlight">112</i>&nbsp;     *
+<i class="no-highlight">113</i>&nbsp;     * @param records as the current map of records that were returned in the response
+<i class="no-highlight">114</i>&nbsp;     *
+<i class="no-highlight">115</i>&nbsp;     * @return the object namespace if any
+<i class="no-highlight">116</i>&nbsp;     */
+<i class="no-highlight">117</i>&nbsp;    private String findObjectNameSpace(Map&lt;String, Object&gt; records) {
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        if (records != null) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            for (String key : records.keySet()) {</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                int index = key.indexOf(XMLNS);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                if (index != -1) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                    return key.substring(index + XMLNS.length(), key.length());</b>
+<i class="no-highlight">123</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            }</b>
+<i class="no-highlight">125</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        return null;</b>
+<i class="no-highlight">127</i>&nbsp;    }
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    @Override
+<i class="no-highlight">130</i>&nbsp;    public XSComplexType resolve(SchemaCollectionContext context, XSComplexType xsComplexType) {
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        return resolveBaseRef(context, xsComplexType);</b>
+<i class="no-highlight">132</i>&nbsp;    }
+<i class="no-highlight">133</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

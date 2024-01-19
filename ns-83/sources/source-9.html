@@ -1,0 +1,259 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ManageTopics</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.amazonsns</a>
+</div>
+
+<h1>Coverage Summary for Class: ManageTopics (com.snaplogic.snaps.amazonsns)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ManageTopics</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/70)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.amazonsns;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">31</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">32</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">33</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">34</i>&nbsp;import software.amazon.awssdk.services.sns.SnsClient;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import java.util.List;
+<i class="no-highlight">37</i>&nbsp;import java.util.Map;
+<i class="no-highlight">38</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snaps.amazonsns.Messages.*;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;/**
+<i class="no-highlight">43</i>&nbsp; * This class contains logic that will be used for Creating topic in Amazon SNS
+<i class="no-highlight">44</i>&nbsp; */
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;@General(title = AMAZON_SNS_MANAGE_TOPIC_LABEL, purpose = AMAZON_SNS_MANAGE_TOPIC_DESC)
+<i class="no-highlight">47</i>&nbsp;@Inputs(max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">48</i>&nbsp;@Outputs(max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">49</i>&nbsp;@Errors(offers = {ViewType.DOCUMENT})
+<i class="no-highlight">50</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">51</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<b class="nc"><i class="no-highlight">52</i>&nbsp;public class ManageTopics extends AbstractAmazonSNSSnap {</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;    private final static Logger LOGGER = LoggerFactory.getLogger(ManageTopics.class);</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;    private final static List&lt;String&gt; ATTRIBUTE_NAMES = ImmutableList.of(</b>
+<i class="no-highlight">55</i>&nbsp;            &quot;DeliveryPolicy&quot;,
+<i class="no-highlight">56</i>&nbsp;            &quot;DisplayName&quot;,
+<i class="no-highlight">57</i>&nbsp;            &quot;Policy&quot;,
+<i class="no-highlight">58</i>&nbsp;            &quot;KmsMasterKeyId&quot;,
+<i class="no-highlight">59</i>&nbsp;            &quot;ContentBasedDeduplication&quot;
+<i class="no-highlight">60</i>&nbsp;    );
+<i class="no-highlight">61</i>&nbsp;    private List&lt;ExpressionProperty&gt; tagExprList;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;    @Override
+<i class="no-highlight">64</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        super.defineProperties(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        defineTopicNames(propertyBuilder, TOPIC_NAME_DESCRIPTION, true);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        defineOperation(propertyBuilder, SUPPORTED_TOPIC_OBJECT_TYPES);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                .describe(MSG_ATTR_NAME_KEY, MSG_ATTR_NAME_LABEL, ATTR_NAME_DESC)</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                .enableIf(String.format(CONDITION_PROPERTY_EQUALS_FMT, OBJECT_TYPE_PROP, TOPIC_OBJECT_TYPE_SET_ATTRIBUTE))</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                .withSuggestions(((suggestionBuilder, propertyValues) -&gt;</b>
+<i class="no-highlight">74</i>&nbsp;                        suggestionBuilder
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                                .node(MSG_ATTR_NAME_KEY)</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                                .suggestions(ATTRIBUTE_NAMES.toArray(new String[0]))))</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                .describe(MSG_ATTR_VALUE_KEY, MSG_ATTR_VALUE_LABEL, MANAGE_ATTR_VALUE_DESC)</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                .enableIf(String.format(CONDITION_PROPERTY_EQUALS_FMT, OBJECT_TYPE_PROP, TOPIC_OBJECT_TYPE_SET_ATTRIBUTE))</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        defineTagsAttributes(propertyBuilder,</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                String.format(CONDITION_PROPERTY_EQUALS_FMT, OBJECT_TYPE_PROP,</b>
+<i class="no-highlight">85</i>&nbsp;                TOPIC_OBJECT_TYPE_SET_TAG_ATTRIBUTE));
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        defineRemoveTagNamesAttributes(propertyBuilder);</b>
+<i class="no-highlight">87</i>&nbsp;    }
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;    @Override
+<i class="no-highlight">90</i>&nbsp;    public void configure(PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        super.configure(propertyValues);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        objectType = propertyValues.get(OBJECT_TYPE_PROP);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        topicArnExpression = propertyValues.getAsExpression(TOPIC_ARN_PROP);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        attributeKeyExpression = propertyValues.getAsExpression(MSG_ATTR_NAME_KEY);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        attributeValueExpression = propertyValues.getAsExpression(MSG_ATTR_VALUE_KEY);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        tagNamesExpression = propertyValues.getAsExpression(REMOVE_TAGS_ATTR_NAME_KEY);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        configureTagsAttributes(propertyValues);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; removeTagListAttr = propertyValues.get(REMOVE_TAGS_ATTR_LIST_KEY);</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        if(removeTagListAttr == null) {</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            tagExprList = Lists.newArrayList();</b>
+<i class="no-highlight">101</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            tagExprList = removeTagListAttr.stream()</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                    .map(entry -&gt; propertyValues.getExpressionPropertyFor(entry, REMOVE_TAGS_ATTR_NAME_KEY))</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                    .collect(Collectors.toList());</b>
+<i class="no-highlight">105</i>&nbsp;        }
+<i class="no-highlight">106</i>&nbsp;    }
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    @Override
+<i class="no-highlight">109</i>&nbsp;    protected void process(Document document, String arg1) {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        topicArn = topicArnExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        attributeKey = attributeKeyExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        attributeValue = attributeValueExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        tagNames = tagNamesExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        List&lt;String&gt; missingFieldsList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        Map&lt;String, String&gt; tagsAttributes = evaluateTagsAttributes(document);</b>
+<i class="no-highlight">116</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            region = evaluateRegion(document);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            SnsClient snsClient = getSnsClient(region);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            switch (objectType) {</b>
+<i class="no-highlight">120</i>&nbsp;                case TOPIC_OBJECT_TYPE_SET_ATTRIBUTE:
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                    if (StringUtils.isEmpty(attributeKey)) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                        missingFieldsList.add(MSG_ATTR_NAME_LABEL);</b>
+<i class="no-highlight">123</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                    displayErrorsForMissingFields(missingFieldsList, TOPIC_OBJECT_TYPE_SET_ATTRIBUTE);</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                    updateTopicAttributes(snsClient, topicArn, attributeKey, attributeValue, document);</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                    break;</b>
+<i class="no-highlight">127</i>&nbsp;                case TOPIC_OBJECT_TYPE_SET_TAG_ATTRIBUTE:
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                    if (tagsAttributes.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                        missingFieldsList.add(TAGS_ATTR_TABLE_LABEL);</b>
+<i class="no-highlight">130</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                    displayErrorsForMissingFields(missingFieldsList, TOPIC_OBJECT_TYPE_SET_TAG_ATTRIBUTE);</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                    updateTopicTagAttributes(snsClient, topicArn, tagsAttributes, document);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                    break;</b>
+<i class="no-highlight">134</i>&nbsp;
+<i class="no-highlight">135</i>&nbsp;                case TOPIC_OBJECT_TYPE_REMOVE_TAG_ATTRIBUTES:
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    if (tagExprList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                        missingFieldsList.add(REMOVE_TAGS_ATTR_NAME_LABEL);</b>
+<i class="no-highlight">138</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    List&lt;String&gt; tagList =</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                            tagExprList.stream()</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                                    .map(expr -&gt; (String)expr.eval(document))</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                                    .collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                    displayErrorsForMissingFields(missingFieldsList, TOPIC_OBJECT_TYPE_REMOVE_TAG_ATTRIBUTES);</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                    removeTopicTagAttributes(snsClient, topicArn, tagList, document);</b>
+<i class="no-highlight">145</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            errorViews.write(e, document);</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            SnapDataException snapDataException = new SnapDataException(e, ERROR_UPDATING_TOPIC)</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                    .withReason(e.getMessage()).withResolution(ERR_INPUT_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            errorViews.write(snapDataException, document);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        }</b>
+<i class="no-highlight">153</i>&nbsp;    }
+<i class="no-highlight">154</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

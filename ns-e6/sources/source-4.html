@@ -1,0 +1,1168 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > GoogleDirectoryUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.google.directory</a>
+</div>
+
+<h1>Coverage Summary for Class: GoogleDirectoryUtils (com.snaplogic.snaps.google.directory)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GoogleDirectoryUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/520)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.google.directory;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.datatype.joda.JodaModule;
+<i class="no-highlight">15</i>&nbsp;import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+<i class="no-highlight">16</i>&nbsp;import com.google.api.services.directory.Directory;
+<i class="no-highlight">17</i>&nbsp;import com.google.api.services.directory.DirectoryRequest;
+<i class="no-highlight">18</i>&nbsp;import com.google.api.services.directory.model.Group;
+<i class="no-highlight">19</i>&nbsp;import com.google.api.services.directory.model.Groups;
+<i class="no-highlight">20</i>&nbsp;import com.google.api.services.directory.model.OrgUnit;
+<i class="no-highlight">21</i>&nbsp;import com.google.api.services.directory.model.OrgUnits;
+<i class="no-highlight">22</i>&nbsp;import com.google.api.services.directory.model.User;
+<i class="no-highlight">23</i>&nbsp;import com.google.api.services.directory.model.UserAddress;
+<i class="no-highlight">24</i>&nbsp;import com.google.api.services.directory.model.UserEmail;
+<i class="no-highlight">25</i>&nbsp;import com.google.api.services.directory.model.UserExternalId;
+<i class="no-highlight">26</i>&nbsp;import com.google.api.services.directory.model.UserIm;
+<i class="no-highlight">27</i>&nbsp;import com.google.api.services.directory.model.UserName;
+<i class="no-highlight">28</i>&nbsp;import com.google.api.services.directory.model.UserOrganization;
+<i class="no-highlight">29</i>&nbsp;import com.google.api.services.directory.model.UserPhone;
+<i class="no-highlight">30</i>&nbsp;import com.google.api.services.directory.model.UserPhoto;
+<i class="no-highlight">31</i>&nbsp;import com.google.api.services.directory.model.UserRelation;
+<i class="no-highlight">32</i>&nbsp;import com.google.api.services.directory.model.Users;
+<i class="no-highlight">33</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.common.JsonFactoryModule;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">43</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">46</i>&nbsp;import java.security.MessageDigest;
+<i class="no-highlight">47</i>&nbsp;import java.security.NoSuchAlgorithmException;
+<i class="no-highlight">48</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">49</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">50</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">51</i>&nbsp;import java.util.List;
+<i class="no-highlight">52</i>&nbsp;import java.util.Map;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snaps.google.directory.Constants.*;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.google.directory.Messages.*;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;/**
+<i class="no-highlight">58</i>&nbsp; * The utility class for Google Directory snaps
+<i class="no-highlight">59</i>&nbsp; *
+<i class="no-highlight">60</i>&nbsp; * @author akallamsetti
+<i class="no-highlight">61</i>&nbsp; */
+<b class="nc"><i class="no-highlight">62</i>&nbsp;public class GoogleDirectoryUtils {</b>
+<i class="no-highlight">63</i>&nbsp;    public static final String SCHEMA_NAME = &quot;schemaName&quot;;
+<i class="no-highlight">64</i>&nbsp;    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+<b class="nc"><i class="no-highlight">65</i>&nbsp;            .registerModule(new JsonFactoryModule())</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;            .registerModule(new JodaModule())</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;            .registerModule(new JavaTimeModule());</b>
+<i class="no-highlight">68</i>&nbsp;    public static final String CUSTOM_SCHEMAS = &quot;customSchemas&quot;;
+<i class="no-highlight">69</i>&nbsp;    public static final String FIELD_NAME = &quot;fieldName&quot;;
+<i class="no-highlight">70</i>&nbsp;    public static final String FIELD_VALUE = &quot;fieldValue&quot;;
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;    /**
+<i class="no-highlight">73</i>&nbsp;     * Reads user data from Google Directory
+<i class="no-highlight">74</i>&nbsp;     *
+<i class="no-highlight">75</i>&nbsp;     * @param userKey         as String variable
+<i class="no-highlight">76</i>&nbsp;     * @param userRequest     as user request
+<i class="no-highlight">77</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">78</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">79</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">80</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">81</i>&nbsp;     */
+<i class="no-highlight">82</i>&nbsp;    public void readUser(String userKey, DirectoryRequest userRequest, Directory directory,
+<i class="no-highlight">83</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews)
+<i class="no-highlight">84</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        if (StringUtils.isNotBlank(userKey)) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;            Directory.Users.Get user = (Directory.Users.Get) userRequest;</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            User current = user.execute();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(current,</b>
+<i class="no-highlight">89</i>&nbsp;                    Map.class)));
+<i class="no-highlight">90</i>&nbsp;            return;
+<i class="no-highlight">91</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        Directory.Users.List listReq = (Directory.Users.List) userRequest;</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        if (listReq.getPageToken() != null || listReq.containsKey(EVENT)</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                || listReq.getOrderBy() != null || listReq.getSortOrder() != null) {</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;            Users userList = listReq.execute();</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;            writeUsersToOutputView(userList, documentUtility, outputViews);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        } else if (listReq.getMaxResults() != null) {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            int maxRecords = 500;</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            int maxResults = listReq.getMaxResults();</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            int resultsToFetch = maxResults;</b>
+<i class="no-highlight">101</i>&nbsp;            do {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                if (resultsToFetch &lt;= maxRecords) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                    listReq.setMaxResults(resultsToFetch);</b>
+<i class="no-highlight">104</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                    listReq.setMaxResults(maxRecords);</b>
+<i class="no-highlight">106</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                Users userList = listReq.execute();</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                writeUsersToOutputView(userList, documentUtility, outputViews);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                listReq.setPageToken(userList.getNextPageToken());</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                resultsToFetch = resultsToFetch - maxRecords;</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            } while ((listReq.getPageToken() != null &amp;&amp; listReq.getPageToken().length() &gt; 0)</b>
+<i class="no-highlight">112</i>&nbsp;                    &amp;&amp; resultsToFetch &gt; 0);
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            users(listReq, documentUtility, outputViews);</b>
+<i class="no-highlight">115</i>&nbsp;        }
+<i class="no-highlight">116</i>&nbsp;    }
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;    private void users(Directory.Users.List userRequest, DocumentUtility documentUtility,
+<i class="no-highlight">119</i>&nbsp;            OutputViews outputViews) throws IOException {
+<i class="no-highlight">120</i>&nbsp;        do {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            Users userList = userRequest.execute();</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            writeUsersToOutputView(userList, documentUtility, outputViews);</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;            userRequest.setPageToken(userList.getNextPageToken());</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        } while (userRequest.getPageToken() != null &amp;&amp; userRequest.getPageToken().length() &gt; 0);</b>
+<i class="no-highlight">125</i>&nbsp;    }
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;    protected void writeUsersToOutputView(Users userList, DocumentUtility documentUtility,
+<i class="no-highlight">128</i>&nbsp;            OutputViews outputViews) {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        for (User user : userList.getUsers()) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(</b>
+<i class="no-highlight">131</i>&nbsp;                    user, Map.class)));
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        }</b>
+<i class="no-highlight">133</i>&nbsp;    }
+<i class="no-highlight">134</i>&nbsp;
+<i class="no-highlight">135</i>&nbsp;    /**
+<i class="no-highlight">136</i>&nbsp;     * Reads group data from Google Directory
+<i class="no-highlight">137</i>&nbsp;     *
+<i class="no-highlight">138</i>&nbsp;     * @param groupKey        as String variable
+<i class="no-highlight">139</i>&nbsp;     * @param groupRequest    as the group request
+<i class="no-highlight">140</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">141</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">142</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">143</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">144</i>&nbsp;     */
+<i class="no-highlight">145</i>&nbsp;    public void readGroup(String groupKey, String userKey, String fields,
+<i class="no-highlight">146</i>&nbsp;            Directory.Groups.List groupRequest, Directory directory,
+<i class="no-highlight">147</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews) throws IOException {
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        if (StringUtils.isNotEmpty(groupKey)) {</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            Directory.Groups.Get grp = directory.groups().get(groupKey);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            Group group = grp.execute();</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(group,</b>
+<i class="no-highlight">152</i>&nbsp;                    Map.class)));
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        } else if ((StringUtils.isNotEmpty(userKey)) || (StringUtils.isNotEmpty(fields))) {</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            Directory.Groups.List grp = directory.groups().list().setUserKey(userKey)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                    .setFields(fields);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            Groups group = grp.execute();</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(group,</b>
+<i class="no-highlight">158</i>&nbsp;                    Map.class)));
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        } else if (groupRequest.getMaxResults() != null) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            int maxRecords = 500;</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            int maxResults = groupRequest.getMaxResults();</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;            int resultsToFetch = maxResults;</b>
+<i class="no-highlight">163</i>&nbsp;            do {
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                if (resultsToFetch &lt;= maxRecords) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                    groupRequest.setMaxResults(resultsToFetch);</b>
+<i class="no-highlight">166</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                    groupRequest.setMaxResults(maxRecords);</b>
+<i class="no-highlight">168</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                Groups groupList = groupRequest.execute();</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                writeGroupsToOutputView(groupList, documentUtility, outputViews);</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                groupRequest.setPageToken(groupList.getNextPageToken());</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                resultsToFetch = resultsToFetch - maxRecords;</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;            } while (!groupRequest.getPageToken().isEmpty() &amp;&amp; resultsToFetch &gt; 0);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            groups(groupRequest, documentUtility, outputViews);</b>
+<i class="no-highlight">176</i>&nbsp;        }
+<i class="no-highlight">177</i>&nbsp;    }
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;    private void groups(Directory.Groups.List groupRequest, DocumentUtility documentUtility,
+<i class="no-highlight">180</i>&nbsp;            OutputViews outputViews)
+<i class="no-highlight">181</i>&nbsp;            throws IOException {
+<i class="no-highlight">182</i>&nbsp;        do {
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            Groups groupList = groupRequest.execute();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;            writeGroupsToOutputView(groupList, documentUtility, outputViews);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            groupRequest.setPageToken(groupList.getNextPageToken());</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        } while (groupRequest.getPageToken() != null &amp;&amp; groupRequest.getPageToken().length() &gt; 0);</b>
+<i class="no-highlight">187</i>&nbsp;    }
+<i class="no-highlight">188</i>&nbsp;
+<i class="no-highlight">189</i>&nbsp;    private void writeGroupsToOutputView(Groups groupList, DocumentUtility documentUtility,
+<i class="no-highlight">190</i>&nbsp;            OutputViews outputViews) {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        for (Group group : groupList.getGroups()) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(</b>
+<i class="no-highlight">193</i>&nbsp;                    group, Map.class)));
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        }</b>
+<i class="no-highlight">195</i>&nbsp;    }
+<i class="no-highlight">196</i>&nbsp;
+<i class="no-highlight">197</i>&nbsp;    /**
+<i class="no-highlight">198</i>&nbsp;     * Reads user photos data from Google Directory
+<i class="no-highlight">199</i>&nbsp;     *
+<i class="no-highlight">200</i>&nbsp;     * @param inputDocument   as the document from the inputView
+<i class="no-highlight">201</i>&nbsp;     * @param pairRoot        as the key value pairs from the table
+<i class="no-highlight">202</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">203</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">204</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">205</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">206</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">207</i>&nbsp;     */
+<i class="no-highlight">208</i>&nbsp;    public void readUserPhotos(Document inputDocument,
+<i class="no-highlight">209</i>&nbsp;            List&lt;Pair&lt;ExpressionProperty, String&gt;&gt; pairRoot, Directory directory,
+<i class="no-highlight">210</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">211</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        String userKey = null;</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        String fields = null;</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        if (pairRoot != null) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            for (Pair&lt;ExpressionProperty, String&gt; routeEntry : pairRoot) {</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                String key = routeEntry.getRight();</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                String value = routeEntry.getLeft().eval(inputDocument);</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                if (key != null &amp;&amp; value != null) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                    if (key.contains(USER_KEY)) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                        userKey = value;</b>
+<i class="no-highlight">221</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                    if (key.contains(FIELDS)) {</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                        fields = value;</b>
+<i class="no-highlight">224</i>&nbsp;                    }
+<i class="no-highlight">225</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">226</i>&nbsp;            }</b>
+<i class="no-highlight">227</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        if (StringUtils.isNotEmpty(userKey)) {</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;            Directory.Users.Photos.Get photo =</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                    directory.users().photos().get(userKey).setFields(fields);</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            UserPhoto userPhoto = photo.execute();</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;            outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(userPhoto,</b>
+<i class="no-highlight">233</i>&nbsp;                    Map.class)));
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;            Map&lt;String, Object&gt; error = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            error.put(ERROR, USER_KEY_NOT_AVAILABLE);</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(error),</b>
+<i class="no-highlight">238</i>&nbsp;                    USER_KEY_NOT_AVAILABLE)
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                    .withReason(USER_KEY_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                    .withResolution(USER_KEY_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            errorViews.write(ex);</b>
+<i class="no-highlight">242</i>&nbsp;        }
+<i class="no-highlight">243</i>&nbsp;    }
+<i class="no-highlight">244</i>&nbsp;
+<i class="no-highlight">245</i>&nbsp;    /**
+<i class="no-highlight">246</i>&nbsp;     * Reads org units data from Google Directory
+<i class="no-highlight">247</i>&nbsp;     *
+<i class="no-highlight">248</i>&nbsp;     * @param inputDocument   as the document from the inputView
+<i class="no-highlight">249</i>&nbsp;     * @param pairRoot        as the key value pairs from the table
+<i class="no-highlight">250</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">251</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">252</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">253</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">254</i>&nbsp;     */
+<i class="no-highlight">255</i>&nbsp;    public void readOrgUnits(Document inputDocument,
+<i class="no-highlight">256</i>&nbsp;            List&lt;Pair&lt;ExpressionProperty, String&gt;&gt; pairRoot, Directory directory,
+<i class="no-highlight">257</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews)
+<i class="no-highlight">258</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        String customerID = null;</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        String type = null;</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        String field = null;</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;        String orgUnitGet = null;</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        String orgunitList = null;</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        if (pairRoot != null) {</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            for (Pair&lt;ExpressionProperty, String&gt; routeEntry : pairRoot) {</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                String key = routeEntry.getRight();</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                String value = routeEntry.getLeft().eval(inputDocument);</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                if (key != null &amp;&amp; value != null) {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                    switch (key) {</b>
+<i class="no-highlight">270</i>&nbsp;                        case CUSTOMER_ID:
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                            customerID = value;</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                            break;</b>
+<i class="no-highlight">273</i>&nbsp;                        case GET_ORG_UNIT_PATH:
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                            orgUnitGet = value;</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                            break;</b>
+<i class="no-highlight">276</i>&nbsp;                        case LIST_ORG_UNIT_PATH:
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                            orgunitList = value;</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                            break;</b>
+<i class="no-highlight">279</i>&nbsp;                        case TYPE:
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                            type = value;</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                            break;</b>
+<i class="no-highlight">282</i>&nbsp;                        case FIELDS:
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                            field = value;</b>
+<i class="no-highlight">284</i>&nbsp;                            break;
+<i class="no-highlight">285</i>&nbsp;                    }
+<i class="no-highlight">286</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;            customerID = StringUtils.isNotEmpty(customerID) ? customerID : DEFAULT_MY_CUSTOMER;</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;            if (StringUtils.isNotEmpty(orgUnitGet)) {</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                OrgUnit orgUnit = directory.orgunits().get(customerID, orgUnitGet)</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                        .setFields(field)</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                        .execute();</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                outputViews.write(documentUtility.newDocument(</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                        OBJECT_MAPPER.convertValue(orgUnit, Map.class)));</b>
+<i class="no-highlight">295</i>&nbsp;                return;
+<i class="no-highlight">296</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">297</i>&nbsp;            Directory.Orgunits.List org = directory.orgunits().list(customerID);</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            writeOrgUnitsToOutputView(org, type, field, orgunitList, documentUtility,</b>
+<i class="no-highlight">299</i>&nbsp;                        outputViews);
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;            Directory.Orgunits.List org = directory.orgunits().list(DEFAULT_MY_CUSTOMER);</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;            writeOrgUnitsToOutputView(org, type, field, orgunitList, documentUtility, outputViews);</b>
+<i class="no-highlight">303</i>&nbsp;        }
+<i class="no-highlight">304</i>&nbsp;    }
+<i class="no-highlight">305</i>&nbsp;
+<i class="no-highlight">306</i>&nbsp;    private void writeOrgUnitsToOutputView(Directory.Orgunits.List org, String type, String field,
+<i class="no-highlight">307</i>&nbsp;            String orgUnitPath, DocumentUtility documentUtility,
+<i class="no-highlight">308</i>&nbsp;            OutputViews outputViews) throws IOException {
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        org.setType(type)</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                .setFields(field)</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                .setOrgUnitPath(orgUnitPath);</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        OrgUnits orgUnits = org.execute();</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        if (orgUnits != null &amp;&amp; orgUnits.getOrganizationUnits() != null) {</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            for (OrgUnit orgUnit : orgUnits.getOrganizationUnits()) {</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(</b>
+<i class="no-highlight">316</i>&nbsp;                        orgUnit, Map.class)));
+<b class="nc"><i class="no-highlight">317</i>&nbsp;            }</b>
+<i class="no-highlight">318</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            outputViews.write(documentUtility.newDocument(Maps.newHashMap()));</b>
+<i class="no-highlight">320</i>&nbsp;        }
+<i class="no-highlight">321</i>&nbsp;    }
+<i class="no-highlight">322</i>&nbsp;
+<i class="no-highlight">323</i>&nbsp;    /**
+<i class="no-highlight">324</i>&nbsp;     * Creates user in Google Directory
+<i class="no-highlight">325</i>&nbsp;     *
+<i class="no-highlight">326</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">327</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">328</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">329</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">330</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">331</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">332</i>&nbsp;     */
+<i class="no-highlight">333</i>&nbsp;    public void createUser(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">334</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">335</i>&nbsp;            throws IOException, NoSuchAlgorithmException {
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        String familyName = NAME_FIRST_NAME.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;        String givenName = NAME_GIVEN_NAME.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        String password = PASSWORD.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;        String primaryEmail = PRIMARY_EMAIL.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;        if (StringUtils.isBlank(familyName) || StringUtils.isBlank(givenName)</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                || StringUtils.isBlank(password) || StringUtils.isBlank(primaryEmail)) {</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;            Map&lt;String, Object&gt; error = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            error.put(ERROR, CREATE_USER_DATA_NOT_AVALIABLE);</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(error),</b>
+<i class="no-highlight">345</i>&nbsp;                    CREATE_USER_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                    .withReason(CREATE_USER_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                    .withResolution(CREATE_USER_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">349</i>&nbsp;            return;
+<i class="no-highlight">350</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">351</i>&nbsp;        User user = new User();</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;        setRequiredUserProperties(user, familyName, givenName, password, primaryEmail);</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        setUserAddress(user, map);</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;        user.setChangePasswordAtNextLogin(Boolean.TRUE.equals(map.get(</b>
+<i class="no-highlight">355</i>&nbsp;                CHANGE_PASSWORD_AT_NEXT_LOGIN)));
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        setUserEmail(user, map);</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        setUserExternalIds(user, map);</b>
+<i class="no-highlight">358</i>&nbsp;        // TODO - Anil: this is not correct, the incoming document defines the hash function?
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        user.setHashFunction(HASH_FUNCTION);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        setUserIms(user, map);</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        user.setIncludeInGlobalAddressList(Boolean.TRUE.equals(map.get(</b>
+<i class="no-highlight">362</i>&nbsp;                INCLUDE_IN_GLOBAL_ADDRESS_LIST)));
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        user.setIpWhitelisted(Boolean.TRUE.equals(map.get(IP_WHITELISTED)));</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;        user.setOrgUnitPath((String) map.get(ORG_UNIT_PATH));</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        setUserOrganizations(user, map);</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;        setUserPhones(user, map);</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        setUserRelations(user, map);</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        setCustomSchemas(user, map);</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        user.setSuspended(Boolean.TRUE.equals(map.get(SUSPENDED)));</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;        User userData = directory.users().insert(user).execute();</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(userData,</b>
+<i class="no-highlight">372</i>&nbsp;                Map.class)));
+<i class="no-highlight">373</i>&nbsp;    }
+<i class="no-highlight">374</i>&nbsp;
+<i class="no-highlight">375</i>&nbsp;    private void setRequiredUserProperties(User user, String familyName, String givenName,
+<i class="no-highlight">376</i>&nbsp;            String password, String primaryEmail) throws NoSuchAlgorithmException {
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        UserName userName = new UserName();</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        userName.setFamilyName(familyName);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        userName.setGivenName(givenName);</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;        user.setName(userName);</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;        if (password != null) {</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;            user.setPassword(getMD5(password));</b>
+<i class="no-highlight">383</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">384</i>&nbsp;        user.setPrimaryEmail(primaryEmail);</b>
+<i class="no-highlight">385</i>&nbsp;    }
+<i class="no-highlight">386</i>&nbsp;
+<i class="no-highlight">387</i>&nbsp;    private void setUserAddress(User user, Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; entries = USER_ADDRESSES.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;        if (entries == null) {</b>
+<i class="no-highlight">390</i>&nbsp;            return;
+<i class="no-highlight">391</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">392</i>&nbsp;        List&lt;UserAddress&gt; userAddress = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;        for (Map&lt;String, Object&gt; entry : entries) {</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;            UserAddress address = new UserAddress();</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            address.setCountry((String) entry.get(ADDRESS_COUNTRY));</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;            address.setCountryCode((String) entry.get(ADDRESS_COUNTRY_CODE));</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;            address.setCustomType((String) entry.get(ADDRESS_CUSTOM_TYPE));</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;            address.setExtendedAddress((String) entry.get(ADDRESS_EXTENDED_ADDRESS));</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;            address.setLocality((String) entry.get(ADDRESS_LOCALITY));</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;            address.setPoBox((String) entry.get(ADDRESS_PO_BOX));</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;            address.setPostalCode((String) entry.get(ADDRESS_POSTAL_CODE));</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;            address.setPrimary(Boolean.TRUE.equals(entry.get(ADDRESS_PRIMARY)));</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;            address.setRegion((String) entry.get(ADDRESS_REGION));</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;            address.setSourceIsStructured(Boolean.TRUE.equals(entry.get</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                    (ADDRESS_SOURCE_IS_STRUCTURED)));</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;            address.setStreetAddress((String) entry.get(ADDRESS_STREET_ADDRESS));</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;            address.setType((String) entry.get(ADDRESS_TYPE));</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;            if (!address.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                userAddress.add(address);</b>
+<i class="no-highlight">410</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">411</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;        user.setAddresses(userAddress);</b>
+<i class="no-highlight">413</i>&nbsp;    }
+<i class="no-highlight">414</i>&nbsp;
+<i class="no-highlight">415</i>&nbsp;    private void setUserEmail(User user, Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">416</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; entries = USER_EMAILS.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;        if (entries == null) {</b>
+<i class="no-highlight">418</i>&nbsp;            return;
+<i class="no-highlight">419</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        List&lt;UserEmail&gt; userEmail = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;        for (Map&lt;String, Object&gt; entry : entries) {</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;            UserEmail email = new UserEmail();</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;            email.setAddress((String) entry.get(EMAILS_ADDRESS));</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;            email.setCustomType((String) entry.get(EMAILS_CUSTOM_TYPE));</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;            email.setPrimary(Boolean.TRUE.equals(entry.get(EMAILS_PRIMARY)));</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;            email.setType((String) entry.get(EMAILS_TYPE));</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;            if (!email.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                userEmail.add(email);</b>
+<i class="no-highlight">429</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">430</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;        user.setEmails(userEmail);</b>
+<i class="no-highlight">432</i>&nbsp;    }
+<i class="no-highlight">433</i>&nbsp;
+<i class="no-highlight">434</i>&nbsp;    private void setUserExternalIds(User user, Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">435</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; entries = USER_EXTERNAL_IDS.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;        if (entries == null) {</b>
+<i class="no-highlight">437</i>&nbsp;            return;
+<i class="no-highlight">438</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">439</i>&nbsp;        List&lt;UserExternalId&gt; userExternalIds = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;        for (Map&lt;String, Object&gt; entry : entries) {</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;            UserExternalId externalId = new UserExternalId();</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;            externalId.setCustomType((String) entry.get(EXTERNAL_IDS_CUSTOM_TYPE));</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;            externalId.setType((String) entry.get(EXTERNAL_IDS_TYPE));</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;            externalId.setValue((String) entry.get(EXTERNAL_IDS_VALUE));</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;            if (!externalId.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                userExternalIds.add(externalId);</b>
+<i class="no-highlight">447</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">448</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;        user.setExternalIds(userExternalIds);</b>
+<i class="no-highlight">450</i>&nbsp;    }
+<i class="no-highlight">451</i>&nbsp;
+<i class="no-highlight">452</i>&nbsp;    private void setUserIms(User user, Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">453</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; entries = USER_IMS.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;        if (entries == null) {</b>
+<i class="no-highlight">455</i>&nbsp;            return;
+<i class="no-highlight">456</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">457</i>&nbsp;        List&lt;UserIm&gt; userIms = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;        for (Map&lt;String, Object&gt; entry : entries) {</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;            UserIm im = new UserIm();</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;            im.setCustomProtocol((String) entry.get(IMS_CUSTOM_PROTOCOL));</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;            im.setCustomType((String) entry.get(IMS_CUSTOM_TYPE));</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;            im.setIm((String) entry.get(IMS_IM));</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;            im.setPrimary(Boolean.TRUE.equals(entry.get(IMS_PRIMARY)));</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;            im.setProtocol((String) entry.get(IMS_PROTOCOL));</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;            im.setType((String) entry.get(IMS_TYPE));</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;            if (!im.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                userIms.add(im);</b>
+<i class="no-highlight">468</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">469</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;        user.setIms(userIms);</b>
+<i class="no-highlight">471</i>&nbsp;    }
+<i class="no-highlight">472</i>&nbsp;
+<i class="no-highlight">473</i>&nbsp;    private void setUserOrganizations(User user, Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">474</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; entries = USER_ORGANIZATIONS.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;        if (entries == null) {</b>
+<i class="no-highlight">476</i>&nbsp;            return;
+<i class="no-highlight">477</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">478</i>&nbsp;        List&lt;UserOrganization&gt; userOrganizations = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;        for (Map&lt;String, Object&gt; entry : entries) {</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;            UserOrganization organization = new UserOrganization();</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;            organization.setCostCenter((String) entry.get(ORGANIZATIONS_COST_CENTER));</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;            organization.setCustomType((String) entry.get(ORGANIZATIONS_CUSTOM_TYPE));</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;            organization.setDepartment((String) entry.get(ORGANIZATIONS_DEPARTMENT));</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;            organization.setDescription((String) entry.get(ORGANIZATIONS_DESCRIPTION));</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;            organization.setDomain((String) entry.get(ORGANIZATIONS_DOMAIN));</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;            organization.setLocation((String) entry.get(ORGANIZATIONS_LOCATION));</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;            organization.setName((String) entry.get(ORGANIZATIONS_NAME));</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;            organization.setPrimary(Boolean.TRUE.equals(entry.get(ORGANIZATIONS_PRIMARY)));</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;            organization.setSymbol((String) entry.get(ORGANIZATIONS_SYMBOL));</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            organization.setTitle((String) entry.get(ORGANIZATIONS_TITLE));</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;            organization.setType((String) entry.get(ORGANIZATIONS_TYPE));</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;            if (!organization.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                userOrganizations.add(organization);</b>
+<i class="no-highlight">494</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">495</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;        user.setOrganizations(userOrganizations);</b>
+<i class="no-highlight">497</i>&nbsp;    }
+<i class="no-highlight">498</i>&nbsp;
+<i class="no-highlight">499</i>&nbsp;    private void setUserPhones(User user, Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">500</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; entries = USER_PHONES.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;        if (entries == null) {</b>
+<i class="no-highlight">502</i>&nbsp;            return;
+<i class="no-highlight">503</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">504</i>&nbsp;        List&lt;UserPhone&gt; userPhones = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;        for (Map&lt;String, Object&gt; entry : entries) {</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;            UserPhone phone = new UserPhone();</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;            phone.setCustomType((String) entry.get(PHONES_CUSTOM_TYPE));</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;            phone.setPrimary(Boolean.TRUE.equals(entry.get(PHONES_PRIMARY)));</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;            phone.setType((String) entry.get(PHONES_TYPE));</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;            phone.setValue((String) entry.get(PHONES_VALUE));</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;            if (!phone.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                userPhones.add(phone);</b>
+<i class="no-highlight">513</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">514</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;        user.setPhones(userPhones);</b>
+<i class="no-highlight">516</i>&nbsp;    }
+<i class="no-highlight">517</i>&nbsp;
+<i class="no-highlight">518</i>&nbsp;    private void setUserRelations(User user, Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">519</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; entries = USER_RELATIONS.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;        if (entries == null) {</b>
+<i class="no-highlight">521</i>&nbsp;            return;
+<i class="no-highlight">522</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">523</i>&nbsp;        List&lt;UserRelation&gt; userRelations = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;        for (Map&lt;String, Object&gt; entry : entries) {</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;            UserRelation relation = new UserRelation();</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;            relation.setCustomType((String) entry.get(RELATIONS_CUSTOM_TYPE));</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;            relation.setType((String) entry.get(RELATIONS_TYPE));</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;            relation.setValue((String) entry.get(RELATIONS_VALUE));</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;            if (!relation.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                userRelations.add(relation);</b>
+<i class="no-highlight">531</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">532</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;        user.setRelations(userRelations);</b>
+<i class="no-highlight">534</i>&nbsp;    }
+<i class="no-highlight">535</i>&nbsp;
+<i class="no-highlight">536</i>&nbsp;    private void setCustomSchemas(User user, Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">537</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; entries = (List&lt;Map&lt;String, Object&gt;&gt;) map.get(CUSTOM_SCHEMAS);</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;        if (entries == null) {</b>
+<i class="no-highlight">539</i>&nbsp;            return;
+<i class="no-highlight">540</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">541</i>&nbsp;        Map&lt;String, Object&gt; custom_attributes = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;        for (Map&lt;String, Object&gt; entry : entries) {</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;            String schema = (String) entry.get(SCHEMA_NAME);</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;            List&lt;Map&gt; fields = (List&lt;Map&gt;) entry.get(FIELDS);</b>
+<i class="no-highlight">545</i>&nbsp;            //ignore if either schema or fields are null
+<b class="nc"><i class="no-highlight">546</i>&nbsp;            if (fields == null || schema == null) {</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;                continue;</b>
+<i class="no-highlight">548</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">549</i>&nbsp;            Map attributes = new HashMap();</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;            for (Map&lt;String, Object&gt; attr : fields) {</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;                if (attr != null) {</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;                    attributes.put(attr.get(FIELD_NAME), attr.get(FIELD_VALUE));</b>
+<i class="no-highlight">553</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">554</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;            custom_attributes.put(schema, attributes);</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;        user.set(CUSTOM_SCHEMAS, custom_attributes);</b>
+<i class="no-highlight">558</i>&nbsp;    }
+<i class="no-highlight">559</i>&nbsp;
+<i class="no-highlight">560</i>&nbsp;    private String getMD5(String value) throws NoSuchAlgorithmException {
+<b class="nc"><i class="no-highlight">561</i>&nbsp;        MessageDigest md = MessageDigest.getInstance(HASH_FUNCTION);</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;        byte[] array = md.digest(value.getBytes());</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;        StringBuilder sb = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;        for (byte elem : array) {</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;            sb.append(Integer.toHexString((elem &amp; 0xFF) | 0x100).substring(1, 3));</b>
+<i class="no-highlight">566</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">567</i>&nbsp;        return sb.toString();</b>
+<i class="no-highlight">568</i>&nbsp;    }
+<i class="no-highlight">569</i>&nbsp;
+<i class="no-highlight">570</i>&nbsp;    /**
+<i class="no-highlight">571</i>&nbsp;     * Creates org units in Google Directory
+<i class="no-highlight">572</i>&nbsp;     *
+<i class="no-highlight">573</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">574</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">575</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">576</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">577</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">578</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">579</i>&nbsp;     */
+<i class="no-highlight">580</i>&nbsp;    public void createOrgUnits(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">581</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">582</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">583</i>&nbsp;        String name = (String) map.get(NAME);</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;        String parentOrgUnitPath = (String) map.get(PARENT_ORG_UNIT_PATH);</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;        String customerID = (String) map.get(CUSTOMER_ID);</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;        if (StringUtils.isBlank(name) || StringUtils.isBlank(parentOrgUnitPath)</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                || StringUtils.isBlank(customerID)) {</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;            Map&lt;String, Object&gt; error = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;            error.put(ERROR, CREATE_ORG_UNITS_DATA_NOT_AVALIABLE);</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(error),</b>
+<i class="no-highlight">591</i>&nbsp;                    CREATE_ORG_UNITS_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">592</i>&nbsp;                    .withReason(CREATE_ORG_UNITS_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">593</i>&nbsp;                    .withResolution(CREATE_ORG_UNITS_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">595</i>&nbsp;            return;
+<i class="no-highlight">596</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">597</i>&nbsp;        OrgUnit orgunit = new OrgUnit();</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;        orgunit.setName(name);</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;        orgunit.setParentOrgUnitPath(parentOrgUnitPath);</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;        orgunit.setBlockInheritance((Boolean) map.get(BLOCK_INHERITANCE));</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;        orgunit.setDescription((String) map.get(DESCRIPTION));</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;        orgunit.setOrgUnitPath((String) map.get(ORG_UNITS_PATH));</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;        OrgUnit orgUnitsData = directory.orgunits().insert(customerID, orgunit).execute();</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(orgUnitsData,</b>
+<i class="no-highlight">605</i>&nbsp;                Map.class)));
+<i class="no-highlight">606</i>&nbsp;    }
+<i class="no-highlight">607</i>&nbsp;
+<i class="no-highlight">608</i>&nbsp;    /**
+<i class="no-highlight">609</i>&nbsp;     * Creates group in Google Directory
+<i class="no-highlight">610</i>&nbsp;     *
+<i class="no-highlight">611</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">612</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">613</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">614</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">615</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">616</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">617</i>&nbsp;     */
+<i class="no-highlight">618</i>&nbsp;    public void createGroup(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">619</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">620</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">621</i>&nbsp;        String email = (String) map.get(EMAIL);</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;        if (StringUtils.isBlank(email)) {</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;            Map&lt;String, Object&gt; error = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;            error.put(ERROR, CREATE_GROUP_DATA_NOT_AVALIABLE);</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(error),</b>
+<i class="no-highlight">626</i>&nbsp;                    CREATE_GROUP_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">627</i>&nbsp;                    .withReason(CREATE_GROUP_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;                    .withResolution(CREATE_GROUP_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">630</i>&nbsp;            return;
+<i class="no-highlight">631</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">632</i>&nbsp;        Group group = new Group();</b>
+<b class="nc"><i class="no-highlight">633</i>&nbsp;        group.setEmail(email);</b>
+<b class="nc"><i class="no-highlight">634</i>&nbsp;        group.setDescription((String) map.get(DESCRIPTION));</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;        group.setName((String) map.get(NAME));</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;        Group groupData = directory.groups().insert(group).execute();</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(groupData,</b>
+<i class="no-highlight">638</i>&nbsp;                Map.class)));
+<i class="no-highlight">639</i>&nbsp;    }
+<i class="no-highlight">640</i>&nbsp;
+<i class="no-highlight">641</i>&nbsp;    /**
+<i class="no-highlight">642</i>&nbsp;     * Updates user in Google Directory
+<i class="no-highlight">643</i>&nbsp;     *
+<i class="no-highlight">644</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">645</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">646</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">647</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">648</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">649</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">650</i>&nbsp;     */
+<i class="no-highlight">651</i>&nbsp;    public void updateUser(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">652</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">653</i>&nbsp;            throws IOException, NoSuchAlgorithmException {
+<b class="nc"><i class="no-highlight">654</i>&nbsp;        String userKey = (String) map.get(USER_KEY);</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;        if (StringUtils.isBlank(userKey)) {</b>
+<b class="nc"><i class="no-highlight">656</i>&nbsp;            SnapDataException ex = new SnapDataException(USER_DATA_NOT_AVALIABLE)</b>
+<b class="nc"><i class="no-highlight">657</i>&nbsp;                    .withReason(USER_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">658</i>&nbsp;                    .withResolution(USER_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">659</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">660</i>&nbsp;            return;
+<i class="no-highlight">661</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">662</i>&nbsp;        User userUpdateData = directory.users().update(userKey, getUserData(map)).execute();</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(userUpdateData,</b>
+<i class="no-highlight">664</i>&nbsp;                Map.class)));
+<i class="no-highlight">665</i>&nbsp;    }
+<i class="no-highlight">666</i>&nbsp;
+<i class="no-highlight">667</i>&nbsp;    /**
+<i class="no-highlight">668</i>&nbsp;     * Patches user in Google Directory
+<i class="no-highlight">669</i>&nbsp;     *
+<i class="no-highlight">670</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">671</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">672</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">673</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">674</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">675</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">676</i>&nbsp;     */
+<i class="no-highlight">677</i>&nbsp;    public void patchUser(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">678</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">679</i>&nbsp;            throws IOException, NoSuchAlgorithmException {
+<b class="nc"><i class="no-highlight">680</i>&nbsp;        String userKey = (String) map.get(USER_KEY);</b>
+<b class="nc"><i class="no-highlight">681</i>&nbsp;        if (StringUtils.isBlank(userKey)) {</b>
+<b class="nc"><i class="no-highlight">682</i>&nbsp;            SnapDataException ex = new SnapDataException(</b>
+<i class="no-highlight">683</i>&nbsp;                    USER_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">684</i>&nbsp;                    .withReason(USER_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">685</i>&nbsp;                    .withResolution(USER_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">686</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">687</i>&nbsp;            return;
+<i class="no-highlight">688</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">689</i>&nbsp;        User userPatchData = directory.users().patch(userKey, getUserData(map)).execute();</b>
+<b class="nc"><i class="no-highlight">690</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(userPatchData,</b>
+<i class="no-highlight">691</i>&nbsp;                Map.class)));
+<i class="no-highlight">692</i>&nbsp;    }
+<i class="no-highlight">693</i>&nbsp;
+<i class="no-highlight">694</i>&nbsp;    private User getUserData(Map&lt;String, Object&gt; map) throws NoSuchAlgorithmException {
+<b class="nc"><i class="no-highlight">695</i>&nbsp;        User user = new User();</b>
+<b class="nc"><i class="no-highlight">696</i>&nbsp;        String familyName = NAME_FIRST_NAME.readStatic(map);</b>
+<b class="nc"><i class="no-highlight">697</i>&nbsp;        String givenName = NAME_GIVEN_NAME.readStatic(map);</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;        String password = PASSWORD.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;        String primaryEmail = PRIMARY_EMAIL.readStatic(map, null);</b>
+<b class="nc"><i class="no-highlight">700</i>&nbsp;        setRequiredUserProperties(user, familyName, givenName, password, primaryEmail);</b>
+<b class="nc"><i class="no-highlight">701</i>&nbsp;        setUserAddress(user, map);</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;        setUserEmail(user, map);</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;        setUserExternalIds(user, map);</b>
+<b class="nc"><i class="no-highlight">704</i>&nbsp;        if (password != null) {</b>
+<b class="nc"><i class="no-highlight">705</i>&nbsp;            user.setHashFunction(HASH_FUNCTION);</b>
+<i class="no-highlight">706</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">707</i>&nbsp;        setUserIms(user, map);</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;        Boolean value = (Boolean) map.get(INCLUDE_IN_GLOBAL_ADDRESS_LIST);</b>
+<b class="nc"><i class="no-highlight">709</i>&nbsp;        if (value != null) {</b>
+<b class="nc"><i class="no-highlight">710</i>&nbsp;            user.setIncludeInGlobalAddressList(value);</b>
+<i class="no-highlight">711</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">712</i>&nbsp;        value = (Boolean) map.get(IP_WHITELISTED);</b>
+<b class="nc"><i class="no-highlight">713</i>&nbsp;        if (value != null) {</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;            user.setIpWhitelisted(value);</b>
+<i class="no-highlight">715</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">716</i>&nbsp;        String orgPath = (String) map.get(ORG_UNIT_PATH);</b>
+<b class="nc"><i class="no-highlight">717</i>&nbsp;        if (orgPath != null) {</b>
+<b class="nc"><i class="no-highlight">718</i>&nbsp;            user.setOrgUnitPath(orgPath);</b>
+<i class="no-highlight">719</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">720</i>&nbsp;        setUserOrganizations(user, map);</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;        setUserPhones(user, map);</b>
+<b class="nc"><i class="no-highlight">722</i>&nbsp;        setUserRelations(user, map);</b>
+<b class="nc"><i class="no-highlight">723</i>&nbsp;        setCustomSchemas(user, map);</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;        value = (Boolean) map.get(SUSPENDED);</b>
+<b class="nc"><i class="no-highlight">725</i>&nbsp;        if (value != null) {</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;            user.setSuspended(value);</b>
+<i class="no-highlight">727</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">728</i>&nbsp;        return user;</b>
+<i class="no-highlight">729</i>&nbsp;    }
+<i class="no-highlight">730</i>&nbsp;
+<i class="no-highlight">731</i>&nbsp;    /**
+<i class="no-highlight">732</i>&nbsp;     * Updates org units in Google Directory
+<i class="no-highlight">733</i>&nbsp;     *
+<i class="no-highlight">734</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">735</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">736</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">737</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">738</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">739</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">740</i>&nbsp;     */
+<i class="no-highlight">741</i>&nbsp;    public void updateOrgUnits(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">742</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">743</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">744</i>&nbsp;        String orgUnitPath = (String) map.get(PARENT_ORG_UNIT_PATH);</b>
+<b class="nc"><i class="no-highlight">745</i>&nbsp;        String customerID = (String) map.get(CUSTOMER_ID);</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;        if (StringUtils.isBlank(orgUnitPath) || StringUtils.isBlank(customerID)) {</b>
+<b class="nc"><i class="no-highlight">747</i>&nbsp;            SnapDataException ex = new SnapDataException(ORG_UNITS_DATA_NOT_AVALIABLE)</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;                    .withReason(ORG_UNITS_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;                    .withResolution(ORG_UNITS_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">751</i>&nbsp;            return;
+<i class="no-highlight">752</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">753</i>&nbsp;        String orgUnit = (String) map.get(NAME);</b>
+<b class="nc"><i class="no-highlight">754</i>&nbsp;        OrgUnit orgUnitsUpdate = directory.orgunits()</b>
+<b class="nc"><i class="no-highlight">755</i>&nbsp;                .update(customerID, orgUnit, getOrgUnitsData(map))</b>
+<b class="nc"><i class="no-highlight">756</i>&nbsp;                .execute();</b>
+<b class="nc"><i class="no-highlight">757</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(orgUnitsUpdate,</b>
+<i class="no-highlight">758</i>&nbsp;                Map.class)));
+<i class="no-highlight">759</i>&nbsp;    }
+<i class="no-highlight">760</i>&nbsp;
+<i class="no-highlight">761</i>&nbsp;    /**
+<i class="no-highlight">762</i>&nbsp;     * Patches org units in Google Directory
+<i class="no-highlight">763</i>&nbsp;     *
+<i class="no-highlight">764</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">765</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">766</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">767</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">768</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">769</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">770</i>&nbsp;     */
+<i class="no-highlight">771</i>&nbsp;    public void patchOrgUnits(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">772</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">773</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">774</i>&nbsp;        String orgUnitPath = (String) map.get(PARENT_ORG_UNIT_PATH);</b>
+<b class="nc"><i class="no-highlight">775</i>&nbsp;        String customerID = (String) map.get(CUSTOMER_ID);</b>
+<b class="nc"><i class="no-highlight">776</i>&nbsp;        if (StringUtils.isBlank(orgUnitPath) || StringUtils.isBlank(customerID)) {</b>
+<b class="nc"><i class="no-highlight">777</i>&nbsp;            SnapDataException ex = new SnapDataException(ORG_UNITS_DATA_NOT_AVALIABLE)</b>
+<b class="nc"><i class="no-highlight">778</i>&nbsp;                    .withReason(ORG_UNITS_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">779</i>&nbsp;                    .withResolution(ORG_UNITS_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">780</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">781</i>&nbsp;            return;
+<i class="no-highlight">782</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">783</i>&nbsp;        String orgUnit = (String) map.get(NAME);</b>
+<b class="nc"><i class="no-highlight">784</i>&nbsp;        OrgUnit orgUnitsPatch = directory.orgunits()</b>
+<b class="nc"><i class="no-highlight">785</i>&nbsp;                .patch(customerID, orgUnit, getOrgUnitsData(map))</b>
+<b class="nc"><i class="no-highlight">786</i>&nbsp;                .execute();</b>
+<b class="nc"><i class="no-highlight">787</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(orgUnitsPatch,</b>
+<i class="no-highlight">788</i>&nbsp;                Map.class)));
+<i class="no-highlight">789</i>&nbsp;    }
+<i class="no-highlight">790</i>&nbsp;
+<i class="no-highlight">791</i>&nbsp;    private OrgUnit getOrgUnitsData(Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">792</i>&nbsp;        OrgUnit orgunit = new OrgUnit();</b>
+<b class="nc"><i class="no-highlight">793</i>&nbsp;        orgunit.setBlockInheritance((Boolean) map.get(BLOCK_INHERITANCE));</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;        orgunit.setDescription((String) map.get(DESCRIPTION));</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;        orgunit.setKind((String) map.get(KIND));</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;        orgunit.setName((String) map.get(NAME));</b>
+<b class="nc"><i class="no-highlight">797</i>&nbsp;        orgunit.setOrgUnitPath((String) map.get(ORG_UNITS_PATH));</b>
+<b class="nc"><i class="no-highlight">798</i>&nbsp;        orgunit.setParentOrgUnitPath((String) map.get(PARENT_ORG_UNIT_PATH));</b>
+<b class="nc"><i class="no-highlight">799</i>&nbsp;        return orgunit;</b>
+<i class="no-highlight">800</i>&nbsp;    }
+<i class="no-highlight">801</i>&nbsp;
+<i class="no-highlight">802</i>&nbsp;    /**
+<i class="no-highlight">803</i>&nbsp;     * Updates group in Google Directory
+<i class="no-highlight">804</i>&nbsp;     *
+<i class="no-highlight">805</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">806</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">807</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">808</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">809</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">810</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">811</i>&nbsp;     */
+<i class="no-highlight">812</i>&nbsp;    public void updateGroup(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">813</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">814</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">815</i>&nbsp;        String groupKey = (String) map.get(GROUP_KEY);</b>
+<b class="nc"><i class="no-highlight">816</i>&nbsp;        if (StringUtils.isBlank(groupKey)) {</b>
+<b class="nc"><i class="no-highlight">817</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(map),</b>
+<i class="no-highlight">818</i>&nbsp;                    GROUP_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">819</i>&nbsp;                    .withReason(GROUP_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">820</i>&nbsp;                    .withResolution(GROUP_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">821</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">822</i>&nbsp;            return;
+<i class="no-highlight">823</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">824</i>&nbsp;        Group groupUpdate = directory.groups().update(groupKey, getGroupData(map)).execute();</b>
+<b class="nc"><i class="no-highlight">825</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(groupUpdate,</b>
+<i class="no-highlight">826</i>&nbsp;                Map.class)));
+<i class="no-highlight">827</i>&nbsp;    }
+<i class="no-highlight">828</i>&nbsp;
+<i class="no-highlight">829</i>&nbsp;    /**
+<i class="no-highlight">830</i>&nbsp;     * Patches group in Google Directory
+<i class="no-highlight">831</i>&nbsp;     *
+<i class="no-highlight">832</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">833</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">834</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">835</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">836</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">837</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">838</i>&nbsp;     */
+<i class="no-highlight">839</i>&nbsp;    public void patchGroup(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">840</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">841</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">842</i>&nbsp;        String groupKey = (String) map.get(GROUP_KEY);</b>
+<b class="nc"><i class="no-highlight">843</i>&nbsp;        if (StringUtils.isBlank(groupKey)) {</b>
+<b class="nc"><i class="no-highlight">844</i>&nbsp;            Map&lt;String, Object&gt; error = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">845</i>&nbsp;            error.put(ERROR, CREATE_GROUP_DATA_NOT_AVALIABLE);</b>
+<b class="nc"><i class="no-highlight">846</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(error),</b>
+<i class="no-highlight">847</i>&nbsp;                    GROUP_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">848</i>&nbsp;                    .withReason(GROUP_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">849</i>&nbsp;                    .withResolution(GROUP_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">850</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">851</i>&nbsp;            return;
+<i class="no-highlight">852</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">853</i>&nbsp;        Group patchGroupData = directory.groups().patch(groupKey, getGroupData(map)).execute();</b>
+<b class="nc"><i class="no-highlight">854</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(patchGroupData,</b>
+<i class="no-highlight">855</i>&nbsp;                Map.class)));
+<i class="no-highlight">856</i>&nbsp;    }
+<i class="no-highlight">857</i>&nbsp;
+<i class="no-highlight">858</i>&nbsp;    private Group getGroupData(Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">859</i>&nbsp;        Group group = new Group();</b>
+<b class="nc"><i class="no-highlight">860</i>&nbsp;        group.setAdminCreated((Boolean) map.get(ADMIN_CREATED));</b>
+<b class="nc"><i class="no-highlight">861</i>&nbsp;        List&lt;String&gt; aliases = new ArrayList&lt;&gt;(Arrays.asList(((String) (map.get(ALIASES) == null</b>
+<b class="nc"><i class="no-highlight">862</i>&nbsp;                ? StringUtils.EMPTY : map.get(ALIASES)))</b>
+<b class="nc"><i class="no-highlight">863</i>&nbsp;                .split(SEPARATOR)));</b>
+<b class="nc"><i class="no-highlight">864</i>&nbsp;        group.setAliases(aliases);</b>
+<b class="nc"><i class="no-highlight">865</i>&nbsp;        group.setDescription((String) map.get(DESCRIPTION));</b>
+<b class="nc"><i class="no-highlight">866</i>&nbsp;        group.setEmail((String) map.get(EMAIL));</b>
+<b class="nc"><i class="no-highlight">867</i>&nbsp;        group.setId((String) map.get(ID));</b>
+<b class="nc"><i class="no-highlight">868</i>&nbsp;        group.setKind((String) map.get(KIND));</b>
+<b class="nc"><i class="no-highlight">869</i>&nbsp;        group.setName((String) map.get(NAME));</b>
+<b class="nc"><i class="no-highlight">870</i>&nbsp;        List&lt;String&gt; nonEditableAliases = new ArrayList&lt;&gt;(Arrays.asList(((String) (map.</b>
+<b class="nc"><i class="no-highlight">871</i>&nbsp;                get(NON_EDITABLE_ALIASES) == null ? StringUtils.EMPTY</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;                : map.get(NON_EDITABLE_ALIASES))).split(SEPARATOR)));</b>
+<b class="nc"><i class="no-highlight">873</i>&nbsp;        group.setNonEditableAliases(nonEditableAliases);</b>
+<b class="nc"><i class="no-highlight">874</i>&nbsp;        return group;</b>
+<i class="no-highlight">875</i>&nbsp;    }
+<i class="no-highlight">876</i>&nbsp;
+<i class="no-highlight">877</i>&nbsp;    /**
+<i class="no-highlight">878</i>&nbsp;     * Updates user photo in Google Directory
+<i class="no-highlight">879</i>&nbsp;     *
+<i class="no-highlight">880</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">881</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">882</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">883</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">884</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">885</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">886</i>&nbsp;     */
+<i class="no-highlight">887</i>&nbsp;    public void updateUserPhoto(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">888</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">889</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">890</i>&nbsp;        String userKey = (String) map.get(USER_KEY);</b>
+<b class="nc"><i class="no-highlight">891</i>&nbsp;        String photoData = (String) map.get(PHOTO_DATA);</b>
+<b class="nc"><i class="no-highlight">892</i>&nbsp;        if (StringUtils.isBlank(userKey) || StringUtils.isBlank(photoData)) {</b>
+<b class="nc"><i class="no-highlight">893</i>&nbsp;            SnapDataException ex = new SnapDataException(USER_PHOTOS_DATA_NOT_AVALIABLE)</b>
+<b class="nc"><i class="no-highlight">894</i>&nbsp;                    .withReason(USER_PHOTOS_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">895</i>&nbsp;                    .withResolution(USER_PHOTOS_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">896</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">897</i>&nbsp;            return;
+<i class="no-highlight">898</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">899</i>&nbsp;        UserPhoto userPhotoData = directory.users().photos().update(userKey, getUserPhotoData(map))</b>
+<b class="nc"><i class="no-highlight">900</i>&nbsp;                .execute();</b>
+<b class="nc"><i class="no-highlight">901</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(userPhotoData,</b>
+<i class="no-highlight">902</i>&nbsp;                Map.class)));
+<i class="no-highlight">903</i>&nbsp;    }
+<i class="no-highlight">904</i>&nbsp;
+<i class="no-highlight">905</i>&nbsp;    /**
+<i class="no-highlight">906</i>&nbsp;     * Patches user photo in Google Directory
+<i class="no-highlight">907</i>&nbsp;     *
+<i class="no-highlight">908</i>&nbsp;     * @param map             as the input data
+<i class="no-highlight">909</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">910</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">911</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">912</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">913</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">914</i>&nbsp;     */
+<i class="no-highlight">915</i>&nbsp;    public void patchUserPhoto(Map&lt;String, Object&gt; map, Directory directory,
+<i class="no-highlight">916</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">917</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">918</i>&nbsp;        String userKey = (String) map.get(USER_KEY);</b>
+<b class="nc"><i class="no-highlight">919</i>&nbsp;        if (StringUtils.isBlank(userKey)) {</b>
+<b class="nc"><i class="no-highlight">920</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(map),</b>
+<i class="no-highlight">921</i>&nbsp;                    USER_PHOTOS_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">922</i>&nbsp;                    .withReason(USER_PHOTOS_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">923</i>&nbsp;                    .withResolution(USER_PHOTOS_DATA_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">924</i>&nbsp;            errorViews.write(ex, map);</b>
+<i class="no-highlight">925</i>&nbsp;            return;
+<i class="no-highlight">926</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">927</i>&nbsp;        UserPhoto userPhotoData = directory.users().photos().patch(userKey, getUserPhotoData(map))</b>
+<b class="nc"><i class="no-highlight">928</i>&nbsp;                .execute();</b>
+<b class="nc"><i class="no-highlight">929</i>&nbsp;        outputViews.write(documentUtility.newDocument(OBJECT_MAPPER.convertValue(userPhotoData,</b>
+<i class="no-highlight">930</i>&nbsp;                Map.class)));
+<i class="no-highlight">931</i>&nbsp;    }
+<i class="no-highlight">932</i>&nbsp;
+<i class="no-highlight">933</i>&nbsp;    private UserPhoto getUserPhotoData(Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">934</i>&nbsp;        UserPhoto photoData = new UserPhoto();</b>
+<b class="nc"><i class="no-highlight">935</i>&nbsp;        photoData.setId((String) map.get(ID));</b>
+<b class="nc"><i class="no-highlight">936</i>&nbsp;        photoData.setKind((String) map.get(KIND));</b>
+<b class="nc"><i class="no-highlight">937</i>&nbsp;        photoData.setPhotoData((String) map.get(PHOTO_DATA));</b>
+<b class="nc"><i class="no-highlight">938</i>&nbsp;        photoData.setHeight((Integer) map.get(HEIGHT));</b>
+<b class="nc"><i class="no-highlight">939</i>&nbsp;        photoData.setWidth((Integer) map.get(WIDTH));</b>
+<b class="nc"><i class="no-highlight">940</i>&nbsp;        photoData.setMimeType((String) map.get(MIME_TYPE));</b>
+<b class="nc"><i class="no-highlight">941</i>&nbsp;        return photoData;</b>
+<i class="no-highlight">942</i>&nbsp;    }
+<i class="no-highlight">943</i>&nbsp;
+<i class="no-highlight">944</i>&nbsp;    /**
+<i class="no-highlight">945</i>&nbsp;     * Deletes user in Google Directory
+<i class="no-highlight">946</i>&nbsp;     *
+<i class="no-highlight">947</i>&nbsp;     * @param userKey         as the user key to be deleted
+<i class="no-highlight">948</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">949</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">950</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">951</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">952</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">953</i>&nbsp;     */
+<i class="no-highlight">954</i>&nbsp;    public void deleteUser(String userKey, Directory directory, DocumentUtility documentUtility,
+<i class="no-highlight">955</i>&nbsp;            OutputViews outputViews, ErrorViews errorViews) throws IOException {
+<b class="nc"><i class="no-highlight">956</i>&nbsp;        if (StringUtils.isBlank(userKey)) {</b>
+<b class="nc"><i class="no-highlight">957</i>&nbsp;            Map&lt;String, Object&gt; error = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">958</i>&nbsp;            error.put(ERROR, DELETE_USER_DATA_NOT_AVALIABLE);</b>
+<b class="nc"><i class="no-highlight">959</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(error),</b>
+<i class="no-highlight">960</i>&nbsp;                    DELETE_USER_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">961</i>&nbsp;                    .withReason(DELETE_USER_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">962</i>&nbsp;                    .withResolution(DELETE_USER_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">963</i>&nbsp;            errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">964</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">965</i>&nbsp;            Map&lt;String, Object&gt; userMap = new HashMap&lt;&gt;(1);</b>
+<b class="nc"><i class="no-highlight">966</i>&nbsp;            directory.users().delete(userKey).execute();</b>
+<b class="nc"><i class="no-highlight">967</i>&nbsp;            userMap.put(STATUS, StringUtils.join(DELETED_USER_KEY, userKey));</b>
+<b class="nc"><i class="no-highlight">968</i>&nbsp;            outputViews.write(documentUtility.newDocument(userMap));</b>
+<i class="no-highlight">969</i>&nbsp;        }
+<i class="no-highlight">970</i>&nbsp;    }
+<i class="no-highlight">971</i>&nbsp;
+<i class="no-highlight">972</i>&nbsp;    /**
+<i class="no-highlight">973</i>&nbsp;     * Deletes user photo in Google Directory
+<i class="no-highlight">974</i>&nbsp;     *
+<i class="no-highlight">975</i>&nbsp;     * @param userKey         as the user keys photo to be deleted
+<i class="no-highlight">976</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">977</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">978</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">979</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">980</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">981</i>&nbsp;     */
+<i class="no-highlight">982</i>&nbsp;    public void deleteUserPhoto(String userKey, Directory directory,
+<i class="no-highlight">983</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">984</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">985</i>&nbsp;        if (StringUtils.isBlank(userKey)) {</b>
+<b class="nc"><i class="no-highlight">986</i>&nbsp;            Map&lt;String, Object&gt; error = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">987</i>&nbsp;            error.put(ERROR, DELETE_USER_PHOTO_DATA_NOT_AVALIABLE);</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(error),</b>
+<i class="no-highlight">989</i>&nbsp;                    DELETE_USER_PHOTO_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">990</i>&nbsp;                    .withReason(DELETE_USER_PHOTO_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">991</i>&nbsp;                    .withResolution(DELETE_USER_PHOTO_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">992</i>&nbsp;            errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">993</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">994</i>&nbsp;            Map&lt;String, Object&gt; userPhotoMap = new HashMap&lt;&gt;(1);</b>
+<b class="nc"><i class="no-highlight">995</i>&nbsp;            directory.users().photos().delete(userKey).execute();</b>
+<b class="nc"><i class="no-highlight">996</i>&nbsp;            userPhotoMap.put(STATUS, StringUtils.join(DELETED_USER_KEY, userKey));</b>
+<b class="nc"><i class="no-highlight">997</i>&nbsp;            outputViews.write(documentUtility.newDocument(userPhotoMap));</b>
+<i class="no-highlight">998</i>&nbsp;        }
+<i class="no-highlight">999</i>&nbsp;    }
+<i class="no-highlight">1000</i>&nbsp;
+<i class="no-highlight">1001</i>&nbsp;    /**
+<i class="no-highlight">1002</i>&nbsp;     * Deletes org units in Google Directory
+<i class="no-highlight">1003</i>&nbsp;     *
+<i class="no-highlight">1004</i>&nbsp;     * @param customerID      as the customer ID of the user
+<i class="no-highlight">1005</i>&nbsp;     * @param orgUnitPath     as the org unit path os the user
+<i class="no-highlight">1006</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">1007</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">1008</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">1009</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">1010</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">1011</i>&nbsp;     */
+<i class="no-highlight">1012</i>&nbsp;    public void deleteOrgUnitPath(String customerID, String orgUnitPath, Directory directory,
+<i class="no-highlight">1013</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews)
+<i class="no-highlight">1014</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">1015</i>&nbsp;        if (StringUtils.isBlank(customerID) || StringUtils.isBlank(orgUnitPath)) {</b>
+<b class="nc"><i class="no-highlight">1016</i>&nbsp;            Map&lt;String, Object&gt; error = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">1017</i>&nbsp;            error.put(ERROR, DELETE_ORG_UNIT_PATH_DATA_NOT_AVALIABLE);</b>
+<b class="nc"><i class="no-highlight">1018</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(error),</b>
+<i class="no-highlight">1019</i>&nbsp;                    DELETE_ORG_UNIT_PATH_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">1020</i>&nbsp;                    .withReason(DELETE_ORG_UNIT_PATH_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">1021</i>&nbsp;                    .withResolution(DELETE_ORG_UNIT_PATH_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1022</i>&nbsp;            errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">1023</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;            Map&lt;String, Object&gt; orgUnitPathMap = new HashMap&lt;&gt;(1);</b>
+<b class="nc"><i class="no-highlight">1025</i>&nbsp;            List&lt;String&gt; path = new ArrayList&lt;&gt;(Arrays.asList((orgUnitPath).split(SEPARATOR)));</b>
+<b class="nc"><i class="no-highlight">1026</i>&nbsp;            for (String orgUnit : path) {</b>
+<b class="nc"><i class="no-highlight">1027</i>&nbsp;                directory.orgunits()</b>
+<b class="nc"><i class="no-highlight">1028</i>&nbsp;                        .delete(customerID, orgUnit)</b>
+<b class="nc"><i class="no-highlight">1029</i>&nbsp;                        .execute();</b>
+<b class="nc"><i class="no-highlight">1030</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1031</i>&nbsp;            orgUnitPathMap.put(STATUS, StringUtils.join(DELETED_ORG_UNIT_PATH, orgUnitPath));</b>
+<b class="nc"><i class="no-highlight">1032</i>&nbsp;            outputViews.write(documentUtility.newDocument(orgUnitPathMap));</b>
+<i class="no-highlight">1033</i>&nbsp;        }
+<i class="no-highlight">1034</i>&nbsp;    }
+<i class="no-highlight">1035</i>&nbsp;
+<i class="no-highlight">1036</i>&nbsp;    /**
+<i class="no-highlight">1037</i>&nbsp;     * Deletes group in Google Directory
+<i class="no-highlight">1038</i>&nbsp;     *
+<i class="no-highlight">1039</i>&nbsp;     * @param groupKey        as the group key to be deleted
+<i class="no-highlight">1040</i>&nbsp;     * @param directory       as the object containing the necessary information for making Google
+<i class="no-highlight">1041</i>&nbsp;     *                        Directory api calls
+<i class="no-highlight">1042</i>&nbsp;     * @param documentUtility as documentUtility
+<i class="no-highlight">1043</i>&nbsp;     * @param outputViews     as outputViews
+<i class="no-highlight">1044</i>&nbsp;     * @param errorViews      as errorViews
+<i class="no-highlight">1045</i>&nbsp;     */
+<i class="no-highlight">1046</i>&nbsp;    public void deleteGroup(String groupKey, Directory directory, DocumentUtility documentUtility,
+<i class="no-highlight">1047</i>&nbsp;            OutputViews outputViews, ErrorViews errorViews) throws IOException {
+<b class="nc"><i class="no-highlight">1048</i>&nbsp;        if (StringUtils.isBlank(groupKey)) {</b>
+<b class="nc"><i class="no-highlight">1049</i>&nbsp;            Map&lt;String, Object&gt; error = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">1050</i>&nbsp;            error.put(ERROR, DELETE_GROUP_DATA_NOT_AVALIABLE);</b>
+<b class="nc"><i class="no-highlight">1051</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(error),</b>
+<i class="no-highlight">1052</i>&nbsp;                    DELETE_GROUP_DATA_NOT_AVALIABLE)
+<b class="nc"><i class="no-highlight">1053</i>&nbsp;                    .withReason(DELETE_GROUP_DATA_NOT_FOUND_REASON)</b>
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;                    .withResolution(DELETE_GROUP_REQUIRED_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;            errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">1056</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">1057</i>&nbsp;            Map&lt;String, Object&gt; groupMap = new HashMap&lt;&gt;(1);</b>
+<b class="nc"><i class="no-highlight">1058</i>&nbsp;            directory.groups().delete(groupKey).execute();</b>
+<b class="nc"><i class="no-highlight">1059</i>&nbsp;            groupMap.put(STATUS, StringUtils.join(DELETED_GROUP_KEY, groupKey));</b>
+<b class="nc"><i class="no-highlight">1060</i>&nbsp;            outputViews.write(documentUtility.newDocument(groupMap));</b>
+<i class="no-highlight">1061</i>&nbsp;        }
+<i class="no-highlight">1062</i>&nbsp;    }
+<i class="no-highlight">1063</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,329 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SavedSearch</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.splunk</a>
+</div>
+
+<h1>Coverage Summary for Class: SavedSearch (com.snaplogic.snaps.splunk)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SavedSearch</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/68)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SavedSearch$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/79)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.splunk;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.Sets;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.properties.Suggestions;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">31</i>&nbsp;import com.splunk.Job;
+<i class="no-highlight">32</i>&nbsp;import com.splunk.JobResultsArgs;
+<i class="no-highlight">33</i>&nbsp;import com.splunk.SavedSearchCollection;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;import javax.xml.stream.XMLStreamException;
+<i class="no-highlight">36</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">37</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">38</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">39</i>&nbsp;import java.util.Set;
+<i class="no-highlight">40</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.splunk.Messages.*;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.splunk.Utils.MAX_ROWS_PER_PAGE;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;/**
+<i class="no-highlight">46</i>&nbsp; * Executes a saved search in Splunk and retrieves its results.
+<i class="no-highlight">47</i>&nbsp; *
+<i class="no-highlight">48</i>&nbsp; * @author psung
+<i class="no-highlight">49</i>&nbsp; */
+<i class="no-highlight">50</i>&nbsp;@General(title = SPLUNK_SAVED_SEARCH_LABEL, purpose = SPLUNK_SAVED_SEARCH_DESC,
+<i class="no-highlight">51</i>&nbsp;        docLink = SPLUNK_SAVED_SEARCH_DOC_LINK)
+<i class="no-highlight">52</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">53</i>&nbsp;@Inputs(min = 0, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">54</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<b class="nc"><i class="no-highlight">55</i>&nbsp;@Category(snap = SnapCategory.READ)</b>
+<i class="no-highlight">56</i>&nbsp;public class SavedSearch extends SplunkCommon {
+<i class="no-highlight">57</i>&nbsp;    private static final String NAME_PROP = &quot;name&quot;;
+<i class="no-highlight">58</i>&nbsp;    protected static final String POLLING_INTERVAL_PROP = &quot;pollingInterval&quot;;
+<i class="no-highlight">59</i>&nbsp;    protected static final int POLLING_INTERVAL_DEFAULT_SEC = 5; // Default polling interval
+<i class="no-highlight">60</i>&nbsp;    protected static final int MIN_POLLING_INTERVAL_SEC = 1;     //  in seconds
+<i class="no-highlight">61</i>&nbsp;    protected static final int MAX_POLLING_INTERVAL_SEC = 60;
+<i class="no-highlight">62</i>&nbsp;    protected static final String POLLING_TIMEOUT_PROP = &quot;pollingTimeout&quot;;
+<i class="no-highlight">63</i>&nbsp;    protected static final int POLLING_TIMEOUT_DEFAULT_SEC = 300; // Default polling timeout
+<i class="no-highlight">64</i>&nbsp;    protected static final int MIN_POLLING_TIMEOUT_SEC = 10;      //  in seconds
+<i class="no-highlight">65</i>&nbsp;    private ExpressionProperty nameExpression;
+<i class="no-highlight">66</i>&nbsp;    private int pollingIntervalSec;
+<i class="no-highlight">67</i>&nbsp;    private int pollingTimeoutSec;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    protected void addProperties(PropertyBuilder propertyBuilder) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        propertyBuilder.describe(NAME_PROP, NAME_LABEL, NAME_DESC)</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<i class="no-highlight">74</i>&nbsp;                .withSuggestions(new Suggestions() {
+<i class="no-highlight">75</i>&nbsp;                    @Override
+<i class="no-highlight">76</i>&nbsp;                    public void suggest(final SuggestionBuilder suggestionBuilder,
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                            final PropertyValues propertyValues) {</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                        service = account.connect();</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                        SavedSearchCollection savedSearches = service.getSavedSearches();</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                        Set&lt;String&gt; names = Sets.newHashSet();</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                        for (com.splunk.SavedSearch entity : savedSearches.values()) {</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                            names.add(entity.getName());</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                        String[] array = names.toArray(new String[0]);</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                        Arrays.sort(array);</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                        suggestionBuilder.node(NAME_PROP)</b>
+<i class="no-highlight">87</i>&nbsp;                                .suggestions(array);
+<i class="no-highlight">88</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                })</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                .add();</b>
+<i class="no-highlight">91</i>&nbsp;        propertyBuilder.describe(POLLING_INTERVAL_PROP, POLLING_INTERVAL_LABEL,
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                POLLING_INTERVAL_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                .defaultValue(POLLING_INTERVAL_DEFAULT_SEC)</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                .withMinValue(MIN_POLLING_INTERVAL_SEC)</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                .withMaxValue(MAX_POLLING_INTERVAL_SEC)</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                .add();</b>
+<i class="no-highlight">99</i>&nbsp;        propertyBuilder.describe(POLLING_TIMEOUT_PROP, POLLING_TIMEOUT_LABEL,
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                POLLING_TIMEOUT_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                .defaultValue(POLLING_TIMEOUT_DEFAULT_SEC)</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                .withMinValue(MIN_POLLING_TIMEOUT_SEC)</b>
+<i class="no-highlight">105</i>&nbsp;                .add();
+<i class="no-highlight">106</i>&nbsp;    }
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">109</i>&nbsp;    protected void configureAdditional(final PropertyValues propertyValues) {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        nameExpression = propertyValues.getAsExpression(NAME_PROP);</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        pollingIntervalSec = ((BigInteger) propertyValues.get(POLLING_INTERVAL_PROP))</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                .intValue();</b>
+<i class="no-highlight">113</i>&nbsp;        pollingTimeoutSec = ((BigInteger) propertyValues.get(POLLING_TIMEOUT_PROP)).intValue();
+<i class="no-highlight">114</i>&nbsp;    }
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">117</i>&nbsp;    protected void process(final Document document, final String inputViewName) {</b>
+<i class="no-highlight">118</i>&nbsp;        if (connectFailed) {
+<i class="no-highlight">119</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        }</b>
+<i class="no-highlight">121</i>&nbsp;        String name = nameExpression.eval(document);
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        // Retrieve the saved search</b>
+<i class="no-highlight">123</i>&nbsp;        com.splunk.SavedSearch savedSearch = service.getSavedSearches().get(name);
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        if (savedSearch == null) {</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;            throw new SnapDataException(ERR_INVALID_SAVED_SEARCH)</b>
+<i class="no-highlight">126</i>&nbsp;                    .formatWith(name)
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                    .withReason(ERR_INVALID_SAVED_SEARCH_REASON)</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                    .withResolution(ERR_INVALID_SAVED_SEARCH_RESOLUTION);</b>
+<i class="no-highlight">129</i>&nbsp;        }
+<i class="no-highlight">130</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            Job job = savedSearch.dispatch();</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            long startTimeMs = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            do {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                TimeUnit.SECONDS.sleep(pollingIntervalSec);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                if (isTimedOut(startTimeMs, name, document)) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    return;</b>
+<i class="no-highlight">137</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            } while (!isJobDone(job));</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            JobResultsArgs jobResultsArgs = new JobResultsArgs();</b>
+<i class="no-highlight">140</i>&nbsp;            int offset = 0;
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            if (isPreview) {</b>
+<i class="no-highlight">142</i>&nbsp;                jobResultsArgs.setCount(maxSuggestValue.intValue());
+<i class="no-highlight">143</i>&nbsp;                getNextSearchPage(job, jobResultsArgs, offset, document);
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                jobResultsArgs.setCount(MAX_ROWS_PER_PAGE);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                while (MAX_ROWS_PER_PAGE &lt;= getNextSearchPage(job, jobResultsArgs, offset,</b>
+<i class="no-highlight">147</i>&nbsp;                        document)) {
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                    offset += MAX_ROWS_PER_PAGE;</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            // No-Op</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            errorViews.write(e, document);</b>
+<i class="no-highlight">157</i>&nbsp;        } catch (Throwable e) {
+<i class="no-highlight">158</i>&nbsp;            String reason = Utils.improveErrorMessage(e.getMessage());
+<i class="no-highlight">159</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_GET_SEARCH_RESULT)
+<i class="no-highlight">160</i>&nbsp;                    .withReason(reason)
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;            errorViews.write(ex, document);</b>
+<i class="no-highlight">163</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">164</i>&nbsp;    }</b>
+<i class="no-highlight">165</i>&nbsp;
+<b class="nc"><i class="no-highlight">166</i>&nbsp;    private int getNextSearchPage(Job job, JobResultsArgs jobResultsArgs, int offset,</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;            Document document) {</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        jobResultsArgs.setOffset(offset);</b>
+<i class="no-highlight">169</i>&nbsp;        InputStream inputStream = job.getResults(jobResultsArgs);
+<i class="no-highlight">170</i>&nbsp;        try {
+<i class="no-highlight">171</i>&nbsp;            return Utils.parseXml2OutputView(inputStream, outputViews, errorViews, documentUtility,
+<i class="no-highlight">172</i>&nbsp;                    document);
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;            inputStream = job.getResults(jobResultsArgs);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            return getXMLExceptionErrorDocument(inputStream, e, document);</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;    private boolean isTimedOut(long startTimeMs, String name, Document document) {</b>
+<i class="no-highlight">180</i>&nbsp;        if ((System.currentTimeMillis() - startTimeMs) &gt; pollingTimeoutSec * 1000) {
+<b class="nc"><i class="no-highlight">181</i>&nbsp;            SnapDataException e = new SnapDataException(ERR_TIMEOUT)</b>
+<i class="no-highlight">182</i>&nbsp;                    .formatWith(name, pollingTimeoutSec)
+<i class="no-highlight">183</i>&nbsp;                    .withReason(REASON_TIMEOUT)
+<i class="no-highlight">184</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">185</i>&nbsp;            errorViews.write(e, document);
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        return false;</b>
+<i class="no-highlight">189</i>&nbsp;    }
+<i class="no-highlight">190</i>&nbsp;
+<i class="no-highlight">191</i>&nbsp;    private boolean isJobDone(Job job) {
+<i class="no-highlight">192</i>&nbsp;        try {
+<i class="no-highlight">193</i>&nbsp;            return job.isDone();
+<i class="no-highlight">194</i>&nbsp;        } catch (RuntimeException e) {
+<i class="no-highlight">195</i>&nbsp;            return false;
+<i class="no-highlight">196</i>&nbsp;        }
+<i class="no-highlight">197</i>&nbsp;    }
+<i class="no-highlight">198</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

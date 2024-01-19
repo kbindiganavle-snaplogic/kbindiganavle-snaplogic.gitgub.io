@@ -1,0 +1,1025 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BoxUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.box.util</a>
+</div>
+
+<h1>Coverage Summary for Class: BoxUtils (com.snaplogic.snaps.box.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BoxUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/33)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/333)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.box.util;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.base.Splitter;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">15</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import com.box.sdk.BoxAPIConnection;
+<i class="no-highlight">18</i>&nbsp;import com.box.sdk.BoxAPIException;
+<i class="no-highlight">19</i>&nbsp;import com.box.sdk.BoxAPIRequest;
+<i class="no-highlight">20</i>&nbsp;import com.box.sdk.BoxCollaboration;
+<i class="no-highlight">21</i>&nbsp;import com.box.sdk.BoxCollaborator;
+<i class="no-highlight">22</i>&nbsp;import com.box.sdk.BoxFile;
+<i class="no-highlight">23</i>&nbsp;import com.box.sdk.BoxFolder;
+<i class="no-highlight">24</i>&nbsp;import com.box.sdk.BoxGroup;
+<i class="no-highlight">25</i>&nbsp;import com.box.sdk.BoxItem;
+<i class="no-highlight">26</i>&nbsp;import com.box.sdk.BoxJSONResponse;
+<i class="no-highlight">27</i>&nbsp;import com.box.sdk.BoxSharedLink;
+<i class="no-highlight">28</i>&nbsp;import com.box.sdk.BoxUploadEmail;
+<i class="no-highlight">29</i>&nbsp;import com.box.sdk.BoxUser;
+<i class="no-highlight">30</i>&nbsp;import com.box.sdk.CreateUserParams;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.util.ExpressionUtils;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import org.apache.commons.httpclient.util.HttpURLConnection;
+<i class="no-highlight">41</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">42</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">43</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;import java.io.File;
+<i class="no-highlight">46</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">47</i>&nbsp;import java.net.URI;
+<i class="no-highlight">48</i>&nbsp;import java.net.URL;
+<i class="no-highlight">49</i>&nbsp;import java.nio.file.FileAlreadyExistsException;
+<i class="no-highlight">50</i>&nbsp;import java.nio.file.Files;
+<i class="no-highlight">51</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">52</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">53</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">54</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">55</i>&nbsp;import java.util.List;
+<i class="no-highlight">56</i>&nbsp;import java.util.Map;
+<i class="no-highlight">57</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">58</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;import javax.inject.Singleton;
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;import static com.box.sdk.BoxCollaboration.Role;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.box.BoxCommon.COLON;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.box.BoxCommon.DEFAULT_FOLDER_ROOT;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.box.BoxCommon.MIN_FIELDS;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.box.util.Messages.*;
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;/**
+<i class="no-highlight">69</i>&nbsp; * The utility class for Box.com snaps
+<i class="no-highlight">70</i>&nbsp; *
+<i class="no-highlight">71</i>&nbsp; * @author akallamsetti
+<i class="no-highlight">72</i>&nbsp; * @author smudassir
+<i class="no-highlight">73</i>&nbsp; */
+<i class="no-highlight">74</i>&nbsp;@Singleton
+<b class="nc"><i class="no-highlight">75</i>&nbsp;public class BoxUtils {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(BoxUtils.class);</b>
+<i class="no-highlight">77</i>&nbsp;    private static final String PIPE_TMP_DIR = &quot;pipe.tmpDir&quot;;
+<i class="no-highlight">78</i>&nbsp;    static final String FOLDER_SUGGESTION_FORMAT = &quot;%s/%s : %s&quot;;
+<i class="no-highlight">79</i>&nbsp;    static final String FILE_SUGGESTION_FORMAT = &quot;%s : %s&quot;;
+<i class="no-highlight">80</i>&nbsp;    static final String ROOT_FOLDER = &quot;root&quot;;
+<i class="no-highlight">81</i>&nbsp;    static final String PARENT_FOLDER_SUGGESTION = &quot;Parent folder : %s&quot;;
+<i class="no-highlight">82</i>&nbsp;    static final String FOLDER_ID_ZERO = &quot;0&quot;;
+<i class="no-highlight">83</i>&nbsp;    public static final int MAX_ATTEMPTS = 3;
+<i class="no-highlight">84</i>&nbsp;    public static final int MAX_TRAVERSE = 1000;
+<i class="no-highlight">85</i>&nbsp;
+<b class="nc"><i class="no-highlight">86</i>&nbsp;    private static final Splitter PATH_SPLITTER = Splitter.on(&#39;/&#39;);</b>
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;    public List&lt;String&gt; splitPathToList(String filePath) {
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        return PATH_SPLITTER.splitToList(filePath);</b>
+<i class="no-highlight">90</i>&nbsp;    }
+<i class="no-highlight">91</i>&nbsp;    public static final int DEFAULT_CONN_TIMEOUT_SEC = 60;
+<i class="no-highlight">92</i>&nbsp;    public static final int DEFAULT_READ_TIMEOUT_SEC = 900;
+<i class="no-highlight">93</i>&nbsp;    public static final int DEFAULT_WRITE_TIMEOUT_SEC = 900;
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;    /**
+<i class="no-highlight">96</i>&nbsp;     * Moves the source file to the destination folder.
+<i class="no-highlight">97</i>&nbsp;     *
+<i class="no-highlight">98</i>&nbsp;     * @param connection    as the object containing the necessary information for making Box api
+<i class="no-highlight">99</i>&nbsp;     *                      calls
+<i class="no-highlight">100</i>&nbsp;     * @param sourceId      as the file ID of the file to be moved
+<i class="no-highlight">101</i>&nbsp;     * @param destinationId as the folder ID to which the file will be moved
+<i class="no-highlight">102</i>&nbsp;     * @param newName       as the name given to the moved file
+<i class="no-highlight">103</i>&nbsp;     *
+<i class="no-highlight">104</i>&nbsp;     * @return BoxFile      the updated Box file object if operation successful; null otherwise
+<i class="no-highlight">105</i>&nbsp;     * @throws BoxAPIException The ApiException will be thrown only when the account is
+<i class="no-highlight">106</i>&nbsp;     *                         unauthorized
+<i class="no-highlight">107</i>&nbsp;     */
+<i class="no-highlight">108</i>&nbsp;    public BoxFile moveFile(BoxAPIConnection connection, String sourceId, String destinationId,
+<i class="no-highlight">109</i>&nbsp;            String newName, Document document, ErrorViews errorViews) {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        BoxFile boxFile = new BoxFile(connection, sourceId);</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        BoxFolder destinationFolder = new BoxFolder(connection, destinationId);</b>
+<i class="no-highlight">112</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            if (StringUtils.isNotBlank(newName)) {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                boxFile.move(destinationFolder, newName);</b>
+<i class="no-highlight">115</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                boxFile.move(destinationFolder);</b>
+<i class="no-highlight">117</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        } catch (BoxAPIException e) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            switch (e.getResponseCode()) {</b>
+<i class="no-highlight">120</i>&nbsp;                case HttpURLConnection.HTTP_UNAUTHORIZED:
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                    throw e;</b>
+<i class="no-highlight">122</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                    SnapDataException ex = new SnapDataException(String.format(</b>
+<i class="no-highlight">124</i>&nbsp;                            BOX_MOVE_FILE_ERROR, sourceId))
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                            .withResolution(ERR_GENERIC_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                    errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                    return null;</b>
+<i class="no-highlight">129</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        return boxFile;</b>
+<i class="no-highlight">132</i>&nbsp;    }
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    /**
+<i class="no-highlight">135</i>&nbsp;     * Moves the source folder to the destination folder.
+<i class="no-highlight">136</i>&nbsp;     *
+<i class="no-highlight">137</i>&nbsp;     * @param connection    as the object containing the necessary information for making Box api
+<i class="no-highlight">138</i>&nbsp;     *                      calls
+<i class="no-highlight">139</i>&nbsp;     * @param sourceId      as the folder ID of the folder to be moved
+<i class="no-highlight">140</i>&nbsp;     * @param destinationId as the folder ID to which the folder will be moved
+<i class="no-highlight">141</i>&nbsp;     * @param newName       as the name given to the moved folder
+<i class="no-highlight">142</i>&nbsp;     *
+<i class="no-highlight">143</i>&nbsp;     * @return BoxFolder    the updated Box folder object if operation successful; null otherwise
+<i class="no-highlight">144</i>&nbsp;     * @throws BoxAPIException The ApiException will be thrown only when the account is
+<i class="no-highlight">145</i>&nbsp;     *                         unauthorized
+<i class="no-highlight">146</i>&nbsp;     */
+<i class="no-highlight">147</i>&nbsp;    public BoxFolder moveFolder(BoxAPIConnection connection, String sourceId,
+<i class="no-highlight">148</i>&nbsp;            String destinationId, String newName, Document document, ErrorViews errorViews) {
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        BoxFolder boxFolder = new BoxFolder(connection, sourceId);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        BoxFolder destinationFolder = new BoxFolder(connection, destinationId);</b>
+<i class="no-highlight">151</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            if (StringUtils.isNotBlank(newName)) {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                boxFolder = (BoxFolder) boxFolder.move(destinationFolder, newName).getResource();</b>
+<i class="no-highlight">154</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                boxFolder = (BoxFolder) boxFolder.move(destinationFolder).getResource();</b>
+<i class="no-highlight">156</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        } catch (BoxAPIException e) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            switch (e.getResponseCode()) {</b>
+<i class="no-highlight">159</i>&nbsp;                case HttpURLConnection.HTTP_UNAUTHORIZED:
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                    throw e;</b>
+<i class="no-highlight">161</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                    SnapDataException ex = new SnapDataException(String.format(</b>
+<i class="no-highlight">163</i>&nbsp;                            BOX_MOVE_FOLDER_ERROR, sourceId))
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                            .withResolution(ERR_GENERIC_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                    errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                    return null;</b>
+<i class="no-highlight">168</i>&nbsp;            }
+<i class="no-highlight">169</i>&nbsp;
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        return boxFolder;</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    /**
+<i class="no-highlight">175</i>&nbsp;     * Adds collaboration to the given folder
+<i class="no-highlight">176</i>&nbsp;     *
+<i class="no-highlight">177</i>&nbsp;     * @param connection
+<i class="no-highlight">178</i>&nbsp;     * @param folderID
+<i class="no-highlight">179</i>&nbsp;     * @param loginEmail
+<i class="no-highlight">180</i>&nbsp;     * @param role
+<i class="no-highlight">181</i>&nbsp;     *
+<i class="no-highlight">182</i>&nbsp;     * @return collaboration info
+<i class="no-highlight">183</i>&nbsp;     */
+<i class="no-highlight">184</i>&nbsp;    public BoxCollaboration.Info addRoleToFolder(BoxAPIConnection connection, String folderID,
+<i class="no-highlight">185</i>&nbsp;            String loginEmail, Role role) {
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        BoxFolder folder = new BoxFolder(connection, folderID);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        return folder.collaborate(loginEmail, role);</b>
+<i class="no-highlight">188</i>&nbsp;    }
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;    /**
+<i class="no-highlight">191</i>&nbsp;     * Removes collaboration from the given folder
+<i class="no-highlight">192</i>&nbsp;     *
+<i class="no-highlight">193</i>&nbsp;     * @param connection
+<i class="no-highlight">194</i>&nbsp;     * @param folderID
+<i class="no-highlight">195</i>&nbsp;     * @param loginEmail
+<i class="no-highlight">196</i>&nbsp;     * @param role
+<i class="no-highlight">197</i>&nbsp;     *
+<i class="no-highlight">198</i>&nbsp;     * @return ID of the collaboration if deleted successfully; null otherwise
+<i class="no-highlight">199</i>&nbsp;     */
+<i class="no-highlight">200</i>&nbsp;    public String deleteRoleFromFolder(BoxAPIConnection connection, String folderID,
+<i class="no-highlight">201</i>&nbsp;            String loginEmail, Role role) {
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        BoxFolder folder = new BoxFolder(connection, folderID);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        Collection&lt;BoxCollaboration.Info&gt; collaborations = folder.getCollaborations();</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        for (BoxCollaboration.Info collaboration : collaborations) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            BoxCollaborator.Info accessibleBy = collaboration.getAccessibleBy();</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;            if (accessibleBy instanceof BoxUser.Info) {</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                BoxUser.Info userInfo = (BoxUser.Info) accessibleBy;</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                if (userInfo.getLogin().equalsIgnoreCase(loginEmail)) {</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                    if (collaboration.getRole() == role) {</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                        String collaborationID = collaboration.getID();</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                        collaboration.getResource().delete();</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                        return collaborationID;</b>
+<i class="no-highlight">213</i>&nbsp;                    } else {
+<i class="no-highlight">214</i>&nbsp;                        // This is based on the assumption that a user can have at most one
+<i class="no-highlight">215</i>&nbsp;                        // collaboration.
+<i class="no-highlight">216</i>&nbsp;                        // It helps as fast fail.
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        return null;</b>
+<i class="no-highlight">218</i>&nbsp;                    }
+<i class="no-highlight">219</i>&nbsp;                }
+<i class="no-highlight">220</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        return null;</b>
+<i class="no-highlight">223</i>&nbsp;    }
+<i class="no-highlight">224</i>&nbsp;
+<i class="no-highlight">225</i>&nbsp;    /**
+<i class="no-highlight">226</i>&nbsp;     * Map the values for the folder object
+<i class="no-highlight">227</i>&nbsp;     *
+<i class="no-highlight">228</i>&nbsp;     * @param boxFolder as the Box Folder object
+<i class="no-highlight">229</i>&nbsp;     *
+<i class="no-highlight">230</i>&nbsp;     * @return map       the map object for the created group
+<i class="no-highlight">231</i>&nbsp;     */
+<i class="no-highlight">232</i>&nbsp;    public Map&lt;String, Object&gt; getFolder(BoxFolder boxFolder) {
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        Map&lt;String, Object&gt; addFolder = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        BoxFolder.Info folderInfo = boxFolder.getInfo();</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        addFolder.put(ID, folderInfo.getID());</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        addFolder.put(SEQUENCE_ID, folderInfo.getSequenceID());</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        addFolder.put(ETAG, folderInfo.getEtag());</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        addFolder.put(NAME, folderInfo.getName());</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        addFolder.put(CREATED_AT, folderInfo.getCreatedAt());</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        addFolder.put(MODIFIED_AT, folderInfo.getModifiedAt());</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;        addFolder.put(DESCRIPTION, folderInfo.getDescription());</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        addFolder.put(SIZE, folderInfo.getSize());</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        BoxUser.Info createdByInfo = folderInfo.getCreatedBy();</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        if (createdByInfo != null) {</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            addFolder.put(CREATED_BY_ID, createdByInfo.getID());</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            addFolder.put(CREATED_BY_NAME, createdByInfo.getName());</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;            addFolder.put(CREATED_BY_LOGIN, createdByInfo.getLogin());</b>
+<i class="no-highlight">248</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        BoxUser.Info modifiedByInfo = folderInfo.getModifiedBy();</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        if (modifiedByInfo != null) {</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;            addFolder.put(MODIFIED_BY_ID, modifiedByInfo.getID());</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;            addFolder.put(MODIFIED_BY_NAME, modifiedByInfo.getName());</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            addFolder.put(MODIFIED_BY_LOGIN, modifiedByInfo.getLogin());</b>
+<i class="no-highlight">254</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        BoxUser.Info ownedByInfo = folderInfo.getOwnedBy();</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        if (ownedByInfo != null) {</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            addFolder.put(OWNED_BY_ID, ownedByInfo.getID());</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            addFolder.put(OWNED_BY_NAME, ownedByInfo.getName());</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            addFolder.put(OWNED_BY_LOGIN, ownedByInfo.getLogin());</b>
+<i class="no-highlight">260</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        BoxSharedLink sharedLink = folderInfo.getSharedLink();</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;        if (sharedLink != null) {</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;            addFolder.put(SHARED_LINK_URL, sharedLink.getURL());</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            addFolder.put(SHARED_LINK_DOWNLOAD_URL, sharedLink.getDownloadURL());</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            addFolder.put(SHARED_LINK_VANITY_URL, sharedLink.getVanityURL());</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            addFolder.put(SHARED_LINK_IS_PASSWORD_ENABLED,</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                    sharedLink.getIsPasswordEnabled());</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;            addFolder.put(SHARED_LINK_UNSHARED_AT, sharedLink.getUnsharedDate());</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            addFolder.put(SHARED_LINK_DOWNLOAD_COUNT, sharedLink.getDownloadCount());</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            addFolder.put(SHARED_LINK_PREVIEW_COUNT, sharedLink.getPreviewCount());</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            addFolder.put(SHARED_LINK_ACCESS, sharedLink.getAccess().name());</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            boolean isDownloadable = sharedLink.getPermissions().getCanDownload();</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            String str = new Boolean(isDownloadable).toString();</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;            addFolder.put(SHARED_LINK_PERMISSIONS_CAN_DOWNLOAD, str);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;            addFolder.put(SHARED_LINK_PERMISSIONS_CAN_PREVIEW, sharedLink</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                    .getPermissions().getCanPreview());</b>
+<i class="no-highlight">277</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        BoxUploadEmail uploadEmail = folderInfo.getUploadEmail();</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        if (uploadEmail != null) {</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;            addFolder.put(FOLDER_UPLOAD_EMAIL_ACCESS, uploadEmail.getAccess());</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;            addFolder.put(FOLDER_UPLOAD_EMAIL, uploadEmail.getEmail());</b>
+<i class="no-highlight">282</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        BoxFolder.Info parentInfo = folderInfo.getParent().getResource().getInfo();</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        if (parentInfo != null) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            addFolder.put(PARENT_ID, parentInfo.getID());</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            addFolder.put(PARENT_SEQUENCE_ID, parentInfo.getSequenceID());</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            addFolder.put(PARENT_ETAG, parentInfo.getEtag());</b>
+<i class="no-highlight">288</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        addFolder.put(ITEM_STATUS, folderInfo.getItemStatus());</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        return addFolder;</b>
+<i class="no-highlight">291</i>&nbsp;    }
+<i class="no-highlight">292</i>&nbsp;
+<i class="no-highlight">293</i>&nbsp;    /**
+<i class="no-highlight">294</i>&nbsp;     * Creates a new group in the Box
+<i class="no-highlight">295</i>&nbsp;     *
+<i class="no-highlight">296</i>&nbsp;     * @param connection
+<i class="no-highlight">297</i>&nbsp;     * @param groupName
+<i class="no-highlight">298</i>&nbsp;     *
+<i class="no-highlight">299</i>&nbsp;     * @return BoxGroup.Info object if the group is created successfully
+<i class="no-highlight">300</i>&nbsp;     */
+<i class="no-highlight">301</i>&nbsp;    public BoxGroup.Info createGroup(BoxAPIConnection connection, String groupName) {
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        return BoxGroup.createGroup(connection, groupName);</b>
+<i class="no-highlight">303</i>&nbsp;    }
+<i class="no-highlight">304</i>&nbsp;
+<i class="no-highlight">305</i>&nbsp;    /**
+<i class="no-highlight">306</i>&nbsp;     * Creates a user in Box
+<i class="no-highlight">307</i>&nbsp;     *
+<i class="no-highlight">308</i>&nbsp;     * @param connection       as the object containing the necessary information for making Box
+<i class="no-highlight">309</i>&nbsp;     *                         api
+<i class="no-highlight">310</i>&nbsp;     *                         calls
+<i class="no-highlight">311</i>&nbsp;     * @param login            login email of the user to be created
+<i class="no-highlight">312</i>&nbsp;     * @param name             name of the user to be created
+<i class="no-highlight">313</i>&nbsp;     * @param createUserParams object containing various attributes such as language, etc
+<i class="no-highlight">314</i>&nbsp;     *                         that are needed while creating a user
+<i class="no-highlight">315</i>&nbsp;     *
+<i class="no-highlight">316</i>&nbsp;     * @return instance of BoxUser.Info object if user created successfully
+<i class="no-highlight">317</i>&nbsp;     */
+<i class="no-highlight">318</i>&nbsp;    public BoxUser.Info createUser(BoxAPIConnection connection,
+<i class="no-highlight">319</i>&nbsp;            String login, String name, CreateUserParams createUserParams) {
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        return BoxUser.createEnterpriseUser(connection, login, name, createUserParams);</b>
+<i class="no-highlight">321</i>&nbsp;    }
+<i class="no-highlight">322</i>&nbsp;
+<i class="no-highlight">323</i>&nbsp;    /**
+<i class="no-highlight">324</i>&nbsp;     * Add a folder to the Box with the given folder name
+<i class="no-highlight">325</i>&nbsp;     *
+<i class="no-highlight">326</i>&nbsp;     * @param connection as the object containing the necessary information for making Box api
+<i class="no-highlight">327</i>&nbsp;     *                   calls
+<i class="no-highlight">328</i>&nbsp;     * @param folderName as the desired name for the folder
+<i class="no-highlight">329</i>&nbsp;     * @param parentId   as ID of the parent folder in which you will create a new folder
+<i class="no-highlight">330</i>&nbsp;     *
+<i class="no-highlight">331</i>&nbsp;     * @return BoxFolder  the created Box folder object
+<i class="no-highlight">332</i>&nbsp;     */
+<i class="no-highlight">333</i>&nbsp;    public BoxFolder addFolder(BoxAPIConnection connection, String folderName, String parentId) {
+<b class="nc"><i class="no-highlight">334</i>&nbsp;        BoxFolder parentFolder = new BoxFolder(connection, parentId);</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        return parentFolder.createFolder(folderName).getResource();</b>
+<i class="no-highlight">336</i>&nbsp;    }
+<i class="no-highlight">337</i>&nbsp;
+<i class="no-highlight">338</i>&nbsp;    /**
+<i class="no-highlight">339</i>&nbsp;     * This method converts object value into string.
+<i class="no-highlight">340</i>&nbsp;     *
+<i class="no-highlight">341</i>&nbsp;     * @param value as the object containing the information from incoming document
+<i class="no-highlight">342</i>&nbsp;     *
+<i class="no-highlight">343</i>&nbsp;     * @return String
+<i class="no-highlight">344</i>&nbsp;     */
+<i class="no-highlight">345</i>&nbsp;    public String castAsString(Object value) {
+<b class="nc"><i class="no-highlight">346</i>&nbsp;        if (value == null) {</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;            return &quot;&quot;;</b>
+<i class="no-highlight">348</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">349</i>&nbsp;            return String.valueOf(value);</b>
+<i class="no-highlight">350</i>&nbsp;        }
+<i class="no-highlight">351</i>&nbsp;    }
+<i class="no-highlight">352</i>&nbsp;
+<i class="no-highlight">353</i>&nbsp;    /**
+<i class="no-highlight">354</i>&nbsp;     * Deletes a folder from Box
+<i class="no-highlight">355</i>&nbsp;     *
+<i class="no-highlight">356</i>&nbsp;     * @param connection as the object containing the necessary information for making Box api
+<i class="no-highlight">357</i>&nbsp;     *                   calls
+<i class="no-highlight">358</i>&nbsp;     * @param sourceId   as the id of the folder to be deleted
+<i class="no-highlight">359</i>&nbsp;     *
+<i class="no-highlight">360</i>&nbsp;     * @return true if operation successful; false otherwise
+<i class="no-highlight">361</i>&nbsp;     * @throws BoxAPIException The ApiException will be thrown only when the account is
+<i class="no-highlight">362</i>&nbsp;     *                         unauthorized
+<i class="no-highlight">363</i>&nbsp;     */
+<i class="no-highlight">364</i>&nbsp;    public boolean deleteFolder(BoxAPIConnection connection, String sourceId, Document document,
+<i class="no-highlight">365</i>&nbsp;            ErrorViews errorViews) {
+<i class="no-highlight">366</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">367</i>&nbsp;            new BoxFolder(connection, sourceId).delete(true);</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        } catch (BoxAPIException e) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;            switch (e.getResponseCode()) {</b>
+<i class="no-highlight">371</i>&nbsp;                case HttpURLConnection.HTTP_UNAUTHORIZED:
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                    throw e;</b>
+<i class="no-highlight">373</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                    SnapDataException ex = new SnapDataException(String.format(</b>
+<i class="no-highlight">375</i>&nbsp;                            BOX_DELETE_FOLDER_ERROR, sourceId))
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                            .withResolution(ERR_GENERIC_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                    errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                    return false;</b>
+<i class="no-highlight">380</i>&nbsp;            }
+<i class="no-highlight">381</i>&nbsp;        }
+<i class="no-highlight">382</i>&nbsp;    }
+<i class="no-highlight">383</i>&nbsp;
+<i class="no-highlight">384</i>&nbsp;    /**
+<i class="no-highlight">385</i>&nbsp;     * Copies the source file to destination location.
+<i class="no-highlight">386</i>&nbsp;     *
+<i class="no-highlight">387</i>&nbsp;     * @param connection          as the object containing the necessary information for making Box
+<i class="no-highlight">388</i>&nbsp;     *                            api calls
+<i class="no-highlight">389</i>&nbsp;     * @param sourceId            as the id of the file to be copied
+<i class="no-highlight">390</i>&nbsp;     * @param destinationFolderId as the id of the destination folder where the file is copied
+<i class="no-highlight">391</i>&nbsp;     * @param newName             as the name of the folder where the file is copied
+<i class="no-highlight">392</i>&nbsp;     * @param document            input document
+<i class="no-highlight">393</i>&nbsp;     * @param errorViews          reference to ErrorViews
+<i class="no-highlight">394</i>&nbsp;     *
+<i class="no-highlight">395</i>&nbsp;     * @return BoxFile            new Box file object if operation successful; null otherwise
+<i class="no-highlight">396</i>&nbsp;     * @throws BoxAPIException The ApiException will be thrown only when the account is
+<i class="no-highlight">397</i>&nbsp;     *                         unauthorized
+<i class="no-highlight">398</i>&nbsp;     */
+<i class="no-highlight">399</i>&nbsp;    public BoxFile copyFile(BoxAPIConnection connection, String sourceId,
+<i class="no-highlight">400</i>&nbsp;            String destinationFolderId, String newName, Document document,
+<i class="no-highlight">401</i>&nbsp;            ErrorViews errorViews) {
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        BoxFile boxFile = new BoxFile(connection, sourceId);</b>
+<i class="no-highlight">403</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">404</i>&nbsp;            BoxFolder destinationFolder = new BoxFolder(connection, destinationFolderId);</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;            if (!StringUtils.isEmpty(newName)) {</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                boxFile = boxFile.copy(destinationFolder, newName).getResource();</b>
+<i class="no-highlight">407</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                boxFile = boxFile.copy(destinationFolder).getResource();</b>
+<i class="no-highlight">409</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        } catch (BoxAPIException e) {</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            switch (e.getResponseCode()) {</b>
+<i class="no-highlight">412</i>&nbsp;                case HttpURLConnection.HTTP_UNAUTHORIZED:
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                    throw e;</b>
+<i class="no-highlight">414</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                    SnapDataException ex = new SnapDataException(String.format(</b>
+<i class="no-highlight">416</i>&nbsp;                            BOX_COPY_FILE_ERROR, sourceId))
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                            .withResolution(ERR_GENERIC_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                    errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                    return null;</b>
+<i class="no-highlight">421</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        return boxFile;</b>
+<i class="no-highlight">424</i>&nbsp;    }
+<i class="no-highlight">425</i>&nbsp;
+<i class="no-highlight">426</i>&nbsp;    /**
+<i class="no-highlight">427</i>&nbsp;     * Copies the source folder to destination location.
+<i class="no-highlight">428</i>&nbsp;     *
+<i class="no-highlight">429</i>&nbsp;     * @param connection    as the object containing the necessary information for making Box api
+<i class="no-highlight">430</i>&nbsp;     *                      calls
+<i class="no-highlight">431</i>&nbsp;     * @param sourceId      as the id of the folder to be copied
+<i class="no-highlight">432</i>&nbsp;     * @param destinationId as the id of the folder where the folder is copied
+<i class="no-highlight">433</i>&nbsp;     * @param newName       name of the new folder
+<i class="no-highlight">434</i>&nbsp;     * @param document      input document
+<i class="no-highlight">435</i>&nbsp;     * @param errorViews    reference to ErrorViews
+<i class="no-highlight">436</i>&nbsp;     *
+<i class="no-highlight">437</i>&nbsp;     * @return BoxFolder    new Box folder object if operation successful; null otherwise
+<i class="no-highlight">438</i>&nbsp;     * @throws BoxAPIException The ApiException will be thrown only when the account is
+<i class="no-highlight">439</i>&nbsp;     *                         unauthorized
+<i class="no-highlight">440</i>&nbsp;     */
+<i class="no-highlight">441</i>&nbsp;    public BoxFolder copyFolder(BoxAPIConnection connection, String sourceId,
+<i class="no-highlight">442</i>&nbsp;            String destinationId, String newName, Document document, ErrorViews errorViews) {
+<b class="nc"><i class="no-highlight">443</i>&nbsp;        BoxFolder sourceFolder = new BoxFolder(connection, sourceId);</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;        BoxFolder targetFolder = new BoxFolder(connection, destinationId);</b>
+<i class="no-highlight">445</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">446</i>&nbsp;            if (!StringUtils.isEmpty(newName)) {</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                sourceFolder.copy(targetFolder, newName);</b>
+<i class="no-highlight">448</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                sourceFolder.copy(targetFolder);</b>
+<i class="no-highlight">450</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">451</i>&nbsp;        } catch (BoxAPIException e) {</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;            switch (e.getResponseCode()) {</b>
+<i class="no-highlight">453</i>&nbsp;                case HttpURLConnection.HTTP_UNAUTHORIZED:
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                    throw e;</b>
+<i class="no-highlight">455</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                    SnapDataException ex = new SnapDataException(String.format(</b>
+<i class="no-highlight">457</i>&nbsp;                            BOX_COPY_FOLDER_ERROR, sourceId))
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                            .withResolution(ERR_GENERIC_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                    errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                    return null;</b>
+<i class="no-highlight">462</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">463</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;        return targetFolder;</b>
+<i class="no-highlight">465</i>&nbsp;    }
+<i class="no-highlight">466</i>&nbsp;
+<i class="no-highlight">467</i>&nbsp;    /**
+<i class="no-highlight">468</i>&nbsp;     * Deletes a file from Box
+<i class="no-highlight">469</i>&nbsp;     *
+<i class="no-highlight">470</i>&nbsp;     * @param connection as the object containing the necessary information for making Box api
+<i class="no-highlight">471</i>&nbsp;     *                   calls
+<i class="no-highlight">472</i>&nbsp;     * @param sourceId   as the id of the file to be deleted
+<i class="no-highlight">473</i>&nbsp;     *
+<i class="no-highlight">474</i>&nbsp;     * @return true if operation successful; false otherwise
+<i class="no-highlight">475</i>&nbsp;     * @throws BoxAPIException The ApiException will be thrown only when the account is
+<i class="no-highlight">476</i>&nbsp;     *                         unauthorized
+<i class="no-highlight">477</i>&nbsp;     */
+<i class="no-highlight">478</i>&nbsp;    public boolean deleteFile(BoxAPIConnection connection, String sourceId, Document document,
+<i class="no-highlight">479</i>&nbsp;            ErrorViews errorViews) {
+<i class="no-highlight">480</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">481</i>&nbsp;            new BoxFile(connection, sourceId).delete();</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;        } catch (BoxAPIException e) {</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;            switch (e.getResponseCode()) {</b>
+<i class="no-highlight">485</i>&nbsp;                case HttpURLConnection.HTTP_UNAUTHORIZED:
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                    throw e;</b>
+<i class="no-highlight">487</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                    SnapDataException ex = new SnapDataException(String.format(</b>
+<i class="no-highlight">489</i>&nbsp;                            BOX_DELETE_FILE_ERROR, sourceId))
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                            .withResolution(ERR_GENERIC_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                    errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                    return false;</b>
+<i class="no-highlight">494</i>&nbsp;            }
+<i class="no-highlight">495</i>&nbsp;
+<i class="no-highlight">496</i>&nbsp;        }
+<i class="no-highlight">497</i>&nbsp;    }
+<i class="no-highlight">498</i>&nbsp;
+<i class="no-highlight">499</i>&nbsp;    /**
+<i class="no-highlight">500</i>&nbsp;     * Updates a user in Box
+<i class="no-highlight">501</i>&nbsp;     *
+<i class="no-highlight">502</i>&nbsp;     * @param currentUser reference to the current BoxUser object
+<i class="no-highlight">503</i>&nbsp;     * @param updatedInfo the new info to be given to the current box user object
+<i class="no-highlight">504</i>&nbsp;     *
+<i class="no-highlight">505</i>&nbsp;     * @return the BoxUser.Info object referring to the updated information
+<i class="no-highlight">506</i>&nbsp;     */
+<i class="no-highlight">507</i>&nbsp;    public BoxUser.Info updateUser(BoxUser currentUser, BoxUser.Info updatedInfo) {
+<b class="nc"><i class="no-highlight">508</i>&nbsp;        currentUser.updateInfo(updatedInfo);</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;        return currentUser.getInfo();</b>
+<i class="no-highlight">510</i>&nbsp;    }
+<i class="no-highlight">511</i>&nbsp;
+<i class="no-highlight">512</i>&nbsp;    /**
+<i class="no-highlight">513</i>&nbsp;     * Returns BoxFolder object for the given folder ID and box connection
+<i class="no-highlight">514</i>&nbsp;     *
+<i class="no-highlight">515</i>&nbsp;     * This approach was taken to make the junit test pass
+<i class="no-highlight">516</i>&nbsp;     *
+<i class="no-highlight">517</i>&nbsp;     * @param connection
+<i class="no-highlight">518</i>&nbsp;     * @param folderId
+<i class="no-highlight">519</i>&nbsp;     *
+<i class="no-highlight">520</i>&nbsp;     * @return BoxFolder object referring to the given ID
+<i class="no-highlight">521</i>&nbsp;     */
+<i class="no-highlight">522</i>&nbsp;    public BoxFolder getBoxFolderResource(BoxAPIConnection connection, String folderId) {
+<b class="nc"><i class="no-highlight">523</i>&nbsp;        return new BoxFolder(connection, folderId);</b>
+<i class="no-highlight">524</i>&nbsp;    }
+<i class="no-highlight">525</i>&nbsp;
+<i class="no-highlight">526</i>&nbsp;    /**
+<i class="no-highlight">527</i>&nbsp;     * Returns BoxUser object represented by given User ID
+<i class="no-highlight">528</i>&nbsp;     *
+<i class="no-highlight">529</i>&nbsp;     * This approach was taken to make the junit test pass
+<i class="no-highlight">530</i>&nbsp;     *
+<i class="no-highlight">531</i>&nbsp;     * @param connection
+<i class="no-highlight">532</i>&nbsp;     * @param userId
+<i class="no-highlight">533</i>&nbsp;     *
+<i class="no-highlight">534</i>&nbsp;     * @return BoxUser object referred to by the given user ID
+<i class="no-highlight">535</i>&nbsp;     */
+<i class="no-highlight">536</i>&nbsp;    public BoxUser getBoxUserWithGivenId(BoxAPIConnection connection, String userId) {
+<b class="nc"><i class="no-highlight">537</i>&nbsp;        return new BoxUser(connection, userId);</b>
+<i class="no-highlight">538</i>&nbsp;    }
+<i class="no-highlight">539</i>&nbsp;
+<i class="no-highlight">540</i>&nbsp;    /**
+<i class="no-highlight">541</i>&nbsp;     * Creates and returns an instance of BoxUser.Info from the given BoxUser object
+<i class="no-highlight">542</i>&nbsp;     *
+<i class="no-highlight">543</i>&nbsp;     * This approach was used to make the junit test pass
+<i class="no-highlight">544</i>&nbsp;     *
+<i class="no-highlight">545</i>&nbsp;     * @param boxUser
+<i class="no-highlight">546</i>&nbsp;     *
+<i class="no-highlight">547</i>&nbsp;     * @return instance of BoxUser.Info
+<i class="no-highlight">548</i>&nbsp;     */
+<i class="no-highlight">549</i>&nbsp;    public BoxUser.Info createNewUserInfo(BoxUser boxUser) {
+<b class="nc"><i class="no-highlight">550</i>&nbsp;        return boxUser.new Info();</b>
+<i class="no-highlight">551</i>&nbsp;    }
+<i class="no-highlight">552</i>&nbsp;
+<i class="no-highlight">553</i>&nbsp;    /**
+<i class="no-highlight">554</i>&nbsp;     * Lists all the subfolders (if exist) along with their IDs for the given folder
+<i class="no-highlight">555</i>&nbsp;     *
+<i class="no-highlight">556</i>&nbsp;     * @param connection
+<i class="no-highlight">557</i>&nbsp;     * @param folderID
+<i class="no-highlight">558</i>&nbsp;     * @param builder
+<i class="no-highlight">559</i>&nbsp;     * @param propertyKey
+<i class="no-highlight">560</i>&nbsp;     *
+<i class="no-highlight">561</i>&nbsp;     * @throws BoxAPIException The ApiException will be thrown only when the account is
+<i class="no-highlight">562</i>&nbsp;     *                         unauthorized
+<i class="no-highlight">563</i>&nbsp;     */
+<i class="no-highlight">564</i>&nbsp;    public void suggestSubFolders(BoxAPIConnection connection, String folderID,
+<i class="no-highlight">565</i>&nbsp;            SuggestionBuilder builder, String propertyKey) {
+<b class="nc"><i class="no-highlight">566</i>&nbsp;        if (StringUtils.isBlank(folderID)) {</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;            builder.node(propertyKey).suggestions(new String[]{DEFAULT_FOLDER_ROOT});</b>
+<i class="no-highlight">568</i>&nbsp;            return;
+<i class="no-highlight">569</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">570</i>&nbsp;        List&lt;String&gt; subfolders = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">571</i>&nbsp;        String folderPath;
+<b class="nc"><i class="no-highlight">572</i>&nbsp;        folderID = extractID(folderID);</b>
+<i class="no-highlight">573</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">574</i>&nbsp;            BoxFolder currentFolder = new BoxFolder(connection, folderID);</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;            for (BoxItem.Info info : currentFolder) {</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;                if (info instanceof BoxFolder.Info) {</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                    folderPath = getFolderPath(new BoxFolder(connection, info.getID())</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;                            .getInfo());</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                    if (StringUtils.isBlank(folderPath)) {</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;                        folderPath = info.getName() + &#39;/&#39;;</b>
+<i class="no-highlight">581</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">582</i>&nbsp;                    subfolders.add(String.format(FOLDER_SUGGESTION_FORMAT,</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                            ROOT_FOLDER, folderPath, info.getID()));</b>
+<i class="no-highlight">584</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">585</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;            if (subfolders.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                subfolders.add(FOLDER_SUGGESTIONS_NONE);</b>
+<i class="no-highlight">588</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">589</i>&nbsp;            if (!folderID.equalsIgnoreCase(FOLDER_ID_ZERO)) {</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;                subfolders.add(0, String.format(PARENT_FOLDER_SUGGESTION,</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                        currentFolder.getInfo().getParent().getID()));</b>
+<i class="no-highlight">592</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">593</i>&nbsp;            builder.node(propertyKey).suggestions(subfolders.toArray(</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                    new String[subfolders.size()]));</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;        } catch (BoxAPIException e1) {</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;            switch (e1.getResponseCode()) {</b>
+<i class="no-highlight">597</i>&nbsp;                case HttpURLConnection.HTTP_UNAUTHORIZED:
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                    throw e1;</b>
+<i class="no-highlight">599</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">600</i>&nbsp;                    throw new ExecutionException(String.format(ERR_BROWSER_FOLDER_SUGGEST_MSG,</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;                            e1.getMessage()));</b>
+<i class="no-highlight">602</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">603</i>&nbsp;        }</b>
+<i class="no-highlight">604</i>&nbsp;    }
+<i class="no-highlight">605</i>&nbsp;
+<i class="no-highlight">606</i>&nbsp;    /**
+<i class="no-highlight">607</i>&nbsp;     * Suggests all Box items (if exist) along with their paths and IDs for the given folder.
+<i class="no-highlight">608</i>&nbsp;     * If the give sourceId is for a BoxFile object, suggest all Box items in the parent folder.
+<i class="no-highlight">609</i>&nbsp;     *
+<i class="no-highlight">610</i>&nbsp;     * @param connection   - BoxApiConnection object
+<i class="no-highlight">611</i>&nbsp;     * @param sourceId     - source ID
+<i class="no-highlight">612</i>&nbsp;     * @param builder      - suggest builder
+<i class="no-highlight">613</i>&nbsp;     * @param propertyKey  - Snap property key
+<i class="no-highlight">614</i>&nbsp;     *
+<i class="no-highlight">615</i>&nbsp;     * @throws BoxAPIException if the account is unauthorized
+<i class="no-highlight">616</i>&nbsp;     */
+<i class="no-highlight">617</i>&nbsp;    public void suggestSourceId(BoxAPIConnection connection, String sourceId,
+<i class="no-highlight">618</i>&nbsp;            SuggestionBuilder builder, String propertyKey) {
+<b class="nc"><i class="no-highlight">619</i>&nbsp;        if (StringUtils.isBlank(sourceId)) {</b>
+<b class="nc"><i class="no-highlight">620</i>&nbsp;            builder.node(propertyKey).suggestions(new String[]{DEFAULT_FOLDER_ROOT});</b>
+<i class="no-highlight">621</i>&nbsp;            return;
+<i class="no-highlight">622</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">623</i>&nbsp;        List&lt;String&gt; suggestedItems = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;        String sourcePath = extractPath(sourceId);</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;        sourceId = extractID(sourceId);</b>
+<i class="no-highlight">626</i>&nbsp;        String path;
+<b class="nc"><i class="no-highlight">627</i>&nbsp;        BoxFolder currentFolder = new BoxFolder(connection, sourceId);</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;        boolean isFirstTry = true;</b>
+<i class="no-highlight">629</i>&nbsp;        while (true) {
+<i class="no-highlight">630</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                for (BoxItem.Info info : currentFolder) {</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;                    if (info instanceof BoxFolder.Info) {</b>
+<b class="nc"><i class="no-highlight">633</i>&nbsp;                        path = getFolderPath(new BoxFolder(connection, info.getID())</b>
+<b class="nc"><i class="no-highlight">634</i>&nbsp;                                .getInfo());</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;                        if (StringUtils.isBlank(path)) {</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;                            path = info.getName() + &#39;/&#39;;</b>
+<i class="no-highlight">637</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">638</i>&nbsp;                        suggestedItems.add(String.format(FOLDER_SUGGESTION_FORMAT,</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;                                ROOT_FOLDER, path, info.getID()));</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;                    } else if (info instanceof BoxFile.Info) {</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                        path = sourcePath.concat(info.getName());</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;                        suggestedItems.add(</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;                                String.format(FILE_SUGGESTION_FORMAT, path, info.getID()));</b>
+<i class="no-highlight">644</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;                if (suggestedItems.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                    suggestedItems.add(FOLDER_SUGGESTIONS_NONE);</b>
+<i class="no-highlight">648</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">649</i>&nbsp;                if (!sourceId.equalsIgnoreCase(FOLDER_ID_ZERO)) {</b>
+<b class="nc"><i class="no-highlight">650</i>&nbsp;                    suggestedItems.add(0, String.format(PARENT_FOLDER_SUGGESTION,</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;                            currentFolder.getInfo().getParent().getID()));</b>
+<i class="no-highlight">652</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">653</i>&nbsp;                builder.node(propertyKey).suggestions(suggestedItems.toArray(</b>
+<b class="nc"><i class="no-highlight">654</i>&nbsp;                        new String[suggestedItems.size()]));</b>
+<i class="no-highlight">655</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">656</i>&nbsp;            } catch (BoxAPIException e1) {</b>
+<b class="nc"><i class="no-highlight">657</i>&nbsp;                switch (e1.getResponseCode()) {</b>
+<i class="no-highlight">658</i>&nbsp;                    case HttpURLConnection.HTTP_UNAUTHORIZED:
+<b class="nc"><i class="no-highlight">659</i>&nbsp;                        throw e1;</b>
+<i class="no-highlight">660</i>&nbsp;                    case java.net.HttpURLConnection.HTTP_NOT_FOUND:
+<b class="nc"><i class="no-highlight">661</i>&nbsp;                        if (isFirstTry) {</b>
+<i class="no-highlight">662</i>&nbsp;                            try {
+<i class="no-highlight">663</i>&nbsp;                                // given source ID may be for a BoxFile, try to get its parent
+<i class="no-highlight">664</i>&nbsp;                                // folder and retry
+<b class="nc"><i class="no-highlight">665</i>&nbsp;                                currentFolder = new BoxFile(connection, sourceId).</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;                                        getInfo().getParent().getResource();</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;                                isFirstTry = false;</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;                                continue;</b>
+<b class="nc"><i class="no-highlight">669</i>&nbsp;                            } catch (Exception e) {</b>
+<i class="no-highlight">670</i>&nbsp;                                // it did not work, go to throw exception below
+<i class="no-highlight">671</i>&nbsp;                            }
+<i class="no-highlight">672</i>&nbsp;                        }
+<i class="no-highlight">673</i>&nbsp;                    default:
+<b class="nc"><i class="no-highlight">674</i>&nbsp;                        throw new ExecutionException(String.format(ERR_BROWSER_FOLDER_SUGGEST_MSG,</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                                e1.getMessage()));</b>
+<i class="no-highlight">676</i>&nbsp;                }
+<i class="no-highlight">677</i>&nbsp;            }
+<i class="no-highlight">678</i>&nbsp;        }
+<i class="no-highlight">679</i>&nbsp;    }
+<i class="no-highlight">680</i>&nbsp;
+<i class="no-highlight">681</i>&nbsp;    /**
+<i class="no-highlight">682</i>&nbsp;     * Extracts Box item ID from the given string
+<i class="no-highlight">683</i>&nbsp;     *
+<i class="no-highlight">684</i>&nbsp;     * If the string is in the format PATH:ID then ID is extracted and returned; else original
+<i class="no-highlight">685</i>&nbsp;     * string is returned
+<i class="no-highlight">686</i>&nbsp;     *
+<i class="no-highlight">687</i>&nbsp;     * @param pathWithID
+<i class="no-highlight">688</i>&nbsp;     *
+<i class="no-highlight">689</i>&nbsp;     * @return item ID
+<i class="no-highlight">690</i>&nbsp;     */
+<i class="no-highlight">691</i>&nbsp;    public String extractID(String pathWithID) {
+<b class="nc"><i class="no-highlight">692</i>&nbsp;        return pathWithID.indexOf(COLON) &gt; -1 ? pathWithID.split(COLON)[1].trim() :</b>
+<b class="nc"><i class="no-highlight">693</i>&nbsp;                pathWithID;</b>
+<i class="no-highlight">694</i>&nbsp;    }
+<i class="no-highlight">695</i>&nbsp;
+<i class="no-highlight">696</i>&nbsp;    private String extractPath(String pathWithID) {
+<b class="nc"><i class="no-highlight">697</i>&nbsp;        int index = pathWithID.indexOf(COLON);</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;        return index &gt; -1 ? pathWithID.substring(0, index).trim() : StringUtils.EMPTY;</b>
+<i class="no-highlight">699</i>&nbsp;    }
+<i class="no-highlight">700</i>&nbsp;
+<i class="no-highlight">701</i>&nbsp;    public String getFolderPath(BoxFolder.Info folderInfo) {
+<b class="nc"><i class="no-highlight">702</i>&nbsp;        List&lt;BoxFolder.Info&gt; pathCollection = folderInfo.getPathCollection();</b>
+<i class="no-highlight">703</i>&nbsp;        // NOTE: pathCollection will be null for root folder
+<i class="no-highlight">704</i>&nbsp;        // pathCollection is the list of parent folders starting with the root (All Files)
+<b class="nc"><i class="no-highlight">705</i>&nbsp;        if (pathCollection == null || pathCollection.isEmpty()) {</b>
+<i class="no-highlight">706</i>&nbsp;            // root folder
+<b class="nc"><i class="no-highlight">707</i>&nbsp;            return StringUtils.EMPTY;</b>
+<i class="no-highlight">708</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">709</i>&nbsp;        StringBuilder pathBuilder = new StringBuilder(512);</b>
+<i class="no-highlight">710</i>&nbsp;        // append the name of all parents except for the root folder, for backward-compatibility
+<b class="nc"><i class="no-highlight">711</i>&nbsp;        for (int i = 1; i &lt; pathCollection.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">712</i>&nbsp;            pathBuilder.append(pathCollection.get(i).getName()).append(&#39;/&#39;);</b>
+<i class="no-highlight">713</i>&nbsp;        }
+<i class="no-highlight">714</i>&nbsp;        // append the name of this folder
+<b class="nc"><i class="no-highlight">715</i>&nbsp;        pathBuilder.append(folderInfo.getName()).append(&#39;/&#39;);</b>
+<b class="nc"><i class="no-highlight">716</i>&nbsp;        return pathBuilder.toString();</b>
+<i class="no-highlight">717</i>&nbsp;    }
+<i class="no-highlight">718</i>&nbsp;
+<i class="no-highlight">719</i>&nbsp;    /**
+<i class="no-highlight">720</i>&nbsp;     * Sleeps for n milliseconds.
+<i class="no-highlight">721</i>&nbsp;     *
+<i class="no-highlight">722</i>&nbsp;     * @param milliseconds - duration of sleep in milliseconds
+<i class="no-highlight">723</i>&nbsp;     */
+<i class="no-highlight">724</i>&nbsp;    public static void delay(int milliseconds) {
+<i class="no-highlight">725</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">726</i>&nbsp;            TimeUnit.MILLISECONDS.sleep(milliseconds);</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;        } catch (InterruptedException e) {</b>
+<i class="no-highlight">728</i>&nbsp;            // No-Op
+<b class="nc"><i class="no-highlight">729</i>&nbsp;        }</b>
+<i class="no-highlight">730</i>&nbsp;    }
+<i class="no-highlight">731</i>&nbsp;
+<i class="no-highlight">732</i>&nbsp;    public static void delete(File file, Logger log) {
+<i class="no-highlight">733</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">734</i>&nbsp;            if (file != null &amp;&amp; file.exists()) {</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;                if (!file.delete()) {</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;                    log.info(LOG_DELETE_TEMP_FILE, file.toString());</b>
+<i class="no-highlight">737</i>&nbsp;                }
+<i class="no-highlight">738</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">739</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">740</i>&nbsp;            log.info(LOG_DELETE_TEMP_FILE_DETAIL, file.toString(), e.getMessage());</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;        }</b>
+<i class="no-highlight">742</i>&nbsp;    }
+<i class="no-highlight">743</i>&nbsp;
+<i class="no-highlight">744</i>&nbsp;    /** Get the data from the Box REST service.
+<i class="no-highlight">745</i>&nbsp;     *
+<i class="no-highlight">746</i>&nbsp;     * @param connection The connection to the server
+<i class="no-highlight">747</i>&nbsp;     * @param url This includes offset and limit parameters.
+<i class="no-highlight">748</i>&nbsp;     * @param requestType The type of request
+<i class="no-highlight">749</i>&nbsp;     * @return The BoxJSONResponse object containing the data.
+<i class="no-highlight">750</i>&nbsp;     */
+<i class="no-highlight">751</i>&nbsp;    public BoxJSONResponse send(BoxAPIConnection connection, URL url, String requestType) {
+<b class="nc"><i class="no-highlight">752</i>&nbsp;        BoxAPIRequest request = new BoxAPIRequest(connection, url, requestType);</b>
+<b class="nc"><i class="no-highlight">753</i>&nbsp;        return (BoxJSONResponse) request.send();</b>
+<i class="no-highlight">754</i>&nbsp;    }
+<i class="no-highlight">755</i>&nbsp;
+<i class="no-highlight">756</i>&nbsp;    /**
+<i class="no-highlight">757</i>&nbsp;     * Converts {@link BoxAPIException} to an error reason
+<i class="no-highlight">758</i>&nbsp;     * @param exception the Exception, may not be null.
+<i class="no-highlight">759</i>&nbsp;     * @return the reason message.
+<i class="no-highlight">760</i>&nbsp;     */
+<i class="no-highlight">761</i>&nbsp;    public static String toReason(Exception exception) {
+<b class="nc"><i class="no-highlight">762</i>&nbsp;        StringBuilder message = new StringBuilder(exception.getMessage());</b>
+<i class="no-highlight">763</i>&nbsp;
+<b class="nc"><i class="no-highlight">764</i>&nbsp;        if (exception instanceof BoxAPIException) {</b>
+<b class="nc"><i class="no-highlight">765</i>&nbsp;            BoxAPIException boxEx = (BoxAPIException) exception;</b>
+<i class="no-highlight">766</i>&nbsp;            //Include the box server response, if it reported a response.
+<i class="no-highlight">767</i>&nbsp;            //The Box API includes the response code in the exception message.
+<b class="nc"><i class="no-highlight">768</i>&nbsp;            if (StringUtils.isNotBlank(boxEx.getResponse())) {</b>
+<b class="nc"><i class="no-highlight">769</i>&nbsp;                message.append(&quot;. &quot; + boxEx.getResponse());</b>
+<b class="nc"><i class="no-highlight">770</i>&nbsp;            } else if (boxEx.getResponseCode() == 401) {</b>
+<i class="no-highlight">771</i>&nbsp;                // The Box server does not return a response body with 401.
+<i class="no-highlight">772</i>&nbsp;                // This is a very common case since it represents an account that cannot
+<i class="no-highlight">773</i>&nbsp;                // authenticate. Include a more user friendly message to help the user troubleshoot
+<i class="no-highlight">774</i>&nbsp;                // this common case.
+<b class="nc"><i class="no-highlight">775</i>&nbsp;                message.append(&quot;. &quot; + ERR_VERIFY_ACCOUNT);</b>
+<i class="no-highlight">776</i>&nbsp;            }
+<i class="no-highlight">777</i>&nbsp;        }
+<i class="no-highlight">778</i>&nbsp;
+<b class="nc"><i class="no-highlight">779</i>&nbsp;        return  message.toString();</b>
+<i class="no-highlight">780</i>&nbsp;    }
+<i class="no-highlight">781</i>&nbsp;
+<i class="no-highlight">782</i>&nbsp;    /**
+<i class="no-highlight">783</i>&nbsp;     * Gets a temporary directory in local file (thread-safe). This directory and its temporary
+<i class="no-highlight">784</i>&nbsp;     * files are automatically removed by the platform when the pipeline execution or preview is
+<i class="no-highlight">785</i>&nbsp;     * completed or stopped. Only one temporary directory is created for each pipeline execution.
+<i class="no-highlight">786</i>&nbsp;     * If this method is called for the first time within one pipeline execution, it creates the
+<i class="no-highlight">787</i>&nbsp;     * directory.
+<i class="no-highlight">788</i>&nbsp;     *
+<i class="no-highlight">789</i>&nbsp;     * Copied from JfsUtils because it causes a conflict on failsafe version
+<i class="no-highlight">790</i>&nbsp;     *
+<i class="no-highlight">791</i>&nbsp;     * @param expressionUtils - ExpressionUtils object from the Snap thread
+<i class="no-highlight">792</i>&nbsp;     * @param propertyValues  - PropertyValues object from the Snap thread
+<i class="no-highlight">793</i>&nbsp;     * @param errorViews      - error view to write the error document in case of failure
+<i class="no-highlight">794</i>&nbsp;     *
+<i class="no-highlight">795</i>&nbsp;     * @return NIO File object for the temporary directory or null if it fails to create.
+<i class="no-highlight">796</i>&nbsp;     */
+<i class="no-highlight">797</i>&nbsp;    public static File getTmpDir(ExpressionUtils expressionUtils, PropertyValues propertyValues,
+<i class="no-highlight">798</i>&nbsp;                                 ErrorViews errorViews) {
+<b class="nc"><i class="no-highlight">799</i>&nbsp;        ExpressionProperty tmpDirExpr = expressionUtils.createExpressionProperty(propertyValues,</b>
+<i class="no-highlight">800</i>&nbsp;                true, PIPE_TMP_DIR);
+<b class="nc"><i class="no-highlight">801</i>&nbsp;        File tmpDir = new File(URI.create(tmpDirExpr.eval(null)).getPath());</b>
+<b class="nc"><i class="no-highlight">802</i>&nbsp;        Path tmpDirPath = tmpDir.toPath();</b>
+<b class="nc"><i class="no-highlight">803</i>&nbsp;        if (!Files.exists(tmpDirPath)) {</b>
+<i class="no-highlight">804</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">805</i>&nbsp;                Files.createDirectory(tmpDirPath);</b>
+<b class="nc"><i class="no-highlight">806</i>&nbsp;            } catch (FileAlreadyExistsException e) {</b>
+<i class="no-highlight">807</i>&nbsp;                // use existing dir
+<b class="nc"><i class="no-highlight">808</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">809</i>&nbsp;                SnapDataException ex = new SnapDataException(e, ERR_CREATE_TMP_DIR)</b>
+<b class="nc"><i class="no-highlight">810</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">811</i>&nbsp;                if (errorViews == null) {</b>
+<b class="nc"><i class="no-highlight">812</i>&nbsp;                    throw ex;</b>
+<i class="no-highlight">813</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">814</i>&nbsp;                    errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">815</i>&nbsp;                    return null;</b>
+<i class="no-highlight">816</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">817</i>&nbsp;            }</b>
+<i class="no-highlight">818</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">819</i>&nbsp;        return tmpDir;</b>
+<i class="no-highlight">820</i>&nbsp;    }
+<i class="no-highlight">821</i>&nbsp;
+<i class="no-highlight">822</i>&nbsp;    public BoxFolder getCurrentFolderFromPath(BoxAPIConnection connection, String filePath) {
+<b class="nc"><i class="no-highlight">823</i>&nbsp;        BoxFolder root = BoxFolder.getRootFolder(connection);</b>
+<b class="nc"><i class="no-highlight">824</i>&nbsp;        if (StringUtils.isBlank(filePath)) {</b>
+<b class="nc"><i class="no-highlight">825</i>&nbsp;            return root;</b>
+<i class="no-highlight">826</i>&nbsp;        }
+<i class="no-highlight">827</i>&nbsp;
+<b class="nc"><i class="no-highlight">828</i>&nbsp;        List&lt;String&gt; pathElements = splitPathToList(filePath);</b>
+<i class="no-highlight">829</i>&nbsp;        // Since we cannot get the nested folder by path name so we need to recursively traverse the
+<i class="no-highlight">830</i>&nbsp;        // folder.
+<i class="no-highlight">831</i>&nbsp;        Iterator&lt;String&gt; pathIterator;
+<b class="nc"><i class="no-highlight">832</i>&nbsp;        if (pathElements.size() &gt; MAX_TRAVERSE) {</b>
+<b class="nc"><i class="no-highlight">833</i>&nbsp;            pathIterator = pathElements.subList(0, MAX_TRAVERSE).iterator();</b>
+<i class="no-highlight">834</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">835</i>&nbsp;            pathIterator = pathElements.subList(0, pathElements.size() - 1).iterator();</b>
+<i class="no-highlight">836</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">837</i>&nbsp;        BoxFolder current = traverseRecursive(pathIterator, root);</b>
+<b class="nc"><i class="no-highlight">838</i>&nbsp;        if (current == null) {</b>
+<b class="nc"><i class="no-highlight">839</i>&nbsp;            return root;</b>
+<i class="no-highlight">840</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">841</i>&nbsp;        return current;</b>
+<i class="no-highlight">842</i>&nbsp;    }
+<i class="no-highlight">843</i>&nbsp;
+<i class="no-highlight">844</i>&nbsp;    protected BoxFolder traverseRecursive(Iterator&lt;String&gt; pathIterator,
+<i class="no-highlight">845</i>&nbsp;                                          BoxFolder current) {
+<b class="nc"><i class="no-highlight">846</i>&nbsp;        if (!pathIterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">847</i>&nbsp;            return current;</b>
+<i class="no-highlight">848</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">849</i>&nbsp;        String name = pathIterator.next();</b>
+<b class="nc"><i class="no-highlight">850</i>&nbsp;        BoxFolder.Info folderInfo = null;</b>
+<b class="nc"><i class="no-highlight">851</i>&nbsp;        for (BoxItem.Info info : current.getChildren(MIN_FIELDS)) {</b>
+<b class="nc"><i class="no-highlight">852</i>&nbsp;            if (info instanceof BoxFolder.Info &amp;&amp; name.equals(info.getName())) {</b>
+<b class="nc"><i class="no-highlight">853</i>&nbsp;                folderInfo = (BoxFolder.Info) info;</b>
+<b class="nc"><i class="no-highlight">854</i>&nbsp;                break;</b>
+<i class="no-highlight">855</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">856</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">857</i>&nbsp;        if (folderInfo != null) {</b>
+<b class="nc"><i class="no-highlight">858</i>&nbsp;            current = folderInfo.getResource();</b>
+<b class="nc"><i class="no-highlight">859</i>&nbsp;            return traverseRecursive(pathIterator, current);</b>
+<i class="no-highlight">860</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">861</i>&nbsp;        return current;</b>
+<i class="no-highlight">862</i>&nbsp;    }
+<i class="no-highlight">863</i>&nbsp;
+<i class="no-highlight">864</i>&nbsp;    public void suggestFilePath(BoxAPIConnection connection, String filePath,
+<i class="no-highlight">865</i>&nbsp;                                SuggestionBuilder builder, String propertyKey) {
+<b class="nc"><i class="no-highlight">866</i>&nbsp;        if (StringUtils.isBlank(filePath)) {</b>
+<b class="nc"><i class="no-highlight">867</i>&nbsp;            filePath = StringUtils.EMPTY;</b>
+<i class="no-highlight">868</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">869</i>&nbsp;        List&lt;String&gt; suggestedItems = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">870</i>&nbsp;        String path = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">871</i>&nbsp;        BoxFolder currentFolder = this.getCurrentFolderFromPath(connection, filePath);</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;        List&lt;String&gt; pathElements = splitPathToList(filePath);</b>
+<b class="nc"><i class="no-highlight">873</i>&nbsp;        int size = pathElements.size();</b>
+<b class="nc"><i class="no-highlight">874</i>&nbsp;        String currentFolderPath = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">875</i>&nbsp;        if (size &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">876</i>&nbsp;            currentFolderPath = String.join(&quot;/&quot;, pathElements.subList(0, size - 1)) + &quot;/&quot;;</b>
+<i class="no-highlight">877</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">878</i>&nbsp;        boolean isFirstTry = true;</b>
+<i class="no-highlight">879</i>&nbsp;        while (true) {
+<i class="no-highlight">880</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">881</i>&nbsp;                for (BoxItem.Info info : currentFolder) {</b>
+<b class="nc"><i class="no-highlight">882</i>&nbsp;                    if (info instanceof BoxFolder.Info) {</b>
+<b class="nc"><i class="no-highlight">883</i>&nbsp;                        path = getFolderPath((BoxFolder.Info) info);</b>
+<b class="nc"><i class="no-highlight">884</i>&nbsp;                        if (StringUtils.isBlank(path)) {</b>
+<b class="nc"><i class="no-highlight">885</i>&nbsp;                            path = info.getName() + &#39;/&#39;;</b>
+<i class="no-highlight">886</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">887</i>&nbsp;                    } else if (info instanceof BoxFile.Info) {</b>
+<b class="nc"><i class="no-highlight">888</i>&nbsp;                        path =  currentFolderPath.concat(info.getName());</b>
+<i class="no-highlight">889</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">890</i>&nbsp;                    suggestedItems.add(path);</b>
+<b class="nc"><i class="no-highlight">891</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">892</i>&nbsp;                if (suggestedItems.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">893</i>&nbsp;                    suggestedItems.add(FOLDER_SUGGESTIONS_NONE);</b>
+<i class="no-highlight">894</i>&nbsp;                }
+<i class="no-highlight">895</i>&nbsp;
+<b class="nc"><i class="no-highlight">896</i>&nbsp;                builder.node(propertyKey).suggestions(suggestedItems.toArray(</b>
+<b class="nc"><i class="no-highlight">897</i>&nbsp;                        new String[suggestedItems.size()]));</b>
+<i class="no-highlight">898</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">899</i>&nbsp;            } catch (BoxAPIException e1) {</b>
+<b class="nc"><i class="no-highlight">900</i>&nbsp;                switch (e1.getResponseCode()) {</b>
+<i class="no-highlight">901</i>&nbsp;                    case HttpURLConnection.HTTP_UNAUTHORIZED:
+<b class="nc"><i class="no-highlight">902</i>&nbsp;                        throw e1;</b>
+<i class="no-highlight">903</i>&nbsp;                    case HttpURLConnection.HTTP_NOT_FOUND:
+<b class="nc"><i class="no-highlight">904</i>&nbsp;                        if (isFirstTry) {</b>
+<i class="no-highlight">905</i>&nbsp;                            try {
+<b class="nc"><i class="no-highlight">906</i>&nbsp;                                currentFolder = BoxFolder.getRootFolder(connection);</b>
+<b class="nc"><i class="no-highlight">907</i>&nbsp;                                isFirstTry = false;</b>
+<b class="nc"><i class="no-highlight">908</i>&nbsp;                                continue;</b>
+<b class="nc"><i class="no-highlight">909</i>&nbsp;                            } catch (Exception e) {</b>
+<i class="no-highlight">910</i>&nbsp;                                // it did not work, go to throw exception below
+<i class="no-highlight">911</i>&nbsp;                            }
+<i class="no-highlight">912</i>&nbsp;                        }
+<i class="no-highlight">913</i>&nbsp;                    default:
+<b class="nc"><i class="no-highlight">914</i>&nbsp;                        throw new ExecutionException(String.format(ERR_BROWSER_FOLDER_SUGGEST_MSG,</b>
+<b class="nc"><i class="no-highlight">915</i>&nbsp;                                e1.getMessage()));</b>
+<i class="no-highlight">916</i>&nbsp;                }
+<i class="no-highlight">917</i>&nbsp;            }
+<i class="no-highlight">918</i>&nbsp;        }
+<i class="no-highlight">919</i>&nbsp;    }
+<i class="no-highlight">920</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

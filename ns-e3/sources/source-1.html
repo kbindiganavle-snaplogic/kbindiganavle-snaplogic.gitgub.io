@@ -1,0 +1,512 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AnalyticsCommon</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.google.analytics4</a>
+</div>
+
+<h1>Coverage Summary for Class: AnalyticsCommon (com.snaplogic.snaps.google.analytics4)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AnalyticsCommon</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/161)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AnalyticsCommon$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/162)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2023, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.google.analytics4;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.analytics.admin.v1beta.Account;
+<i class="no-highlight">14</i>&nbsp;import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient;
+<i class="no-highlight">15</i>&nbsp;import com.google.analytics.admin.v1beta.AnalyticsAdminServiceSettings;
+<i class="no-highlight">16</i>&nbsp;import com.google.analytics.admin.v1beta.ListAccountsRequest;
+<i class="no-highlight">17</i>&nbsp;import com.google.analytics.admin.v1beta.ListPropertiesRequest;
+<i class="no-highlight">18</i>&nbsp;import com.google.analytics.admin.v1beta.Property;
+<i class="no-highlight">19</i>&nbsp;import com.google.analytics.data.v1beta.BetaAnalyticsDataClient;
+<i class="no-highlight">20</i>&nbsp;import com.google.analytics.data.v1beta.BetaAnalyticsDataSettings;
+<i class="no-highlight">21</i>&nbsp;import com.google.analytics.data.v1beta.DimensionMetadata;
+<i class="no-highlight">22</i>&nbsp;import com.google.analytics.data.v1beta.MetricMetadata;
+<i class="no-highlight">23</i>&nbsp;import com.google.analytics.data.v1beta.MetricType;
+<i class="no-highlight">24</i>&nbsp;import com.google.api.gax.core.FixedCredentialsProvider;
+<i class="no-highlight">25</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">38</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">39</i>&nbsp;import net.jodah.failsafe.FailsafeExecutor;
+<i class="no-highlight">40</i>&nbsp;import org.apache.commons.lang3.RegExUtils;
+<i class="no-highlight">41</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">44</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">45</i>&nbsp;import java.util.Comparator;
+<i class="no-highlight">46</i>&nbsp;import java.util.List;
+<i class="no-highlight">47</i>&nbsp;import java.util.Map;
+<i class="no-highlight">48</i>&nbsp;import java.util.Set;
+<i class="no-highlight">49</i>&nbsp;import java.util.TreeSet;
+<i class="no-highlight">50</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.google.analytics4.Messages.*;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snaps.google.analytics4.RetryUtils.getAnalyticsRetryPolicy;
+<i class="no-highlight">54</i>&nbsp;
+<b class="nc"><i class="no-highlight">55</i>&nbsp;@Accounts(provides = {GoogleServiceAccount.class})</b>
+<i class="no-highlight">56</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<i class="no-highlight">57</i>&nbsp;public abstract class AnalyticsCommon extends SimpleSnap {
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;    static final String ACCOUNT_ID = &quot;accountId&quot;;
+<i class="no-highlight">60</i>&nbsp;    static final String PROPERTY_ID = &quot;propertyId&quot;;
+<i class="no-highlight">61</i>&nbsp;    static final String METRIC = &quot;metric&quot;;
+<i class="no-highlight">62</i>&nbsp;    static final String METRICS = &quot;metrics&quot;;
+<i class="no-highlight">63</i>&nbsp;    static final String DIMENSION = &quot;dimension&quot;;
+<i class="no-highlight">64</i>&nbsp;    static final String DIMENSIONS = &quot;dimensions&quot;;
+<i class="no-highlight">65</i>&nbsp;    static final String PASS_THROUGH_ID = &quot;passThroughId&quot;;
+<i class="no-highlight">66</i>&nbsp;    static final String FORMAT_FRIENDLY_NAME = &quot;%s (%s)&quot;;
+<i class="no-highlight">67</i>&nbsp;    static final long MAX_LIMIT = 100000;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;    @Inject
+<i class="no-highlight">70</i>&nbsp;    GoogleServiceAccount account;
+<i class="no-highlight">71</i>&nbsp;
+<b class="nc"><i class="no-highlight">72</i>&nbsp;    AnalyticsAdminServiceClient adminClient;</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;    BetaAnalyticsDataClient dataClient;</b>
+<i class="no-highlight">74</i>&nbsp;    ExpressionProperty propertyIdExp;
+<i class="no-highlight">75</i>&nbsp;    ExpressionProperty accountIdExp;
+<i class="no-highlight">76</i>&nbsp;    final List&lt;ExpressionProperty&gt; metricExpList = new ArrayList&lt;&gt;();
+<b class="nc"><i class="no-highlight">77</i>&nbsp;    final List&lt;ExpressionProperty&gt; dimensionExpList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;    Boolean passThrough = Boolean.FALSE;</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;    protected List&lt;Account&gt; listAccounts() {</b>
+<i class="no-highlight">81</i>&nbsp;        initializeAdminClient();
+<i class="no-highlight">82</i>&nbsp;        List&lt;Account&gt; accList = new ArrayList&lt;&gt;();
+<i class="no-highlight">83</i>&nbsp;        AnalyticsAdminServiceClient.ListAccountsPagedResponse response =
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                getAdminFailsafeExecutor().get(() -&gt; adminClient</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                        .listAccounts(ListAccountsRequest.newBuilder()</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                                .build()));</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        for (AnalyticsAdminServiceClient.ListAccountsPage page</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                : response.iteratePages()) {</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            page.iterateAll().forEach(accList::add);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        return accList.stream().distinct().sorted(Comparator.comparing(Account::getName)).collect(Collectors.toList());</b>
+<i class="no-highlight">93</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">94</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;    protected List&lt;Property&gt; listProperties(String accountId) {</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        initializeAdminClient();</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        List&lt;Property&gt; propList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        AnalyticsAdminServiceClient.ListPropertiesPagedResponse response =</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                getAdminFailsafeExecutor().get(() -&gt; adminClient</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                        .listProperties(ListPropertiesRequest.newBuilder()</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                                .setFilter(&quot;parent:&quot; + stripFriendlyName(</b>
+<i class="no-highlight">102</i>&nbsp;                                        addAccountsPrefix(accountId)))
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                                .build()));</b>
+<i class="no-highlight">104</i>&nbsp;        for (AnalyticsAdminServiceClient.ListPropertiesPage page :
+<i class="no-highlight">105</i>&nbsp;                response.iteratePages()) {
+<i class="no-highlight">106</i>&nbsp;            page.iterateAll().forEach(propList::add);
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        return propList.stream().distinct().sorted(Comparator.comparing(Property::getName)).collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;    protected List&lt;MetricMetadata&gt; listMetrics(String propertyId) {</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        initializeDataClient();</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        return getDataFailsafeExecutor().get(() -&gt; dataClient</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                        .getMetadata(stripFriendlyName(addPropertiesPrefix(propertyId)) + &quot;/metadata&quot;)</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                        .getMetricsList()</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                        .stream()</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                        .distinct()</b>
+<i class="no-highlight">118</i>&nbsp;                        .sorted(Comparator.comparing(MetricMetadata::getApiName))
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                        .collect(Collectors.toList()));</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;    protected List&lt;DimensionMetadata&gt; listDimensions(String propertyId) {</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        initializeDataClient();</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        return getDataFailsafeExecutor().get(() -&gt; dataClient</b>
+<i class="no-highlight">125</i>&nbsp;                        .getMetadata(stripFriendlyName(addPropertiesPrefix(propertyId)) + &quot;/metadata&quot;)
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                        .getDimensionsList()</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                        .stream()</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                        .distinct()</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                        .sorted(Comparator.comparing(DimensionMetadata::getApiName))</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                        .collect(Collectors.toList()));</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;    protected void defineAccountId(PropertyBuilder propertyBuilder, boolean isRequired) {</b>
+<i class="no-highlight">134</i>&nbsp;        propertyBuilder.describe(ACCOUNT_ID, ACCOUNT_ID_LABEL, ACCOUNT_ID_DESC)
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<i class="no-highlight">136</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {
+<i class="no-highlight">137</i>&nbsp;                    suggestionBuilder.node(ACCOUNT_ID)
+<i class="no-highlight">138</i>&nbsp;                            .suggestions(listAccounts()
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                                    .stream().map(</b>
+<i class="no-highlight">140</i>&nbsp;                                    acc -&gt; String.format(FORMAT_FRIENDLY_NAME, acc.getName(), acc.getDisplayName()))
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                                    .toArray(String[]::new));</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                });</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        if (isRequired) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            propertyBuilder.required();</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        propertyBuilder.add();</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;    protected void definePropertyId(PropertyBuilder propertyBuilder) {</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        propertyBuilder.describe(PROPERTY_ID, PROPERTY_ID_LABEL, PROPERTY_ID_DESC)</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                    initializeAdminClient();</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                    String accountId = propertyValues.get(ACCOUNT_ID);</b>
+<i class="no-highlight">157</i>&nbsp;                    if (StringUtils.isEmpty(accountId)) {
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                        throw new ConfigurationException(ERR_SUGGEST)</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                                .withReason(MISSING_ACCOUNT_ID)</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                                .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                    suggestionBuilder.node(PROPERTY_ID)</b>
+<i class="no-highlight">163</i>&nbsp;                            .suggestions(listProperties(accountId)
+<i class="no-highlight">164</i>&nbsp;                                    .stream().map(
+<i class="no-highlight">165</i>&nbsp;                                    prop -&gt; String.format(FORMAT_FRIENDLY_NAME, prop.getName(), prop.getDisplayName()))
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                                    .toArray(String[]::new)</b>
+<i class="no-highlight">167</i>&nbsp;                            );
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                })</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;    protected void defineMetrics(PropertyBuilder propertyBuilder) {</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        SnapProperty metric = propertyBuilder.describe(METRIC,</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                        METRIC_LABEL, METRIC_DESC)</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                    String propertyId = propertyValues.get(PROPERTY_ID);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                    suggestionBuilder.node(METRICS)</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                            .over(METRIC).suggestions(listMetrics(propertyId)</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                            .stream().map(</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                                    prop -&gt; String.format(FORMAT_FRIENDLY_NAME, prop.getApiName(), prop.getUiName()))</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                            .toArray(String[]::new)</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                    );</b>
+<i class="no-highlight">184</i>&nbsp;                })
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        propertyBuilder.describe(METRICS, METRICS_LABEL, METRICS_DESC)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .withEntry(metric)</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                .add();</b>
+<i class="no-highlight">190</i>&nbsp;    }
+<i class="no-highlight">191</i>&nbsp;
+<i class="no-highlight">192</i>&nbsp;    protected void defineDimensions(PropertyBuilder propertyBuilder) {
+<i class="no-highlight">193</i>&nbsp;        SnapProperty dimension = propertyBuilder.describe(DIMENSION,
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                        DIMENSION_LABEL, DIMENSION_DESC)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                    String propertyId = propertyValues.get(PROPERTY_ID);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                    suggestionBuilder.node(DIMENSIONS)</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                            .over(DIMENSION).suggestions(listDimensions(propertyId)</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                            .stream().map(</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                                prop -&gt; String.format(FORMAT_FRIENDLY_NAME, prop.getApiName(), prop.getUiName()))</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                            .toArray(String[]::new)</b>
+<i class="no-highlight">203</i>&nbsp;                    );
+<i class="no-highlight">204</i>&nbsp;                })
+<i class="no-highlight">205</i>&nbsp;                .build();
+<i class="no-highlight">206</i>&nbsp;        propertyBuilder.describe(DIMENSIONS, DIMENSIONS_LABEL, DIMENSIONS_DESC)
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                .type(SnapType.TABLE)</b>
+<i class="no-highlight">208</i>&nbsp;                .withEntry(dimension)
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;    protected void definePassThrough(PropertyBuilder builder) {</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        builder.describe(PASS_THROUGH_ID, PASS_THROUGH_LABEL, PASS_THROUGH_DESC)</b>
+<i class="no-highlight">214</i>&nbsp;                .type(SnapType.BOOLEAN)
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;    }</b>
+<i class="no-highlight">218</i>&nbsp;
+<i class="no-highlight">219</i>&nbsp;    protected void configureAccountId(PropertyValues propertyValues) throws ConfigurationException {
+<i class="no-highlight">220</i>&nbsp;        accountIdExp = propertyValues.getAsExpression(ACCOUNT_ID);
+<b class="nc"><i class="no-highlight">221</i>&nbsp;    }</b>
+<i class="no-highlight">222</i>&nbsp;
+<i class="no-highlight">223</i>&nbsp;    protected void configurePropertyId(PropertyValues propertyValues) throws ConfigurationException {
+<i class="no-highlight">224</i>&nbsp;        propertyIdExp = propertyValues.getAsExpression(PROPERTY_ID);
+<i class="no-highlight">225</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">226</i>&nbsp;</b>
+<i class="no-highlight">227</i>&nbsp;    protected void configureMetrics(PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; metricList = propertyValues.get(METRICS);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        for (Map&lt;String, String&gt; metric : metricList) {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            metricExpList.add(propertyValues.getExpressionPropertyFor(metric, METRIC));</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;    }</b>
+<i class="no-highlight">233</i>&nbsp;
+<b class="nc"><i class="no-highlight">234</i>&nbsp;    protected void configureDimensions(PropertyValues propertyValues) throws ConfigurationException {</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; dimensionList = propertyValues.get(DIMENSIONS);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        for (Map&lt;String, String&gt; dimension : dimensionList) {</b>
+<i class="no-highlight">237</i>&nbsp;            dimensionExpList.add(propertyValues.getExpressionPropertyFor(dimension, DIMENSION));
+<i class="no-highlight">238</i>&nbsp;        }
+<i class="no-highlight">239</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">240</i>&nbsp;</b>
+<i class="no-highlight">241</i>&nbsp;    protected void configurePassThrough(PropertyValues propertyValues) throws ConfigurationException {
+<i class="no-highlight">242</i>&nbsp;        passThrough = propertyValues.get(PASS_THROUGH_ID);
+<i class="no-highlight">243</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">244</i>&nbsp;</b>
+<i class="no-highlight">245</i>&nbsp;    private void initializeAdminClient() {
+<i class="no-highlight">246</i>&nbsp;        try {
+<i class="no-highlight">247</i>&nbsp;            if (adminClient == null || adminClient.isShutdown()) {
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                AnalyticsAdminServiceSettings adminSettings =</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                        AnalyticsAdminServiceSettings.newBuilder()</b>
+<i class="no-highlight">250</i>&nbsp;                                .setCredentialsProvider(FixedCredentialsProvider
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                                        .create(account.connect()))</b>
+<i class="no-highlight">252</i>&nbsp;                                .build();
+<i class="no-highlight">253</i>&nbsp;                adminClient = AnalyticsAdminServiceClient.create(adminSettings);
+<i class="no-highlight">254</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;            throw new ConfigurationException(e.getMessage());</b>
+<i class="no-highlight">257</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">258</i>&nbsp;    }</b>
+<i class="no-highlight">259</i>&nbsp;
+<i class="no-highlight">260</i>&nbsp;    private FailsafeExecutor&lt;Object&gt; getAdminFailsafeExecutor() {
+<i class="no-highlight">261</i>&nbsp;        return Failsafe.with(getAnalyticsRetryPolicy().onFailedAttempt(e -&gt; initializeAdminClient()));
+<b class="nc"><i class="no-highlight">262</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;    void initializeDataClient() {</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            if (dataClient == null || dataClient.isShutdown()) {</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                BetaAnalyticsDataSettings dataSettings =</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                        BetaAnalyticsDataSettings.newBuilder()</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                                .setCredentialsProvider(FixedCredentialsProvider</b>
+<i class="no-highlight">270</i>&nbsp;                                        .create(account.connect()))
+<i class="no-highlight">271</i>&nbsp;                                .build();
+<i class="no-highlight">272</i>&nbsp;                dataClient = BetaAnalyticsDataClient.create(dataSettings);
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        } catch (IOException e) {</b>
+<i class="no-highlight">275</i>&nbsp;            throw new ConfigurationException(e.getMessage());
+<i class="no-highlight">276</i>&nbsp;        }
+<i class="no-highlight">277</i>&nbsp;    }
+<i class="no-highlight">278</i>&nbsp;
+<b class="nc"><i class="no-highlight">279</i>&nbsp;    FailsafeExecutor&lt;Object&gt; getDataFailsafeExecutor() {</b>
+<i class="no-highlight">280</i>&nbsp;        return Failsafe.with(getAnalyticsRetryPolicy().onFailedAttempt(e -&gt; initializeDataClient()));
+<b class="nc"><i class="no-highlight">281</i>&nbsp;    }</b>
+<i class="no-highlight">282</i>&nbsp;
+<i class="no-highlight">283</i>&nbsp;    String stripFriendlyName(String name) {
+<i class="no-highlight">284</i>&nbsp;        return RegExUtils.replaceAll(name, &quot;\\s\\(.*\\)&quot;, StringUtils.EMPTY);
+<i class="no-highlight">285</i>&nbsp;    }
+<i class="no-highlight">286</i>&nbsp;
+<i class="no-highlight">287</i>&nbsp;    private String addAccountsPrefix(String accountId) {
+<i class="no-highlight">288</i>&nbsp;        if (!accountId.startsWith(&quot;accounts/&quot;)) {
+<i class="no-highlight">289</i>&nbsp;            return &quot;accounts/&quot; + accountId;
+<i class="no-highlight">290</i>&nbsp;        }
+<i class="no-highlight">291</i>&nbsp;        return accountId;
+<i class="no-highlight">292</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">293</i>&nbsp;</b>
+<i class="no-highlight">294</i>&nbsp;    String addPropertiesPrefix(String propertyId) {
+<i class="no-highlight">295</i>&nbsp;        if (!propertyId.startsWith(&quot;properties/&quot;)) {
+<b class="nc"><i class="no-highlight">296</i>&nbsp;            return &quot;properties/&quot; + propertyId;</b>
+<i class="no-highlight">297</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        return propertyId;</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;    }</b>
+<i class="no-highlight">300</i>&nbsp;
+<i class="no-highlight">301</i>&nbsp;    Set&lt;String&gt; getSetFor(List&lt;ExpressionProperty&gt; expList, Document document) {
+<i class="no-highlight">302</i>&nbsp;        Set&lt;String&gt; set = new TreeSet&lt;&gt;();
+<i class="no-highlight">303</i>&nbsp;        for (ExpressionProperty exp : expList) {
+<b class="nc"><i class="no-highlight">304</i>&nbsp;            if (exp != null &amp;&amp; !exp.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                String[] entries = StringUtils.stripAll(StringUtils.split(</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                        stripFriendlyName(exp.eval(document)), &quot;,&quot;));</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                for (String entry : entries) {</b>
+<i class="no-highlight">308</i>&nbsp;                    if (StringUtils.isNotEmpty(entry)) {
+<i class="no-highlight">309</i>&nbsp;                        set.add(entry);
+<i class="no-highlight">310</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        }</b>
+<i class="no-highlight">314</i>&nbsp;        return set;
+<b class="nc"><i class="no-highlight">315</i>&nbsp;    }</b>
+<i class="no-highlight">316</i>&nbsp;
+<i class="no-highlight">317</i>&nbsp;    Object getMetricValue(MetricType metricType, String metricValue) {
+<i class="no-highlight">318</i>&nbsp;        try {
+<i class="no-highlight">319</i>&nbsp;            switch (metricType) {
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                case TYPE_INTEGER:</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                    return Integer.parseInt(metricValue);</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                case TYPE_FLOAT:</b>
+<i class="no-highlight">323</i>&nbsp;                case TYPE_SECONDS:
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                case TYPE_MILLISECONDS:</b>
+<i class="no-highlight">325</i>&nbsp;                case TYPE_MINUTES:
+<i class="no-highlight">326</i>&nbsp;                case TYPE_HOURS:
+<i class="no-highlight">327</i>&nbsp;                case TYPE_STANDARD:
+<i class="no-highlight">328</i>&nbsp;                case TYPE_CURRENCY:
+<i class="no-highlight">329</i>&nbsp;                case TYPE_FEET:
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                case TYPE_MILES:</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                case TYPE_METERS:</b>
+<i class="no-highlight">332</i>&nbsp;                case TYPE_KILOMETERS:
+<i class="no-highlight">333</i>&nbsp;                    return Double.parseDouble(metricValue);
+<i class="no-highlight">334</i>&nbsp;                case METRIC_TYPE_UNSPECIFIED:
+<i class="no-highlight">335</i>&nbsp;                default:
+<i class="no-highlight">336</i>&nbsp;                    return metricValue;
+<i class="no-highlight">337</i>&nbsp;            }
+<i class="no-highlight">338</i>&nbsp;        } catch (NumberFormatException e) {
+<i class="no-highlight">339</i>&nbsp;            return metricValue;
+<i class="no-highlight">340</i>&nbsp;        }
+<i class="no-highlight">341</i>&nbsp;    }
+<i class="no-highlight">342</i>&nbsp;
+<i class="no-highlight">343</i>&nbsp;    void writeOutputViewWithPassThrough(Document document, Boolean passThrough, Map&lt;String, Object&gt; dataMap) {
+<i class="no-highlight">344</i>&nbsp;        if (passThrough) {
+<i class="no-highlight">345</i>&nbsp;            outputViews.write(documentUtility.newDocumentFor(document, dataMap), document);
+<i class="no-highlight">346</i>&nbsp;        } else {
+<i class="no-highlight">347</i>&nbsp;            outputViews.write(documentUtility.newDocumentFor(document, dataMap));
+<i class="no-highlight">348</i>&nbsp;        }
+<i class="no-highlight">349</i>&nbsp;    }
+<i class="no-highlight">350</i>&nbsp;
+<i class="no-highlight">351</i>&nbsp;    void writeToErrorView(Document document, Exception e) {
+<i class="no-highlight">352</i>&nbsp;        SnapDataException sde = new SnapDataException(ERR_CREATE_REPORT)
+<i class="no-highlight">353</i>&nbsp;                .withReason(e.getMessage())
+<i class="no-highlight">354</i>&nbsp;                .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">355</i>&nbsp;        errorViews.write(sde, document);
+<i class="no-highlight">356</i>&nbsp;    }
+<i class="no-highlight">357</i>&nbsp;
+<i class="no-highlight">358</i>&nbsp;    private void closeAdminClient() {
+<i class="no-highlight">359</i>&nbsp;        if (adminClient != null) {
+<i class="no-highlight">360</i>&nbsp;            if (!adminClient.isShutdown()) {
+<i class="no-highlight">361</i>&nbsp;                adminClient.shutdown();
+<i class="no-highlight">362</i>&nbsp;            }
+<i class="no-highlight">363</i>&nbsp;            adminClient.close();
+<i class="no-highlight">364</i>&nbsp;        }
+<i class="no-highlight">365</i>&nbsp;    }
+<i class="no-highlight">366</i>&nbsp;
+<i class="no-highlight">367</i>&nbsp;    private void closeDataClient() {
+<i class="no-highlight">368</i>&nbsp;        if (dataClient != null) {
+<i class="no-highlight">369</i>&nbsp;            if (!dataClient.isShutdown()) {
+<i class="no-highlight">370</i>&nbsp;                dataClient.shutdown();
+<i class="no-highlight">371</i>&nbsp;            }
+<i class="no-highlight">372</i>&nbsp;            dataClient.close();
+<i class="no-highlight">373</i>&nbsp;        }
+<i class="no-highlight">374</i>&nbsp;    }
+<i class="no-highlight">375</i>&nbsp;
+<i class="no-highlight">376</i>&nbsp;    @Override
+<i class="no-highlight">377</i>&nbsp;    public void cleanup() throws ExecutionException {
+<i class="no-highlight">378</i>&nbsp;        closeAdminClient();
+<i class="no-highlight">379</i>&nbsp;        closeDataClient();
+<i class="no-highlight">380</i>&nbsp;    }
+<i class="no-highlight">381</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

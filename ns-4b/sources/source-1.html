@@ -1,0 +1,204 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DefaultXSComplexTypeResolver</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.soap.node.visit</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultXSComplexTypeResolver (com.snaplogic.snap.api.soap.node.visit)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultXSComplexTypeResolver</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snap.api.soap.node.visit;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.soap.util.TranslationContext;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.xsd.schema.ResolvedTypesMapHolder;
+<i class="no-highlight">18</i>&nbsp;import com.sun.xml.xsom.XSComplexType;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import java.util.Map;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import javax.xml.namespace.QName;
+<i class="no-highlight">25</i>&nbsp;import javax.xml.soap.SOAPElement;
+<i class="no-highlight">26</i>&nbsp;import javax.xml.soap.SOAPException;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.snap.api.soap.node.visit.Messages.COULD_NOT_ATTACH_THE_RESOLVED_TYPE;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snap.api.soap.node.visit.Messages.ILLEGAL_RESOLVED_COMPLEX_TYPE;
+<i class="no-highlight">30</i>&nbsp;import static com.snaplogic.snap.api.soap.node.visit.Messages.TYPE_MISMATCH;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;/**
+<i class="no-highlight">33</i>&nbsp; * The default complex type resolver for the SOAP request templatizer
+<i class="no-highlight">34</i>&nbsp; *
+<i class="no-highlight">35</i>&nbsp; * @author slad@snaplogic.com (Samarth Lad)
+<i class="no-highlight">36</i>&nbsp; */
+<i class="no-highlight">37</i>&nbsp;public class DefaultXSComplexTypeResolver {
+<i class="no-highlight">38</i>&nbsp;    private static final String XSI_NS = &quot;http://www.w3.org/2001/XMLSchema-instance&quot;;
+<i class="no-highlight">39</i>&nbsp;    private static final String TYPE = &quot;type&quot;;
+<i class="no-highlight">40</i>&nbsp;    private static final String COLON = &quot;:&quot;;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;    private final ResolvedTypesMapHolder resolvedTypesMapHolder;
+<i class="no-highlight">43</i>&nbsp;
+<b class="nc"><i class="no-highlight">44</i>&nbsp;    DefaultXSComplexTypeResolver(ResolvedTypesMapHolder resolvedTypesMapHolder) {</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;        this.resolvedTypesMapHolder = resolvedTypesMapHolder;</b>
+<i class="no-highlight">46</i>&nbsp;    }
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;    /**
+<i class="no-highlight">49</i>&nbsp;     * Resolves the given complex type under the given context
+<i class="no-highlight">50</i>&nbsp;     *
+<i class="no-highlight">51</i>&nbsp;     * @param context
+<i class="no-highlight">52</i>&nbsp;     * @param xsComplexType
+<i class="no-highlight">53</i>&nbsp;     * @return
+<i class="no-highlight">54</i>&nbsp;     */
+<i class="no-highlight">55</i>&nbsp;    public XSComplexType resolve(TranslationContext context, XSComplexType xsComplexType) {
+<i class="no-highlight">56</i>&nbsp;        // First condition is hacky: It checks if the xsComplexType is anyType, which is the root
+<i class="no-highlight">57</i>&nbsp;        // of all the complex types and its base type is itself. The order of the conditions is
+<i class="no-highlight">58</i>&nbsp;        // also important since XSOM throws an NPE if we try to call getSubTypes() on it,
+<i class="no-highlight">59</i>&nbsp;        // which is definitely a bug.
+<b class="nc"><i class="no-highlight">60</i>&nbsp;        if (xsComplexType.getBaseType() == xsComplexType || xsComplexType.getSubtypes().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;            return xsComplexType;</b>
+<i class="no-highlight">62</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        if (resolvedTypesMapHolder != null) {</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;            String absolutePath = context.getAbsolutePath();</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;            Map&lt;String, XSComplexType&gt; resolvedTypesMap = resolvedTypesMapHolder.resolvedTypesMap();</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;            if (resolvedTypesMap.containsKey(absolutePath)) {</b>
+<i class="no-highlight">67</i>&nbsp;                // Now call the provided resolver
+<b class="nc"><i class="no-highlight">68</i>&nbsp;                XSComplexType resolvedComplexType = resolvedTypesMap.get(absolutePath);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                if (resolvedComplexType != xsComplexType) {</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                    if (!resolvedComplexType.isDerivedFrom(xsComplexType)) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                        throw new ExecutionException(ILLEGAL_RESOLVED_COMPLEX_TYPE)</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                                .withReason(String.format(TYPE_MISMATCH,</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                                        resolvedComplexType.getName(), xsComplexType.getName()))</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                                .withResolutionAsDefect();</b>
+<i class="no-highlight">75</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                    String tns = resolvedComplexType.getTargetNamespace();</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                    if (StringUtils.EMPTY.equals(tns)) {</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                        tns = resolvedComplexType.getOwnerSchema().getTargetNamespace();</b>
+<i class="no-highlight">79</i>&nbsp;                    }
+<i class="no-highlight">80</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                        String prefixForTns = context.addNamespaceDeclIfAbsent(tns);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                        String prefixForXsi = context.addNamespaceDeclIfAbsent(XSI_NS);</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                        SOAPElement currentElement = context.peekElement();</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                        currentElement.addAttribute(</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                                QName.valueOf(prefixForXsi.concat(COLON).concat(TYPE)),</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                                prefixForTns.concat(COLON).concat(resolvedComplexType.getName()));</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                    } catch (SOAPException e) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                        throw new ExecutionException(e, COULD_NOT_ATTACH_THE_RESOLVED_TYPE)</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                                .formatWith(resolvedComplexType.getName())</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                                .withReason(Throwables.getRootCause(e).getMessage())</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                                .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                    }</b>
+<i class="no-highlight">93</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                return resolvedComplexType;</b>
+<i class="no-highlight">95</i>&nbsp;            }
+<i class="no-highlight">96</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        return xsComplexType;</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,567 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ADUtilities</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.ad</a>
+</div>
+
+<h1>Coverage Summary for Class: ADUtilities (com.snaplogic.snaps.ad)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ADUtilities</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/145)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.ad;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Singleton;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.account.api.Account;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import org.apache.commons.codec.binary.Base64;
+<i class="no-highlight">21</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">22</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">23</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">26</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">27</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">28</i>&nbsp;import java.util.Enumeration;
+<i class="no-highlight">29</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">30</i>&nbsp;import java.util.List;
+<i class="no-highlight">31</i>&nbsp;import java.util.Map;
+<i class="no-highlight">32</i>&nbsp;import java.util.Set;
+<i class="no-highlight">33</i>&nbsp;import java.util.TreeSet;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;import javax.naming.NamingEnumeration;
+<i class="no-highlight">36</i>&nbsp;import javax.naming.NamingException;
+<i class="no-highlight">37</i>&nbsp;import javax.naming.directory.Attribute;
+<i class="no-highlight">38</i>&nbsp;import javax.naming.directory.Attributes;
+<i class="no-highlight">39</i>&nbsp;import javax.naming.directory.BasicAttribute;
+<i class="no-highlight">40</i>&nbsp;import javax.naming.directory.DirContext;
+<i class="no-highlight">41</i>&nbsp;import javax.naming.directory.ModificationItem;
+<i class="no-highlight">42</i>&nbsp;import javax.naming.directory.SearchControls;
+<i class="no-highlight">43</i>&nbsp;import javax.naming.directory.SearchResult;
+<i class="no-highlight">44</i>&nbsp;import javax.naming.ldap.Control;
+<i class="no-highlight">45</i>&nbsp;import javax.naming.ldap.LdapContext;
+<i class="no-highlight">46</i>&nbsp;import javax.naming.ldap.PagedResultsControl;
+<i class="no-highlight">47</i>&nbsp;import javax.naming.ldap.PagedResultsResponseControl;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.ad.Constants.*;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.ad.Messages.ERR_NULL_ACCOUNT;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snaps.ad.Messages.MEMBER;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.ad.Messages.REASON_ACCOUNT_REQUIRED;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snaps.ad.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snaps.ad.Messages.SUGGEST_ERROR_MSG;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.ad.Messages.SUGGEST_ERROR_RESOLUTION;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;/*
+<i class="no-highlight">58</i>&nbsp; * Utility class for all the snaps
+<i class="no-highlight">59</i>&nbsp; *
+<i class="no-highlight">60</i>&nbsp; * @author rkumar
+<i class="no-highlight">61</i>&nbsp; * @author smudassir
+<i class="no-highlight">62</i>&nbsp; */
+<i class="no-highlight">63</i>&nbsp;@Singleton
+<b class="nc"><i class="no-highlight">64</i>&nbsp;public class ADUtilities {</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(ADUtilities.class);</b>
+<i class="no-highlight">66</i>&nbsp;    private static final String UNICODE_PWD = &quot;unicodePwd&quot;;
+<i class="no-highlight">67</i>&nbsp;    private static final String QUOTED_STRING_VALUE = &quot;\&quot;%s\&quot;&quot;;
+<i class="no-highlight">68</i>&nbsp;    private static final String CN_SCHEMA = &quot;CN=Schema&quot;;
+<i class="no-highlight">69</i>&nbsp;    private static final String OBJECT_CLASS_DN = &quot;cn=%s,%s&quot;;
+<i class="no-highlight">70</i>&nbsp;    private static final String ATTR_LDAP_DISPLAY_NAME_CONDITION = &quot;(lDAPDisplayName=%s)&quot;;
+<i class="no-highlight">71</i>&nbsp;    private static final String ATTR_ADMIN_DISPLAY_NAME = &quot;adminDisplayName&quot;;
+<i class="no-highlight">72</i>&nbsp;    private static final String ATTR_OBJECT_CLASS = &quot;objectClass&quot;;
+<i class="no-highlight">73</i>&nbsp;    private static final String ATTR_OBJECT_CATEGORY = &quot;objectCategory&quot;;
+<b class="nc"><i class="no-highlight">74</i>&nbsp;    private static final Set&lt;String&gt; ATTRIBUTES_TO_BE_LOOKED_FOR = ImmutableSet.of(</b>
+<i class="no-highlight">75</i>&nbsp;            &quot;mustContain&quot;,
+<i class="no-highlight">76</i>&nbsp;            &quot;mayContain&quot;,
+<i class="no-highlight">77</i>&nbsp;            &quot;systemMustContain&quot;,
+<i class="no-highlight">78</i>&nbsp;            &quot;systemMayContain&quot;
+<i class="no-highlight">79</i>&nbsp;    );
+<b class="nc"><i class="no-highlight">80</i>&nbsp;    private static final String[] SPECIAL_CHARS = new String[] {</b>
+<i class="no-highlight">81</i>&nbsp;            &quot;\\\&quot;&quot; ,&quot;\\#&quot;, &quot;\\/&quot;, &quot;\\&lt;&quot;, &quot;\\&gt;&quot;,&quot;\\+&quot;, &quot;\\;&quot;, &quot;\\,&quot;, &quot;\\=&quot;, &quot;\\\\&quot;, // special characters preceded by backslash
+<i class="no-highlight">82</i>&nbsp;            &quot;/&quot;, &quot;&lt;&quot;, &quot;&gt;&quot;, &quot;\&quot;&quot;, &quot;+&quot;, &quot;;&quot;, &quot;\\&quot;, // special characters
+<i class="no-highlight">83</i>&nbsp;            &quot;=#&quot; }; // first character of attribute value is hash(#)
+<b class="nc"><i class="no-highlight">84</i>&nbsp;    private static final String[] ESCAPED_SPECIAL_CHARS = new String[] {</b>
+<i class="no-highlight">85</i>&nbsp;            &quot;\\\\\\\&quot;&quot; ,&quot;\\#&quot;, &quot;\\/&quot;, &quot;\\&lt;&quot;, &quot;\\&gt;&quot;, &quot;\\+&quot;, &quot;\\;&quot;, &quot;\\,&quot;, &quot;\\=&quot;, &quot;\\\\\\\\&quot;,
+<i class="no-highlight">86</i>&nbsp;            &quot;\\/&quot;, &quot;\\&lt;&quot;, &quot;\\&gt;&quot;, &quot;\\\\\\\&quot;&quot;, &quot;\\+&quot;, &quot;\\;&quot;, &quot;\\\\\\\\&quot;,
+<i class="no-highlight">87</i>&nbsp;            &quot;=\\#&quot; };
+<b class="nc"><i class="no-highlight">88</i>&nbsp;    private static final String[] ESCAPED_SPECIAL_CHARS_FOR_ADD_MEMBER = new String[] {</b>
+<i class="no-highlight">89</i>&nbsp;            &quot;\\\\\\\&quot;&quot; ,&quot;\\#&quot;, &quot;\\/&quot;, &quot;\\&lt;&quot;, &quot;\\&gt;&quot;, &quot;\\+&quot;, &quot;\\;&quot;, &quot;\\,&quot;, &quot;\\=&quot;, &quot;\\\\\\\\&quot;,
+<i class="no-highlight">90</i>&nbsp;            &quot;/&quot;, &quot;\\&lt;&quot;, &quot;\\&gt;&quot;, &quot;\\\\\\\&quot;&quot;, &quot;\\+&quot;, &quot;\\;&quot;, &quot;\\\\\\\\&quot;,
+<i class="no-highlight">91</i>&nbsp;            &quot;=\\#&quot; };
+<b class="nc"><i class="no-highlight">92</i>&nbsp;    private static final String[] ESCAPED_SPECIAL_CHARS_FOR_SEARCH = new String[] {</b>
+<i class="no-highlight">93</i>&nbsp;            &quot;\\\\\&quot;&quot; ,&quot;\\\\#&quot;, &quot;\\/&quot;, &quot;\\\\&lt;&quot;, &quot;\\\\&gt;&quot;, &quot;\\\\+&quot;, &quot;\\\\;&quot;,
+<i class="no-highlight">94</i>&nbsp;            &quot;\\\\,&quot;, &quot;\\\\=&quot;, &quot;\\\\\\\\&quot;,
+<i class="no-highlight">95</i>&nbsp;            &quot;\\/&quot;, &quot;\\\\&lt;&quot;, &quot;\\\\&gt;&quot;, &quot;\\\\\&quot;&quot;, &quot;\\\\+&quot;, &quot;\\\\;&quot;, &quot;\\\\\\\\&quot;,
+<i class="no-highlight">96</i>&nbsp;            &quot;=\\\\#&quot; };
+<i class="no-highlight">97</i>&nbsp;    private static final String FORMAT_HEX = &quot;0x%02X&quot;;
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    public byte[] getUnicodePwdBytes(String unicodePwd) {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        String quotedUnicodePwd = String.format(QUOTED_STRING_VALUE, unicodePwd);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        return quotedUnicodePwd.getBytes(StandardCharsets.UTF_16LE);</b>
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    /**
+<i class="no-highlight">106</i>&nbsp;     * Rename an entry in Active Directory instance
+<i class="no-highlight">107</i>&nbsp;     */
+<i class="no-highlight">108</i>&nbsp;    public void renameEntry(DirContext ldapContext, String oldName, String newName)
+<i class="no-highlight">109</i>&nbsp;            throws NamingException {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        ldapContext.rename(oldName, newName);</b>
+<i class="no-highlight">111</i>&nbsp;    }
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;    /**
+<i class="no-highlight">114</i>&nbsp;     * Add a member in Active Directory instance
+<i class="no-highlight">115</i>&nbsp;     */
+<i class="no-highlight">116</i>&nbsp;    public void addMember(DirContext ldapContext, String group, String name)
+<i class="no-highlight">117</i>&nbsp;            throws NamingException {
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        ldapContext.modifyAttributes(group, getMemberModificationItems(name,</b>
+<i class="no-highlight">119</i>&nbsp;                DirContext.ADD_ATTRIBUTE));
+<i class="no-highlight">120</i>&nbsp;    }
+<i class="no-highlight">121</i>&nbsp;
+<i class="no-highlight">122</i>&nbsp;    /**
+<i class="no-highlight">123</i>&nbsp;     * Remove a member from a given group.
+<i class="no-highlight">124</i>&nbsp;     * @param ldapContext the LDAP context for the current instance.
+<i class="no-highlight">125</i>&nbsp;     * @param group the group name.
+<i class="no-highlight">126</i>&nbsp;     * @param name the member&#39;s name.
+<i class="no-highlight">127</i>&nbsp;     */
+<i class="no-highlight">128</i>&nbsp;    public void removeMember(LdapContext ldapContext, String group, String name)
+<i class="no-highlight">129</i>&nbsp;            throws NamingException {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        ldapContext.modifyAttributes(group, getMemberModificationItems(name,</b>
+<i class="no-highlight">131</i>&nbsp;                DirContext.REMOVE_ATTRIBUTE));
+<i class="no-highlight">132</i>&nbsp;    }
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    private ModificationItem[] getMemberModificationItems(String name, int operation) {
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        return new ModificationItem[] { new ModificationItem(operation,</b>
+<i class="no-highlight">136</i>&nbsp;                new BasicAttribute(MEMBER, name)) };
+<i class="no-highlight">137</i>&nbsp;    }
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;    /**
+<i class="no-highlight">140</i>&nbsp;     * Method fetches the attributes keys for the existing distinguished name
+<i class="no-highlight">141</i>&nbsp;     * and returns them as a list
+<i class="no-highlight">142</i>&nbsp;     */
+<i class="no-highlight">143</i>&nbsp;    protected Set&lt;String&gt; getSuggestedAttributes(DirContext ldapContext, String distName)
+<i class="no-highlight">144</i>&nbsp;            throws NamingException {
+<i class="no-highlight">145</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            return getSuggestedAttributesForSearch(((LdapContext) ldapContext), distName);</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        } catch (IOException | NamingException e1) {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            throw new ExecutionException(e1, SUGGEST_ERROR_MSG)</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                    .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                    .withResolution(SUGGEST_ERROR_RESOLUTION);</b>
+<i class="no-highlight">151</i>&nbsp;        }
+<i class="no-highlight">152</i>&nbsp;    }
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;    private Set&lt;String&gt; parseResults(NamingEnumeration&lt;SearchResult&gt; searchResult)
+<i class="no-highlight">155</i>&nbsp;            throws NamingException {
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        Set&lt;String&gt; suggestedAttributes = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        while (searchResult.hasMore()) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            SearchResult record = searchResult.next();</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;            Enumeration&lt;? extends Attribute&gt; attributes = record.getAttributes().getAll();</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            while (attributes.hasMoreElements()) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                String attribute = attributes.nextElement().toString();</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                String[] keyValuePair = attribute.split(COLON);</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                String fieldKey = keyValuePair[0];</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                if (StringUtils.isBlank(fieldKey)) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                    continue;</b>
+<i class="no-highlight">166</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                    suggestedAttributes.add(fieldKey);</b>
+<i class="no-highlight">168</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        return suggestedAttributes;</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    /**
+<i class="no-highlight">175</i>&nbsp;     * Creates an entry in Active Directory instance
+<i class="no-highlight">176</i>&nbsp;     */
+<i class="no-highlight">177</i>&nbsp;    protected void createEntry(DirContext ldapContext, Attributes attributes, String distName)
+<i class="no-highlight">178</i>&nbsp;            throws NamingException {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        ldapContext.createSubcontext(distName, attributes);</b>
+<i class="no-highlight">180</i>&nbsp;    }
+<i class="no-highlight">181</i>&nbsp;
+<i class="no-highlight">182</i>&nbsp;    /**
+<i class="no-highlight">183</i>&nbsp;     * Updates an entry in Active Directory instance
+<i class="no-highlight">184</i>&nbsp;     */
+<i class="no-highlight">185</i>&nbsp;    protected void updateEntry(DirContext ldapContext, String distName,
+<i class="no-highlight">186</i>&nbsp;            List&lt;String&gt; attributeKeys, List&lt;Object&gt; attributeValues, String valueDelimiter)
+<i class="no-highlight">187</i>&nbsp;            throws NamingException {
+<i class="no-highlight">188</i>&nbsp;        ModificationItem[] modifications;
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        int numOfAttributes = attributeKeys.size();</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        modifications = new ModificationItem[numOfAttributes];</b>
+<i class="no-highlight">191</i>&nbsp;        /**
+<i class="no-highlight">192</i>&nbsp;         * Submitting all attributes for modification with out skipping cn and dn attributes.
+<i class="no-highlight">193</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        for (int i = 0; i &lt; numOfAttributes; i++) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            String attrKey = attributeKeys.get(i);</b>
+<i class="no-highlight">196</i>&nbsp;            BasicAttribute entry;
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            if (UNICODE_PWD.equalsIgnoreCase(attrKey)) {</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                entry = new BasicAttribute(UNICODE_PWD, getUnicodePwdBytes(</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                        (String) attributeValues.get(i)));</b>
+<i class="no-highlight">200</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                String valueCollection = (attributeValues.get(i) == null) ? null</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                        : attributeValues.get(i).toString();</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                if (StringUtils.isBlank(valueDelimiter) || StringUtils.isBlank(valueCollection)) {</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                    entry = new BasicAttribute(attrKey, valueCollection);</b>
+<i class="no-highlight">205</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                    String[] multipleValues = valueCollection.split(valueDelimiter);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                    entry = new BasicAttribute(attrKey);</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                    for (String value : multipleValues) {</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                        entry.add(value);</b>
+<i class="no-highlight">210</i>&nbsp;                    }
+<i class="no-highlight">211</i>&nbsp;                }
+<i class="no-highlight">212</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            modifications[i] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, entry);</b>
+<i class="no-highlight">214</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        ldapContext.modifyAttributes(distName, modifications);</b>
+<i class="no-highlight">216</i>&nbsp;    }
+<i class="no-highlight">217</i>&nbsp;
+<i class="no-highlight">218</i>&nbsp;    /**
+<i class="no-highlight">219</i>&nbsp;     * Returns modificationItem object for the attribute userAccountControl
+<i class="no-highlight">220</i>&nbsp;     */
+<i class="no-highlight">221</i>&nbsp;    private ModificationItem[] getDisableEntryModificationItems() {
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        return new ModificationItem[] { new ModificationItem(</b>
+<i class="no-highlight">223</i>&nbsp;                DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(USER_ACCOUNT_CONTROL,
+<i class="no-highlight">224</i>&nbsp;                        DISABLE_ENTRY_CONSTANT)) };
+<i class="no-highlight">225</i>&nbsp;    }
+<i class="no-highlight">226</i>&nbsp;
+<i class="no-highlight">227</i>&nbsp;    /**
+<i class="no-highlight">228</i>&nbsp;     * Disables an entry in Active Directory instance
+<i class="no-highlight">229</i>&nbsp;     */
+<i class="no-highlight">230</i>&nbsp;    public void disableEntry(DirContext ldapContext, String name) throws NamingException {
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        ldapContext.modifyAttributes(name, getDisableEntryModificationItems());</b>
+<i class="no-highlight">232</i>&nbsp;    }
+<i class="no-highlight">233</i>&nbsp;
+<i class="no-highlight">234</i>&nbsp;    /**
+<i class="no-highlight">235</i>&nbsp;     * Returns modificationItem object for the attribute jpegPhoto
+<i class="no-highlight">236</i>&nbsp;     */
+<i class="no-highlight">237</i>&nbsp;    public ModificationItem[] getUserPhotoModificationItems(String imageString,
+<i class="no-highlight">238</i>&nbsp;            String photoAttribute) {
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        return new ModificationItem[] { new ModificationItem(</b>
+<i class="no-highlight">240</i>&nbsp;                DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(photoAttribute,
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                        Base64.decodeBase64(imageString))) };</b>
+<i class="no-highlight">242</i>&nbsp;    }
+<i class="no-highlight">243</i>&nbsp;
+<i class="no-highlight">244</i>&nbsp;    /**
+<i class="no-highlight">245</i>&nbsp;     * Sets the control for page before receiving results
+<i class="no-highlight">246</i>&nbsp;     */
+<i class="no-highlight">247</i>&nbsp;    protected void setControls(int pageSize, LdapContext ldapContext)
+<i class="no-highlight">248</i>&nbsp;            throws IOException, NamingException {
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        Control[] controls = new Control[]{new PagedResultsControl(pageSize,</b>
+<i class="no-highlight">250</i>&nbsp;                Control.CRITICAL)};
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        ldapContext.setRequestControls(controls);</b>
+<i class="no-highlight">252</i>&nbsp;    }
+<i class="no-highlight">253</i>&nbsp;
+<i class="no-highlight">254</i>&nbsp;    /**
+<i class="no-highlight">255</i>&nbsp;     * If next page exists get the cookie
+<i class="no-highlight">256</i>&nbsp;     */
+<i class="no-highlight">257</i>&nbsp;    protected byte[] parseControls(LdapContext ldapContext) throws NamingException {
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        byte[] cookie = null;</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        Control[] controls = ldapContext.getResponseControls();</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        if (controls != null) {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                 for (int i = 0; i &lt; controls.length; i++) {</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                  if (controls[i] instanceof PagedResultsResponseControl) {</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                       PagedResultsResponseControl prrc = (PagedResultsResponseControl)controls[i];</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                       cookie = prrc.getCookie();</b>
+<i class="no-highlight">265</i>&nbsp;                  }
+<i class="no-highlight">266</i>&nbsp;             }
+<i class="no-highlight">267</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        return (cookie == null) ? new byte[0] : cookie;</b>
+<i class="no-highlight">269</i>&nbsp;    }
+<i class="no-highlight">270</i>&nbsp;
+<i class="no-highlight">271</i>&nbsp;    /**
+<i class="no-highlight">272</i>&nbsp;     * Set cookie into ldapContext
+<i class="no-highlight">273</i>&nbsp;     */
+<i class="no-highlight">274</i>&nbsp;    protected void setRequestControls(LdapContext ldapContext, byte[] cookie, int pageSize)
+<i class="no-highlight">275</i>&nbsp;            throws NamingException, IOException {
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        ldapContext.setRequestControls(new Control[]{new PagedResultsControl(pageSize,</b>
+<i class="no-highlight">277</i>&nbsp;                cookie, Control.CRITICAL)});
+<i class="no-highlight">278</i>&nbsp;    }
+<i class="no-highlight">279</i>&nbsp;
+<i class="no-highlight">280</i>&nbsp;    /**
+<i class="no-highlight">281</i>&nbsp;     * @param ldapContext
+<i class="no-highlight">282</i>&nbsp;     * @param distName
+<i class="no-highlight">283</i>&nbsp;     * @return set of attribute keys to suggest
+<i class="no-highlight">284</i>&nbsp;     * @throws NamingException
+<i class="no-highlight">285</i>&nbsp;     * @throws IOException
+<i class="no-highlight">286</i>&nbsp;     */
+<i class="no-highlight">287</i>&nbsp;    public Set&lt;String&gt; getSuggestedAttributesForSearch(LdapContext ldapContext,
+<i class="no-highlight">288</i>&nbsp;            String distName) throws NamingException, IOException {
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        setControls(5, ldapContext);</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        SearchControls controls = new SearchControls();</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        controls.setSearchScope(SearchControls.SUBTREE_SCOPE);</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        NamingEnumeration&lt;SearchResult&gt; searchResult = ldapContext.search(distName, FILTER,</b>
+<i class="no-highlight">293</i>&nbsp;                controls);
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        return parseResults(searchResult);</b>
+<i class="no-highlight">295</i>&nbsp;    }
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;    /**
+<i class="no-highlight">298</i>&nbsp;     * Returns all possible attributes based on the given entry
+<i class="no-highlight">299</i>&nbsp;     *
+<i class="no-highlight">300</i>&nbsp;     * @param ldapContext
+<i class="no-highlight">301</i>&nbsp;     * @param dn
+<i class="no-highlight">302</i>&nbsp;     * @param util
+<i class="no-highlight">303</i>&nbsp;     * @param cachedAttributesMap
+<i class="no-highlight">304</i>&nbsp;     * @return set containing all possible attributes
+<i class="no-highlight">305</i>&nbsp;     */
+<i class="no-highlight">306</i>&nbsp;    Set&lt;String&gt; getAllPossibleAttributes(LdapContext ldapContext, String dn,
+<i class="no-highlight">307</i>&nbsp;            ADUtilities util, Map&lt;String, Set&lt;String&gt;&gt; cachedAttributesMap) throws
+<i class="no-highlight">308</i>&nbsp;            NamingException {
+<i class="no-highlight">309</i>&nbsp;        try {
+<i class="no-highlight">310</i>&nbsp;            // Distinguished name here we receive is already having escape characters added
+<i class="no-highlight">311</i>&nbsp;            // by JNDI library for special characters except forward slash. I am adding escape
+<i class="no-highlight">312</i>&nbsp;            // character here only for forward slash and an extra level for backward slash.
+<b class="nc"><i class="no-highlight">313</i>&nbsp;            String[] slashes = new String[] {&quot;/&quot;, &quot;\\&quot;};</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            String[] escapedSlashes = new String[] {&quot;\\/&quot;, &quot;\\\\&quot;};</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;            dn = StringUtils.replaceEach(dn, slashes, escapedSlashes);</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;            SearchControls controls = new SearchControls();</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;            controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            controls.setReturningAttributes(new String[] {ATTR_ADMIN_DISPLAY_NAME});</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            Set&lt;String&gt; attributesToBeShown = new TreeSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;            Attributes attributesFetched = ldapContext.getAttributes(dn,</b>
+<i class="no-highlight">321</i>&nbsp;                    new String[]{ATTR_OBJECT_CLASS, ATTR_OBJECT_CATEGORY});
+<b class="nc"><i class="no-highlight">322</i>&nbsp;            Attribute objectClassAttr = attributesFetched.get(ATTR_OBJECT_CLASS);</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;            Attribute objectCategoryAttr = attributesFetched.get(ATTR_OBJECT_CATEGORY);</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;            if (objectCategoryAttr != null) {</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                String objectCategory = objectCategoryAttr.get().toString();</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                NamingEnumeration objectClassValues = objectClassAttr.getAll();</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;                String schemaDn = objectCategory.substring(objectCategory.toLowerCase()</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                        .indexOf(CN_SCHEMA.toLowerCase()));</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                while (objectClassValues.hasMore()) {</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                    String objectClass = objectClassValues.next().toString();</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                    if (cachedAttributesMap != null) {</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                        Set&lt;String&gt; cachedAttributes = cachedAttributesMap.get(objectClass);</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                        if (cachedAttributes != null) {</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                            attributesToBeShown.addAll(cachedAttributes);</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                            continue;</b>
+<i class="no-highlight">336</i>&nbsp;                        }
+<i class="no-highlight">337</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                    Set&lt;String&gt; newAttributes = new TreeSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                    NamingEnumeration&lt;SearchResult&gt; results = ldapContext.search(schemaDn,</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                            String.format(ATTR_LDAP_DISPLAY_NAME_CONDITION, objectClass),</b>
+<i class="no-highlight">341</i>&nbsp;                            controls);
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                    while (results.hasMore()) {</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                        SearchResult result = results.next();</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                        String adminDisplayName = result.getAttributes()</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                                .get(ATTR_ADMIN_DISPLAY_NAME).get().toString();</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                        String objectClassDn = String.format(OBJECT_CLASS_DN, adminDisplayName,</b>
+<i class="no-highlight">347</i>&nbsp;                                schemaDn);
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                        attributesFetched = ldapContext.getAttributes(objectClassDn,</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                                ATTRIBUTES_TO_BE_LOOKED_FOR.toArray(new String[0]));</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                        for (String attributeToBeLookedFor : ATTRIBUTES_TO_BE_LOOKED_FOR) {</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                            Attribute attribute = attributesFetched.get(attributeToBeLookedFor);</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                            if (attribute == null) {</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                                continue;</b>
+<i class="no-highlight">354</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                            NamingEnumeration attributeValues = attribute.getAll();</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                            while (attributeValues.hasMore()) {</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                                String newAttribute = attributeValues.next().toString();</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                                attributesToBeShown.add(newAttribute);</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                                newAttributes.add(newAttribute);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                            }</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                        cachedAttributesMap.put(objectClass, newAttributes);</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                attributesToBeShown = util.getSuggestedAttributes(ldapContext, dn);</b>
+<i class="no-highlight">367</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            return attributesToBeShown;</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        } catch (NamingException e1) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;            throw e1;</b>
+<i class="no-highlight">371</i>&nbsp;        }
+<i class="no-highlight">372</i>&nbsp;    }
+<i class="no-highlight">373</i>&nbsp;
+<i class="no-highlight">374</i>&nbsp;    public String escapeSpecialCharactersForSearch(final String dn) {
+<i class="no-highlight">375</i>&nbsp;        /* Attribute parameters passed from search snap would need another level of escaping
+<i class="no-highlight">376</i>&nbsp;        because FILTER parameter of below format
+<i class="no-highlight">377</i>&nbsp;        (&amp;(distinguishedName=CN=man\\\\+eesh,CN=Users,DC=ad1,DC=clouddev,DC=snaplogic,DC=com)
+<i class="no-highlight">378</i>&nbsp;        has another set of special characters which are &#39;(&#39; open paranthesis and &#39;)&#39; close paranthesis.
+<i class="no-highlight">379</i>&nbsp;        Which needs to be escaped as well. So, distinghuished name inside a FILTER
+<i class="no-highlight">380</i>&nbsp;        should have two levels of escape.
+<i class="no-highlight">381</i>&nbsp;        https://docs.oracle.com/javase/jndi/tutorial/basics/directory/filter.html
+<i class="no-highlight">382</i>&nbsp;        */
+<b class="nc"><i class="no-highlight">383</i>&nbsp;        return StringUtils.replaceEach(dn, SPECIAL_CHARS, ESCAPED_SPECIAL_CHARS_FOR_SEARCH);</b>
+<i class="no-highlight">384</i>&nbsp;    }
+<i class="no-highlight">385</i>&nbsp;
+<i class="no-highlight">386</i>&nbsp;    public String escapeSpecialCharacters(final String dn) {
+<i class="no-highlight">387</i>&nbsp;        /* replacing all the special characters with escape character followed by special character.
+<i class="no-highlight">388</i>&nbsp;        https://docs.oracle.com/javase/jndi/tutorial/beyond/names/syntax.html
+<i class="no-highlight">389</i>&nbsp;        https://docs.oracle.com/javase/tutorial/jndi/ldap/jndi.html (forward slash)
+<i class="no-highlight">390</i>&nbsp;        special characters for JNDI API as per the above documentation are:
+<i class="no-highlight">391</i>&nbsp;        A space or &quot;#&quot; character occurring at the beginning of the string
+<i class="no-highlight">392</i>&nbsp;        A space character occurring at the end of the string
+<i class="no-highlight">393</i>&nbsp;        One of the characters &quot;,&quot;, &quot;+&quot;, &quot;&quot;&quot;, &quot;\&quot;, &quot;&lt;&quot;, &quot;&gt;&quot;, &quot;/&quot; or &quot;;&quot;
+<i class="no-highlight">394</i>&nbsp;        To support backward compatibility, if the user has configured escape character followed
+<i class="no-highlight">395</i>&nbsp;        by one of these characters it does not replace those characters.
+<i class="no-highlight">396</i>&nbsp;        */
+<b class="nc"><i class="no-highlight">397</i>&nbsp;        return StringUtils.replaceEach(dn, SPECIAL_CHARS, ESCAPED_SPECIAL_CHARS);</b>
+<i class="no-highlight">398</i>&nbsp;    }
+<i class="no-highlight">399</i>&nbsp;
+<i class="no-highlight">400</i>&nbsp;    public String escapeSpecialCharactersForAddMember(final String dn) {
+<i class="no-highlight">401</i>&nbsp;        /* replacing all the special characters with escape character followed by special character.
+<i class="no-highlight">402</i>&nbsp;        https://docs.oracle.com/javase/jndi/tutorial/beyond/names/syntax.html
+<i class="no-highlight">403</i>&nbsp;        https://docs.oracle.com/javase/tutorial/jndi/ldap/jndi.html (forward slash)
+<i class="no-highlight">404</i>&nbsp;        special characters for JNDI API as per the above documentation are:
+<i class="no-highlight">405</i>&nbsp;        A space or &quot;#&quot; character occurring at the beginning of the string
+<i class="no-highlight">406</i>&nbsp;        A space character occurring at the end of the string
+<i class="no-highlight">407</i>&nbsp;        One of the characters &quot;,&quot;, &quot;+&quot;, &quot;&quot;&quot;, &quot;\&quot;, &quot;&lt;&quot;, &quot;&gt;&quot; or &quot;;&quot;
+<i class="no-highlight">408</i>&nbsp;        To support backward compatibility, if the user has configured escape character followed
+<i class="no-highlight">409</i>&nbsp;        by one of these characters it does not replace those characters.
+<i class="no-highlight">410</i>&nbsp;        */
+<b class="nc"><i class="no-highlight">411</i>&nbsp;        return StringUtils.replaceEach(dn, SPECIAL_CHARS, ESCAPED_SPECIAL_CHARS_FOR_ADD_MEMBER);</b>
+<i class="no-highlight">412</i>&nbsp;    }
+<i class="no-highlight">413</i>&nbsp;
+<i class="no-highlight">414</i>&nbsp;    public static void putAttributeToMap(Map&lt;String, Object&gt; recordMap, Attribute attribute)
+<i class="no-highlight">415</i>&nbsp;            throws NamingException {
+<b class="nc"><i class="no-highlight">416</i>&nbsp;        String fieldName = attribute.getID();</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;        NamingEnumeration&lt;?&gt; fieldValue = attribute.getAll();</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;        List&lt;String&gt; valueList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;        while (fieldValue.hasMore()) {</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;            Object value = fieldValue.next();</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;            if (value instanceof byte[]) {</b>
+<i class="no-highlight">422</i>&nbsp;                // convert byte array to hex-string
+<b class="nc"><i class="no-highlight">423</i>&nbsp;                byte[] bytes = (byte[]) value;</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                List&lt;String&gt; hexNumbers = new ArrayList&lt;&gt;(bytes.length);</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;                for (byte b : bytes) {</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                    hexNumbers.add(String.format(FORMAT_HEX, b));</b>
+<i class="no-highlight">427</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                value = String.join(StringUtils.SPACE, hexNumbers);</b>
+<i class="no-highlight">429</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">430</i>&nbsp;            valueList.add(value.toString());</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;        if (valueList.isEmpty()) {</b>
+<i class="no-highlight">433</i>&nbsp;            // Value might be nothing so we still process that attribute with blank value
+<b class="nc"><i class="no-highlight">434</i>&nbsp;            LOGGER.warn(&quot;NoSuchElement for {}&quot;, fieldName);</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;            recordMap.put(fieldName, StringUtils.EMPTY);</b>
+<i class="no-highlight">436</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">437</i>&nbsp;            recordMap.put(fieldName, String.join(&quot;, &quot;, valueList));</b>
+<i class="no-highlight">438</i>&nbsp;        }
+<i class="no-highlight">439</i>&nbsp;    }
+<i class="no-highlight">440</i>&nbsp;
+<i class="no-highlight">441</i>&nbsp;    /**
+<i class="no-highlight">442</i>&nbsp;     * For Snaps whose account is not optional, this method should be called in configure() so that
+<i class="no-highlight">443</i>&nbsp;     * ConfigurationException can be thrown and the further Snap execution can be stopped when
+<i class="no-highlight">444</i>&nbsp;     * account is null. Otherwise, NullPointerException can be thrown in SimpleSnap#execute().
+<i class="no-highlight">445</i>&nbsp;     * The Snap&#39;s account object can be null if &#39;Account Reference&#39; is expression-enabled and
+<i class="no-highlight">446</i>&nbsp;     * its evaluated value is null.
+<i class="no-highlight">447</i>&nbsp;     * Also, the null-checking may be needed in cleanup() because cleanup() is called at the end
+<i class="no-highlight">448</i>&nbsp;     * of the Snap execution or preview.
+<i class="no-highlight">449</i>&nbsp;     * Snaps whose account is optional do not have to call this method since the account object
+<i class="no-highlight">450</i>&nbsp;     * would never be null.
+<i class="no-highlight">451</i>&nbsp;     *
+<i class="no-highlight">452</i>&nbsp;     * @param account - Account object
+<i class="no-highlight">453</i>&nbsp;     * @throws ConfigurationException if account is null.
+<i class="no-highlight">454</i>&nbsp;     */
+<i class="no-highlight">455</i>&nbsp;    protected static void checkAccountNotNull(Account account) {
+<b class="nc"><i class="no-highlight">456</i>&nbsp;        if (account == null) {</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;            throw new ConfigurationException(ERR_NULL_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                    .withReason(REASON_ACCOUNT_REQUIRED)</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">460</i>&nbsp;        }
+<i class="no-highlight">461</i>&nbsp;    }
+<i class="no-highlight">462</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

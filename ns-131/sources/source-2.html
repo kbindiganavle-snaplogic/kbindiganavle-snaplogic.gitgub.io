@@ -1,0 +1,1368 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkLoad</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.redshift</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkLoad (com.snaplogic.snaps.redshift)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkLoad</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/39)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/576)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BulkLoad$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">BulkLoad$S3Upload</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/43)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/589)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.redshift;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.services.securitytoken.model.Credentials;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">19</i>&nbsp;import com.google.common.collect.Sets;
+<i class="no-highlight">20</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.LifecycleEvent;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.api.Notification;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.StatusMessage;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.StatusReporter;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.fs.s3.S3EncryptionType;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.sql.ColumnMetaData;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftCrossAccountIAMRoleAccount;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftCrossAccountIAMRoleSSLAccount;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftDatabaseAccount;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftSSLDatabaseAccount;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.snaps.sql.bulkloadutils.AbstractBulkLoadWrapper;
+<i class="no-highlight">54</i>&nbsp;import com.snaplogic.snaps.sql.bulkloadutils.BulkLoadWrapper;
+<i class="no-highlight">55</i>&nbsp;import com.snaplogic.snaps.sql.bulkloadutils.BulkLoadWrapperS3;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">58</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">59</i>&nbsp;import org.jooq.tools.jdbc.JDBCUtils;
+<i class="no-highlight">60</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">61</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;import java.io.OutputStream;
+<i class="no-highlight">64</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">65</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">66</i>&nbsp;import java.sql.PreparedStatement;
+<i class="no-highlight">67</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">68</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">69</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">70</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">71</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">72</i>&nbsp;import java.util.List;
+<i class="no-highlight">73</i>&nbsp;import java.util.Map;
+<i class="no-highlight">74</i>&nbsp;import java.util.Set;
+<i class="no-highlight">75</i>&nbsp;import java.util.concurrent.BlockingQueue;
+<i class="no-highlight">76</i>&nbsp;import java.util.concurrent.CompletableFuture;
+<i class="no-highlight">77</i>&nbsp;import java.util.concurrent.CompletionException;
+<i class="no-highlight">78</i>&nbsp;import java.util.concurrent.LinkedBlockingQueue;
+<i class="no-highlight">79</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.S3EncryptionType.SSE;
+<i class="no-highlight">82</i>&nbsp;import static com.snaplogic.snaps.redshift.LoadUnloadUtils.isDifferentRegionException;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snaps.redshift.LoadUnloadUtils.throwDiffRegionException;
+<i class="no-highlight">84</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.*;
+<i class="no-highlight">85</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.DISABLE_SSE_FOR_KMS;
+<i class="no-highlight">86</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.DISABLE_SSE_FOR_KMS_REASON;
+<i class="no-highlight">87</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.PARALLELISM_DESC;
+<i class="no-highlight">88</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.PARALLELISM_LABEL;
+<i class="no-highlight">89</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">90</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.RESOLUTION_ADDRESS_ISSUE_WITH_SEC_TOKEN;
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;/**
+<i class="no-highlight">93</i>&nbsp; * Bulk load into Redshift.
+<i class="no-highlight">94</i>&nbsp; *
+<i class="no-highlight">95</i>&nbsp; * @author akidave
+<i class="no-highlight">96</i>&nbsp; */
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;@General(title = BULK_LOAD_TITLE, purpose = BULK_LOAD_PURPOSE, docLink =
+<i class="no-highlight">99</i>&nbsp;        &quot;https://docs-snaplogic.atlassian.net/wiki/spaces/SD/pages/1438248/Redshift+-+Bulk+Load&quot;)
+<i class="no-highlight">100</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">101</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">102</i>&nbsp;@Inputs(min = 0, max = 2, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">103</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">104</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">105</i>&nbsp;@Accounts(provides = {RedshiftDatabaseAccount.class,
+<i class="no-highlight">106</i>&nbsp;        RedshiftSSLDatabaseAccount.class,
+<i class="no-highlight">107</i>&nbsp;        RedshiftCrossAccountIAMRoleAccount.class,
+<i class="no-highlight">108</i>&nbsp;        RedshiftCrossAccountIAMRoleSSLAccount.class})
+<b class="nc"><i class="no-highlight">109</i>&nbsp;public class BulkLoad extends AbstractS3Encryption {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(BulkLoad.class);</b>
+<i class="no-highlight">111</i>&nbsp;    private static final String VALIDATE_INPUT_DATA_PROP = &quot;validateInputData&quot;;
+<i class="no-highlight">112</i>&nbsp;    private static final String VACUUM_PROP = &quot;vacuum&quot;;
+<i class="no-highlight">113</i>&nbsp;    private static final String UPDATE_STATS_PROP = &quot;updateStats&quot;;
+<i class="no-highlight">114</i>&nbsp;    private static final String TRUNCATE_PROP = &quot;truncate&quot;;
+<i class="no-highlight">115</i>&nbsp;    private static final String ACCEPT_INVALID_CHARS_PROP = &quot;invalidChars&quot;;
+<i class="no-highlight">116</i>&nbsp;    private static final String MAX_ERROR_PROP = &quot;maxError&quot;;
+<i class="no-highlight">117</i>&nbsp;    private static final String TRUNCATE_COLUMNS_PROP = &quot;truncateColumns&quot;;
+<i class="no-highlight">118</i>&nbsp;    private static final String ADDITIONAL_OPTIONS_PROP = &quot;additionalOptions&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String DISABLE_COMPRESSION_PROP = &quot;disableCompression&quot;;
+<i class="no-highlight">120</i>&nbsp;    private static final String LOAD_EMPTY_STRINGS_PROP = &quot;loadEmptyStrings&quot;;
+<i class="no-highlight">121</i>&nbsp;    private static final String SERVER_SIDE_ENCRYPTION_PROP = &quot;ServerSideEncryption&quot;;
+<i class="no-highlight">122</i>&nbsp;    protected static final String ENCRYPT_TYPE_PROP = &quot;encryptType&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String IAM_ROLE_PROP = &quot;IAM_Role&quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String ACCEPT_INVALID_CHARS = &quot;ACCEPTINVCHARS&quot;;
+<i class="no-highlight">125</i>&nbsp;    private static final String TRUNCATE_COLUMNS = &quot;TRUNCATECOLUMNS&quot;;
+<i class="no-highlight">126</i>&nbsp;    private static final String OBFUSCATED_KEY = &quot;***&quot;;
+<i class="no-highlight">127</i>&nbsp;    private static final char COMMA = &#39;,&#39;;
+<i class="no-highlight">128</i>&nbsp;    private static final int DEFAULT_MAX_ERRORS = 100;
+<i class="no-highlight">129</i>&nbsp;    private static final int ERROR_MESSAGE_ENTRY_COUNT = 5;
+<i class="no-highlight">130</i>&nbsp;    private static final int MIN_MAX_ERRORS = 0;
+<i class="no-highlight">131</i>&nbsp;    private static final int MAXIMUM_MAX_ERRORS = 100000;
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;    // Output view keys
+<i class="no-highlight">134</i>&nbsp;    private static final String KEY_TABLE = &quot;table&quot;;
+<i class="no-highlight">135</i>&nbsp;    private static final String KEY_INPUT_RECORDS = &quot;input_records&quot;;
+<i class="no-highlight">136</i>&nbsp;    private static final String KEY_FAILED_RECORDS = &quot;failed_records&quot;;
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;    // Error view keys
+<i class="no-highlight">139</i>&nbsp;    private static final String KEY_LINE_NUMBER = &quot;line_number&quot;;
+<i class="no-highlight">140</i>&nbsp;    private static final String KEY_COLUMN_NAME = &quot;column_name&quot;;
+<i class="no-highlight">141</i>&nbsp;    private static final String KEY_ERROR_CODE = &quot;error_code&quot;;
+<i class="no-highlight">142</i>&nbsp;    private static final String KEY_ERROR_MESSAGE = &quot;error_message&quot;;
+<i class="no-highlight">143</i>&nbsp;    private static final String KEY_COLUMN_VALUE = &quot;column_value&quot;;
+<i class="no-highlight">144</i>&nbsp;    private static final String KEY_ROW_VALUE = &quot;row_value&quot;;
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;    private static final String COPY_DATE_FORMAT = &quot; DATEFORMAT AS &#39;auto&#39;&quot;;
+<i class="no-highlight">147</i>&nbsp;    private static final String COPY_TIME_FORMAT = &quot; TIMEFORMAT AS &#39;auto&#39;&quot;;
+<i class="no-highlight">148</i>&nbsp;    private static final String DATE_FORMAT = &quot;DATEFORMAT&quot;;
+<i class="no-highlight">149</i>&nbsp;    private static final String TIME_FORMAT = &quot;TIMEFORMAT&quot;;
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    private static final String UPDATE_STATS_COMMAND = &quot;ANALYZE %s&quot;;
+<i class="no-highlight">152</i>&nbsp;    private static final String TRUNCATE_COMMAND = &quot;TRUNCATE TABLE %s&quot;;
+<i class="no-highlight">153</i>&nbsp;    private static final String EXPLICIT_IDS = &quot;EXPLICIT_IDS&quot;;
+<i class="no-highlight">154</i>&nbsp;    protected static final String ID_QUOTE_FORMAT = &quot;\&quot;%s\&quot;&quot;;
+<i class="no-highlight">155</i>&nbsp;    private static final String PARALLELISM = &quot;parallelism&quot;;
+<b class="nc"><i class="no-highlight">156</i>&nbsp;    private static final BigInteger MAX_PARALLELISM = BigInteger.valueOf(4);</b>
+<i class="no-highlight">157</i>&nbsp;    @Notification(message = STATUS_PARALLELISM)
+<b class="nc"><i class="no-highlight">158</i>&nbsp;    private static final StatusMessage PARALLELISM_SET_4 = new StatusMessage();</b>
+<i class="no-highlight">159</i>&nbsp;    private static final String NULL = &quot;NULL &quot;;
+<i class="no-highlight">160</i>&nbsp;    private static final String EMPTY_AS_NULL = &quot;EMPTYASNULL &quot;;
+<i class="no-highlight">161</i>&nbsp;    private static final String BLANK_AS_NULL = &quot;BLANKSASNULL &quot;;
+<i class="no-highlight">162</i>&nbsp;    private static final String NULL_AS = &quot;NULL AS &#39;\\0&#39; &quot;;
+<i class="no-highlight">163</i>&nbsp;    private static final String NULL_MARK = &quot;\0&quot;;
+<i class="no-highlight">164</i>&nbsp;    private static final String CHAR = &quot;CHAR&quot;;
+<i class="no-highlight">165</i>&nbsp;    private static final String TEXT = &quot;TEXT&quot;;
+<i class="no-highlight">166</i>&nbsp;    private static final String SUPPORTED_ENDPOINTS = &quot;S3&quot;;
+<i class="no-highlight">167</i>&nbsp;    private static final String DATA_SOURCE_PROP = &quot;dataSourceProp&quot;;
+<i class="no-highlight">168</i>&nbsp;    private static final String DATA_SOURCE_INPUT_VIEW = &quot;Input View&quot;;
+<i class="no-highlight">169</i>&nbsp;    private static final String DATA_SOURCE_STAGED_FILES = &quot;Staged Files&quot;;
+<b class="nc"><i class="no-highlight">170</i>&nbsp;    private static final Set&lt;String&gt; DATA_SOURCE_TYPES = ImmutableSet.of(</b>
+<i class="no-highlight">171</i>&nbsp;            DATA_SOURCE_INPUT_VIEW,
+<i class="no-highlight">172</i>&nbsp;            DATA_SOURCE_STAGED_FILES
+<i class="no-highlight">173</i>&nbsp;    );
+<i class="no-highlight">174</i>&nbsp;    private static final String DATA_SOURCE_VALUE = &quot;$.settings.&quot; + DATA_SOURCE_PROP + &quot;.value&quot;;
+<i class="no-highlight">175</i>&nbsp;    private static final String DATA_SOURCE_VALUE_INPUT_VIEW = DATA_SOURCE_VALUE + &quot; == &#39;&quot; +
+<i class="no-highlight">176</i>&nbsp;            DATA_SOURCE_INPUT_VIEW + &quot;&#39;&quot;;
+<i class="no-highlight">177</i>&nbsp;    private static final String DATA_SOURCE_VALUE_STAGED_FILES = DATA_SOURCE_VALUE + &quot; == &#39;&quot; +
+<i class="no-highlight">178</i>&nbsp;            DATA_SOURCE_STAGED_FILES + &quot;&#39;&quot;;
+<i class="no-highlight">179</i>&nbsp;    private static final String S3_PATH_PROP = &quot;s3Path&quot;;
+<i class="no-highlight">180</i>&nbsp;    private static final String S3_DELIMITER_PROP = &quot;s3Delimiter&quot;;
+<i class="no-highlight">181</i>&nbsp;    private static final String INSTANCE_TYPE_PROP = &quot;instanceType&quot;;
+<b class="nc"><i class="no-highlight">182</i>&nbsp;    private static final Set&lt;String&gt; INSTANCE_TYPES = Set.of(DEFAULT, HIGH_PERFORMANCE_S3);</b>
+<i class="no-highlight">183</i>&nbsp;    private static final String ENABLE_IF_PARALLELISM = &quot;$.settings.parallelism.value &gt; 1&quot;;
+<i class="no-highlight">184</i>&nbsp;
+<i class="no-highlight">185</i>&nbsp;    protected boolean isHighPerformanceS3;
+<i class="no-highlight">186</i>&nbsp;    protected String awsAccessId;
+<i class="no-highlight">187</i>&nbsp;    protected String awsSecretKey;
+<i class="no-highlight">188</i>&nbsp;    protected String awsSecurityToken;
+<i class="no-highlight">189</i>&nbsp;    protected Connection redshiftConnection;
+<i class="no-highlight">190</i>&nbsp;    protected String s3Bucket;
+<i class="no-highlight">191</i>&nbsp;    protected String s3Folder;
+<i class="no-highlight">192</i>&nbsp;    protected BulkLoadWrapper bulkLoadWrapper;
+<b class="nc"><i class="no-highlight">193</i>&nbsp;    private long inputCount = 0;</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;    private long writeCount = 0;</b>
+<i class="no-highlight">195</i>&nbsp;    private boolean truncate;
+<i class="no-highlight">196</i>&nbsp;    private boolean vacuum;
+<i class="no-highlight">197</i>&nbsp;    private String vacuumType;
+<i class="no-highlight">198</i>&nbsp;    private BigInteger vacuumThreshold;
+<i class="no-highlight">199</i>&nbsp;    private boolean updateStats;
+<i class="no-highlight">200</i>&nbsp;    private boolean acceptInvalidChars;
+<i class="no-highlight">201</i>&nbsp;    private int maxErrors;
+<i class="no-highlight">202</i>&nbsp;    protected BigInteger parallelism;
+<i class="no-highlight">203</i>&nbsp;    private boolean truncateColumns;
+<i class="no-highlight">204</i>&nbsp;    private String additionalOptions;
+<i class="no-highlight">205</i>&nbsp;    protected Boolean disableCompression;
+<i class="no-highlight">206</i>&nbsp;    private boolean loadEmptyStrings;
+<i class="no-highlight">207</i>&nbsp;    private boolean nullAsInAdditionalOptions;
+<i class="no-highlight">208</i>&nbsp;    private boolean emptyAsInAdditionalOptions;
+<i class="no-highlight">209</i>&nbsp;    private boolean blankAsInAdditionalOptions;
+<b class="nc"><i class="no-highlight">210</i>&nbsp;    private volatile boolean successful = true;</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;    private volatile boolean firstRecord = true;</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;    protected List&lt;String&gt; copyColumns = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;    private List&lt;String&gt; quotedCopyColumns = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;    private String explictIds = StringUtils.EMPTY;</b>
+<i class="no-highlight">215</i>&nbsp;    protected boolean serverSideEncryptionEnabled;
+<i class="no-highlight">216</i>&nbsp;    protected boolean iamRoleEnabled;
+<i class="no-highlight">217</i>&nbsp;    protected String iamRoleName;
+<i class="no-highlight">218</i>&nbsp;    protected String awsAccountID;
+<i class="no-highlight">219</i>&nbsp;    protected String regionName;
+<i class="no-highlight">220</i>&nbsp;    protected boolean serverless;
+<i class="no-highlight">221</i>&nbsp;    private boolean validateInputData;
+<i class="no-highlight">222</i>&nbsp;    private boolean invalidInputDataFoundBulkLoad;
+<i class="no-highlight">223</i>&nbsp;    private boolean unauthorizedException;
+<i class="no-highlight">224</i>&nbsp;    private boolean crossAccountIamRoleAccount;
+<i class="no-highlight">225</i>&nbsp;    private boolean stagedFileUpload;
+<i class="no-highlight">226</i>&nbsp;    private ExpressionProperty s3PathExp;
+<b class="nc"><i class="no-highlight">227</i>&nbsp;    private String dataSource = DATA_SOURCE_INPUT_VIEW;</b>
+<i class="no-highlight">228</i>&nbsp;    private ExpressionProperty delimiterExp;
+<i class="no-highlight">229</i>&nbsp;    private String stagedS3Path;
+<i class="no-highlight">230</i>&nbsp;    private String stagedS3Delimiter;
+<i class="no-highlight">231</i>&nbsp;    private List&lt;S3Upload&gt; s3Uploads;
+<i class="no-highlight">232</i>&nbsp;    protected List&lt;CompletableFuture&lt;Void&gt;&gt; tasks;
+<i class="no-highlight">233</i>&nbsp;    private final static int MAX_QUEUE_SIZE = 1024;
+<b class="nc"><i class="no-highlight">234</i>&nbsp;    private final BlockingQueue&lt;Map&lt;String, Object&gt;&gt; dataQueue =</b>
+<i class="no-highlight">235</i>&nbsp;            new LinkedBlockingQueue&lt;&gt;(MAX_QUEUE_SIZE);
+<i class="no-highlight">236</i>&nbsp;
+<i class="no-highlight">237</i>&nbsp;    private boolean isDiffRegionException;
+<i class="no-highlight">238</i>&nbsp;    @Inject
+<i class="no-highlight">239</i>&nbsp;    private LoadUnloadUtils loadUnloadUtils;
+<i class="no-highlight">240</i>&nbsp;    @Inject
+<i class="no-highlight">241</i>&nbsp;    private StatusReporter statusReporter;
+<i class="no-highlight">242</i>&nbsp;
+<i class="no-highlight">243</i>&nbsp;    @Override
+<i class="no-highlight">244</i>&nbsp;    protected String getName() {
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        return JdbcOperations.REDSHIFT;</b>
+<i class="no-highlight">246</i>&nbsp;    }
+<i class="no-highlight">247</i>&nbsp;
+<i class="no-highlight">248</i>&nbsp;    protected boolean isStagingSupported() {
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        return true;</b>
+<i class="no-highlight">250</i>&nbsp;    }
+<i class="no-highlight">251</i>&nbsp;
+<i class="no-highlight">252</i>&nbsp;    @Override
+<i class="no-highlight">253</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        super.createSnapProperties(builder);</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        if (isStagingSupported()) {</b>
+<i class="no-highlight">256</i>&nbsp;            // Define a property for a choice between staging/streaming bulk load
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            builder.describe(DATA_SOURCE_PROP, DATA_SOURCE_LABEL, DATA_SOURCE_DESC)</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                    .withAllowedValues(DATA_SOURCE_TYPES)</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                    .defaultValue(DATA_SOURCE_INPUT_VIEW)</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                    .add();</b>
+<i class="no-highlight">261</i>&nbsp;            // define S3 Path property (only for staged files)
+<b class="nc"><i class="no-highlight">262</i>&nbsp;            builder.describe(S3_PATH_PROP, S3_PATH_LABEL, S3_PATH_DESC)</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                    .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                    .enableIf(DATA_SOURCE_VALUE_STAGED_FILES)</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                    .add();</b>
+<i class="no-highlight">266</i>&nbsp;            // define delimiter (only for staged files)
+<b class="nc"><i class="no-highlight">267</i>&nbsp;            builder.describe(S3_DELIMITER_PROP, S3_DELIMITER_LABEL, S3_DELIMITER_DESC)</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                    .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                    .enableIf(DATA_SOURCE_VALUE_STAGED_FILES)</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                    .add();</b>
+<i class="no-highlight">271</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        addAdditionalProperties(builder);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        builder.describe(TRUNCATE_PROP, TRUNCATE_LABEL, TRUNCATE_DESC)</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        builder.describe(VACUUM_PROP, VACUUM_LABEL, VACUUM_DESC)</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                .hide() // this property is hidden on purpose for backward compatibility</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                .add(); // please do not remove</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        builder.describe(UPDATE_STATS_PROP, UPDATE_STATS_LABEL, UPDATE_STATS_DESC)</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        builder.describe(ACCEPT_INVALID_CHARS_PROP, INVALID_CHARS_LABEL, INVALID_CHARS_DESC)</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                .defaultValue(true)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        builder.describe(MAX_ERROR_PROP, MAX_ERROR_LABEL, MAX_ERROR_DESC)</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                .defaultValue(DEFAULT_MAX_ERRORS)</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                .withMinValue(MIN_MAX_ERRORS)</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                .withMaxValue(MAXIMUM_MAX_ERRORS)</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        builder.describe(TRUNCATE_COLUMNS_PROP, TRUNCATE_COLUMNS_LABEL, TRUNCATE_COLUMNS_DESC)</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                .defaultValue(true)</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        builder.describe(DISABLE_COMPRESSION_PROP, DISABLE_COMPRESSION_LABEL,</b>
+<i class="no-highlight">299</i>&nbsp;                DISABLE_COMPRESSION_DESC)
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        builder.describe(LOAD_EMPTY_STRINGS_PROP, LOAD_EMPTY_STRINGS_LABEL, LOAD_EMPTY_STRINGS_DESC)</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        builder.describe(ADDITIONAL_OPTIONS_PROP, ADDITIONAL_OPTIONS_LABEL,</b>
+<i class="no-highlight">306</i>&nbsp;                ADDITIONAL_OPTIONS_DESC)
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        builder.describe(PARALLELISM, PARALLELISM_LABEL, String.format(PARALLELISM_DESC,</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                getSupportedEndpoints(), getSupportedEndpoints(), getName().toLowerCase(),</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                getSupportedEndpoints()))</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<i class="no-highlight">314</i>&nbsp;                // for now we require min as 1, 0 later can mean that we fetch the node
+<i class="no-highlight">315</i>&nbsp;                // count
+<i class="no-highlight">316</i>&nbsp;                // from RS, as Ajay suggested
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                .withMinValue(1)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                .defaultValue(1)</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        builder.describe(INSTANCE_TYPE_PROP, INSTANCE_TYPE_LABEL, INSTANCE_TYPE_DESC)</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                .withAllowedValues(INSTANCE_TYPES)</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                .defaultValue(DEFAULT)</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                .enableIf(ENABLE_IF_PARALLELISM)</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        builder.describe(IAM_ROLE_PROP, BULK_LOAD_UNLOAD_IAM_ROLE_LABEL,</b>
+<i class="no-highlight">327</i>&nbsp;                BULK_LOAD_UNLOAD_IAM_ROLE_DESC)
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;        builder.describe(SERVER_SIDE_ENCRYPTION_PROP, BULK_LOAD_SERVER_SIDE_ENCRYPTION_LABEL,</b>
+<i class="no-highlight">331</i>&nbsp;                BULK_LOAD_SERVER_SIDE_ENCRYPTION_DESC)
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;        addEncryptionProps(builder);</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        RedshiftUtils.defineVacuumProperties(builder);</b>
+<i class="no-highlight">336</i>&nbsp;    }
+<i class="no-highlight">337</i>&nbsp;
+<i class="no-highlight">338</i>&nbsp;    protected String getSupportedEndpoints() {
+<b class="nc"><i class="no-highlight">339</i>&nbsp;        return SUPPORTED_ENDPOINTS;</b>
+<i class="no-highlight">340</i>&nbsp;    }
+<i class="no-highlight">341</i>&nbsp;
+<i class="no-highlight">342</i>&nbsp;    protected void addAdditionalProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">343</i>&nbsp;        builder.describe(VALIDATE_INPUT_DATA_PROP, VALIDATE_INPUT_DATA_LABEL,</b>
+<i class="no-highlight">344</i>&nbsp;                VALIDATE_INPUT_DATA_DESC)
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                .add();</b>
+<i class="no-highlight">347</i>&nbsp;    }
+<i class="no-highlight">348</i>&nbsp;
+<i class="no-highlight">349</i>&nbsp;    @Override
+<i class="no-highlight">350</i>&nbsp;    protected void configureSnap(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">351</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;        configureSnapSettings(propertyValues);</b>
+<i class="no-highlight">353</i>&nbsp;    }
+<i class="no-highlight">354</i>&nbsp;
+<i class="no-highlight">355</i>&nbsp;    protected void configureSnapSettings(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        if (isStagingSupported()) {</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;            String dataSourceValue = propertyValues.get(DATA_SOURCE_PROP);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;            if (StringUtils.isNotBlank(dataSourceValue)) {</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                dataSource = dataSourceValue;</b>
+<i class="no-highlight">360</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">361</i>&nbsp;            stagedFileUpload = dataSource.equals(DATA_SOURCE_STAGED_FILES);</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;            s3PathExp = propertyValues.getAsExpression(S3_PATH_PROP);</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;            delimiterExp = propertyValues.getAsExpression(S3_DELIMITER_PROP);</b>
+<i class="no-highlight">364</i>&nbsp;        }
+<i class="no-highlight">365</i>&nbsp;        //inputview is must If datasource is set to input view
+<b class="nc"><i class="no-highlight">366</i>&nbsp;        if(dataSource.equals(DATA_SOURCE_INPUT_VIEW) &amp;&amp; inputViews.isEmpty()){</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;            throw new ConfigurationException(ERROR_NO_INPUT_VIEW)</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                    .withReason(ERROR_NO_INPUT_VIEW_REASON)</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                    .withResolution(ERROR_NO_INPUT_VIEW_RESOLUTION);</b>
+<i class="no-highlight">370</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">371</i>&nbsp;        awsAccessId = ((RedshiftDatabaseAccount) account).getAWSAccessId();</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        awsSecretKey = ((RedshiftDatabaseAccount) account).getAWSSecretKey();</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;        awsSecurityToken = ((RedshiftDatabaseAccount) account).getAwsSecurityToken();</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;        s3Bucket = ((RedshiftDatabaseAccount) account).getBucketName();</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        s3Folder = ((RedshiftDatabaseAccount) account).getFolderPath();</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;        regionName = ((RedshiftDatabaseAccount) account).getRegionName();</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        serverless = ((RedshiftDatabaseAccount) account).isServerless();</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        crossAccountIamRoleAccount = (account instanceof RedshiftCrossAccountIAMRoleAccount);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        ((RedshiftDatabaseAccount) account).setStaging(stagedFileUpload);</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;        if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;            ((RedshiftCrossAccountIAMRoleAccount) account).validateAccountCustom();</b>
+<i class="no-highlight">382</i>&nbsp;        }
+<i class="no-highlight">383</i>&nbsp;        // if Access ID and Secret key are empty, EC2 IAM credential can be used in EC2 Groundplex
+<i class="no-highlight">384</i>&nbsp;        // do this check only if the account is not a cross-account IAM role one
+<i class="no-highlight">385</i>&nbsp;        // for cross-account iam role accounts, checks are done in the account itself
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        if (!(crossAccountIamRoleAccount &amp;&amp; stagedFileUpload)) {</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            if (StringUtils.isEmpty(s3Bucket)) {</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                throw new ExecutionException(ERROR_MISSING_S3_BUCKET)</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                        .withReason(ERROR_S3_BUCKET_REQUIRED)</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                        .withResolution(ERROR_PROVIDE_S3_BUCKET);</b>
+<i class="no-highlight">391</i>&nbsp;            }
+<i class="no-highlight">392</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">393</i>&nbsp;        validateInputData = Boolean.TRUE.equals(propertyValues.get(VALIDATE_INPUT_DATA_PROP));</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;        truncate = propertyValues.get(TRUNCATE_PROP);</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;        vacuum = Boolean.TRUE.equals(propertyValues.get(VACUUM_PROP));</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;        vacuumType = propertyValues.get(RedshiftUtils.VACUUM_TYPE_PROP);</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;        vacuumThreshold = propertyValues.get(RedshiftUtils.VACUUM_THRESHOLD_PROP);</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;        updateStats = propertyValues.get(UPDATE_STATS_PROP);</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;        acceptInvalidChars = propertyValues.get(ACCEPT_INVALID_CHARS_PROP);</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;        maxErrors = ((BigInteger) propertyValues.get(MAX_ERROR_PROP)).intValue();</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;        truncateColumns = propertyValues.get(TRUNCATE_COLUMNS_PROP);</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        additionalOptions = propertyValues.get(ADDITIONAL_OPTIONS_PROP);</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;        nullAsInAdditionalOptions = StringUtils.containsIgnoreCase(additionalOptions, NULL);</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;        emptyAsInAdditionalOptions = StringUtils.containsIgnoreCase(additionalOptions,</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                EMPTY_AS_NULL.trim());</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        blankAsInAdditionalOptions = StringUtils.containsIgnoreCase(additionalOptions,</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                BLANK_AS_NULL.trim());</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;        loadEmptyStrings = Boolean.TRUE.equals(propertyValues.get(LOAD_EMPTY_STRINGS_PROP));</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;        String emptyNullOptions = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        if (!loadEmptyStrings) {</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            if (!emptyAsInAdditionalOptions) {</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                emptyNullOptions = emptyNullOptions.concat(EMPTY_AS_NULL);</b>
+<i class="no-highlight">413</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">414</i>&nbsp;            if (!blankAsInAdditionalOptions) {</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                emptyNullOptions = emptyNullOptions.concat(BLANK_AS_NULL);</b>
+<i class="no-highlight">416</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">417</i>&nbsp;        } else if (!nullAsInAdditionalOptions) {</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            emptyNullOptions = NULL_AS;</b>
+<i class="no-highlight">419</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        additionalOptions = additionalOptions == null ? emptyNullOptions :</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                emptyNullOptions.concat(additionalOptions);</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        disableCompression = propertyValues.get(DISABLE_COMPRESSION_PROP);</b>
+<i class="no-highlight">423</i>&nbsp;        // check if the instance type is R6a or equivalent
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        isHighPerformanceS3 = StringUtils.equalsIgnoreCase(propertyValues.get(INSTANCE_TYPE_PROP),</b>
+<i class="no-highlight">425</i>&nbsp;                HIGH_PERFORMANCE_S3);
+<b class="nc"><i class="no-highlight">426</i>&nbsp;        parallelism = propertyValues.get(PARALLELISM);</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;        if (parallelism == null) {</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;            parallelism = BigInteger.ONE;</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;        } else if (isHighPerformanceS3 &amp;&amp; parallelism.compareTo(MAX_PARALLELISM) &gt; 0) {</b>
+<i class="no-highlight">430</i>&nbsp;            // For parallelism &gt; 4, the Snap performs lower in R6a instance.
+<b class="nc"><i class="no-highlight">431</i>&nbsp;            parallelism = MAX_PARALLELISM;</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;            statusReporter.notify(PARALLELISM_SET_4);</b>
+<i class="no-highlight">433</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">434</i>&nbsp;        iamRoleEnabled = Boolean.TRUE.equals(propertyValues.get(IAM_ROLE_PROP));</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;        serverSideEncryptionEnabled = Boolean.TRUE.equals(propertyValues.get(</b>
+<i class="no-highlight">436</i>&nbsp;                SERVER_SIDE_ENCRYPTION_PROP));
+<b class="nc"><i class="no-highlight">437</i>&nbsp;        if (!crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;            iamRoleName = ((RedshiftDatabaseAccount) account).getIAMRoleNameForRedshiftType();</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;            awsAccountID = ((RedshiftDatabaseAccount) account).getAwsAccountID();</b>
+<i class="no-highlight">440</i>&nbsp;            // check for invalid configuration where IAM role is given along with Access-Key ID and
+<i class="no-highlight">441</i>&nbsp;            // Secret-Key
+<b class="nc"><i class="no-highlight">442</i>&nbsp;            loadUnloadUtils.performInvalidIamConfigurationCheckOne(iamRoleEnabled, awsAccessId,</b>
+<i class="no-highlight">443</i>&nbsp;                    awsSecretKey, awsSecurityToken);
+<i class="no-highlight">444</i>&nbsp;            // check for invalid configuration where IAM role is given but one of the properties
+<i class="no-highlight">445</i>&nbsp;            // (role name, AWS account ID) is missing
+<b class="nc"><i class="no-highlight">446</i>&nbsp;            loadUnloadUtils.performInvalidIamConfigurationCheckTwo(iamRoleEnabled, awsAccountID,</b>
+<i class="no-highlight">447</i>&nbsp;                    iamRoleName);
+<i class="no-highlight">448</i>&nbsp;        }
+<i class="no-highlight">449</i>&nbsp;        // TODO tstack - look into adding a migration script to change existing view names to be
+<i class="no-highlight">450</i>&nbsp;        // row/schema.
+<b class="nc"><i class="no-highlight">451</i>&nbsp;        List&lt;String&gt; viewOrder = viewNameUtil.sortViewNames(inputViews.names(),</b>
+<i class="no-highlight">452</i>&nbsp;                INPUT_ROWS_VIEW_NAME);
+<b class="nc"><i class="no-highlight">453</i>&nbsp;        if (!viewOrder.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;            rowViewName = viewOrder.get(0);</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;            if (viewOrder.size() &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                schemaViewName = viewOrder.get(1);</b>
+<i class="no-highlight">457</i>&nbsp;            }
+<i class="no-highlight">458</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">459</i>&nbsp;        if (serverSideEncryptionEnabled) {</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;            if (encryptionType == S3EncryptionType.NONE) {</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                encryptionType = SSE;</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;            } else if (encryptionType.isKms()) {</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                throw new ConfigurationException(DISABLE_SSE_FOR_KMS)</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                        .withReason(DISABLE_SSE_FOR_KMS_REASON);</b>
+<i class="no-highlight">465</i>&nbsp;            }
+<i class="no-highlight">466</i>&nbsp;        }
+<i class="no-highlight">467</i>&nbsp;    }
+<i class="no-highlight">468</i>&nbsp;
+<i class="no-highlight">469</i>&nbsp;    @Override
+<i class="no-highlight">470</i>&nbsp;    protected void processDocument(final Document document, final String inputViewName) {
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        if (stagedFileUpload) {</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;            stagedS3Path = s3PathExp.eval(document);</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;            if (StringUtils.isBlank(stagedS3Path)) {</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                throw new SnapDataException(ERR_SNAP_CONFIG)</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                        .withReason(S3_PATH_MISSING)</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">477</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">478</i>&nbsp;            stagedS3Delimiter = delimiterExp.eval(document);</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;            if (StringUtils.isBlank(stagedS3Delimiter)) {</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                stagedS3Delimiter = String.valueOf(COMMA);</b>
+<i class="no-highlight">481</i>&nbsp;            }
+<i class="no-highlight">482</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">483</i>&nbsp;                loadStagedFiles(document);</b>
+<i class="no-highlight">484</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">485</i>&nbsp;            } catch (SQLException e1) {</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                throw new SnapDataException(e1, ERR_STAGED_LOAD_FAILED)</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                        .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                       .withResolution(ERR_STAGED_LOAD_FAILED_RESOLUTION);</b>
+<i class="no-highlight">489</i>&nbsp;            }
+<i class="no-highlight">490</i>&nbsp;        }
+<i class="no-highlight">491</i>&nbsp;        // Check if this is the schema document and save it for later.
+<b class="nc"><i class="no-highlight">492</i>&nbsp;        if (inputViewName != null &amp;&amp; inputViewName.equals(schemaViewName)) {</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;            if (document != null) {</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                schema = document;</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                columnTranslation = databaseUtils.buildColumnTranslation(schema);</b>
+<i class="no-highlight">496</i>&nbsp;            }
+<i class="no-highlight">497</i>&nbsp;            return;
+<i class="no-highlight">498</i>&nbsp;        }
+<i class="no-highlight">499</i>&nbsp;        // Validate input document
+<b class="nc"><i class="no-highlight">500</i>&nbsp;        if (!validateInputDocument(document)) {</b>
+<i class="no-highlight">501</i>&nbsp;            return;
+<i class="no-highlight">502</i>&nbsp;        }
+<i class="no-highlight">503</i>&nbsp;
+<b class="nc"><i class="no-highlight">504</i>&nbsp;        databaseUtils.translateColumnNamesInDoc(columnTranslation, document);</b>
+<i class="no-highlight">505</i>&nbsp;
+<b class="nc"><i class="no-highlight">506</i>&nbsp;        if (firstRecord) {</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;            firstRecord = false;</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;            if (autoCreateTable) {</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;                createTableIfAbsent(document);</b>
+<i class="no-highlight">510</i>&nbsp;            }
+<i class="no-highlight">511</i>&nbsp;
+<b class="nc"><i class="no-highlight">512</i>&nbsp;            LOG.debug(&quot;Getting the metadata of the table&quot;);</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;            long startTime = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;            Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;            tableMetaData = jdbcOperations.getTableMetaData(conn,</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;                    account.getDatabaseConfig().getDatabaseName(), tableName);</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;            logExecutionTime(startTime, &quot;DONE Getting the metadata of the table in {} ms&quot;);</b>
+<i class="no-highlight">518</i>&nbsp;
+<i class="no-highlight">519</i>&nbsp;            /*
+<i class="no-highlight">520</i>&nbsp;            Invoking getColumns() method on DatabaseMetaData instance for Redshift doesn&#39;t throw
+<i class="no-highlight">521</i>&nbsp;            error if the provided table doesn&#39;t exist. This seems to be a drawback of the
+<i class="no-highlight">522</i>&nbsp;            PostgreSQL database JDBC driver which is eventually changing the behaviour of
+<i class="no-highlight">523</i>&nbsp;            Redshift Bulk Load snap during execution. To overcome the above limitation and to
+<i class="no-highlight">524</i>&nbsp;            correct the behaviour of Redshift Bulk Load snap during the execution,
+<i class="no-highlight">525</i>&nbsp;            the below if block is added.
+<i class="no-highlight">526</i>&nbsp;            */
+<b class="nc"><i class="no-highlight">527</i>&nbsp;            if (tableMetaData == null || tableMetaData.keySet() == null ||</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                    tableMetaData.keySet().size() == 0) {</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                throw new ConfigurationException(ERR_FETCH_TABLE_METADATA_MSG)</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                        .formatWith(tableName)</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                        .withReason(ERR_FETCH_TABLE_METADATA_REASON)</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                        .withResolution(ERR_FETCH_TABLE_METADATA_RESOLUTION);</b>
+<i class="no-highlight">533</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">534</i>&nbsp;            bulkLoadWrapper.setTableMetaData(tableMetaData);</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;            Map&lt;String, Object&gt; data = document.get(Map.class);</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;            if (data == null) {</b>
+<i class="no-highlight">537</i>&nbsp;                return;
+<i class="no-highlight">538</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">539</i>&nbsp;            for (String column : data.keySet()) {</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;                String normalizedColumn = jdbcOperations.normalize(column);</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;                if (tableMetaData.containsKey(normalizedColumn)) {</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;                    copyColumns.add(column);</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                    quotedCopyColumns.add(String.format(ID_QUOTE_FORMAT, column));</b>
+<i class="no-highlight">544</i>&nbsp;
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                    ColumnMetaData columnMeta = tableMetaData.get(normalizedColumn);</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                    if (columnMeta.isIdentity()) {</b>
+<i class="no-highlight">547</i>&nbsp;                        // An auto increment column is being passed in,
+<i class="no-highlight">548</i>&nbsp;                        // add the EXPLICIT_IDS option to the copy command
+<b class="nc"><i class="no-highlight">549</i>&nbsp;                        explictIds = EXPLICIT_IDS;</b>
+<i class="no-highlight">550</i>&nbsp;                    }
+<i class="no-highlight">551</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">552</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;            if (copyColumns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">554</i>&nbsp;                throw new ExecutionException(ERROR_INVALID_INPUT)</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;                        .withReason(ERROR_INVALID_INPUT_REASON)</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                        .withResolution(ERROR_INVALID_INPUT_RESOLUTION);</b>
+<i class="no-highlight">557</i>&nbsp;            }
+<i class="no-highlight">558</i>&nbsp;            // If parallelism &gt; 1, initialize multi-threads to CSV-format, GZIP-compress and
+<i class="no-highlight">559</i>&nbsp;            // upload data to S3 in parallel.
+<b class="nc"><i class="no-highlight">560</i>&nbsp;            int threadCount = parallelism.intValue();</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;            if (threadCount &gt; 1 &amp;&amp; isHighPerformanceS3) {</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;                initTasks(threadCount);</b>
+<i class="no-highlight">563</i>&nbsp;            }
+<i class="no-highlight">564</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">565</i>&nbsp;        inputCount++;</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;        Map&lt;String, Object&gt; data = document.get(Map.class);</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;        if (data == null) {</b>
+<i class="no-highlight">568</i>&nbsp;            return;
+<i class="no-highlight">569</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">570</i>&nbsp;            if (isAllCopyColumnsNull(data)) {</b>
+<i class="no-highlight">571</i>&nbsp;                // for RS Upsert Snap, write to error view if all values for copy columns are null
+<b class="nc"><i class="no-highlight">572</i>&nbsp;                SnapDataException ex = new SnapDataException(ERR_ALL_COLUMNS_NULL)</b>
+<b class="nc"><i class="no-highlight">573</i>&nbsp;                        .withReason(REASON_ALL_COLUMNS_NULL)</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;                errorViews.write(ex, document);</b>
+<i class="no-highlight">576</i>&nbsp;                return;
+<i class="no-highlight">577</i>&nbsp;            }
+<i class="no-highlight">578</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">579</i>&nbsp;        if (loadEmptyStrings &amp;&amp; !nullAsInAdditionalOptions) {</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;            data = replaceNullWithMark(data);</b>
+<i class="no-highlight">581</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">582</i>&nbsp;        if (!validateInputData || validateInputBulkLoad(document)) {</b>
+<i class="no-highlight">583</i>&nbsp;            // if validateInputData is true and any invalid input document is found, return without
+<i class="no-highlight">584</i>&nbsp;            // writing any output document, since the error count from the error table is irrelevant
+<b class="nc"><i class="no-highlight">585</i>&nbsp;            document.acknowledge();</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;            writeCount++;</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;            if (CollectionUtils.isEmpty(s3Uploads)) {</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;                bulkLoadWrapper.write(data, null);</b>
+<i class="no-highlight">589</i>&nbsp;            } else {
+<i class="no-highlight">590</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                    dataQueue.put(data);</b>
+<b class="nc"><i class="no-highlight">592</i>&nbsp;                } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">593</i>&nbsp;                    LOG.debug(&quot;Interrupted while inserting data into dataQueue&quot;, e);</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                }</b>
+<i class="no-highlight">595</i>&nbsp;            }
+<i class="no-highlight">596</i>&nbsp;        }
+<i class="no-highlight">597</i>&nbsp;    }
+<i class="no-highlight">598</i>&nbsp;
+<i class="no-highlight">599</i>&nbsp;    protected BulkLoadWrapperS3 createBulkLoadWrapperInstance() {
+<b class="nc"><i class="no-highlight">600</i>&nbsp;        if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;            Credentials credentials = ((RedshiftCrossAccountIAMRoleAccount) account)</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;                    .getCredentialFromCrossAccountIamRoleForBucketWrite();</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;            return new BulkLoadWrapperS3(copyColumns, jdbcOperations, parallelism, account,</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;                    disableCompression, getName(), regionName,</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;                    credentials == null ? null : credentials.getAccessKeyId(),</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;                    credentials == null ? null : credentials.getSecretAccessKey(),</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;                    credentials == null ? null : credentials.getSessionToken(), s3Bucket, s3Folder,</b>
+<i class="no-highlight">608</i>&nbsp;                    tableMetaData);
+<i class="no-highlight">609</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">610</i>&nbsp;            if (StringUtils.isNotBlank(awsSecurityToken)) {</b>
+<b class="nc"><i class="no-highlight">611</i>&nbsp;                return new BulkLoadWrapperS3(awsAccessId, awsSecretKey, awsSecurityToken, s3Bucket, s3Folder, parallelism,</b>
+<b class="nc"><i class="no-highlight">612</i>&nbsp;                        disableCompression, copyColumns, tableMetaData, jdbcOperations,</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;                        iamRoleEnabled, awsAccountID, iamRoleName, regionName, getName(), account);</b>
+<i class="no-highlight">614</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">615</i>&nbsp;                return new BulkLoadWrapperS3(awsAccessId, awsSecretKey, s3Bucket, s3Folder, parallelism,</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;                        disableCompression, copyColumns, tableMetaData, jdbcOperations,</b>
+<b class="nc"><i class="no-highlight">617</i>&nbsp;                        iamRoleEnabled, awsAccountID, iamRoleName, regionName, getName(), account);</b>
+<i class="no-highlight">618</i>&nbsp;            }
+<i class="no-highlight">619</i>&nbsp;        }
+<i class="no-highlight">620</i>&nbsp;    }
+<i class="no-highlight">621</i>&nbsp;
+<i class="no-highlight">622</i>&nbsp;    private Map&lt;String, Object&gt; replaceNullWithMark(Map&lt;String, Object&gt; data) {
+<b class="nc"><i class="no-highlight">623</i>&nbsp;        for (String copyColumn : copyColumns) {</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;            String normalizedColumn = jdbcOperations.normalize(copyColumn);</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;            ColumnMetaData columnMetaData = tableMetaData.get(normalizedColumn);</b>
+<b class="nc"><i class="no-highlight">626</i>&nbsp;            if (columnMetaData != null) {</b>
+<b class="nc"><i class="no-highlight">627</i>&nbsp;                String columnTypeName = columnMetaData.getColumnTypeName();</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;                if (data.get(copyColumn) == null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;                        (StringUtils.containsIgnoreCase(columnTypeName, CHAR) ||</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;                                StringUtils.containsIgnoreCase(columnTypeName, TEXT))) {</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                    data.put(copyColumn, NULL_MARK);</b>
+<i class="no-highlight">632</i>&nbsp;                }
+<i class="no-highlight">633</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">634</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;        return data;</b>
+<i class="no-highlight">636</i>&nbsp;    }
+<i class="no-highlight">637</i>&nbsp;
+<i class="no-highlight">638</i>&nbsp;    /**
+<i class="no-highlight">639</i>&nbsp;     * Validates input document. This method is overridden in Bulk Upsert Snap.
+<i class="no-highlight">640</i>&nbsp;     * It is currently not used in Bulk Load Snap.
+<i class="no-highlight">641</i>&nbsp;     *
+<i class="no-highlight">642</i>&nbsp;     * @param document - input doucment
+<i class="no-highlight">643</i>&nbsp;     *
+<i class="no-highlight">644</i>&nbsp;     * @return true if no invalid data is found
+<i class="no-highlight">645</i>&nbsp;     */
+<i class="no-highlight">646</i>&nbsp;    protected boolean validateInputDocument(Document document) {
+<b class="nc"><i class="no-highlight">647</i>&nbsp;        return true;</b>
+<i class="no-highlight">648</i>&nbsp;    }
+<i class="no-highlight">649</i>&nbsp;
+<i class="no-highlight">650</i>&nbsp;    /**
+<i class="no-highlight">651</i>&nbsp;     * Input data validations for Bulk Upsert and Load Snaps are different.
+<i class="no-highlight">652</i>&nbsp;     * This method is for Bulk Load Snap.
+<i class="no-highlight">653</i>&nbsp;     *
+<i class="no-highlight">654</i>&nbsp;     * @param document - input document
+<i class="no-highlight">655</i>&nbsp;     *
+<i class="no-highlight">656</i>&nbsp;     * @return true if invalid input document is not found
+<i class="no-highlight">657</i>&nbsp;     */
+<i class="no-highlight">658</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">659</i>&nbsp;    protected boolean validateInputBulkLoad(Document document) {
+<b class="nc"><i class="no-highlight">660</i>&nbsp;        Object data = document.get();</b>
+<b class="nc"><i class="no-highlight">661</i>&nbsp;        if (data instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">662</i>&nbsp;            for (String copyColumn : copyColumns) {</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;                Object value = ((Map&lt;String, Object&gt;) data).get(copyColumn);</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;                if (value instanceof Map || value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;                    writeInvalidInputData(String.format(REASON_INVALID_VALUE, copyColumn,</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;                            value.getClass().getSimpleName()), document);</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;                    invalidInputDataFoundBulkLoad = true;</b>
+<i class="no-highlight">668</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">669</i>&nbsp;            }</b>
+<i class="no-highlight">670</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">671</i>&nbsp;            writeInvalidInputData(String.format(REASON_INVALID_CLASS_OBJECt,</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;                    data.getClass().getSimpleName()), document);</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;            invalidInputDataFoundBulkLoad = true;</b>
+<i class="no-highlight">674</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">675</i>&nbsp;        return !invalidInputDataFoundBulkLoad;</b>
+<i class="no-highlight">676</i>&nbsp;    }
+<i class="no-highlight">677</i>&nbsp;
+<i class="no-highlight">678</i>&nbsp;    protected void writeInvalidInputData(String reason, Document document) {
+<b class="nc"><i class="no-highlight">679</i>&nbsp;        errorViews.write((SnapDataException)</b>
+<i class="no-highlight">680</i>&nbsp;                new SnapDataException(ERR_INVALID_INPUT_DOCUMENT)
+<b class="nc"><i class="no-highlight">681</i>&nbsp;                .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">682</i>&nbsp;                .withResolution(RESOLUTION_FLAT_MAP_DATA), document);</b>
+<i class="no-highlight">683</i>&nbsp;    }
+<i class="no-highlight">684</i>&nbsp;
+<i class="no-highlight">685</i>&nbsp;    protected boolean isAllCopyColumnsNull(Map&lt;String, Object&gt; data) {
+<b class="nc"><i class="no-highlight">686</i>&nbsp;        return false;</b>
+<i class="no-highlight">687</i>&nbsp;    }
+<i class="no-highlight">688</i>&nbsp;
+<i class="no-highlight">689</i>&nbsp;    @Override
+<i class="no-highlight">690</i>&nbsp;    public void cleanup() throws ExecutionException {
+<i class="no-highlight">691</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">692</i>&nbsp;            if (account != null) {</b>
+<b class="nc"><i class="no-highlight">693</i>&nbsp;                account.disconnect();</b>
+<i class="no-highlight">694</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">695</i>&nbsp;            if (jdbcOperations != null) {</b>
+<b class="nc"><i class="no-highlight">696</i>&nbsp;                jdbcOperations.cleanup();</b>
+<i class="no-highlight">697</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">698</i>&nbsp;            if (bulkLoadWrapper != null) {</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;                bulkLoadWrapper.close();</b>
+<i class="no-highlight">700</i>&nbsp;            }
+<i class="no-highlight">701</i>&nbsp;        } finally {
+<i class="no-highlight">702</i>&nbsp;            // ensure wrapper cleanup is invoked. wrapper close may raise
+<i class="no-highlight">703</i>&nbsp;            // an AWS SdkInterruptedException if pipeline is halted.
+<b class="nc"><i class="no-highlight">704</i>&nbsp;            if (bulkLoadWrapper != null) {</b>
+<b class="nc"><i class="no-highlight">705</i>&nbsp;                bulkLoadWrapper.cleanup();</b>
+<i class="no-highlight">706</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">707</i>&nbsp;            if (CollectionUtils.isNotEmpty(tasks)){</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;                tasks.forEach(p -&gt; p.cancel(true));</b>
+<b class="nc"><i class="no-highlight">709</i>&nbsp;                tasks.clear();</b>
+<b class="nc"><i class="no-highlight">710</i>&nbsp;                dataQueue.clear();</b>
+<i class="no-highlight">711</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">712</i>&nbsp;            if (statusReporter != null) {</b>
+<b class="nc"><i class="no-highlight">713</i>&nbsp;                statusReporter.done();</b>
+<i class="no-highlight">714</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">715</i>&nbsp;        }</b>
+<i class="no-highlight">716</i>&nbsp;    }
+<i class="no-highlight">717</i>&nbsp;
+<i class="no-highlight">718</i>&nbsp;    /**
+<i class="no-highlight">719</i>&nbsp;     * Operations done before load happens.
+<i class="no-highlight">720</i>&nbsp;     */
+<i class="no-highlight">721</i>&nbsp;    protected void preLoadAction() throws SQLException {
+<b class="nc"><i class="no-highlight">722</i>&nbsp;        if (truncate) {</b>
+<b class="nc"><i class="no-highlight">723</i>&nbsp;            redshiftConnection = getRedshiftConnection(redshiftConnection);</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;            try (Statement stmt = redshiftConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">725</i>&nbsp;                LOG.debug(LOG_TRUNCATING_TABLE);</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;                stmt.execute(String.format(</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;                        RedshiftUtils.addApnTaggingPrefix(TRUNCATE_COMMAND), tableName));</b>
+<b class="nc"><i class="no-highlight">728</i>&nbsp;            }</b>
+<i class="no-highlight">729</i>&nbsp;        }
+<i class="no-highlight">730</i>&nbsp;    }
+<i class="no-highlight">731</i>&nbsp;
+<i class="no-highlight">732</i>&nbsp;    private void loadStagedFiles(Document inputDocument) throws SQLException {
+<b class="nc"><i class="no-highlight">733</i>&nbsp;        bulkLoadWrapper = new BulkLoadWrapperS3(account, disableCompression, getName(),</b>
+<i class="no-highlight">734</i>&nbsp;                regionName);
+<b class="nc"><i class="no-highlight">735</i>&nbsp;        preLoadAction();</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;        loadAction(tableName);</b>
+<b class="nc"><i class="no-highlight">737</i>&nbsp;        postLoadAction();</b>
+<b class="nc"><i class="no-highlight">738</i>&nbsp;        Map&lt;String, Object&gt; result = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">739</i>&nbsp;        result.put(OUTPUT_KEY_RESULT, OUTPUT_VALUE_SUCCESS);</b>
+<b class="nc"><i class="no-highlight">740</i>&nbsp;        result.put(KEY_TARGET_TABLE, tableName);</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;        result.put(KEY_SOURCE, stagedS3Path);</b>
+<b class="nc"><i class="no-highlight">742</i>&nbsp;        outputViews.write(documentUtility.newDocument(result), inputDocument);</b>
+<i class="no-highlight">743</i>&nbsp;    }
+<i class="no-highlight">744</i>&nbsp;
+<i class="no-highlight">745</i>&nbsp;    /**
+<i class="no-highlight">746</i>&nbsp;     * The load action.
+<i class="no-highlight">747</i>&nbsp;     */
+<i class="no-highlight">748</i>&nbsp;    protected void loadAction(String targetTable) throws SQLException {
+<i class="no-highlight">749</i>&nbsp;        // Connection might have been created already if truncate was done
+<b class="nc"><i class="no-highlight">750</i>&nbsp;        redshiftConnection = getRedshiftConnection(redshiftConnection);</b>
+<i class="no-highlight">751</i>&nbsp;
+<b class="nc"><i class="no-highlight">752</i>&nbsp;        String acceptInvalidCharStr = ACCEPT_INVALID_CHARS;</b>
+<b class="nc"><i class="no-highlight">753</i>&nbsp;        if (!acceptInvalidChars) {</b>
+<b class="nc"><i class="no-highlight">754</i>&nbsp;            acceptInvalidCharStr = StringUtils.EMPTY;</b>
+<i class="no-highlight">755</i>&nbsp;        }
+<i class="no-highlight">756</i>&nbsp;
+<b class="nc"><i class="no-highlight">757</i>&nbsp;        String truncateColumnsStr = TRUNCATE_COLUMNS;</b>
+<b class="nc"><i class="no-highlight">758</i>&nbsp;        if (!truncateColumns) {</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;            truncateColumnsStr = StringUtils.EMPTY;</b>
+<i class="no-highlight">760</i>&nbsp;        }
+<i class="no-highlight">761</i>&nbsp;
+<b class="nc"><i class="no-highlight">762</i>&nbsp;        String additionalOptionsStr = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">763</i>&nbsp;        if (!StringUtils.isEmpty(additionalOptions)) {</b>
+<b class="nc"><i class="no-highlight">764</i>&nbsp;            additionalOptionsStr = additionalOptions;</b>
+<i class="no-highlight">765</i>&nbsp;        }
+<i class="no-highlight">766</i>&nbsp;
+<b class="nc"><i class="no-highlight">767</i>&nbsp;        String columns = StringUtils.join(quotedCopyColumns, COMMA);</b>
+<b class="nc"><i class="no-highlight">768</i>&nbsp;        if ((!stagedFileUpload) &amp;&amp; StringUtils.isBlank(columns)) {</b>
+<i class="no-highlight">769</i>&nbsp;                return;
+<i class="no-highlight">770</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">771</i>&nbsp;        String copyCommand = bulkLoadWrapper.createCopyCommand(targetTable, columns,</b>
+<i class="no-highlight">772</i>&nbsp;                acceptInvalidCharStr, maxErrors, explictIds, truncateColumnsStr,
+<i class="no-highlight">773</i>&nbsp;                additionalOptionsStr, stagedS3Path, stagedS3Delimiter);
+<b class="nc"><i class="no-highlight">774</i>&nbsp;        String copyCommandObfuscated = null;</b>
+<i class="no-highlight">775</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">776</i>&nbsp;            copyCommandObfuscated = getObfuscatedCommand(copyCommand);</b>
+<b class="nc"><i class="no-highlight">777</i>&nbsp;            if (!additionalOptionsStr.toUpperCase().contains(DATE_FORMAT)) {</b>
+<b class="nc"><i class="no-highlight">778</i>&nbsp;                copyCommand = copyCommand.concat(COPY_DATE_FORMAT);</b>
+<b class="nc"><i class="no-highlight">779</i>&nbsp;                copyCommandObfuscated = copyCommandObfuscated.concat(COPY_DATE_FORMAT);</b>
+<i class="no-highlight">780</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">781</i>&nbsp;            if (!additionalOptionsStr.toUpperCase().contains(TIME_FORMAT)) {</b>
+<b class="nc"><i class="no-highlight">782</i>&nbsp;                copyCommand = copyCommand.concat(COPY_TIME_FORMAT);</b>
+<b class="nc"><i class="no-highlight">783</i>&nbsp;                copyCommandObfuscated = copyCommandObfuscated.concat(COPY_TIME_FORMAT);</b>
+<i class="no-highlight">784</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">785</i>&nbsp;        } catch (Exception e) {</b>
+<i class="no-highlight">786</i>&nbsp;            //NO OP
+<i class="no-highlight">787</i>&nbsp;            //Ignoring errors raised while generating log message
+<b class="nc"><i class="no-highlight">788</i>&nbsp;            LOG.warn(LOG_ERROR_COPYCOMMANDOBFUSCATED_GENERATION, e);</b>
+<b class="nc"><i class="no-highlight">789</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">790</i>&nbsp;        try (Statement stmt = redshiftConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">791</i>&nbsp;            LOG.debug(LOG_RUNNING_COPY, copyCommandObfuscated);</b>
+<b class="nc"><i class="no-highlight">792</i>&nbsp;            long startTime = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">793</i>&nbsp;            stmt.execute(RedshiftUtils.addApnTaggingPrefix(copyCommand));</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;            logExecutionTime(startTime, &quot;DONE Creating the copy operation in {} ms&quot;);</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;            LOG.debug(LOG_COPY_DONE);</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;            commitSilently();</b>
+<b class="nc"><i class="no-highlight">797</i>&nbsp;        } catch (SQLException se) {</b>
+<b class="nc"><i class="no-highlight">798</i>&nbsp;            if (isDifferentRegionException(se.getMessage())) {</b>
+<b class="nc"><i class="no-highlight">799</i>&nbsp;                isDiffRegionException = true;</b>
+<b class="nc"><i class="no-highlight">800</i>&nbsp;                throwDiffRegionException(se);</b>
+<i class="no-highlight">801</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">802</i>&nbsp;            handleException(se);</b>
+<i class="no-highlight">803</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">804</i>&nbsp;            writeErrorView();</b>
+<b class="nc"><i class="no-highlight">805</i>&nbsp;        }</b>
+<i class="no-highlight">806</i>&nbsp;    }
+<i class="no-highlight">807</i>&nbsp;
+<i class="no-highlight">808</i>&nbsp;    /**
+<i class="no-highlight">809</i>&nbsp;     * Some versions of redshift don&#39;t support commit calls when autocommit is true
+<i class="no-highlight">810</i>&nbsp;     * Please refer to SWAT-1162 and SNAP-4989
+<i class="no-highlight">811</i>&nbsp;     */
+<i class="no-highlight">812</i>&nbsp;    private void commitSilently() {
+<i class="no-highlight">813</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">814</i>&nbsp;            redshiftConnection.commit();</b>
+<b class="nc"><i class="no-highlight">815</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">816</i>&nbsp;            LOG.debug(LOG_COMMIT_EXCEPTION, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">817</i>&nbsp;        }</b>
+<i class="no-highlight">818</i>&nbsp;    }
+<i class="no-highlight">819</i>&nbsp;
+<i class="no-highlight">820</i>&nbsp;    protected String getObfuscatedCommand(String rawCommand) {
+<b class="nc"><i class="no-highlight">821</i>&nbsp;        if (StringUtils.isNotBlank(awsAccessId) &amp;&amp; rawCommand.contains(awsAccessId)) {</b>
+<b class="nc"><i class="no-highlight">822</i>&nbsp;            rawCommand = rawCommand.replace(awsAccessId, OBFUSCATED_KEY);</b>
+<i class="no-highlight">823</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">824</i>&nbsp;        if (StringUtils.isNotBlank(awsSecretKey) &amp;&amp; rawCommand.contains(awsSecretKey)) {</b>
+<b class="nc"><i class="no-highlight">825</i>&nbsp;            rawCommand = rawCommand.replace(awsSecretKey, OBFUSCATED_KEY);</b>
+<i class="no-highlight">826</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">827</i>&nbsp;        if (StringUtils.isNotBlank(awsSecurityToken) &amp;&amp; rawCommand.contains(awsSecurityToken)) {</b>
+<b class="nc"><i class="no-highlight">828</i>&nbsp;            rawCommand = rawCommand.replace(awsSecurityToken, OBFUSCATED_KEY);</b>
+<i class="no-highlight">829</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">830</i>&nbsp;        return rawCommand;</b>
+<i class="no-highlight">831</i>&nbsp;    }
+<i class="no-highlight">832</i>&nbsp;
+<i class="no-highlight">833</i>&nbsp;    /**
+<i class="no-highlight">834</i>&nbsp;     * Operations done after the load has been done.
+<i class="no-highlight">835</i>&nbsp;     */
+<i class="no-highlight">836</i>&nbsp;    protected void postLoadAction() throws SQLException {
+<i class="no-highlight">837</i>&nbsp;        // Redshift does not support the &quot;VACUUM ANALYZE table&quot; command, which would
+<i class="no-highlight">838</i>&nbsp;        // have been ideal if both options are set
+<b class="nc"><i class="no-highlight">839</i>&nbsp;        redshiftConnection = getRedshiftConnection(redshiftConnection);</b>
+<b class="nc"><i class="no-highlight">840</i>&nbsp;        long startTime = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">841</i>&nbsp;        try (Statement stmt = redshiftConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">842</i>&nbsp;            if (!account.getDatabaseConfig().getAutoCommit()) {</b>
+<i class="no-highlight">843</i>&nbsp;                // if &#39;Auto commit&#39; is false, VACUUM command will fail.
+<i class="no-highlight">844</i>&nbsp;                // We have to set &#39;Auto commit&#39; true here before VACUUM command
+<i class="no-highlight">845</i>&nbsp;                // ToDo - psung: this workaround should be re-visited when we change the JDBC driver
+<i class="no-highlight">846</i>&nbsp;                // to Redshift JDBC driver in the future.
+<b class="nc"><i class="no-highlight">847</i>&nbsp;                redshiftConnection.setAutoCommit(true);</b>
+<i class="no-highlight">848</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">849</i>&nbsp;            RedshiftUtils.vacuumTable(vacuum, tableName, vacuumType, vacuumThreshold, stmt);</b>
+<b class="nc"><i class="no-highlight">850</i>&nbsp;            if (updateStats) {</b>
+<b class="nc"><i class="no-highlight">851</i>&nbsp;                LOG.debug(LOG_RUNNING_ANALYZE);</b>
+<b class="nc"><i class="no-highlight">852</i>&nbsp;                stmt.execute(String.format(</b>
+<b class="nc"><i class="no-highlight">853</i>&nbsp;                        RedshiftUtils.addApnTaggingPrefix(UPDATE_STATS_COMMAND), tableName));</b>
+<i class="no-highlight">854</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">855</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">856</i>&nbsp;        logExecutionTime(startTime, &quot;Analyzation done on Redshift table in {} ms&quot;);</b>
+<i class="no-highlight">857</i>&nbsp;    }
+<i class="no-highlight">858</i>&nbsp;
+<i class="no-highlight">859</i>&nbsp;    @Override
+<i class="no-highlight">860</i>&nbsp;    protected void onSnapRunFailure() {
+<b class="nc"><i class="no-highlight">861</i>&nbsp;        this.successful = false;</b>
+<i class="no-highlight">862</i>&nbsp;    }
+<i class="no-highlight">863</i>&nbsp;
+<i class="no-highlight">864</i>&nbsp;    protected List&lt;Schema&gt; getOutputViewSchema(final SchemaProvider provider) {
+<b class="nc"><i class="no-highlight">865</i>&nbsp;        List&lt;Schema&gt; schemaList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">866</i>&nbsp;        schemaList.add(provider.createSchema(SnapType.STRING, KEY_TABLE));</b>
+<b class="nc"><i class="no-highlight">867</i>&nbsp;        schemaList.add(provider.createSchema(SnapType.INTEGER, KEY_INPUT_RECORDS));</b>
+<b class="nc"><i class="no-highlight">868</i>&nbsp;        schemaList.add(provider.createSchema(SnapType.INTEGER, KEY_FAILED_RECORDS));</b>
+<b class="nc"><i class="no-highlight">869</i>&nbsp;        return schemaList;</b>
+<i class="no-highlight">870</i>&nbsp;    }
+<i class="no-highlight">871</i>&nbsp;
+<i class="no-highlight">872</i>&nbsp;    /**
+<i class="no-highlight">873</i>&nbsp;     * Write status information to the output view.
+<i class="no-highlight">874</i>&nbsp;     */
+<i class="no-highlight">875</i>&nbsp;    private void writeOutputView() throws SQLException {
+<b class="nc"><i class="no-highlight">876</i>&nbsp;        if (outputViews.isEmpty()) {</b>
+<i class="no-highlight">877</i>&nbsp;            // Avoid query to get error count if no output view
+<i class="no-highlight">878</i>&nbsp;            return;
+<i class="no-highlight">879</i>&nbsp;        }
+<i class="no-highlight">880</i>&nbsp;        // In Bulk Load Snap, if validating input data has failed, the error is written to the
+<i class="no-highlight">881</i>&nbsp;        // error view and no output document is written since the error count should not be
+<i class="no-highlight">882</i>&nbsp;        // counted from Redshift error table.
+<b class="nc"><i class="no-highlight">883</i>&nbsp;        if (!invalidInputDataFoundBulkLoad &amp;&amp; !unauthorizedException) {</b>
+<b class="nc"><i class="no-highlight">884</i>&nbsp;            Map&lt;String, Object&gt; outputViewInfo = getOutputViewInfo();</b>
+<b class="nc"><i class="no-highlight">885</i>&nbsp;            outputViews.write(documentUtility.newDocument(outputViewInfo));</b>
+<i class="no-highlight">886</i>&nbsp;        }
+<i class="no-highlight">887</i>&nbsp;    }
+<i class="no-highlight">888</i>&nbsp;
+<i class="no-highlight">889</i>&nbsp;    protected Map&lt;String, Object&gt; getOutputViewInfo() throws SQLException {
+<b class="nc"><i class="no-highlight">890</i>&nbsp;        Map&lt;String, Object&gt; outputInfo = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">891</i>&nbsp;        outputInfo.put(KEY_TABLE, tableName);</b>
+<b class="nc"><i class="no-highlight">892</i>&nbsp;        outputInfo.put(KEY_INPUT_RECORDS, BigInteger.valueOf(inputCount));</b>
+<b class="nc"><i class="no-highlight">893</i>&nbsp;        outputInfo.put(KEY_FAILED_RECORDS, BigInteger.valueOf(getLoadErrorCount()));</b>
+<b class="nc"><i class="no-highlight">894</i>&nbsp;        return outputInfo;</b>
+<i class="no-highlight">895</i>&nbsp;    }
+<i class="no-highlight">896</i>&nbsp;
+<i class="no-highlight">897</i>&nbsp;    /**
+<i class="no-highlight">898</i>&nbsp;     * Write all error entries from the stl_load_errors table into the error view.
+<i class="no-highlight">899</i>&nbsp;     */
+<i class="no-highlight">900</i>&nbsp;    private void writeErrorView() throws SQLException {
+<b class="nc"><i class="no-highlight">901</i>&nbsp;        if (errorViews.isEmpty() || isDiffRegionException) {</b>
+<i class="no-highlight">902</i>&nbsp;            return;
+<i class="no-highlight">903</i>&nbsp;        }
+<i class="no-highlight">904</i>&nbsp;
+<b class="nc"><i class="no-highlight">905</i>&nbsp;        Set&lt;Integer&gt; lineSet = Sets.newHashSet();</b>
+<b class="nc"><i class="no-highlight">906</i>&nbsp;        try (PreparedStatement stmt = redshiftConnection.prepareStatement(</b>
+<b class="nc"><i class="no-highlight">907</i>&nbsp;                getLoadErrorSql(serverless, false))) {</b>
+<b class="nc"><i class="no-highlight">908</i>&nbsp;            stmt.setString(1, bulkLoadWrapper.getCopyCommandPath());</b>
+<b class="nc"><i class="no-highlight">909</i>&nbsp;            try (ResultSet rs = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">910</i>&nbsp;                while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">911</i>&nbsp;                    int lineNumber = rs.getInt(1);</b>
+<b class="nc"><i class="no-highlight">912</i>&nbsp;                    if (lineSet.contains(lineNumber)) {</b>
+<i class="no-highlight">913</i>&nbsp;                        // Only one error view entry per input record even if multiple
+<i class="no-highlight">914</i>&nbsp;                        // errors encountered on that record
+<b class="nc"><i class="no-highlight">915</i>&nbsp;                        continue;</b>
+<i class="no-highlight">916</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">917</i>&nbsp;                    lineSet.add(lineNumber);</b>
+<b class="nc"><i class="no-highlight">918</i>&nbsp;                    String colName = StringUtils.trim(rs.getString(2));</b>
+<b class="nc"><i class="no-highlight">919</i>&nbsp;                    int errorCode = rs.getInt(3);</b>
+<b class="nc"><i class="no-highlight">920</i>&nbsp;                    String errorMessage = StringUtils.trim(rs.getString(4));</b>
+<i class="no-highlight">921</i>&nbsp;
+<b class="nc"><i class="no-highlight">922</i>&nbsp;                    Map&lt;String, Object&gt; errorInfo = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">923</i>&nbsp;                    errorInfo.put(KEY_LINE_NUMBER, lineNumber);</b>
+<b class="nc"><i class="no-highlight">924</i>&nbsp;                    errorInfo.put(KEY_COLUMN_NAME, colName);</b>
+<b class="nc"><i class="no-highlight">925</i>&nbsp;                    errorInfo.put(KEY_ERROR_CODE, errorCode);</b>
+<b class="nc"><i class="no-highlight">926</i>&nbsp;                    errorInfo.put(KEY_ERROR_MESSAGE, errorMessage);</b>
+<i class="no-highlight">927</i>&nbsp;
+<b class="nc"><i class="no-highlight">928</i>&nbsp;                    String reason = null;</b>
+<b class="nc"><i class="no-highlight">929</i>&nbsp;                    if (serverless) {</b>
+<b class="nc"><i class="no-highlight">930</i>&nbsp;                        reason = String.format(SERVERLESS_ERROR_LOAD_DATA_ROW, lineNumber,</b>
+<b class="nc"><i class="no-highlight">931</i>&nbsp;                            colName, errorCode, errorMessage);</b>
+<i class="no-highlight">932</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">933</i>&nbsp;                        String column_value = StringUtils.trim(rs.getString(6));</b>
+<b class="nc"><i class="no-highlight">934</i>&nbsp;                        String row_value = StringUtils.trim(rs.getString(7));</b>
+<b class="nc"><i class="no-highlight">935</i>&nbsp;                        errorInfo.put(KEY_COLUMN_VALUE, column_value);</b>
+<b class="nc"><i class="no-highlight">936</i>&nbsp;                        errorInfo.put(KEY_ROW_VALUE, row_value);</b>
+<b class="nc"><i class="no-highlight">937</i>&nbsp;                        reason = String.format(ERROR_LOAD_DATA_ROW, lineNumber, colName,</b>
+<b class="nc"><i class="no-highlight">938</i>&nbsp;                            column_value, row_value, errorCode, errorMessage);</b>
+<i class="no-highlight">939</i>&nbsp;                    }
+<i class="no-highlight">940</i>&nbsp;
+<b class="nc"><i class="no-highlight">941</i>&nbsp;                    Document doc = documentUtility.newDocument(errorInfo);</b>
+<i class="no-highlight">942</i>&nbsp;                    // Unlike regular error views, the complete input document is not
+<i class="no-highlight">943</i>&nbsp;                    // available, just whatever is provided by Redshift
+<b class="nc"><i class="no-highlight">944</i>&nbsp;                    SnapDataException exception = new SnapDataException(doc, errorMessage)</b>
+<b class="nc"><i class="no-highlight">945</i>&nbsp;                            .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">946</i>&nbsp;                            .withResolution(ERR_DATA_LOAD_ROW_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">947</i>&nbsp;                    errorViews.write(exception);</b>
+<b class="nc"><i class="no-highlight">948</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">949</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">950</i>&nbsp;        }</b>
+<i class="no-highlight">951</i>&nbsp;    }
+<i class="no-highlight">952</i>&nbsp;
+<i class="no-highlight">953</i>&nbsp;    protected int getLoadErrorCount() throws SQLException {
+<b class="nc"><i class="no-highlight">954</i>&nbsp;        if (inputCount == 0) {</b>
+<b class="nc"><i class="no-highlight">955</i>&nbsp;            return 0;</b>
+<i class="no-highlight">956</i>&nbsp;        }
+<i class="no-highlight">957</i>&nbsp;
+<b class="nc"><i class="no-highlight">958</i>&nbsp;        try (PreparedStatement stmt = redshiftConnection.prepareStatement(</b>
+<b class="nc"><i class="no-highlight">959</i>&nbsp;                getLoadErrorCountSql(serverless, false))) {</b>
+<b class="nc"><i class="no-highlight">960</i>&nbsp;            stmt.setString(1, bulkLoadWrapper.getCopyCommandPath());</b>
+<b class="nc"><i class="no-highlight">961</i>&nbsp;            try (ResultSet rs = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">962</i>&nbsp;                while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">963</i>&nbsp;                    int errorCount = rs.getInt(1);</b>
+<b class="nc"><i class="no-highlight">964</i>&nbsp;                    return errorCount;</b>
+<i class="no-highlight">965</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">966</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">967</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">968</i>&nbsp;        return 0;</b>
+<i class="no-highlight">969</i>&nbsp;    }
+<i class="no-highlight">970</i>&nbsp;
+<i class="no-highlight">971</i>&nbsp;    private void handleException(Exception se) throws ExecutionException, SQLException {
+<b class="nc"><i class="no-highlight">972</i>&nbsp;        StringBuilder error = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">973</i>&nbsp;        try (PreparedStatement stmt = redshiftConnection.prepareStatement(</b>
+<b class="nc"><i class="no-highlight">974</i>&nbsp;                getLoadErrorSql(serverless, false))) {</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;            if (!account.getDatabaseConfig().getAutoCommit()) {</b>
+<i class="no-highlight">976</i>&nbsp;                // if &#39;Auto commit&#39; is false, Redshift won&#39;t let the error table read.
+<i class="no-highlight">977</i>&nbsp;                // commit() should be executed here.
+<i class="no-highlight">978</i>&nbsp;                // ToDo - psung: this workacount should be re-visited when we change the JDBC driver
+<i class="no-highlight">979</i>&nbsp;                // to Redshift JDBC driver in the future.
+<b class="nc"><i class="no-highlight">980</i>&nbsp;                redshiftConnection.commit();</b>
+<i class="no-highlight">981</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">982</i>&nbsp;            stmt.setString(1, bulkLoadWrapper.getCopyCommandPath());</b>
+<b class="nc"><i class="no-highlight">983</i>&nbsp;            try (ResultSet rs = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">984</i>&nbsp;                int count = 0;</b>
+<b class="nc"><i class="no-highlight">985</i>&nbsp;                while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">986</i>&nbsp;                    error.append(String.format(ERROR_COPY_DOCUMENT, rs.getInt(1),</b>
+<b class="nc"><i class="no-highlight">987</i>&nbsp;                            StringUtils.trim(rs.getString(2)), rs.getInt(3), StringUtils.trim(rs.getString(4))));</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;                    count++;</b>
+<b class="nc"><i class="no-highlight">989</i>&nbsp;                    if (count &gt;= ERROR_MESSAGE_ENTRY_COUNT) {</b>
+<i class="no-highlight">990</i>&nbsp;                        // Just put first five errors in error message, more
+<i class="no-highlight">991</i>&nbsp;                        // can go to error view if created
+<b class="nc"><i class="no-highlight">992</i>&nbsp;                        break;</b>
+<i class="no-highlight">993</i>&nbsp;                    }
+<i class="no-highlight">994</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">995</i>&nbsp;            }</b>
+<i class="no-highlight">996</i>&nbsp;
+<b class="nc"><i class="no-highlight">997</i>&nbsp;            String errorStr = error.toString();</b>
+<b class="nc"><i class="no-highlight">998</i>&nbsp;            if (errorStr.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">999</i>&nbsp;                errorStr = se.getLocalizedMessage();</b>
+<i class="no-highlight">1000</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1001</i>&nbsp;            if (errorStr.contains(&quot;UnauthorizedException&quot;)) {</b>
+<i class="no-highlight">1002</i>&nbsp;                // an iam role not associated with a cluster will raise this exception
+<b class="nc"><i class="no-highlight">1003</i>&nbsp;                unauthorizedException = true;</b>
+<i class="no-highlight">1004</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1005</i>&nbsp;            errorViews.write((SnapDataException)</b>
+<i class="no-highlight">1006</i>&nbsp;                    new SnapDataException(se, ERROR_COPYING_S3_REDSHIFT)
+<b class="nc"><i class="no-highlight">1007</i>&nbsp;                            .withReason(errorStr)</b>
+<b class="nc"><i class="no-highlight">1008</i>&nbsp;                            .withResolution(ERROR_FIX_DATA_ISSUES));</b>
+<b class="nc"><i class="no-highlight">1009</i>&nbsp;        }</b>
+<i class="no-highlight">1010</i>&nbsp;    }
+<i class="no-highlight">1011</i>&nbsp;
+<i class="no-highlight">1012</i>&nbsp;    @Override
+<i class="no-highlight">1013</i>&nbsp;    public void execute() {
+<b class="nc"><i class="no-highlight">1014</i>&nbsp;        if (stagedFileUpload) {</b>
+<b class="nc"><i class="no-highlight">1015</i>&nbsp;            if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">1016</i>&nbsp;                super.execute();</b>
+<i class="no-highlight">1017</i>&nbsp;                return;
+<i class="no-highlight">1018</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">1019</i>&nbsp;                 throw new SnapDataException(ERR_SNAP_CONFIG)</b>
+<b class="nc"><i class="no-highlight">1020</i>&nbsp;                         .withReason(ERR_STAGED_NOT_SUPPORTED)</b>
+<b class="nc"><i class="no-highlight">1021</i>&nbsp;                         .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">1022</i>&nbsp;            }
+<i class="no-highlight">1023</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;        if (!hasInputDocuments(inputViews)) {</b>
+<i class="no-highlight">1025</i>&nbsp;            return;
+<i class="no-highlight">1026</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1027</i>&nbsp;        LOG.debug(&quot;Writing data to S3&quot;);</b>
+<b class="nc"><i class="no-highlight">1028</i>&nbsp;        long startTime = System.currentTimeMillis();</b>
+<i class="no-highlight">1029</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1030</i>&nbsp;            bulkLoadWrapper = createBulkLoadWrapperInstance();</b>
+<b class="nc"><i class="no-highlight">1031</i>&nbsp;            ((BulkLoadWrapperS3) bulkLoadWrapper).configureWrapper(</b>
+<i class="no-highlight">1032</i>&nbsp;                    serverSideEncryptionEnabled, encryptionType, kmsKey);
+<b class="nc"><i class="no-highlight">1033</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">1034</i>&nbsp;            String reason = e.getCause() != null ? e.getCause().getMessage() : null;</b>
+<b class="nc"><i class="no-highlight">1035</i>&nbsp;            reason = reason == null ? String.format(ERR_EXECUTE_SNAP, getName()) : reason;</b>
+<b class="nc"><i class="no-highlight">1036</i>&nbsp;            Map&lt;String, Object&gt; wrapper = Maps.newHashMapWithExpectedSize(5);</b>
+<b class="nc"><i class="no-highlight">1037</i>&nbsp;            wrapper.put(ERROR, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">1038</i>&nbsp;            wrapper.put(STACKTRACE, Throwables.getStackTraceAsString(e.getCause() != null ?</b>
+<b class="nc"><i class="no-highlight">1039</i>&nbsp;                    e.getCause() : e));</b>
+<b class="nc"><i class="no-highlight">1040</i>&nbsp;            wrapper.put(REASON, reason);</b>
+<b class="nc"><i class="no-highlight">1041</i>&nbsp;            wrapper.put(RESOLUTION, RESOLUTION_ADDRESS_ISSUE_WITH_SEC_TOKEN);</b>
+<b class="nc"><i class="no-highlight">1042</i>&nbsp;            SnapDataException ex = new SnapDataException(documentUtility.newDocument(wrapper), e,</b>
+<b class="nc"><i class="no-highlight">1043</i>&nbsp;                    e.getMessage())</b>
+<b class="nc"><i class="no-highlight">1044</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">1045</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE_WITH_SEC_TOKEN);</b>
+<b class="nc"><i class="no-highlight">1046</i>&nbsp;            errorViews.write(ex);</b>
+<i class="no-highlight">1047</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">1048</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1049</i>&nbsp;        super.execute();</b>
+<i class="no-highlight">1050</i>&nbsp;        // Wait until all S3 upload tasks are completed.
+<b class="nc"><i class="no-highlight">1051</i>&nbsp;        if (CollectionUtils.isNotEmpty(s3Uploads)) {</b>
+<b class="nc"><i class="no-highlight">1052</i>&nbsp;            s3Uploads.forEach(p -&gt; p.setHasMoreRecords(false));</b>
+<i class="no-highlight">1053</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;                tasks.forEach(CompletableFuture::join);</b>
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;            } catch (CompletionException e) {</b>
+<b class="nc"><i class="no-highlight">1056</i>&nbsp;                errorViews.write((SnapDataException)</b>
+<i class="no-highlight">1057</i>&nbsp;                        new SnapDataException(e, ERR_UPLOAD_S3)
+<b class="nc"><i class="no-highlight">1058</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE));</b>
+<b class="nc"><i class="no-highlight">1059</i>&nbsp;            }</b>
+<i class="no-highlight">1060</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1061</i>&nbsp;        logExecutionTime(startTime, &quot;DONE Writing data to S3 in {} ms&quot;);</b>
+<i class="no-highlight">1062</i>&nbsp;
+<i class="no-highlight">1063</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1064</i>&nbsp;            refreshConnection();</b>
+<b class="nc"><i class="no-highlight">1065</i>&nbsp;            if (!firstRecord &amp;&amp; autoCreateTable &amp;&amp; schema != null) {</b>
+<i class="no-highlight">1066</i>&nbsp;                // We want to create the table even if there are no rows to be loaded.
+<b class="nc"><i class="no-highlight">1067</i>&nbsp;                createTableIfAbsent(null);</b>
+<i class="no-highlight">1068</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1069</i>&nbsp;            if (!successful || writeCount == 0) {</b>
+<b class="nc"><i class="no-highlight">1070</i>&nbsp;                writeOutputView();</b>
+<i class="no-highlight">1071</i>&nbsp;                return;
+<i class="no-highlight">1072</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1073</i>&nbsp;            LOG.debug(LOG_WRITING_TO_S3);</b>
+<b class="nc"><i class="no-highlight">1074</i>&nbsp;            bulkLoadWrapper.close();</b>
+<b class="nc"><i class="no-highlight">1075</i>&nbsp;            LOG.debug(LOG_WRITING_TO_S3_DONE);</b>
+<b class="nc"><i class="no-highlight">1076</i>&nbsp;            preLoadAction();</b>
+<b class="nc"><i class="no-highlight">1077</i>&nbsp;            loadAction(tableName);</b>
+<b class="nc"><i class="no-highlight">1078</i>&nbsp;            postLoadAction();</b>
+<b class="nc"><i class="no-highlight">1079</i>&nbsp;            writeOutputView();</b>
+<b class="nc"><i class="no-highlight">1080</i>&nbsp;        } catch (SQLException se) {</b>
+<b class="nc"><i class="no-highlight">1081</i>&nbsp;            errorViews.write((SnapDataException)</b>
+<i class="no-highlight">1082</i>&nbsp;                    new SnapDataException(se, ERROR_COPYING_S3_REDSHIFT)
+<b class="nc"><i class="no-highlight">1083</i>&nbsp;                            .withReason(se.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">1084</i>&nbsp;                            .withResolution(ERROR_FIX_COPY_ISSUE));</b>
+<b class="nc"><i class="no-highlight">1085</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">1086</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">1087</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">1088</i>&nbsp;            errorViews.write(e);</b>
+<b class="nc"><i class="no-highlight">1089</i>&nbsp;        } catch (ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">1090</i>&nbsp;            if (isDiffRegionException) {</b>
+<b class="nc"><i class="no-highlight">1091</i>&nbsp;                throw e;</b>
+<i class="no-highlight">1092</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1093</i>&nbsp;            errorViews.write((SnapDataException) new SnapDataException(e, e.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">1094</i>&nbsp;                    .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">1095</i>&nbsp;                    .withResolution(e.getResolution()));</b>
+<b class="nc"><i class="no-highlight">1096</i>&nbsp;        } catch (Throwable e) {</b>
+<b class="nc"><i class="no-highlight">1097</i>&nbsp;            errorViews.write((SnapDataException) new SnapDataException(e, ERROR_PERFORMING_LOAD)</b>
+<b class="nc"><i class="no-highlight">1098</i>&nbsp;                    .withReason(e.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">1099</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE));</b>
+<b class="nc"><i class="no-highlight">1100</i>&nbsp;        }</b>
+<i class="no-highlight">1101</i>&nbsp;    }
+<i class="no-highlight">1102</i>&nbsp;
+<i class="no-highlight">1103</i>&nbsp;    /**
+<i class="no-highlight">1104</i>&nbsp;     * It has been reported and verified that, when it took more than 4 hours to upload a large
+<i class="no-highlight">1105</i>&nbsp;     * amount of input data to S3 files, the Redshift connection became stale, but isClosed()
+<i class="no-highlight">1106</i>&nbsp;     * returned false. Therefore, refreshing the connection based on the test isClosed() can be
+<i class="no-highlight">1107</i>&nbsp;     * wrong. After all input data is uploaded to the S3 bucket, the connection is closed and
+<i class="no-highlight">1108</i>&nbsp;     * reopen to refresh it.
+<i class="no-highlight">1109</i>&nbsp;     */
+<i class="no-highlight">1110</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">1111</i>&nbsp;    protected Connection refreshConnection() {
+<b class="nc"><i class="no-highlight">1112</i>&nbsp;        redshiftConnection = getRedshiftConnection(redshiftConnection);</b>
+<b class="nc"><i class="no-highlight">1113</i>&nbsp;        JDBCUtils.safeClose(redshiftConnection);</b>
+<b class="nc"><i class="no-highlight">1114</i>&nbsp;        redshiftConnection = getRedshiftConnection(redshiftConnection);</b>
+<b class="nc"><i class="no-highlight">1115</i>&nbsp;        return redshiftConnection;</b>
+<i class="no-highlight">1116</i>&nbsp;    }
+<i class="no-highlight">1117</i>&nbsp;
+<i class="no-highlight">1118</i>&nbsp;    @Override
+<i class="no-highlight">1119</i>&nbsp;    public void handle(final LifecycleEvent event) {
+<i class="no-highlight">1120</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1121</i>&nbsp;            switch (event) {</b>
+<i class="no-highlight">1122</i>&nbsp;                case SUCCESS:
+<b class="nc"><i class="no-highlight">1123</i>&nbsp;                    if (autoCreateTable &amp;&amp; schema != null) {</b>
+<b class="nc"><i class="no-highlight">1124</i>&nbsp;                        createTableIfAbsent(null);</b>
+<i class="no-highlight">1125</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">1126</i>&nbsp;                    if (redshiftConnection != null &amp;&amp; !redshiftConnection.isClosed()</b>
+<b class="nc"><i class="no-highlight">1127</i>&nbsp;                            &amp;&amp; !redshiftConnection.getAutoCommit()) {</b>
+<b class="nc"><i class="no-highlight">1128</i>&nbsp;                        redshiftConnection.commit();</b>
+<i class="no-highlight">1129</i>&nbsp;                    }
+<i class="no-highlight">1130</i>&nbsp;                    break;
+<i class="no-highlight">1131</i>&nbsp;                case FAILURE:
+<b class="nc"><i class="no-highlight">1132</i>&nbsp;                    onSnapRunFailure();</b>
+<b class="nc"><i class="no-highlight">1133</i>&nbsp;                    if (redshiftConnection != null &amp;&amp; !redshiftConnection.isClosed()</b>
+<b class="nc"><i class="no-highlight">1134</i>&nbsp;                            &amp;&amp; !redshiftConnection.getAutoCommit()) {</b>
+<b class="nc"><i class="no-highlight">1135</i>&nbsp;                        redshiftConnection.rollback();</b>
+<i class="no-highlight">1136</i>&nbsp;                    }
+<i class="no-highlight">1137</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1138</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">1139</i>&nbsp;            LOG.debug(&quot;Error when handling auto commit: {}&quot;, e.getMessage(), e);</b>
+<b class="nc"><i class="no-highlight">1140</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1141</i>&nbsp;        JDBCUtils.safeClose(redshiftConnection);</b>
+<b class="nc"><i class="no-highlight">1142</i>&nbsp;        super.handle(event);</b>
+<i class="no-highlight">1143</i>&nbsp;    }
+<i class="no-highlight">1144</i>&nbsp;
+<i class="no-highlight">1145</i>&nbsp;    /**
+<i class="no-highlight">1146</i>&nbsp;     * Gets a new Redshift connection if it is null or closed.
+<i class="no-highlight">1147</i>&nbsp;     */
+<i class="no-highlight">1148</i>&nbsp;    protected Connection getRedshiftConnection(Connection connection) {
+<b class="nc"><i class="no-highlight">1149</i>&nbsp;        LOG.debug(&quot;Require Redshift Connection&quot;);</b>
+<b class="nc"><i class="no-highlight">1150</i>&nbsp;        long startTime = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">1151</i>&nbsp;        if (connection == null || isConnectionClosed(connection)) {</b>
+<b class="nc"><i class="no-highlight">1152</i>&nbsp;            return jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">1153</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1154</i>&nbsp;        logExecutionTime(startTime, &quot;Got the redshift connection in {} ms&quot;);</b>
+<b class="nc"><i class="no-highlight">1155</i>&nbsp;        return connection;</b>
+<i class="no-highlight">1156</i>&nbsp;    }
+<i class="no-highlight">1157</i>&nbsp;
+<i class="no-highlight">1158</i>&nbsp;    private boolean isConnectionClosed(Connection connection) {
+<i class="no-highlight">1159</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1160</i>&nbsp;            return connection.isClosed();</b>
+<b class="nc"><i class="no-highlight">1161</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">1162</i>&nbsp;            JDBCUtils.safeClose(connection);</b>
+<b class="nc"><i class="no-highlight">1163</i>&nbsp;            return true;</b>
+<i class="no-highlight">1164</i>&nbsp;        }
+<i class="no-highlight">1165</i>&nbsp;    }
+<i class="no-highlight">1166</i>&nbsp;
+<i class="no-highlight">1167</i>&nbsp;    protected void logExecutionTime(long startTime, String format) {
+<b class="nc"><i class="no-highlight">1168</i>&nbsp;        long endTime = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">1169</i>&nbsp;        long diff = endTime - startTime;</b>
+<b class="nc"><i class="no-highlight">1170</i>&nbsp;        String time = String.valueOf(diff);</b>
+<b class="nc"><i class="no-highlight">1171</i>&nbsp;        LOG.debug(format, time);</b>
+<i class="no-highlight">1172</i>&nbsp;    }
+<i class="no-highlight">1173</i>&nbsp;
+<i class="no-highlight">1174</i>&nbsp;    protected void initTasks(int threadCount) {
+<b class="nc"><i class="no-highlight">1175</i>&nbsp;        s3Uploads = new ArrayList&lt;&gt;(threadCount);</b>
+<b class="nc"><i class="no-highlight">1176</i>&nbsp;        tasks = new ArrayList&lt;&gt;(threadCount);</b>
+<b class="nc"><i class="no-highlight">1177</i>&nbsp;        for (int i = 0; i &lt; threadCount; i++) {</b>
+<b class="nc"><i class="no-highlight">1178</i>&nbsp;            S3Upload s3Upload = new S3Upload(i);</b>
+<b class="nc"><i class="no-highlight">1179</i>&nbsp;            s3Uploads.add(s3Upload);</b>
+<b class="nc"><i class="no-highlight">1180</i>&nbsp;            tasks.add(CompletableFuture.runAsync(s3Upload));</b>
+<i class="no-highlight">1181</i>&nbsp;        }
+<i class="no-highlight">1182</i>&nbsp;    }
+<i class="no-highlight">1183</i>&nbsp;
+<i class="no-highlight">1184</i>&nbsp;
+<i class="no-highlight">1185</i>&nbsp;    /**
+<i class="no-highlight">1186</i>&nbsp;     * S3Upload thread class, the same number of threads are created as &#39;parallelism&#39; property if
+<i class="no-highlight">1187</i>&nbsp;     * parallelism &gt; 1.
+<i class="no-highlight">1188</i>&nbsp;     */
+<i class="no-highlight">1189</i>&nbsp;    private class S3Upload implements Runnable {
+<i class="no-highlight">1190</i>&nbsp;        private final OutputStream outputStream;
+<b class="nc"><i class="no-highlight">1191</i>&nbsp;        private boolean hasMoreRecords = true;</b>
+<i class="no-highlight">1192</i>&nbsp;
+<b class="nc"><i class="no-highlight">1193</i>&nbsp;        private S3Upload(int index) {</b>
+<i class="no-highlight">1194</i>&nbsp;            // index to the S3 output stream
+<b class="nc"><i class="no-highlight">1195</i>&nbsp;            outputStream = ((AbstractBulkLoadWrapper) bulkLoadWrapper).getOutputStream(index);</b>
+<i class="no-highlight">1196</i>&nbsp;        }
+<i class="no-highlight">1197</i>&nbsp;
+<i class="no-highlight">1198</i>&nbsp;        @Override
+<i class="no-highlight">1199</i>&nbsp;        public void run() {
+<b class="nc"><i class="no-highlight">1200</i>&nbsp;            Map&lt;String, Object&gt; data = null;</b>
+<b class="nc"><i class="no-highlight">1201</i>&nbsp;            while(hasMoreRecords || !dataQueue.isEmpty()) {</b>
+<i class="no-highlight">1202</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">1203</i>&nbsp;                    data = dataQueue.poll(1, TimeUnit.MILLISECONDS);</b>
+<i class="no-highlight">1204</i>&nbsp;                    //data = dataQueue.take();
+<b class="nc"><i class="no-highlight">1205</i>&nbsp;                } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">1206</i>&nbsp;                    LOG.debug(&quot;Interrupted while waiting for input data&quot;, e);</b>
+<b class="nc"><i class="no-highlight">1207</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">1208</i>&nbsp;                if (data != null) {</b>
+<b class="nc"><i class="no-highlight">1209</i>&nbsp;                    ((AbstractBulkLoadWrapper) bulkLoadWrapper).write(data, outputStream);</b>
+<i class="no-highlight">1210</i>&nbsp;                }
+<i class="no-highlight">1211</i>&nbsp;            }
+<i class="no-highlight">1212</i>&nbsp;        }
+<i class="no-highlight">1213</i>&nbsp;
+<i class="no-highlight">1214</i>&nbsp;        private void setHasMoreRecords(boolean hasMoreRecords) {
+<b class="nc"><i class="no-highlight">1215</i>&nbsp;            this.hasMoreRecords = hasMoreRecords;</b>
+<i class="no-highlight">1216</i>&nbsp;        }
+<i class="no-highlight">1217</i>&nbsp;    }
+<i class="no-highlight">1218</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

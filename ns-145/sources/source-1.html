@@ -1,0 +1,486 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AbstractJCoAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.sap</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractJCoAccount (com.snaplogic.snaps.sap)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractJCoAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/157)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package com.snaplogic.snaps.sap;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;
+<i class="no-highlight">4</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">5</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">6</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">7</i>&nbsp;import com.sap.conn.jco.JCo;
+<i class="no-highlight">8</i>&nbsp;import com.sap.conn.jco.JCoContext;
+<i class="no-highlight">9</i>&nbsp;import com.sap.conn.jco.JCoDestination;
+<i class="no-highlight">10</i>&nbsp;import com.sap.conn.jco.JCoException;
+<i class="no-highlight">11</i>&nbsp;import com.sap.conn.jco.ext.DestinationDataProvider;
+<i class="no-highlight">12</i>&nbsp;import com.sap.conn.jco.ext.JCoSessionReference;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.account.api.ExtendedValidatableAccount;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">25</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">26</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">29</i>&nbsp;import java.util.List;
+<i class="no-highlight">30</i>&nbsp;import java.util.Map;
+<i class="no-highlight">31</i>&nbsp;import java.util.Properties;
+<i class="no-highlight">32</i>&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import javax.annotation.CheckForNull;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import static com.sap.conn.jco.ext.DestinationDataProvider.*;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.sap.Messages.*;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;/**
+<i class="no-highlight">40</i>&nbsp; * Provides the functionality common to all JCo accounts
+<i class="no-highlight">41</i>&nbsp; */
+<i class="no-highlight">42</i>&nbsp;@AccountCategory(type = AccountType.CUSTOM)
+<i class="no-highlight">43</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<b class="nc"><i class="no-highlight">44</i>&nbsp;public abstract class AbstractJCoAccount implements</b>
+<i class="no-highlight">45</i>&nbsp;        ExtendedValidatableAccount&lt;JCoDestination, Void&gt; {
+<i class="no-highlight">46</i>&nbsp;    public static final String LANGUAGE = &quot;language&quot;;
+<i class="no-highlight">47</i>&nbsp;    public static final String USERNAME = &quot;username&quot;;
+<i class="no-highlight">48</i>&nbsp;    public static final String CLIENT = &quot;client&quot;;
+<i class="no-highlight">49</i>&nbsp;    protected static final int MIN_LENGTH = 1;
+<b class="nc"><i class="no-highlight">50</i>&nbsp;    protected static final BigInteger DEFAULT_MAX_SAP_CONNECTION_ACTIVE = BigInteger.valueOf(5);</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;    protected static final BigInteger DEFAULT_MAX_SAP_CONNECTION_IDLE = BigInteger.ONE;</b>
+<i class="no-highlight">52</i>&nbsp;    protected static final String LABEL = &quot;label&quot;;
+<i class="no-highlight">53</i>&nbsp;    static final String ADVANCED_PROPERTY_NAME_PROP = &quot;advancedPropName&quot;;
+<i class="no-highlight">54</i>&nbsp;    private static final String ADVANCED_PROPERTY_VALUE_PROP = &quot;advancedPropValue&quot;;
+<i class="no-highlight">55</i>&nbsp;    static final String ADVANCED_PROPERTY_PROP = &quot;advancedProps&quot;;
+<i class="no-highlight">56</i>&nbsp;    private static final String CLEAR_CACHE_WHEN_VALIDATE_PROP = &quot;clearCacheWhenValidate&quot;;
+<i class="no-highlight">57</i>&nbsp;
+<b class="nc"><i class="no-highlight">58</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJCoAccount.class);</b>
+<i class="no-highlight">59</i>&nbsp;    private static final String PASSWORD = &quot;password&quot;;
+<i class="no-highlight">60</i>&nbsp;    private static final String POOL_CAPACITY = &quot;poolCapacity&quot;;
+<i class="no-highlight">61</i>&nbsp;    private static final String PEAK_LIMIT = &quot;peakLimit&quot;;
+<i class="no-highlight">62</i>&nbsp;    private static final String ROUTER_STRING = &quot;routerString&quot;;
+<i class="no-highlight">63</i>&nbsp;    private static final String CONNECTION_STRING = &quot;%s%s%s%s%d%d%s&quot;;
+<i class="no-highlight">64</i>&nbsp;    private static final String ENABLE_TRACE = &quot;enableTrace&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String TRACE_FILE_PATH = &quot;./../log/&quot;;
+<i class="no-highlight">66</i>&nbsp;    private String client;
+<i class="no-highlight">67</i>&nbsp;    private String username;
+<i class="no-highlight">68</i>&nbsp;    private String language;
+<i class="no-highlight">69</i>&nbsp;    private String password;
+<i class="no-highlight">70</i>&nbsp;    private BigInteger poolCapacity;
+<i class="no-highlight">71</i>&nbsp;    private BigInteger peakLimit;
+<i class="no-highlight">72</i>&nbsp;    private JCoSessionReference sesRef;
+<i class="no-highlight">73</i>&nbsp;    private String connectionString;
+<i class="no-highlight">74</i>&nbsp;    private String routerString;
+<i class="no-highlight">75</i>&nbsp;    private Properties sapConnectionProperties;
+<i class="no-highlight">76</i>&nbsp;    private boolean enableTrace;
+<b class="nc"><i class="no-highlight">77</i>&nbsp;    final static ThreadLocal&lt;SnapSessionReference&gt; localSessionRef = new ThreadLocal&lt;&gt;();</b>
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;    @Inject
+<i class="no-highlight">80</i>&nbsp;    private JCOSessionReferenceProvider jcoSessionReferenceProvider;
+<i class="no-highlight">81</i>&nbsp;    @Inject
+<i class="no-highlight">82</i>&nbsp;    private JCOConnectionManager jcoConnectionManager;
+<i class="no-highlight">83</i>&nbsp;    @Inject
+<i class="no-highlight">84</i>&nbsp;    protected SAPService sapServices;
+<i class="no-highlight">85</i>&nbsp;    private JCoDestination jCoDestination;
+<i class="no-highlight">86</i>&nbsp;    private Map&lt;String, String&gt; advancedProps;
+<i class="no-highlight">87</i>&nbsp;    private String runtimeID;
+<i class="no-highlight">88</i>&nbsp;    private boolean clearCacheWhenValidate;
+<i class="no-highlight">89</i>&nbsp;
+<b class="nc"><i class="no-highlight">90</i>&nbsp;    protected static final AtomicBoolean CLEAR_CACHE = new AtomicBoolean(false);</b>
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;    @Override
+<i class="no-highlight">93</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        propertyBuilder.describe(USERNAME, USERNAME_LABEL, USERNAME_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.MEDIUM)</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        propertyBuilder.describe(PASSWORD, PASSWORD_LABEL, PASSWORD_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        propertyBuilder.describe(LANGUAGE, LANGUAGE_LABEL, LANGUAGE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                .withMinLength(MIN_LENGTH)</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        propertyBuilder.describe(CLIENT, CLIENT_LABEL, CLIENT_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                .withMinLength(MIN_LENGTH)</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                .add();</b>
+<i class="no-highlight">108</i>&nbsp;
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        defineServerProperties(propertyBuilder);</b>
+<i class="no-highlight">110</i>&nbsp;
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        propertyBuilder.describe(PEAK_LIMIT, PEAK_LIMIT_LABEL, PEAK_LIMIT_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                .defaultValue(DEFAULT_MAX_SAP_CONNECTION_ACTIVE)</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        propertyBuilder.describe(POOL_CAPACITY, POOL_CAPACITY_LABEL, POOL_CAPACITY_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                .defaultValue(DEFAULT_MAX_SAP_CONNECTION_IDLE)</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        propertyBuilder.describe(ROUTER_STRING, ROUTER_STRING_LABEL, ROUTER_STRING_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        defineTraceProperties(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        propertyBuilder.describe(CLEAR_CACHE_WHEN_VALIDATE_PROP,</b>
+<i class="no-highlight">127</i>&nbsp;                CLEAR_CACHE_WHEN_VALIDATE_LABEL, CLEAR_CACHE_WHEN_VALIDATE_DESC)
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                .add();</b>
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;        // Advanced properties
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        SnapProperty advancedPropName = propertyBuilder.describe(ADVANCED_PROPERTY_NAME_PROP,</b>
+<i class="no-highlight">134</i>&nbsp;                ADVANCED_JCO_PROP_NAME_LABEL, ADVANCED_JCO_PROP_NAME_DESC)
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                .withSuggestions(new JcoPropertySuggestions(ADVANCED_PROPERTY_PROP,</b>
+<i class="no-highlight">138</i>&nbsp;                        ADVANCED_PROPERTY_NAME_PROP,
+<i class="no-highlight">139</i>&nbsp;                        JcoPropertySuggestions.JcoPropertyType.JCO_CLIENT))
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                .build();</b>
+<i class="no-highlight">141</i>&nbsp;
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        SnapProperty advancedPropVal = propertyBuilder.describe(ADVANCED_PROPERTY_VALUE_PROP,</b>
+<i class="no-highlight">143</i>&nbsp;                ADVANCED_JCO_PROP_VAL_LABEL, ADVANCED_JCO_PROP_VAL_DESC)
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                .build();</b>
+<i class="no-highlight">147</i>&nbsp;
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        propertyBuilder.describe(ADVANCED_PROPERTY_PROP, ADVANCED_JCO_PROP_LABEL,</b>
+<i class="no-highlight">149</i>&nbsp;                ADVANCED_JCO_PROP_DESC)
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                .withEntry(advancedPropName)</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .withEntry(advancedPropVal)</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                .add();</b>
+<i class="no-highlight">154</i>&nbsp;
+<i class="no-highlight">155</i>&nbsp;    }
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;    private void defineTraceProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        propertyBuilder.describe(ENABLE_TRACE, ENABLE_TRACE_LABEL, ENABLE_TRACE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                .add();</b>
+<i class="no-highlight">162</i>&nbsp;    }
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;    private void configureTraceProperties(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        enableTrace = Boolean.TRUE.equals(propertyValues.get(ENABLE_TRACE));</b>
+<i class="no-highlight">166</i>&nbsp;    }
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;    protected abstract void defineServerProperties(PropertyBuilder propertyBuilder);
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;    @Override
+<i class="no-highlight">171</i>&nbsp;    public void configure(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        this.client = propertyValues.get(CLIENT);</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        this.username = propertyValues.get(USERNAME);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        this.language = propertyValues.get(LANGUAGE);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        this.password = propertyValues.get(PASSWORD);</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        this.peakLimit = (propertyValues.get(PEAK_LIMIT) != null) ?</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                (BigInteger) propertyValues.get(PEAK_LIMIT) :</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                DEFAULT_MAX_SAP_CONNECTION_ACTIVE;</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        this.poolCapacity = (propertyValues.get(POOL_CAPACITY) != null) ?</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                (BigInteger) propertyValues.get(POOL_CAPACITY) :</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                DEFAULT_MAX_SAP_CONNECTION_IDLE;</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        this.routerString = propertyValues.get(ROUTER_STRING);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        configureTraceProperties(propertyValues);</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        configureServerProperties(propertyValues);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        if (enableTrace) {</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            JCo.setTrace(3, TRACE_FILE_PATH);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            JCo.setProperty(DestinationDataProvider.JCO_TRACE, &quot;1&quot;);</b>
+<i class="no-highlight">188</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        clearCacheWhenValidate = Boolean.TRUE</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                .equals(propertyValues.get(CLEAR_CACHE_WHEN_VALIDATE_PROP));</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        advancedProps = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; advancedPropertyList = propertyValues.get(ADVANCED_PROPERTY_PROP);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        if (advancedPropertyList == null) {</b>
+<i class="no-highlight">194</i>&nbsp;            // null check to prevent NPE on existing pipelines
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            advancedPropertyList = Lists.newArrayList();</b>
+<i class="no-highlight">196</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        advancedPropertyList.forEach(prop -&gt; {</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            String key = propertyValues</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                    .getExpressionPropertyFor(prop, ADVANCED_PROPERTY_NAME_PROP)</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                    .eval(null);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            String value = propertyValues</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                    .getExpressionPropertyFor(prop, ADVANCED_PROPERTY_VALUE_PROP)</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                    .eval(null);</b>
+<i class="no-highlight">204</i>&nbsp;            // Replace the null value to Empty String to avoid NPE
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            key = key == null ? StringUtils.EMPTY : key;</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;            value = value == null ? StringUtils.EMPTY : value;</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;            advancedProps.put(key, value);</b>
+<i class="no-highlight">208</i>&nbsp;        });
+<i class="no-highlight">209</i>&nbsp;
+<i class="no-highlight">210</i>&nbsp;    }
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;    protected abstract void configureServerProperties(PropertyValues propertyValues);
+<i class="no-highlight">213</i>&nbsp;
+<i class="no-highlight">214</i>&nbsp;    //protected abstract String getServerHostname();
+<i class="no-highlight">215</i>&nbsp;
+<i class="no-highlight">216</i>&nbsp;    @Override
+<i class="no-highlight">217</i>&nbsp;    public JCoDestination connect() throws ExecutionException {
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        startSession(null);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        return getJCoDestination();</b>
+<i class="no-highlight">220</i>&nbsp;    }
+<i class="no-highlight">221</i>&nbsp;
+<i class="no-highlight">222</i>&nbsp;    private JCoDestination getJCoDestination() {
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        jCoDestination = jcoConnectionManager.getDestinationFor(this);</b>
+<i class="no-highlight">224</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">225</i>&nbsp;            jCoDestination.ping();</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;            clearJCORepositoryCache(jCoDestination);</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        } catch (JCoException e) {</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;            throw new ConfigurationException(e, ACCOUNT_CONNECTION_FAILED)</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                    .withResolution(ACCOUNT_CONNECTION_FAILED_RES);</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        return jCoDestination;</b>
+<i class="no-highlight">232</i>&nbsp;    }
+<i class="no-highlight">233</i>&nbsp;
+<i class="no-highlight">234</i>&nbsp;    @Override
+<i class="no-highlight">235</i>&nbsp;    public void disconnect() throws ExecutionException {
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        if (localSessionRef.get() != null &amp;&amp; !isStateful(jCoDestination)) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;            jcoSessionReferenceProvider.jcoServerSessionFinished(localSessionRef.get().getID());</b>
+<i class="no-highlight">238</i>&nbsp;        }
+<i class="no-highlight">239</i>&nbsp;    }
+<i class="no-highlight">240</i>&nbsp;
+<i class="no-highlight">241</i>&nbsp;
+<i class="no-highlight">242</i>&nbsp;    /**
+<i class="no-highlight">243</i>&nbsp;     * The method to wrap up the static call for JCoContext. This is for testing purpose, to get
+<i class="no-highlight">244</i>&nbsp;     * around the fact that easyMock could not mock static method call
+<i class="no-highlight">245</i>&nbsp;     *
+<i class="no-highlight">246</i>&nbsp;     */
+<i class="no-highlight">247</i>&nbsp;    boolean isStateful(JCoDestination jCoDestination) {
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        return JCoContext.isStateful(jCoDestination);</b>
+<i class="no-highlight">249</i>&nbsp;    }
+<i class="no-highlight">250</i>&nbsp;
+<i class="no-highlight">251</i>&nbsp;    /**
+<i class="no-highlight">252</i>&nbsp;     * Returns the destination properties
+<i class="no-highlight">253</i>&nbsp;     *
+<i class="no-highlight">254</i>&nbsp;     * @return the destination properties
+<i class="no-highlight">255</i>&nbsp;     */
+<i class="no-highlight">256</i>&nbsp;    public Properties createDestinationProperties() {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        if (sapConnectionProperties == null) {</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            sapConnectionProperties = new Properties();</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            sapConnectionProperties.setProperty(JCO_CLIENT, client);</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;            if (StringUtils.isNotEmpty(username)) {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                sapConnectionProperties.setProperty(JCO_USER, username);</b>
+<i class="no-highlight">262</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">263</i>&nbsp;            if (StringUtils.isNotEmpty(password)) {</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                sapConnectionProperties.setProperty(JCO_PASSWD, password);</b>
+<i class="no-highlight">265</i>&nbsp;
+<i class="no-highlight">266</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">267</i>&nbsp;            sapConnectionProperties.setProperty(JCO_LANG, language);</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;            String strJcoPeakLimit = String.valueOf(peakLimit);</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            sapConnectionProperties.setProperty(JCO_PEAK_LIMIT, strJcoPeakLimit);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            String strJcoCapacity = String.valueOf(poolCapacity);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            sapConnectionProperties.setProperty(JCO_POOL_CAPACITY, strJcoCapacity);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            if (StringUtils.isNotEmpty(routerString)) {</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                sapConnectionProperties.setProperty(JCO_SAPROUTER, routerString);</b>
+<i class="no-highlight">274</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">275</i>&nbsp;            addServerProperties(sapConnectionProperties);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            advancedProps.entrySet().forEach(entry -&gt;</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                    sapConnectionProperties.setProperty(entry.getKey(), entry.getValue()));</b>
+<i class="no-highlight">278</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        return sapConnectionProperties;</b>
+<i class="no-highlight">280</i>&nbsp;    }
+<i class="no-highlight">281</i>&nbsp;
+<i class="no-highlight">282</i>&nbsp;    protected abstract void addServerProperties(Properties sapConnectionProperties);
+<i class="no-highlight">283</i>&nbsp;
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;    /**
+<i class="no-highlight">286</i>&nbsp;     * Returns the session id
+<i class="no-highlight">287</i>&nbsp;     *
+<i class="no-highlight">288</i>&nbsp;     * @return the session id
+<i class="no-highlight">289</i>&nbsp;     */
+<i class="no-highlight">290</i>&nbsp;    @CheckForNull
+<i class="no-highlight">291</i>&nbsp;    public String getSessionId() {
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        if (localSessionRef.get() == null) {</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;            throw new ExecutionException(CONNECT_WAS_NOT_CALLED_ON_THE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">295</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        return localSessionRef.get().getID();</b>
+<i class="no-highlight">297</i>&nbsp;    }
+<i class="no-highlight">298</i>&nbsp;
+<i class="no-highlight">299</i>&nbsp;    /**
+<i class="no-highlight">300</i>&nbsp;     * Returns the connection string
+<i class="no-highlight">301</i>&nbsp;     *
+<i class="no-highlight">302</i>&nbsp;     * @return the connection string
+<i class="no-highlight">303</i>&nbsp;     */
+<i class="no-highlight">304</i>&nbsp;    public String createConnectionString() {
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        if (connectionString == null) {</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;            connectionString = String.format(CONNECTION_STRING, getConnectionIdPrefix(), client,</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                    username, language, peakLimit.intValue(), poolCapacity.intValue(),</b>
+<i class="no-highlight">308</i>&nbsp;                    routerString);
+<i class="no-highlight">309</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        return connectionString;</b>
+<i class="no-highlight">311</i>&nbsp;    }
+<i class="no-highlight">312</i>&nbsp;
+<i class="no-highlight">313</i>&nbsp;    protected abstract String getConnectionIdPrefix();
+<i class="no-highlight">314</i>&nbsp;
+<i class="no-highlight">315</i>&nbsp;    public String getPassword() {
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        return password;</b>
+<i class="no-highlight">317</i>&nbsp;    }
+<i class="no-highlight">318</i>&nbsp;
+<i class="no-highlight">319</i>&nbsp;    public String getUsername() {
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        return username;</b>
+<i class="no-highlight">321</i>&nbsp;    }
+<i class="no-highlight">322</i>&nbsp;    /**
+<i class="no-highlight">323</i>&nbsp;     * Clears the cached metadata for the derived IDocRepository
+<i class="no-highlight">324</i>&nbsp;     * Clears the cached metadata for the derived JCoRepository
+<i class="no-highlight">325</i>&nbsp;     *
+<i class="no-highlight">326</i>&nbsp;     * To avoid clearing during pipeline runs, which would be a performance hit, this is allowed
+<i class="no-highlight">327</i>&nbsp;     * once per UI load.  The pipeline UI must be refreshed to clear all flags from memory.
+<i class="no-highlight">328</i>&nbsp;     *
+<i class="no-highlight">329</i>&nbsp;     * @param destination
+<i class="no-highlight">330</i>&nbsp;     */
+<i class="no-highlight">331</i>&nbsp;    public void clearJCORepositoryCache(JCoDestination destination) {
+<b class="nc"><i class="no-highlight">332</i>&nbsp;        if (AbstractJCoAccount.CLEAR_CACHE.compareAndSet(true, false)) {</b>
+<i class="no-highlight">333</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                sapServices.getIDocRepository(destination).clear();</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                destination.getRepository().clear();</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                LOGGER.debug(JCO_CACHE_CLEAR, destination.getDestinationID());</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;            } catch (JCoException e) {</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                LOGGER.debug(JCO_METADATA_CACHE_CLEAR_ERROR, e);</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;            }</b>
+<i class="no-highlight">340</i>&nbsp;        }
+<i class="no-highlight">341</i>&nbsp;    }
+<i class="no-highlight">342</i>&nbsp;
+<i class="no-highlight">343</i>&nbsp;    @Override
+<i class="no-highlight">344</i>&nbsp;    public JCoDestination validate(Void aVoid) {
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        LOGGER.debug(&quot;Validating Account&quot;);</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;        JCoDestination destination = connect();</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;        if (clearCacheWhenValidate) {</b>
+<i class="no-highlight">348</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                LOGGER.debug(&quot;Cleaning JCO caches for {}...&quot;, jCoDestination.getDestinationID());</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                sapServices.getIDocRepository(destination).clear();</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                destination.getRepository().clear();</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                LOGGER.debug(&quot;JCo caches are cleared for {}&quot;, destination.getDestinationID());</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;            } catch (JCoException e) {</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                LOGGER.warn(JCO_METADATA_CACHE_CLEAR_ERROR, e);</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;            }</b>
+<i class="no-highlight">356</i>&nbsp;
+<i class="no-highlight">357</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        return destination;</b>
+<i class="no-highlight">359</i>&nbsp;    }
+<i class="no-highlight">360</i>&nbsp;
+<i class="no-highlight">361</i>&nbsp;    public void setRuntimeID(String runtimeID) {
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        this.runtimeID = runtimeID;</b>
+<i class="no-highlight">363</i>&nbsp;    }
+<i class="no-highlight">364</i>&nbsp;
+<i class="no-highlight">365</i>&nbsp;    private void startSession(String sessionID) {
+<b class="nc"><i class="no-highlight">366</i>&nbsp;        String session = StringUtils.isEmpty(sessionID) ? Thread.currentThread().getName() :</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                sessionID;</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        localSessionRef.set(jcoSessionReferenceProvider.jcoClientSessionStarted(session));</b>
+<i class="no-highlight">369</i>&nbsp;    }
+<i class="no-highlight">370</i>&nbsp;
+<i class="no-highlight">371</i>&nbsp;    /**
+<i class="no-highlight">372</i>&nbsp;     * Establish a connection with a specific session name.
+<i class="no-highlight">373</i>&nbsp;     * @param session   The identifier of the session the connection should belong to.
+<i class="no-highlight">374</i>&nbsp;     * @return          The JcoDestination object that belongs to the specific session name
+<i class="no-highlight">375</i>&nbsp;     */
+<i class="no-highlight">376</i>&nbsp;    public JCoDestination connect(String session) {
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        String sessionID = String.format(&quot;%s@%s&quot;, session, runtimeID);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        startSession(sessionID);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        return getJCoDestination();</b>
+<i class="no-highlight">380</i>&nbsp;    }
+<i class="no-highlight">381</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

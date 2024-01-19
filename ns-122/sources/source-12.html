@@ -1,0 +1,384 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Update</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.mongo</a>
+</div>
+
+<h1>Coverage Summary for Class: Update (com.snaplogic.snaps.mongo)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Update</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/110)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.mongo;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.mongodb.BasicDBObject;
+<i class="no-highlight">14</i>&nbsp;import com.mongodb.client.MongoCollection;
+<i class="no-highlight">15</i>&nbsp;import com.mongodb.client.model.UpdateOptions;
+<i class="no-highlight">16</i>&nbsp;import com.mongodb.client.result.UpdateResult;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.util.DeepUtils;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">40</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">41</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">42</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">43</i>&nbsp;import java.util.List;
+<i class="no-highlight">44</i>&nbsp;import java.util.Map;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_COLLECTION_NOT_FOUND;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_INVALID_JSON_PATH;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_INVALID_JSON_PATH_REASON;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_INVALID_JSON_PATH_RESOLUTION;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_INVALID_UPDATE_OPERATION_PATH;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_INVALID_UPDATE_OPERATION_REASON;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_INVALID_UPDATE_OPERATION_RESOLUTION;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_UPDATE_DOCUMENTS;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.EXCLUDE_FIELD_DESC;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.EXCLUDE_FIELD_LABLE;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.EXCLUDE_LIST_DESC;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.EXCLUDE_LIST_LABLE;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.MULTI_DESC;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.MULTI_LABEL;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.REASON_EMPTY_QUERY;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.UPDATE_OPERATION_DESC;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.UPDATE_OPERATION_LABEL;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.UPDATE_PURPOSE;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.UPDATE_QUERY_DESC;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.UPDATE_QUERY_LABEL;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.UPDATE_TITLE;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.UPSERT_DESC;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.UPSERT_LABEL;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.mongo.MongoUtil.writeToOutputViews;
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;/**
+<i class="no-highlight">73</i>&nbsp; * Update or insert documents in a MongoDB collection.
+<i class="no-highlight">74</i>&nbsp; *
+<i class="no-highlight">75</i>&nbsp; * @since Nov, 2016
+<i class="no-highlight">76</i>&nbsp; */
+<i class="no-highlight">77</i>&nbsp;@General(title = UPDATE_TITLE, purpose = UPDATE_PURPOSE)
+<i class="no-highlight">78</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">79</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">80</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">81</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">82</i>&nbsp;@Accounts(provides = {MongoAccount.class, ReplicaSetMongoAccount.class,
+<i class="no-highlight">83</i>&nbsp;        MongoDynamicAccount.class, ReplicaSetMongoDynamicAccount.class})
+<b class="nc"><i class="no-highlight">84</i>&nbsp;public class Update extends MongoSnap {</b>
+<i class="no-highlight">85</i>&nbsp;    public static final String UPDATE_QUERY_PROP = &quot;updateQuery&quot;;
+<i class="no-highlight">86</i>&nbsp;    static final String UPSERT_PROP = &quot;upsert&quot;;
+<i class="no-highlight">87</i>&nbsp;    static final String MULTI_PROP = &quot;multi&quot;;
+<i class="no-highlight">88</i>&nbsp;    static final String EXCLUDE_LIST_PROP = &quot;excludeList&quot;;
+<i class="no-highlight">89</i>&nbsp;    static final String EXCLUDE_FIELD_PROP = &quot;excludeField&quot;;
+<i class="no-highlight">90</i>&nbsp;    static final String UPDATE_OPERATION_PROP = &quot;updateOperation&quot;;
+<i class="no-highlight">91</i>&nbsp;    private static final String ID_KEY = &quot;$_id&quot;;
+<i class="no-highlight">92</i>&nbsp;    private static final String DOCUMENTS_UPDATED = &quot;updatedDocuments&quot;;
+<i class="no-highlight">93</i>&nbsp;    private static final String DOCUMENTS_MATCHED = &quot;matchedDocuments&quot;;
+<i class="no-highlight">94</i>&nbsp;    private static final String UPDATE_OF_EXISTING = &quot;updateOfExisting&quot;;
+<i class="no-highlight">95</i>&nbsp;    public static final String INSERTED = &quot;inserted&quot;;
+<i class="no-highlight">96</i>&nbsp;    private ExpressionProperty queryExpr;
+<i class="no-highlight">97</i>&nbsp;    private boolean isUpsert;
+<i class="no-highlight">98</i>&nbsp;    private boolean isMulti;
+<i class="no-highlight">99</i>&nbsp;    private List&lt;ExpressionProperty&gt; excludeFieldExpList;
+<i class="no-highlight">100</i>&nbsp;    private ExpressionProperty operationExpr;
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;    private static final String $SET = &quot;$set&quot;;
+<i class="no-highlight">103</i>&nbsp;    private static final String $INC = &quot;$inc&quot;;
+<i class="no-highlight">104</i>&nbsp;    private static final String $MUL = &quot;$mul&quot;;
+<i class="no-highlight">105</i>&nbsp;    private static final String $MIN = &quot;$min&quot;;
+<i class="no-highlight">106</i>&nbsp;    private static final String $MAX = &quot;$max&quot;;
+<i class="no-highlight">107</i>&nbsp;    private static final String $RENAME = &quot;$rename&quot;;
+<i class="no-highlight">108</i>&nbsp;    private static final String $UNSET = &quot;$unset&quot;;
+<i class="no-highlight">109</i>&nbsp;    private static final String $CURRENT_DATE = &quot;$currentDate&quot;;
+<i class="no-highlight">110</i>&nbsp;
+<b class="nc"><i class="no-highlight">111</i>&nbsp;    private String[] operationArray = {$SET, $INC, $MUL, $MIN, $MAX, $RENAME, $UNSET, $CURRENT_DATE};</b>
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;    @Override
+<i class="no-highlight">114</i>&nbsp;    protected void defineSnapProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        defineCollectionNamePropertyBatch(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        propertyBuilder.describe(UPDATE_QUERY_PROP, UPDATE_QUERY_LABEL, UPDATE_QUERY_DESC)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                .expression(SnapProperty.DecoratorType.ENABLED_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                .add();</b>
+<i class="no-highlight">121</i>&nbsp;
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        propertyBuilder.describe(UPDATE_OPERATION_PROP, UPDATE_OPERATION_LABEL, UPDATE_OPERATION_DESC)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                .expression(SnapProperty.DecoratorType.NONE)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {</b>
+<i class="no-highlight">125</i>&nbsp;
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                    suggestionBuilder.node(UPDATE_OPERATION_PROP)</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                            .suggestions(operationArray);</b>
+<i class="no-highlight">128</i>&nbsp;                })
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .defaultValue($SET)</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                .add();</b>
+<i class="no-highlight">131</i>&nbsp;
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        JsonPath jsonPath = null;</b>
+<i class="no-highlight">133</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            jsonPath = JsonPathImpl.compile(ID_KEY);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        SnapProperty excludedField = propertyBuilder.describe(EXCLUDE_FIELD_PROP, EXCLUDE_FIELD_LABLE,</b>
+<i class="no-highlight">138</i>&nbsp;                EXCLUDE_FIELD_DESC)
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                .type(SnapType.JSONPATH)</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                .defaultValue(jsonPath)</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                .build();</b>
+<i class="no-highlight">144</i>&nbsp;
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        propertyBuilder.describe(EXCLUDE_LIST_PROP, EXCLUDE_LIST_LABLE, EXCLUDE_LIST_DESC)</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                .withEntry(excludedField)</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                .add();</b>
+<i class="no-highlight">149</i>&nbsp;
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        propertyBuilder.describe(UPSERT_PROP, UPSERT_LABEL, UPSERT_DESC)</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        propertyBuilder.describe(MULTI_PROP, MULTI_LABEL, MULTI_DESC)</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                .defaultValue(Boolean.TRUE)</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                .add();</b>
+<i class="no-highlight">157</i>&nbsp;    }
+<i class="no-highlight">158</i>&nbsp;
+<i class="no-highlight">159</i>&nbsp;    @Override
+<i class="no-highlight">160</i>&nbsp;    protected void configureSnap(final PropertyValues propertyValues) {
+<i class="no-highlight">161</i>&nbsp;
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        queryExpr = propertyValues.getAsExpression(UPDATE_QUERY_PROP);</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        operationExpr = propertyValues.getAsExpression(UPDATE_OPERATION_PROP);</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        isUpsert = Boolean.TRUE.equals(propertyValues.get(UPSERT_PROP));</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        isMulti = Boolean.TRUE.equals(propertyValues.get(MULTI_PROP));</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; excludeList = propertyValues.get(EXCLUDE_LIST_PROP);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        excludeFieldExpList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        if (excludeList != null) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            String fileListPath = new JsonPathBuilder(EXCLUDE_LIST_PROP)</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; valueList = propertyValues.get(fileListPath);</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;            for (Map&lt;String, Map&lt;String, Object&gt;&gt; map : valueList) {</b>
+<i class="no-highlight">173</i>&nbsp;
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                ExpressionProperty excludeFieldExp = propertyValues.getExpressionPropertyFor(</b>
+<i class="no-highlight">175</i>&nbsp;                        map, EXCLUDE_FIELD_PROP);
+<i class="no-highlight">176</i>&nbsp;
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                excludeFieldExpList.add(excludeFieldExp);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            }</b>
+<i class="no-highlight">179</i>&nbsp;        }
+<i class="no-highlight">180</i>&nbsp;    }
+<i class="no-highlight">181</i>&nbsp;
+<i class="no-highlight">182</i>&nbsp;    @Override
+<i class="no-highlight">183</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">184</i>&nbsp;    protected void process(final Document document, final String inputViewName) {
+<i class="no-highlight">185</i>&nbsp;        try {
+<i class="no-highlight">186</i>&nbsp;            // get MongoDB collection
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            collectionName = collectionNameExpr.eval(document);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;            if (!mongoTemplate.collectionExists(collectionName)) {</b>
+<i class="no-highlight">189</i>&nbsp;                // this error message becomes a reason string of the SnapDataException
+<i class="no-highlight">190</i>&nbsp;                // when it is captured below
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                throw new IOException(ERR_COLLECTION_NOT_FOUND);</b>
+<i class="no-highlight">192</i>&nbsp;            }
+<i class="no-highlight">193</i>&nbsp;
+<i class="no-highlight">194</i>&nbsp;            // check null to ensure backward compatibility
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            String updateOperation = (operationExpr == null || operationExpr.isEmpty()) ? $SET : operationExpr.eval(document);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            if (Arrays.stream(operationArray).filter(value -&gt; value.equals(updateOperation)).count() == 0) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                throw new SnapDataException(ERR_INVALID_UPDATE_OPERATION_PATH)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                        .withReason(ERR_INVALID_UPDATE_OPERATION_REASON)</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                        .withResolution(ERR_INVALID_UPDATE_OPERATION_RESOLUTION);</b>
+<i class="no-highlight">200</i>&nbsp;            }
+<i class="no-highlight">201</i>&nbsp;
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            MongoCollection&lt;org.bson.Document&gt; dbCollection = getCollection();</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;            BasicDBObject query = MongoUtil.getQueryObject(queryExpr, document, account);</b>
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;            UpdateResult updateResult;
+<b class="nc"><i class="no-highlight">206</i>&nbsp;            if (query != null) {</b>
+<i class="no-highlight">207</i>&nbsp;
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                List&lt;JsonPath&gt; excludeJsonPathList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                for (ExpressionProperty expressionProperty : excludeFieldExpList) {</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                    String path = expressionProperty.eval(document);</b>
+<i class="no-highlight">211</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                        excludeJsonPathList.add(JsonPathImpl.compile(path));</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                    } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                        throw new SnapDataException(ERR_INVALID_JSON_PATH)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                                .withReason(ERR_INVALID_JSON_PATH_REASON).formatWith(path)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                                .withResolution(ERR_INVALID_JSON_PATH_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                }</b>
+<i class="no-highlight">219</i>&nbsp;
+<i class="no-highlight">220</i>&nbsp;
+<i class="no-highlight">221</i>&nbsp;                // update documents matching query expression
+<i class="no-highlight">222</i>&nbsp;                // need to call copy before get to preserved excluded fields for passthrough original input
+<i class="no-highlight">223</i>&nbsp;                // IMPORTANT: copy only the data, not the entire document, to avoid lineage issue
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                Map&lt;String, Object&gt; data = DeepUtils.copy(document.get());</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                for (JsonPath excludeJsonPath : excludeJsonPathList) {</b>
+<i class="no-highlight">226</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                        excludeJsonPath.delete(data);</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    } catch (InvalidPathException e) {</b>
+<i class="no-highlight">229</i>&nbsp;                        // if exclude field is not in input, let proceed the next field
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                }</b>
+<i class="no-highlight">232</i>&nbsp;
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                Map&lt;String, Object&gt; convertedMap = (Map) MongoUtil.convertValues(data);</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                BasicDBObject dbObject = new BasicDBObject();</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                mongoTemplate.getConverter().write(convertedMap, dbObject);</b>
+<i class="no-highlight">236</i>&nbsp;
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                BasicDBObject modifiedObject = new BasicDBObject(updateOperation, dbObject);</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                UpdateOptions updateOptions = new UpdateOptions();</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                updateOptions.upsert(isUpsert);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                if (isMulti) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                    updateResult = dbCollection.updateMany(query, modifiedObject, updateOptions);</b>
+<i class="no-highlight">242</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                    updateResult = dbCollection.updateOne(query, modifiedObject, updateOptions);</b>
+<i class="no-highlight">244</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                throw new SnapDataException(ERR_UPDATE_DOCUMENTS)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                        .formatWith(collectionName)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                        .withReason(REASON_EMPTY_QUERY)</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">250</i>&nbsp;            }
+<i class="no-highlight">251</i>&nbsp;            // write the results to the output view
+<b class="nc"><i class="no-highlight">252</i>&nbsp;            Map&lt;String, Object&gt; result = new LinkedHashMap&lt;&gt;(3);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            result.put(DOCUMENTS_UPDATED, updateResult.getModifiedCount());</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;            result.put(DOCUMENTS_MATCHED, updateResult.getMatchedCount());</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;            result.put(UPDATE_OF_EXISTING, updateResult.getModifiedCount() &gt; 0);</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;            if (updateResult.getUpsertedId() != null) {</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                result.put(INSERTED, true);</b>
+<i class="no-highlight">258</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                result.put(INSERTED, false);</b>
+<i class="no-highlight">260</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            writeToOutputViews(outputViews, documentUtility.newDocumentFor(document, result), passThrough,</b>
+<i class="no-highlight">262</i>&nbsp;                    document);
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            errorViews.write(e, document);</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        } catch (Throwable t) {</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;            SnapDataException ex = new SnapDataException(t, ERR_UPDATE_DOCUMENTS)</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                    .formatWith(collectionName)</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        }</b>
+<i class="no-highlight">273</i>&nbsp;    }
+<i class="no-highlight">274</i>&nbsp;
+<i class="no-highlight">275</i>&nbsp;    protected MongoCollection&lt;org.bson.Document&gt; getCollection() {
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        return mongoTemplate.getCollection(collectionName);</b>
+<i class="no-highlight">277</i>&nbsp;    }
+<i class="no-highlight">278</i>&nbsp;
+<i class="no-highlight">279</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

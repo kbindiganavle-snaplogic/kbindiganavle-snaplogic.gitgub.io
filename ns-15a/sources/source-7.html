@@ -1,0 +1,286 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > StatementExecutionResultWithMap</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.sql.multiexecute</a>
+</div>
+
+<h1>Coverage Summary for Class: StatementExecutionResultWithMap (com.snaplogic.snaps.sql.multiexecute)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">StatementExecutionResultWithMap</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/71)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018 SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.sql.multiexecute;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import java.util.List;
+<i class="no-highlight">21</i>&nbsp;import java.util.Map;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.PLEASE_ENSURE_THAT_ALL_STATEMENTS_SUCCEED;
+<i class="no-highlight">24</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.RESULT_TYPE_NOT_SUPPORTED;
+<i class="no-highlight">25</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.
+<i class="no-highlight">26</i>&nbsp;        TA_FAILED_OPERATION_SUCCEEDED_BUT_WILL_BE_ROLLEDBACK;
+<i class="no-highlight">27</i>&nbsp;import static com.snaplogic.snaps.sql.SimpleSqlMultiExecuteSnap.BatchElementExecutionResult;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.snaps.sql.SimpleSqlMultiExecuteSnap.SQL_STATEMENT;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snaps.sql.SimpleSqlMultiExecuteSnap.StatementExecutionResult;
+<i class="no-highlight">30</i>&nbsp;import static com.snaplogic.snaps.sql.SimpleSqlMultiExecuteSnap.createErrorMap;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snaps.sql.SimpleSqlSnap.ERROR;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.sql.multiexecute.Messages.ERR_STATEMENT_SET_ALREADY;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;/**
+<i class="no-highlight">35</i>&nbsp; * Provides the status of the statement execution. Some entries of the batch might have failed,
+<i class="no-highlight">36</i>&nbsp; * then the whole TX of all executions will be rolled back. Status success indicates the
+<i class="no-highlight">37</i>&nbsp; * statement execution was successful.
+<i class="no-highlight">38</i>&nbsp; *
+<i class="no-highlight">39</i>&nbsp; * It overrides {@link com.snaplogic.snaps.sql.SimpleSqlMultiExecuteSnap.StatementsExecutionResult}
+<i class="no-highlight">40</i>&nbsp; * to generate result as a {@link java.util.Map} instead of as a {@link java.util.List}
+<i class="no-highlight">41</i>&nbsp; */
+<b class="nc"><i class="no-highlight">42</i>&nbsp;public class StatementExecutionResultWithMap extends StatementExecutionResult {</b>
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;    /**
+<i class="no-highlight">45</i>&nbsp;     * Adds a triple to the result.
+<i class="no-highlight">46</i>&nbsp;     *
+<i class="no-highlight">47</i>&nbsp;     * @param batchElemExecutionResult the result providing either SnapDataException/Document,
+<i class="no-highlight">48</i>&nbsp;     *                                 input document and statement that was executed.
+<i class="no-highlight">49</i>&nbsp;     */
+<i class="no-highlight">50</i>&nbsp;    @Override
+<i class="no-highlight">51</i>&nbsp;    public void add(BatchElementExecutionResult batchElemExecutionResult) {
+<b class="nc"><i class="no-highlight">52</i>&nbsp;        if (batchElemExecutionResult.getResult() instanceof SnapException) {</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;            getErrorList().add(batchElemExecutionResult);</b>
+<i class="no-highlight">54</i>&nbsp;            // any error will mark the result of the execution as failed
+<b class="nc"><i class="no-highlight">55</i>&nbsp;            failed = true;</b>
+<i class="no-highlight">56</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;            getDocumentList().add(batchElemExecutionResult);</b>
+<i class="no-highlight">58</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">59</i>&nbsp;        if (statement == null) {</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;            statement = batchElemExecutionResult.getStatement();</b>
+<i class="no-highlight">61</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">62</i>&nbsp;            if (!statement.equals(batchElemExecutionResult.getStatement())) {</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;                throw new ExecutionException(String.format(ERR_STATEMENT_SET_ALREADY,</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;                        batchElemExecutionResult.getStatement(), statement))</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;                        .withResolutionAsDefect();</b>
+<i class="no-highlight">66</i>&nbsp;            }
+<i class="no-highlight">67</i>&nbsp;        }
+<i class="no-highlight">68</i>&nbsp;    }
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;    /**
+<i class="no-highlight">71</i>&nbsp;     * Transforms the result into a map which can be written as a document to the view.
+<i class="no-highlight">72</i>&nbsp;     *
+<i class="no-highlight">73</i>&nbsp;     * @return the transformed result
+<i class="no-highlight">74</i>&nbsp;     */
+<i class="no-highlight">75</i>&nbsp;    @Override
+<i class="no-highlight">76</i>&nbsp;    public Map&lt;String, Object&gt; transform() {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        Map&lt;String, Object&gt; result = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        result.put(SQL_STATEMENT, statement);</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        if (!getDocumentList().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;            if (failed) {</b>
+<i class="no-highlight">81</i>&nbsp;                // convert the documents into errors
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                for (BatchElementExecutionResult batchElemExecutionResult : documentList) {</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                    SnapDataException snapDataException = new SnapDataException(</b>
+<i class="no-highlight">84</i>&nbsp;                            TA_FAILED_OPERATION_SUCCEEDED_BUT_WILL_BE_ROLLEDBACK)
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                            .withReason(TA_FAILED_OPERATION_SUCCEEDED_BUT_WILL_BE_ROLLEDBACK)</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                            .withResolution(PLEASE_ENSURE_THAT_ALL_STATEMENTS_SUCCEED);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                    getErrorList().add(new BatchElementExecutionResult(snapDataException,</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                            batchElemExecutionResult.getInput(),</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                            batchElemExecutionResult.getStatement()));</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                }</b>
+<i class="no-highlight">91</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                Map&lt;String, Object&gt; results = createResultMap(documentList.get(0));</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                result.putAll(results);</b>
+<i class="no-highlight">94</i>&nbsp;            }
+<i class="no-highlight">95</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        if (!getErrorList().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;            Map&lt;String, Object&gt; errorResults = createResultMap(errorList.get(0));</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            result.putAll(errorResults);</b>
+<i class="no-highlight">99</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        return result;</b>
+<i class="no-highlight">101</i>&nbsp;    }
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;    /**
+<i class="no-highlight">104</i>&nbsp;     * creates the result list, representing the structure under error or successful documents
+<i class="no-highlight">105</i>&nbsp;     *
+<i class="no-highlight">106</i>&nbsp;     * @param batchElemExecutionResults the result list
+<i class="no-highlight">107</i>&nbsp;     * @return the object list
+<i class="no-highlight">108</i>&nbsp;     */
+<i class="no-highlight">109</i>&nbsp;    @Override
+<i class="no-highlight">110</i>&nbsp;    protected List&lt;Map&lt;String, Object&gt;&gt; createResultList(
+<i class="no-highlight">111</i>&nbsp;            List&lt;BatchElementExecutionResult&gt; batchElemExecutionResults) {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; results = Lists.newArrayList();</b>
+<i class="no-highlight">113</i>&nbsp;        for (BatchElementExecutionResult batchElemExecutionResult :
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                batchElemExecutionResults) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            Map&lt;String, Object&gt; result = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            Object leftValue = batchElemExecutionResult.getResult();</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            if (leftValue instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                result.putAll((Map) leftValue);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            } else if (leftValue instanceof SnapDataException) {</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                SnapDataException exception = (SnapDataException) leftValue;</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                Document errorDocument = exception.getErrorDocument();</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                Object errObj = errorDocument != null ? errorDocument.get() : null;</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                if (errObj instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                    result.putAll((Map) errObj);</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                } else if (errObj != null) {</b>
+<i class="no-highlight">126</i>&nbsp;                    // write anything else under error key
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                    result.put(ERROR, errObj);</b>
+<i class="no-highlight">128</i>&nbsp;                } else {
+<i class="no-highlight">129</i>&nbsp;                    // transform the exception into an error map if we don&#39;t have a document
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                    result.putAll(createErrorMap(exception));</b>
+<i class="no-highlight">131</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                throw new UnsupportedOperationException(RESULT_TYPE_NOT_SUPPORTED);</b>
+<i class="no-highlight">134</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            results.add(result);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        return results;</b>
+<i class="no-highlight">138</i>&nbsp;    }
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    private Map&lt;String, Object&gt; createResultMap(
+<i class="no-highlight">141</i>&nbsp;            BatchElementExecutionResult batchElemExecutionResult) {
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        Map&lt;String, Object&gt; result = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        Object leftValue = batchElemExecutionResult.getResult();</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        if (leftValue instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            result.putAll((Map) leftValue);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        } else if (leftValue instanceof SnapDataException) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            SnapDataException exception = (SnapDataException) leftValue;</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            Document errorDocument = exception.getErrorDocument();</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            Object errObj = errorDocument != null ? errorDocument.get() : null;</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            if (errObj instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                result.putAll((Map) errObj);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            } else if (errObj != null) {</b>
+<i class="no-highlight">153</i>&nbsp;                // write anything else under error key
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                result.put(ERROR, errObj);</b>
+<i class="no-highlight">155</i>&nbsp;            } else {
+<i class="no-highlight">156</i>&nbsp;                // transform the exception into an error map if we don&#39;t have a document
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                result.putAll(createErrorMap(exception));</b>
+<i class="no-highlight">158</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            throw new UnsupportedOperationException(RESULT_TYPE_NOT_SUPPORTED);</b>
+<i class="no-highlight">161</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        return result;</b>
+<i class="no-highlight">163</i>&nbsp;    }
+<i class="no-highlight">164</i>&nbsp;
+<i class="no-highlight">165</i>&nbsp;    /**
+<i class="no-highlight">166</i>&nbsp;     * Merges an execution result into the current one
+<i class="no-highlight">167</i>&nbsp;     *
+<i class="no-highlight">168</i>&nbsp;     * @param statementExecutionResult the result to be merged
+<i class="no-highlight">169</i>&nbsp;     */
+<i class="no-highlight">170</i>&nbsp;    @Override
+<i class="no-highlight">171</i>&nbsp;    public void merge(StatementExecutionResult statementExecutionResult) {
+<i class="no-highlight">172</i>&nbsp;        for (BatchElementExecutionResult batchElemExecutionResult :
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                statementExecutionResult.getErrorList()) {</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;            this.add(batchElemExecutionResult);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        }</b>
+<i class="no-highlight">176</i>&nbsp;        for (BatchElementExecutionResult batchElemExecutionResult :
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                statementExecutionResult.getDocumentList()) {</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            this.add(batchElemExecutionResult);</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        }</b>
+<i class="no-highlight">180</i>&nbsp;    }
+<i class="no-highlight">181</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,264 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SAPHanaCallableStatementBuilder</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.procedure</a>
+</div>
+
+<h1>Coverage Summary for Class: SAPHanaCallableStatementBuilder (com.snaplogic.snap.api.sql.procedure)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SAPHanaCallableStatementBuilder</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/54)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql.procedure;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.sql.CallableStatementBuilder;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.sql.CallableStatementMetaData;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.sql.CallableStatementWrapper;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.sql.ConverterRegistry;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.sql.ParameterMetaData;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.sql.ParameterMetaDataImpl;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.sql.converters.CustomTypeConverter;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import java.sql.CallableStatement;
+<i class="no-highlight">25</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">26</i>&nbsp;import java.sql.DatabaseMetaData;
+<i class="no-highlight">27</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">28</i>&nbsp;import java.sql.Types;
+<i class="no-highlight">29</i>&nbsp;import java.util.List;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snap.api.sql.procedure.Messages.CANNOT_RETURN_MORE_THAN_ONE_RESULT_SET;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snap.api.sql.procedure.Messages.ONE_RESULT_SET_SUPPORTED;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snap.api.sql.procedure.Messages.RETURN_ONLY_ONE_RESULT_SET;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;/**
+<i class="no-highlight">36</i>&nbsp; * SAP Hana specific implementation of CallableStatementBuilder.
+<i class="no-highlight">37</i>&nbsp; *
+<i class="no-highlight">38</i>&nbsp; * @author jim
+<i class="no-highlight">39</i>&nbsp; */
+<b class="nc"><i class="no-highlight">40</i>&nbsp;public class SAPHanaCallableStatementBuilder extends CallableStatementBuilder {</b>
+<i class="no-highlight">41</i>&nbsp;    private static final String CALL_FMT = &quot;{call %s(%s)}&quot;;
+<i class="no-highlight">42</i>&nbsp;    private static final String AT = &quot;@&quot;;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;    @Override
+<i class="no-highlight">45</i>&nbsp;    public CallableStatementBuilder withMetaData(CallableStatementMetaData metaData) {
+<b class="nc"><i class="no-highlight">46</i>&nbsp;        this.metaData = metaData;</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;        StringBuilder params = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;        int paramValuesSize = paramValues.size();</b>
+<i class="no-highlight">49</i>&nbsp;        // Build the input/output params for the function string
+<b class="nc"><i class="no-highlight">50</i>&nbsp;        for (ParameterMetaData parameterMetaData : metaData) {</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;            switch (parameterMetaData.getColumnType()) {</b>
+<i class="no-highlight">52</i>&nbsp;                case DatabaseMetaData.procedureColumnIn:
+<b class="nc"><i class="no-highlight">53</i>&nbsp;                    if (paramValuesSize == 0) {</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;                        break;</b>
+<i class="no-highlight">55</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">56</i>&nbsp;                    paramValuesSize--;</b>
+<i class="no-highlight">57</i>&nbsp;                case DatabaseMetaData.procedureColumnOut:
+<i class="no-highlight">58</i>&nbsp;                case DatabaseMetaData.procedureColumnInOut:
+<i class="no-highlight">59</i>&nbsp;                    // add &#39;?&#39; for each input or output parameter
+<b class="nc"><i class="no-highlight">60</i>&nbsp;                    params.append(PARAM_STR);</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;                    break;</b>
+<i class="no-highlight">62</i>&nbsp;                default:
+<i class="no-highlight">63</i>&nbsp;                    // do not add &#39;?&#39; for other parameters
+<i class="no-highlight">64</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        }</b>
+<i class="no-highlight">66</i>&nbsp;        // Remove the trailing &quot;, &quot;
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        if (params.length() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            params.delete(params.length() - 2, params.length());</b>
+<i class="no-highlight">69</i>&nbsp;        }
+<i class="no-highlight">70</i>&nbsp;        // Create the procedure string which should look like &quot;call myProcedure(?, ?, ?)&quot;
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        procedureStr = String.format(CALL_FMT, storedProcedureName, params.toString());</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;        return this;</b>
+<i class="no-highlight">73</i>&nbsp;    }
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;    @Override
+<i class="no-highlight">76</i>&nbsp;    protected CallableStatementWrapper createCallableStatementWrapper(final Connection conn,
+<i class="no-highlight">77</i>&nbsp;            final CallableStatement stmt, final List&lt;ParameterMetaData&gt; outColumns,
+<i class="no-highlight">78</i>&nbsp;            final String resultSetColumnName, final ConverterRegistry converterRegistry,
+<i class="no-highlight">79</i>&nbsp;            final CustomTypeConverter customTypeConverter) {
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        return new SAPHanaCallableStatementWrapper(conn, stmt, outColumns, resultSetColumnName,</b>
+<i class="no-highlight">81</i>&nbsp;                converterRegistry, customTypeConverter, jdbcOperations);
+<i class="no-highlight">82</i>&nbsp;    }
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;    @Override
+<i class="no-highlight">85</i>&nbsp;    protected String registerParams(final List&lt;ParameterMetaData&gt; outColumns,
+<i class="no-highlight">86</i>&nbsp;            final CallableStatement stmt, Connection conn) throws SQLException {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        String resultSetColumnName = null;</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        int i = 0;</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        int paramValuesSize = paramValues.size();</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        for (ParameterMetaData parameterMetaData : metaData) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            String columnName = parameterMetaData.getColumnName();</b>
+<i class="no-highlight">92</i>&nbsp;            Object paramValue;
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            switch (parameterMetaData.getColumnType()) {</b>
+<i class="no-highlight">94</i>&nbsp;                case DatabaseMetaData.procedureColumnIn:
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                    if (i &lt; paramValuesSize) {</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                        columnName = trimAtSign(columnName);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                        paramValue = convertValue(paramValues.get(i++),</b>
+<i class="no-highlight">98</i>&nbsp;                                parameterMetaData, conn);
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                        if (paramValue instanceof String) {</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                            stmt.setString(columnName, (String) paramValue);</b>
+<i class="no-highlight">101</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                            stmt.setObject(columnName, paramValue);</b>
+<i class="no-highlight">103</i>&nbsp;                        }
+<i class="no-highlight">104</i>&nbsp;                    }
+<i class="no-highlight">105</i>&nbsp;                    break;
+<i class="no-highlight">106</i>&nbsp;                case DatabaseMetaData.procedureColumnOut:
+<i class="no-highlight">107</i>&nbsp;                case DatabaseMetaData.procedureColumnInOut:
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                    if (registerOutParams(parameterMetaData, stmt)) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                        outColumns.add(parameterMetaData);</b>
+<i class="no-highlight">110</i>&nbsp;                    }
+<i class="no-highlight">111</i>&nbsp;                    break;
+<i class="no-highlight">112</i>&nbsp;                case DatabaseMetaData.procedureColumnResult:
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                    if (StringUtils.isNotEmpty(resultSetColumnName)) {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                        throw new SnapDataException(CANNOT_RETURN_MORE_THAN_ONE_RESULT_SET)</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                                .withReason(ONE_RESULT_SET_SUPPORTED)</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                                .withResolution(RETURN_ONLY_ONE_RESULT_SET);</b>
+<i class="no-highlight">117</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                    resultSetColumnName = columnName;</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                    stmt.registerOutParameter(columnName, parameterMetaData.getSqlType());</b>
+<i class="no-highlight">120</i>&nbsp;                    break;
+<i class="no-highlight">121</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        return resultSetColumnName;</b>
+<i class="no-highlight">124</i>&nbsp;    }
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    private boolean registerOutParams(final ParameterMetaData parameterMetaData,
+<i class="no-highlight">127</i>&nbsp;            final CallableStatement stmt) throws SQLException {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        String columnName = parameterMetaData.getColumnName();</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        columnName = trimAtSign(columnName);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        if (parameterMetaData.getSqlType() == Types.OTHER) {</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            if (((ParameterMetaDataImpl) (parameterMetaData)).isTableType()) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                stmt.registerOutParameter(columnName, Types.ARRAY,</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                        parameterMetaData.getTypeName());</b>
+<i class="no-highlight">134</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                stmt.registerOutParameter(columnName, Types.STRUCT,</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                        parameterMetaData.getTypeName());</b>
+<i class="no-highlight">137</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        } else if (parameterMetaData.getSqlType() == Types.NULL) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            return false; // table output is returned as result set</b>
+<i class="no-highlight">140</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            stmt.registerOutParameter(columnName, parameterMetaData.getSqlType());</b>
+<i class="no-highlight">142</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        return true;</b>
+<i class="no-highlight">144</i>&nbsp;    }
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;    /**
+<i class="no-highlight">147</i>&nbsp;     * Removes @ character at the beginning of the string.
+<i class="no-highlight">148</i>&nbsp;     *
+<i class="no-highlight">149</i>&nbsp;     * @param string - a string
+<i class="no-highlight">150</i>&nbsp;     *
+<i class="no-highlight">151</i>&nbsp;     * @return string without @ prefix
+<i class="no-highlight">152</i>&nbsp;     */
+<i class="no-highlight">153</i>&nbsp;    protected static String trimAtSign(String string) {
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        if (StringUtils.startsWith(string, AT)) {</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;            string = string.substring(1);</b>
+<i class="no-highlight">156</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        return string;</b>
+<i class="no-highlight">158</i>&nbsp;    }
+<i class="no-highlight">159</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

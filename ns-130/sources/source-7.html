@@ -1,0 +1,426 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MessageUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.rabbitmq</a>
+</div>
+
+<h1>Coverage Summary for Class: MessageUtils (com.snaplogic.snaps.rabbitmq)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MessageUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/169)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.rabbitmq;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+<i class="no-highlight">15</i>&nbsp;import com.fasterxml.jackson.databind.module.SimpleModule;
+<i class="no-highlight">16</i>&nbsp;import com.fasterxml.jackson.datatype.joda.JodaModule;
+<i class="no-highlight">17</i>&nbsp;import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">19</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">20</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">21</i>&nbsp;import com.rabbitmq.client.AMQP;
+<i class="no-highlight">22</i>&nbsp;import com.rabbitmq.client.AMQP.BasicProperties;
+<i class="no-highlight">23</i>&nbsp;import com.rabbitmq.client.AMQP.BasicProperties.Builder;
+<i class="no-highlight">24</i>&nbsp;import com.rabbitmq.client.Envelope;
+<i class="no-highlight">25</i>&nbsp;import com.rabbitmq.client.LongString;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.JsonFactoryModule;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">36</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">39</i>&nbsp;import java.util.List;
+<i class="no-highlight">40</i>&nbsp;import java.util.Map;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.rabbitmq.MessageConstants.*;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.rabbitmq.Messages.*;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;/**
+<i class="no-highlight">46</i>&nbsp; * A utility class for RabbitMQ snaps
+<i class="no-highlight">47</i>&nbsp; *
+<i class="no-highlight">48</i>&nbsp; * @author kgade
+<i class="no-highlight">49</i>&nbsp; */
+<b class="nc"><i class="no-highlight">50</i>&nbsp;public class MessageUtils {</b>
+<i class="no-highlight">51</i>&nbsp;
+<b class="nc"><i class="no-highlight">52</i>&nbsp;    static ObjectMapper mapper = new ObjectMapper();</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;    static SimpleModule module = new SimpleModule();</b>
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;    static {
+<b class="nc"><i class="no-highlight">56</i>&nbsp;        mapper.registerModule(new JsonFactoryModule());</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        module.addSerializer(LongString.class, new LongStringSerializer());</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;        mapper.registerModule(new JodaModule());</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;        mapper.registerModule(new JavaTimeModule());</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;        mapper.registerModule(module);</b>
+<i class="no-highlight">61</i>&nbsp;    }
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;    /**
+<i class="no-highlight">64</i>&nbsp;     * Sets the property key-value pairs in the outgoing message
+<i class="no-highlight">65</i>&nbsp;     *
+<i class="no-highlight">66</i>&nbsp;     * @param messageProperties A message property table
+<i class="no-highlight">67</i>&nbsp;     * @param header            Header document
+<i class="no-highlight">68</i>&nbsp;     * @return BasicProperties
+<i class="no-highlight">69</i>&nbsp;     */
+<i class="no-highlight">70</i>&nbsp;    public static BasicProperties populateMessageProperties (
+<i class="no-highlight">71</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; messageProperties, Document header) {
+<b class="nc"><i class="no-highlight">72</i>&nbsp;        String propName = null;</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        Builder propBuilder = new AMQP.BasicProperties.Builder();</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        Map&lt;String, Object&gt; headers = new HashMap&lt;String, Object&gt;();</b>
+<i class="no-highlight">75</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            for (Map&lt;String, Object&gt; messageProp : messageProperties) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                propName = (String) messageProp.get(MessageProducer.MESSAGE_PROPERTY_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                if (StringUtils.isBlank(propName)) {</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                    continue;</b>
+<i class="no-highlight">80</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                ExpressionProperty headerValueProperty = (ExpressionProperty) messageProp</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                        .get(MessageProducer.MESSAGE_PROPERTY_VALUE_PROP);</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                String headerValue = headerValueProperty.eval(header);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                switch (propName) {</b>
+<i class="no-highlight">85</i>&nbsp;                    case DELIVERY_MODE:
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                        propBuilder.deliveryMode(Integer.parseInt(headerValue));</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                        break;</b>
+<i class="no-highlight">88</i>&nbsp;                    case EXPIRATION:
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                        propBuilder.expiration(headerValue);</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                        break;</b>
+<i class="no-highlight">91</i>&nbsp;                    case PRIORITY:
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                        propBuilder.priority(Integer.parseInt(headerValue));</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                        break;</b>
+<i class="no-highlight">94</i>&nbsp;                    case MESSAGE_ID:
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                        propBuilder.messageId(headerValue);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                        break;</b>
+<i class="no-highlight">97</i>&nbsp;                    case USER_ID:
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                        propBuilder.userId(headerValue);</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                        break;</b>
+<i class="no-highlight">100</i>&nbsp;                    case CONTENT_TYPE:
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                        propBuilder.contentType(headerValue);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                        break;</b>
+<i class="no-highlight">103</i>&nbsp;                    case CORRELATION_ID:
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                        propBuilder.correlationId(headerValue);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                        break;</b>
+<i class="no-highlight">106</i>&nbsp;                    default:
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                        headers.put(propName, headerValue);</b>
+<i class="no-highlight">108</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">109</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            if (headers.size() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                propBuilder.headers(headers);</b>
+<i class="no-highlight">112</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            return propBuilder.build();</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            throw new ExecutionException(e, ERROR_WHILE_SETTING_MESSAGE_PROPERTIES)</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                    .withResolution(String.format(PLEASE_CHECK_VALIDITY_FOR_PROPERTY, propName));</b>
+<i class="no-highlight">118</i>&nbsp;        }
+<i class="no-highlight">119</i>&nbsp;    }
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;    public static Map populateHeaderProperties(List&lt;Map&lt;String, Object&gt;&gt;
+<i class="no-highlight">122</i>&nbsp;                                                       headerMessageProperties,
+<i class="no-highlight">123</i>&nbsp;                                               Document header, String xmatch) {
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        String headerName = null;</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        Map&lt;String, Object&gt; headers = new HashMap&lt;String, Object&gt;();</b>
+<i class="no-highlight">126</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            for (Map&lt;String, Object&gt; headerProp : headerMessageProperties) {</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                ExpressionProperty headerKeyProperty = (ExpressionProperty) headerProp</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                        .get(HEADER_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                headerName = headerKeyProperty.eval(header);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                if (StringUtils.isBlank(headerName)) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                    throw new SnapDataException(ERROR_HEADER_NAME_PROPERTY);</b>
+<i class="no-highlight">133</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                ExpressionProperty headerValueProperty = (ExpressionProperty) headerProp</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                        .get(HEADER_VALUE_PROP);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                String headerValue = headerValueProperty.eval(header);</b>
+<i class="no-highlight">137</i>&nbsp;
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                if (StringUtils.isEmpty(headerValue)) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    headers.put(headerName, &quot;&quot;);</b>
+<i class="no-highlight">140</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                    headers.put(headerName, headerValue);</b>
+<i class="no-highlight">142</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            headers.put(&quot;x-match&quot;, xmatch);</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            return headers;</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            throw new ExecutionException(e, ERROR_WHILE_SETTING_HEADER_PROPERTIES)</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                    .withResolution(PLEASE_CHECK_VALIDITY_FOR_HEADER_PROPERTY);</b>
+<i class="no-highlight">150</i>&nbsp;        }
+<i class="no-highlight">151</i>&nbsp;    }
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    public static Map&lt;String, Object&gt; populateArgumentProperties(List&lt;Map&lt;String, Object&gt;&gt;
+<i class="no-highlight">154</i>&nbsp;                                                       argumentProperties,
+<i class="no-highlight">155</i>&nbsp;                                               Document inputDoc) throws ExecutionException {
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        String argumentName = null;</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        Map&lt;String, Object&gt; argumentMap = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        if (argumentProperties == null || argumentProperties.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;            return null;</b>
+<i class="no-highlight">160</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        for (Map&lt;String, Object&gt; argumentProp : argumentProperties) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;            ExpressionProperty argumentKeyProperty = (ExpressionProperty) argumentProp</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                    .get(ARGUMENT_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            argumentName = argumentKeyProperty.eval(inputDoc);</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;            if (StringUtils.isBlank(argumentName)) {</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                throw new SnapDataException(ERROR_ARGUMENT_NAME_PROPERTY);</b>
+<i class="no-highlight">167</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            ExpressionProperty argumentValueProperty = (ExpressionProperty) argumentProp</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                    .get(ARGUMENT_VALUE_PROP);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;            Object argumentValue = argumentValueProperty.eval(inputDoc);</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            if (argumentValue instanceof Number) {</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                argumentValue = ((Number)argumentValue).intValue();</b>
+<i class="no-highlight">173</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">174</i>&nbsp;            if (!argumentMap.containsKey(argumentName)) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                argumentMap.put(argumentName, argumentValue);</b>
+<i class="no-highlight">176</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                throw new SnapDataException(ERROR_DUPLICATE_ARGUMENT_NAME_PROPERTY)</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                        .withReason(REASON_DUPLICATE_ARGUMENT_NAME_PROPERTY)</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                        .withResolution(RES_DUPLICATE_ARGUMENT_NAME_PROPERTY);</b>
+<i class="no-highlight">180</i>&nbsp;            }
+<i class="no-highlight">181</i>&nbsp;
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        return argumentMap;</b>
+<i class="no-highlight">184</i>&nbsp;    }
+<i class="no-highlight">185</i>&nbsp;
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;    public static List&lt;Map&lt;String, Object&gt;&gt; getHeaderPropertiesWithExp(
+<i class="no-highlight">188</i>&nbsp;            PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; headerProperties = propertyValues.get(HEADER_PROP);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; headerMessageProperties = null;</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        if (CollectionUtils.isNotEmpty(headerProperties)) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            headerMessageProperties = Lists.newArrayListWithExpectedSize(headerProperties.size());</b>
+<i class="no-highlight">193</i>&nbsp;
+<b class="nc"><i class="no-highlight">194</i>&nbsp;            for (Map&lt;String, Object&gt; headerprops : headerProperties) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                Map&lt;String, Object&gt; def = Maps.newHashMapWithExpectedSize(2);</b>
+<i class="no-highlight">196</i>&nbsp;
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                ExpressionProperty headerNameExp = propertyValues</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                        .getExpressionPropertyFor(headerprops, HEADER_KEY_PROP);</b>
+<i class="no-highlight">199</i>&nbsp;
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                def.put(HEADER_KEY_PROP, headerNameExp);</b>
+<i class="no-highlight">201</i>&nbsp;
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                ExpressionProperty valuePropExp = propertyValues</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                        .getExpressionPropertyFor(headerprops, HEADER_VALUE_PROP);</b>
+<i class="no-highlight">204</i>&nbsp;
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                def.put(HEADER_VALUE_PROP, valuePropExp);</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                headerMessageProperties.add(def);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;            }</b>
+<i class="no-highlight">208</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        return headerMessageProperties;</b>
+<i class="no-highlight">210</i>&nbsp;    }
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;    public static List&lt;Map&lt;String, Object&gt;&gt; getArgumentPropertiesWithExp(
+<i class="no-highlight">213</i>&nbsp;            PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; argumentProperties = propertyValues.get(ARGUMENT_PROP);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; argumentMessageProperties = null;</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        if (CollectionUtils.isNotEmpty(argumentProperties)) {</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            argumentMessageProperties = Lists.newArrayListWithExpectedSize(argumentProperties.size());</b>
+<i class="no-highlight">218</i>&nbsp;
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            for (Map&lt;String, Object&gt; props : argumentProperties) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                Map&lt;String, Object&gt; def = Maps.newHashMapWithExpectedSize(2);</b>
+<i class="no-highlight">221</i>&nbsp;
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                ExpressionProperty name = propertyValues</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                        .getExpressionPropertyFor(props, ARGUMENT_KEY_PROP);</b>
+<i class="no-highlight">224</i>&nbsp;
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                def.put(ARGUMENT_KEY_PROP, name);</b>
+<i class="no-highlight">226</i>&nbsp;
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                ExpressionProperty value = propertyValues</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                        .getExpressionPropertyFor(props, ARGUMENT_VALUE_PROP);</b>
+<i class="no-highlight">229</i>&nbsp;
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                def.put(ARGUMENT_VALUE_PROP, value);</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                argumentMessageProperties.add(def);</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;            }</b>
+<i class="no-highlight">233</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        return argumentMessageProperties;</b>
+<i class="no-highlight">235</i>&nbsp;    }
+<i class="no-highlight">236</i>&nbsp;    /**
+<i class="no-highlight">237</i>&nbsp;     * Gets the the property header map from message properties
+<i class="no-highlight">238</i>&nbsp;     *
+<i class="no-highlight">239</i>&nbsp;     * @param props
+<i class="no-highlight">240</i>&nbsp;     * @return headerMap
+<i class="no-highlight">241</i>&nbsp;     */
+<i class="no-highlight">242</i>&nbsp;    public static Map&lt;String, Object&gt; getHeaderMap(AMQP.BasicProperties props, Envelope envelope) {
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        Map&lt;String, Object&gt; headerMap = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        headerMap.put(DELIVERY_MODE, props.getDeliveryMode());</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        headerMap.put(EXPIRATION, props.getExpiration());</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        headerMap.put(PRIORITY, props.getPriority());</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        headerMap.put(MESSAGE_ID, props.getMessageId());</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        headerMap.put(USER_ID, props.getUserId());</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        headerMap.put(CONTENT_TYPE, props.getContentType());</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        headerMap.put(CORRELATION_ID, props.getCorrelationId());</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        headerMap.put(HEADERS, mapper.convertValue(props.getHeaders(), Map.class));</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        headerMap.put(DELIVERY_TAG, envelope.getDeliveryTag());</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        headerMap.put(IS_REDELIVERED, envelope.isRedeliver());</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        return headerMap;</b>
+<i class="no-highlight">255</i>&nbsp;    }
+<i class="no-highlight">256</i>&nbsp;
+<i class="no-highlight">257</i>&nbsp;    public static SnapDataException getSnapDataException(
+<i class="no-highlight">258</i>&nbsp;            SnapException e, Document originalDocument, DocumentUtility documentUtility) {
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        Map&lt;String, Object&gt; wrapper = Maps.newHashMapWithExpectedSize(5);</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        wrapper.put(ERROR, (StringUtils.isNotBlank(e.getMessage()) ?</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                e.getMessage() : StringUtils.EMPTY));</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;        wrapper.put(STACKTRACE, Throwables.getStackTraceAsString(e));</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        wrapper.put(REASON, (StringUtils.isNotBlank(e.getReason()) ?</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                e.getReason() : StringUtils.EMPTY));</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        wrapper.put(RESOLUTION, (StringUtils.isNotBlank(e.getResolution()) ?</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                e.getResolution() : StringUtils.EMPTY));</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        SnapDataException ex = null;</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        if (originalDocument != null) {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            ex = new SnapDataException(documentUtility.newDocumentFor(</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                    originalDocument, wrapper), e, e.getMessage())</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                    .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                    .withResolution(e.getResolution());</b>
+<i class="no-highlight">273</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">274</i>&nbsp;            ex = new SnapDataException(documentUtility.newDocument(wrapper), e, e.getMessage())</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                    .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                    .withResolution(e.getResolution());</b>
+<i class="no-highlight">277</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        return ex;</b>
+<i class="no-highlight">279</i>&nbsp;    }
+<i class="no-highlight">280</i>&nbsp;
+<i class="no-highlight">281</i>&nbsp;    public static SnapException handleQueueTypeException(Exception e, String queueName, boolean isConnToErrorView,
+<i class="no-highlight">282</i>&nbsp;                                                             String error, String resolution) {
+<i class="no-highlight">283</i>&nbsp;        SnapException updatedException;
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        Throwable rootCause = e.getCause();</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        String errMsg = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        if (rootCause != null) {</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            errMsg = rootCause.getMessage();</b>
+<i class="no-highlight">288</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        if (errMsg.contains(QUEUE_TYPE)) {</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;            if (errMsg.contains(QUORUM_TYPE_CHECK)) {</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                if (e instanceof ExecutionException &amp;&amp; !isConnToErrorView) {</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                    updatedException = new ExecutionException(e, error +</b>
+<i class="no-highlight">293</i>&nbsp;                            ERROR_NO_CLASSIC_QUEUE + queueName)
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                            .withResolution(RESOLUTION_NO_CLASSIC_QUEUE);</b>
+<i class="no-highlight">296</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                    updatedException = new SnapDataException(e, error +</b>
+<i class="no-highlight">298</i>&nbsp;                            ERROR_NO_CLASSIC_QUEUE + queueName)
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                            .withResolution(RESOLUTION_NO_CLASSIC_QUEUE);</b>
+<i class="no-highlight">301</i>&nbsp;                }
+<i class="no-highlight">302</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                updatedException = new SnapDataException(e, error +</b>
+<i class="no-highlight">304</i>&nbsp;                        ERROR_NO_QUORUM_QUEUE + queueName)
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                        .withResolution(RESOLUTION_NO_QUORUM_QUEUE);</b>
+<i class="no-highlight">307</i>&nbsp;            }
+<i class="no-highlight">308</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">309</i>&nbsp;            if (!isConnToErrorView) {</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                updatedException = new ExecutionException(e, error)</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                        .withResolution(resolution);</b>
+<i class="no-highlight">313</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                updatedException = new SnapDataException(e, error)</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                        .withResolution(resolution);</b>
+<i class="no-highlight">317</i>&nbsp;            }
+<i class="no-highlight">318</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        return updatedException;</b>
+<i class="no-highlight">320</i>&nbsp;    }
+<i class="no-highlight">321</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

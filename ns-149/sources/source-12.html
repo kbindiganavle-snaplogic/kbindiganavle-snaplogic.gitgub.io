@@ -1,0 +1,273 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ServiceNowUpdateById</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.servicenow</a>
+</div>
+
+<h1>Coverage Summary for Class: ServiceNowUpdateById (com.snaplogic.snaps.servicenow)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ServiceNowUpdateById</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/43)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013-2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.servicenow;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.apache.http.StatusLine;
+<i class="no-highlight">28</i>&nbsp;import org.json.JSONObject;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">30</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import java.net.URI;
+<i class="no-highlight">33</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">34</i>&nbsp;import java.util.List;
+<i class="no-highlight">35</i>&nbsp;import java.util.Map;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">38</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snaps.servicenow.Messages.ERR_UPDATING_RECORD_INVALID_SYSID;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snaps.servicenow.Messages.ERR_UPDATING_RECORD_INVALID_SYSID_REASON;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.servicenow.Messages.ERR_UPDATING_RECORD_INVALID_SYSID_RESOLUTION;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.servicenow.Messages.ERR_WHILE_UPDATING_RECORDS;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.servicenow.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.servicenow.Messages.SERVICENOW_UPDATE_BY_ID_PURPOSE;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.servicenow.Messages.SERVICENOW_UPDATE_BY_ID_TITLE;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.servicenow.Messages.SYS_ID_KEY;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.servicenow.Messages.SYS_ID_NOT_PRESENT_IN_INCOMING_DATA;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;/**
+<i class="no-highlight">51</i>&nbsp; * Snap that updates the records by ids.
+<i class="no-highlight">52</i>&nbsp; *
+<i class="no-highlight">53</i>&nbsp; * &lt;p&gt;The snap accepts the following properties:
+<i class="no-highlight">54</i>&nbsp; * &lt;ul&gt;&lt;li&gt;Instance - a particular instance of ServiceNow&lt;/li&gt;
+<i class="no-highlight">55</i>&nbsp; * &lt;li&gt;Username - the username to access the ServiceNow instance&lt;/li&gt;
+<i class="no-highlight">56</i>&nbsp; * &lt;li&gt;Password - the password to access the ServiceNow instance&lt;/li&gt;
+<i class="no-highlight">57</i>&nbsp; * &lt;li&gt;Table - the table name into which the records are to be updated&lt;/li&gt;
+<i class="no-highlight">58</i>&nbsp; * &lt;li&gt;New Record - a new record which will replace the records whose ids
+<i class="no-highlight">59</i>&nbsp; * are streaming into this snap&lt;/li&gt;&lt;/ul&gt;
+<i class="no-highlight">60</i>&nbsp; */
+<i class="no-highlight">61</i>&nbsp;@General(title = SERVICENOW_UPDATE_BY_ID_TITLE, purpose = SERVICENOW_UPDATE_BY_ID_PURPOSE)
+<i class="no-highlight">62</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">63</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">64</i>&nbsp;public class ServiceNowUpdateById extends ServiceNowBaseWrite {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(ServiceNowUpdateById.class);</b>
+<i class="no-highlight">66</i>&nbsp;    private static final String PRECOMPILED_URI =
+<i class="no-highlight">67</i>&nbsp;            &quot;https://%s.service-now.com/%s.do?%s&amp;sysparm_action=update&amp;sysparm_query=sys_id=%s&quot;;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;    public ServiceNowUpdateById() {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        super(Action.UPDATE);</b>
+<i class="no-highlight">71</i>&nbsp;    }
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;    @Override
+<i class="no-highlight">74</i>&nbsp;    public void defineInputSchema(final SchemaProvider provider) {
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        serviceNowSuggestionUtils.suggestSchema(provider, account, table, action,</b>
+<i class="no-highlight">76</i>&nbsp;                ServiceNowSuggestionUtils
+<i class="no-highlight">77</i>&nbsp;                .SchemaType.INPUT);
+<i class="no-highlight">78</i>&nbsp;    }
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;    @Override
+<i class="no-highlight">81</i>&nbsp;    public void configure(final PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        super.configure(propertyValues);</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        inputDocList = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">84</i>&nbsp;    }
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;    @Override
+<i class="no-highlight">87</i>&nbsp;    protected void configureHttpPost() {
+<i class="no-highlight">88</i>&nbsp;        // NO-OP
+<i class="no-highlight">89</i>&nbsp;    }
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;    @Override
+<i class="no-highlight">92</i>&nbsp;    protected URI createFullURI() {
+<i class="no-highlight">93</i>&nbsp;        // Deliberately returning null... It doesn&#39;t matter since we are overriding
+<i class="no-highlight">94</i>&nbsp;        // configureHttpPost method to do NO-OP.
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        return null;</b>
+<i class="no-highlight">96</i>&nbsp;    }
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;    @Override
+<i class="no-highlight">99</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">100</i>&nbsp;    protected void processInput(final Map&lt;String, Object&gt; content, final Document document) {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        inputDocList.clear();</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        inputDocList.add(documentUtility.newDocumentFor(document, Maps.newHashMap(content)));</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        Object sysId = content.remove(SYS_ID_KEY);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        if (sysId == null) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            throw new SnapDataException(document, SYS_ID_NOT_PRESENT_IN_INCOMING_DATA)</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                    .withReason(SYS_ID_NOT_PRESENT_IN_INCOMING_DATA)</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">108</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        failSafeExecute(content, document, sysId);</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        document.acknowledge();</b>
+<i class="no-highlight">111</i>&nbsp;    }
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;    @Override
+<i class="no-highlight">114</i>&nbsp;    protected void handleHttpNotOK(int responseCode, StatusLine statusLine) {
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        throw new ExecutionException(ERR_WHILE_UPDATING_RECORDS)</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                .formatWith(responseCode)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .withReason(statusLine.getReasonPhrase())</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                .withResolution(ERR_UPDATING_RECORD_INVALID_SYSID_RESOLUTION);</b>
+<i class="no-highlight">119</i>&nbsp;    }
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;    @Override
+<i class="no-highlight">122</i>&nbsp;    protected void handleRecords(List&lt;Map&lt;String, Object&gt;&gt; records, List&lt;Document&gt; inputDocList) {
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        if (records.size() == 0) {</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            SnapDataException ex = new SnapDataException(ERR_UPDATING_RECORD_INVALID_SYSID)</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                    .withReason(ERR_UPDATING_RECORD_INVALID_SYSID_REASON)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                    .withResolution(ERR_UPDATING_RECORD_INVALID_SYSID_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;           throw ex;</b>
+<i class="no-highlight">128</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        filterErrorDataFromResponse(records);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        if (records.isEmpty()) {</b>
+<i class="no-highlight">131</i>&nbsp;            return;
+<i class="no-highlight">132</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        Document responseDoc = documentUtility.newDocument(records.get(0));</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        outputViews.write(responseDoc, inputDocList.get(0));</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        recordCounter.inc();</b>
+<i class="no-highlight">136</i>&nbsp;    }
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;    private void failSafeExecute(Map&lt;String, Object&gt; content, Document document, Object sysId) {
+<i class="no-highlight">139</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            Failsafe.with(createRetryPolicy()).run(() -&gt; {</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                setURIInHttpPost(String.format(PRECOMPILED_URI, account.getInstance(), table,</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                        jsonWSVersion.name(), sysId));</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                setEntityInHttpPost(new JSONObject(content).toString());</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                executeRequest();</b>
+<i class="no-highlight">145</i>&nbsp;            });
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        } catch (SnapException ex) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            throw ex;</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        }</b>
+<i class="no-highlight">149</i>&nbsp;    }
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    /**
+<i class="no-highlight">152</i>&nbsp;     * Create FailSafe Retry policy with the retry attempts and retry interval provided by the user
+<i class="no-highlight">153</i>&nbsp;     *
+<i class="no-highlight">154</i>&nbsp;     * @return RetryPolicy object
+<i class="no-highlight">155</i>&nbsp;     */
+<i class="no-highlight">156</i>&nbsp;    public RetryPolicy&lt;Object&gt; createRetryPolicy() {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        return super.createRetryPolicy()</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .onFailedAttempt(event -&gt; LOG.warn(&quot;servicenow_update_retry: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                        event.getLastFailure().getMessage()))</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                .onRetry(event -&gt; LOG.warn(&quot;servicenow_update_retry: attempt {}&quot;,</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                        event.getAttemptCount()));</b>
+<i class="no-highlight">162</i>&nbsp;    }
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;    @Override
+<i class="no-highlight">165</i>&nbsp;    public Logger getLogger() {
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        return LOG;</b>
+<i class="no-highlight">167</i>&nbsp;    }
+<i class="no-highlight">168</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

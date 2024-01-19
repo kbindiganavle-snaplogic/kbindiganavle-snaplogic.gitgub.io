@@ -1,0 +1,292 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SpreadsheetsBrowser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.google.spreadsheet</a>
+</div>
+
+<h1>Coverage Summary for Class: SpreadsheetsBrowser (com.snaplogic.snaps.google.spreadsheet)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SpreadsheetsBrowser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/66)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.google.spreadsheet;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.api.services.drive.model.File;
+<i class="no-highlight">15</i>&nbsp;import com.google.api.services.drive.model.FileList;
+<i class="no-highlight">16</i>&nbsp;import com.google.api.services.sheets.v4.model.Sheet;
+<i class="no-highlight">17</i>&nbsp;import com.google.api.services.sheets.v4.model.SheetProperties;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">38</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">39</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">42</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">43</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">44</i>&nbsp;import java.util.List;
+<i class="no-highlight">45</i>&nbsp;import java.util.Map;
+<i class="no-highlight">46</i>&nbsp;import java.util.Set;
+<i class="no-highlight">47</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snap.Utils.STAR;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snap.Utils.defineRetryProperties;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snap.Utils.getRegexPattern;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.google.spreadsheet.Constants.VERSION_4;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snaps.google.spreadsheet.Constants.SPREADSHEETS_FETCH_MODE;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snaps.google.spreadsheet.Constants.SPREADSHEETS_AND_WORKSHEETS_FETCH_MODE;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.google.spreadsheet.Messages.*;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;/**
+<i class="no-highlight">58</i>&nbsp; * Snap to browse the google driver folderr and fetch the details of the spreadsheets satisfying
+<i class="no-highlight">59</i>&nbsp; * the given pattern.
+<i class="no-highlight">60</i>&nbsp; *
+<i class="no-highlight">61</i>&nbsp; * @author smudassir
+<i class="no-highlight">62</i>&nbsp; */
+<i class="no-highlight">63</i>&nbsp;@Inputs(min = 0, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">64</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">65</i>&nbsp;@General(title = BROWSER_TITLE, purpose = BROWSER_DESC)
+<i class="no-highlight">66</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">67</i>&nbsp;@Category(snap = SnapCategory.READ)
+<b class="nc"><i class="no-highlight">68</i>&nbsp;public class SpreadsheetsBrowser extends SpreadsheetsBase {</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(SpreadsheetsBrowser.class);</b>
+<i class="no-highlight">70</i>&nbsp;    private static final String KEY_NAME_FILTER = &quot;KeyForNameFilter&quot;;
+<i class="no-highlight">71</i>&nbsp;    private static final String PROP_FETCH_MODE = &quot;KeyForFetchMode&quot;;
+<b class="nc"><i class="no-highlight">72</i>&nbsp;    private static final Set&lt;String&gt; ALLOWED_FETCH_MODES = ImmutableSet.of(</b>
+<i class="no-highlight">73</i>&nbsp;            SPREADSHEETS_AND_WORKSHEETS_FETCH_MODE,
+<i class="no-highlight">74</i>&nbsp;            SPREADSHEETS_FETCH_MODE);
+<i class="no-highlight">75</i>&nbsp;    protected ExpressionProperty nameFilter;
+<i class="no-highlight">76</i>&nbsp;    private String fetchMode;
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;    @Override
+<i class="no-highlight">79</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        propertyBuilder.describe(KEY_INCLUDE_SHARED_DRIVES, LABEL_INCLUDE_SHARED_DRIVE,</b>
+<i class="no-highlight">81</i>&nbsp;                        DESC_INCLUDE_SHARED_DRIVE)
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        propertyBuilder.describe(KEY_NAME_FILTER, LABEL_NAME_FILTER, DESC_NAME_FILTER)</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        propertyBuilder.describe(PROP_FETCH_MODE, LABEL_FETCH_MODE, DESC_FETCH_MODE)</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                .withAllowedValues(ALLOWED_FETCH_MODES)</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                .defaultValue(SPREADSHEETS_AND_WORKSHEETS_FETCH_MODE)</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                .add();</b>
+<i class="no-highlight">92</i>&nbsp;
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        defineRetryProperties(propertyBuilder, RETRIES_DESC, DEFAULT_RETRIES);</b>
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    @Override
+<i class="no-highlight">97</i>&nbsp;    void defineAdditionalProperties(PropertyBuilder propertyBuilder) {
+<i class="no-highlight">98</i>&nbsp;        //NO-OP
+<i class="no-highlight">99</i>&nbsp;    }
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;    @Override
+<i class="no-highlight">102</i>&nbsp;    public void configureAdditional(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        nameFilter = propertyValues.getAsExpression(KEY_NAME_FILTER);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        fetchMode = propertyValues.get(PROP_FETCH_MODE);</b>
+<i class="no-highlight">105</i>&nbsp;        // newly added PROP_FETCH_MODE property may break existing pipelines;
+<i class="no-highlight">106</i>&nbsp;        // so make it backward compatible with existing pipelines
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        fetchMode = StringUtils.isBlank(fetchMode) ?</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                SPREADSHEETS_AND_WORKSHEETS_FETCH_MODE : fetchMode;</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        ((SheetsApiAccount) googleAccount).setSheetsAPIversion(VERSION_4);</b>
+<i class="no-highlight">110</i>&nbsp;    }
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;    @Override
+<i class="no-highlight">113</i>&nbsp;    protected void processAdditional(Document document, String inputViewName) {
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        String glob = nameFilter.eval(document);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        Pattern pattern = getRegexPattern(StringUtils.isBlank(glob) ? STAR : glob);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        processV4(pattern, document);</b>
+<i class="no-highlight">117</i>&nbsp;    }
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;    @Override
+<i class="no-highlight">120</i>&nbsp;    public void defineInputSchemaAdditional(SchemaProvider schemaProvider, List&lt;Schema&gt; schemas) {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        schemas.add(schemaProvider.createSchema(SnapType.STRING, BROWSER_IN_VIEW_FIELD_FILTER));</b>
+<i class="no-highlight">122</i>&nbsp;    }
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;    @Override
+<i class="no-highlight">125</i>&nbsp;    public boolean isReadHeaderPropertyRequired() {
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        return false;</b>
+<i class="no-highlight">127</i>&nbsp;    }
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    @Override
+<i class="no-highlight">130</i>&nbsp;    public String getDescription() {
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        return StringUtils.EMPTY;</b>
+<i class="no-highlight">132</i>&nbsp;    }
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    private void processV4(Pattern pattern, Document document) {
+<i class="no-highlight">135</i>&nbsp;        FileList fileList;
+<i class="no-highlight">136</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            fileList = getSpreadSheetList(googleDrive);</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            errorViews.write(e, document);</b>
+<i class="no-highlight">140</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        }</b>
+<i class="no-highlight">142</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            if (fileList != null) {</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                for (File file : fileList.getFiles()) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                    String title = file.getName();</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                    if (pattern.matcher(title).matches()) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                        Map&lt;String, Object&gt; spreadsheetData = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                        spreadsheetData.put(SPREADSHEET_NAME, title);</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                        String spreadsheetId = file.getId();</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                        spreadsheetData.put(SPREADSHEET_ID, spreadsheetId);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                        List&lt;Map&lt;String, Object&gt;&gt; worksheets = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                        if (fetchMode.equals(SPREADSHEETS_AND_WORKSHEETS_FETCH_MODE) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                                StringUtils.isNotBlank(spreadsheetId)) {</b>
+<i class="no-highlight">154</i>&nbsp;                            try {
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                                List&lt;Sheet&gt; sheetList = getWorksheets(sheets, spreadsheetId);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                                spreadsheetData.put(WORKSHEETS, worksheets);</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                                if (sheetList != null) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                                    for (Sheet sheet : sheetList) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                                        SheetProperties sheetProperties = sheet.getProperties();</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                                        String sheetTitle = sheetProperties.getTitle();</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                                        Integer sheetId = sheetProperties.getSheetId();</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                                        Map&lt;String, Object&gt; sheetData = new LinkedHashMap&lt;&gt;(2);</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                                        sheetData.put(WORKSHEET_NAME, sheetTitle);</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                                        sheetData.put(WORKSHEET_ID, sheetId);</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                                        worksheets.add(sheetData);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                                    }</b>
+<i class="no-highlight">167</i>&nbsp;                                }
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                                errorViews.write((SnapDataException)</b>
+<i class="no-highlight">170</i>&nbsp;                                        new SnapDataException(e, ERR_GET_WORKSHEETS)
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                                        .formatWith(title)</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                                        .withResolution(RESOLUTION_ADDRESS_ISSUE), document);</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                            }</b>
+<i class="no-highlight">174</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                        outputViews.write(documentUtility.newDocumentFor(document, spreadsheetData));</b>
+<i class="no-highlight">176</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                }</b>
+<i class="no-highlight">178</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            errorViews.write((SnapDataException)</b>
+<i class="no-highlight">183</i>&nbsp;                    new SnapDataException(e, ERR_BROWSE_SPREADSHEET)
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE), document);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        }</b>
+<i class="no-highlight">186</i>&nbsp;    }
+<i class="no-highlight">187</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

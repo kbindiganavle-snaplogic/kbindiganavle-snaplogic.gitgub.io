@@ -1,0 +1,671 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RestRequestExecutor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.rest</a>
+</div>
+
+<h1>Coverage Summary for Class: RestRequestExecutor (com.snaplogic.snap.api.rest)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RestRequestExecutor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/190)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RestRequestExecutor$HttpDeleteWithEntity</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/193)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.rest;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">20</i>&nbsp;import org.apache.http.Header;
+<i class="no-highlight">21</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">22</i>&nbsp;import org.apache.http.HttpHeaders;
+<i class="no-highlight">23</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">24</i>&nbsp;import org.apache.http.StatusLine;
+<i class="no-highlight">25</i>&nbsp;import org.apache.http.client.methods.HttpDelete;
+<i class="no-highlight">26</i>&nbsp;import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+<i class="no-highlight">27</i>&nbsp;import org.apache.http.client.methods.HttpGet;
+<i class="no-highlight">28</i>&nbsp;import org.apache.http.client.methods.HttpPatch;
+<i class="no-highlight">29</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">30</i>&nbsp;import org.apache.http.client.methods.HttpPut;
+<i class="no-highlight">31</i>&nbsp;import org.apache.http.client.methods.HttpUriRequest;
+<i class="no-highlight">32</i>&nbsp;import org.apache.http.client.utils.DateUtils;
+<i class="no-highlight">33</i>&nbsp;import org.apache.http.util.EntityUtils;
+<i class="no-highlight">34</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">35</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">38</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">39</i>&nbsp;import java.util.Date;
+<i class="no-highlight">40</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import javax.annotation.Nullable;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snap.api.rest.Constants.RETRY_ON_CONNECTION_AND_AUTH_ERRORS_401_AND_403;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snap.api.rest.Constants.RETRY_ON_CONNECTION_AND_EVERY_400_ERROR;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snap.api.rest.Constants.RETRY_ON_CONNECTION_AND_EVERY_400_OR_500_ERROR;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snap.api.rest.Constants.RETRY_ON_CONNECTION_AND_EVERY_500_ERROR;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snap.api.rest.Constants.RETRY_ON_CONNECTION_ERRORS;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snap.api.rest.Messages.ERR_HTTP_METHOD;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snap.api.rest.Messages.ERR_HTTP_REQUEST;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snap.api.rest.Messages.ERR_HTTP_REQUEST_REASON;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snap.api.rest.Messages.ERR_PROPERTIES_RESOLUTION;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snap.api.rest.Messages.ERR_PROVIDED_HTTP_ENTITY;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snap.api.rest.Messages.ERR_UNSUPPORTED_RETRY_OPTION_MSG;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snap.api.rest.Messages.EXECUTING_REQUEST;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snap.api.rest.Messages.REQUEST_EXECUTION_FAILED;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snap.api.rest.Messages.REQUEST_EXECUTION_FAILED_RETRYING;
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;/**
+<i class="no-highlight">60</i>&nbsp; * Provides functionality to execute http requests.
+<i class="no-highlight">61</i>&nbsp; *
+<i class="no-highlight">62</i>&nbsp; * @author mklumpp
+<i class="no-highlight">63</i>&nbsp; */
+<i class="no-highlight">64</i>&nbsp;public class RestRequestExecutor {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(RestRequestExecutor.class);</b>
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;    protected final RestHttpClient restHttpClient;
+<i class="no-highlight">68</i>&nbsp;    protected final ErrorViews errorViews;
+<i class="no-highlight">69</i>&nbsp;    protected Header[] headers;
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    protected int maxRetries = 5;</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;    protected int maxOAuthRetries = 5;</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;    protected int retryInterval = 3;</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;    private String method = HttpGet.METHOD_NAME;</b>
+<i class="no-highlight">74</i>&nbsp;    private boolean trustCerts;
+<i class="no-highlight">75</i>&nbsp;    private boolean followRedirects;
+<i class="no-highlight">76</i>&nbsp;    private RestResponseProcessor restResponseProcessor;
+<b class="nc"><i class="no-highlight">77</i>&nbsp;    private int readSocketTimeoutInSec = 900;</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;    private int connTimeoutInSec = 30;</b>
+<i class="no-highlight">79</i>&nbsp;    private RetryDecider retryDecider;
+<b class="nc"><i class="no-highlight">80</i>&nbsp;    private String retryPolicy = RETRY_ON_CONNECTION_ERRORS;</b>
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;    public RestRequestExecutor(final RestHttpClient restHttpClient,
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                               final ErrorViews errorViews) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        this.restHttpClient = restHttpClient;</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        this.errorViews = errorViews;</b>
+<i class="no-highlight">86</i>&nbsp;    }
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;    public RestRequestExecutor withMethod(String method) {
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        this.method = method;</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        return this;</b>
+<i class="no-highlight">91</i>&nbsp;    }
+<i class="no-highlight">92</i>&nbsp;
+<i class="no-highlight">93</i>&nbsp;    public RestRequestExecutor withTrustCerts(boolean trustCerts) {
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        this.trustCerts = trustCerts;</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        return this;</b>
+<i class="no-highlight">96</i>&nbsp;    }
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;    public RestRequestExecutor withSocketTimeout(int readTimeout) {
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        this.readSocketTimeoutInSec = readTimeout;</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        return this;</b>
+<i class="no-highlight">101</i>&nbsp;    }
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;    public RestRequestExecutor withConnectionTimeout(int connTimeout) {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        this.connTimeoutInSec = connTimeout;</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        return this;</b>
+<i class="no-highlight">106</i>&nbsp;    }
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    public RestRequestExecutor withHeaders(Header[] headers) {
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        this.headers = headers;</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        return this;</b>
+<i class="no-highlight">111</i>&nbsp;    }
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;    public RestRequestExecutor withRetryPolicy(String retryPolicy) {
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        if (StringUtils.isNotBlank(retryPolicy)) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            this.retryPolicy = retryPolicy;</b>
+<i class="no-highlight">116</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        return this;</b>
+<i class="no-highlight">118</i>&nbsp;    }
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;    public Header[] getHeaders() {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        return headers;</b>
+<i class="no-highlight">122</i>&nbsp;    }
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;    public RestRequestExecutor withResponseProcessor(RestResponseProcessor restResponseProcessor) {
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        this.restResponseProcessor = restResponseProcessor;</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        return this;</b>
+<i class="no-highlight">127</i>&nbsp;    }
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    public RestRequestExecutor withMaxRetries(int maxRetries) {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        this.maxRetries = maxRetries;</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        return this;</b>
+<i class="no-highlight">132</i>&nbsp;    }
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    public RestRequestExecutor withRetryDecider(RetryDecider decider) {
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        this.retryDecider = decider;</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        return this;</b>
+<i class="no-highlight">137</i>&nbsp;    }
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;    /**
+<i class="no-highlight">140</i>&nbsp;     * Sets retry interval.
+<i class="no-highlight">141</i>&nbsp;     *
+<i class="no-highlight">142</i>&nbsp;     * @param retryInterval - retry interval in seconds
+<i class="no-highlight">143</i>&nbsp;     *
+<i class="no-highlight">144</i>&nbsp;     * @return this
+<i class="no-highlight">145</i>&nbsp;     */
+<i class="no-highlight">146</i>&nbsp;    public RestRequestExecutor withRetryInterval(int retryInterval) {
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        this.retryInterval = retryInterval;</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        return this;</b>
+<i class="no-highlight">149</i>&nbsp;    }
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    public RestRequestExecutor withFollowRedirects(boolean followRedirects) {
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        this.followRedirects = followRedirects;</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        return this;</b>
+<i class="no-highlight">154</i>&nbsp;    }
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;    /**
+<i class="no-highlight">157</i>&nbsp;     * Executes the request and returns the results
+<i class="no-highlight">158</i>&nbsp;     *
+<i class="no-highlight">159</i>&nbsp;     * @param urlResolver as the URL resolver
+<i class="no-highlight">160</i>&nbsp;     */
+<i class="no-highlight">161</i>&nbsp;    public Object execute(URLResolver urlResolver) {
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        return execute(null, urlResolver);</b>
+<i class="no-highlight">163</i>&nbsp;    }
+<i class="no-highlight">164</i>&nbsp;
+<i class="no-highlight">165</i>&nbsp;    /**
+<i class="no-highlight">166</i>&nbsp;     * Executes the request with a current document and writes the results to the output view. Any
+<i class="no-highlight">167</i>&nbsp;     * errors are written to the error view.
+<i class="no-highlight">168</i>&nbsp;     *
+<i class="no-highlight">169</i>&nbsp;     * @param document    the document
+<i class="no-highlight">170</i>&nbsp;     * @param urlResolver as the URL resolver
+<i class="no-highlight">171</i>&nbsp;     */
+<i class="no-highlight">172</i>&nbsp;    public Object execute(Document document, URLResolver urlResolver) {
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        return execute(document, document, urlResolver, null);</b>
+<i class="no-highlight">174</i>&nbsp;    }
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;    /**
+<i class="no-highlight">177</i>&nbsp;     * Executes the request with a current document
+<i class="no-highlight">178</i>&nbsp;     *
+<i class="no-highlight">179</i>&nbsp;     * @param document        as the document to use
+<i class="no-highlight">180</i>&nbsp;     * @param payloadDocument the document to use as the payload for the request
+<i class="no-highlight">181</i>&nbsp;     * @param urlResolver     as the URL resolver
+<i class="no-highlight">182</i>&nbsp;     * @param dataHandler     as the handler that processes the incoming document
+<i class="no-highlight">183</i>&nbsp;     */
+<i class="no-highlight">184</i>&nbsp;    public Object execute(Document document, Document payloadDocument, URLResolver urlResolver,
+<i class="no-highlight">185</i>&nbsp;            @Nullable RequestDataHandler&lt;? extends HttpEntity&gt; dataHandler) {
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        Object result = null;</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        SnapDataException ex = null;</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        int retry = 0;</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        while (retry++ &lt; maxRetries) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;            result = executeOnce(document, payloadDocument, urlResolver, dataHandler);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;            ex = restResponseProcessor.getDownloadException();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            if (ex == null) {</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                return result;</b>
+<i class="no-highlight">194</i>&nbsp;            } else {
+<i class="no-highlight">195</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                    TimeUnit.SECONDS.sleep(retryInterval);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                    LOG.error(&quot;Interrupted while sleeping, but ignored&quot;, e);</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                restResponseProcessor.resetDownloadException();</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                LOG.info(&quot;Failed to download HTTP entity content, retrying...&quot;);</b>
+<i class="no-highlight">202</i>&nbsp;            }
+<i class="no-highlight">203</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        if (ex != null) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            errorViews.write(ex, document);</b>
+<i class="no-highlight">206</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        return result;</b>
+<i class="no-highlight">208</i>&nbsp;    }
+<i class="no-highlight">209</i>&nbsp;
+<i class="no-highlight">210</i>&nbsp;    private Object executeOnce(Document document, Document payloadDocument,
+<i class="no-highlight">211</i>&nbsp;            URLResolver urlResolver, RequestDataHandler&lt;? extends HttpEntity&gt; dataHandler) {
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        HttpEntity entity = null;</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        HttpResponse httpResponse = null;</b>
+<i class="no-highlight">214</i>&nbsp;
+<i class="no-highlight">215</i>&nbsp;        // Number of request attempts to the service endpoint
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        int retry = 0;</b>
+<i class="no-highlight">217</i>&nbsp;
+<i class="no-highlight">218</i>&nbsp;        // Number of retries for OAuth failures (401/403)
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        int oauthRetry = 0;</b>
+<i class="no-highlight">220</i>&nbsp;
+<i class="no-highlight">221</i>&nbsp;        // Boolean variable indicates whether the account instance is updated.
+<i class="no-highlight">222</i>&nbsp;        // It will be true only if &quot;retryImmediately()&quot; returns true.
+<i class="no-highlight">223</i>&nbsp;        // That means there is a newer account instance to be used for retry.
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        boolean isAccountReloaded = false;</b>
+<i class="no-highlight">225</i>&nbsp;
+<i class="no-highlight">226</i>&nbsp;        String url;
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        restResponseProcessor.resetDownloadException();</b>
+<i class="no-highlight">228</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">229</i>&nbsp;            url = urlResolver.resolveUrl(document);</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        } catch (SnapDataException ex) {</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        }</b>
+<i class="no-highlight">234</i>&nbsp;
+<i class="no-highlight">235</i>&nbsp;        /*
+<i class="no-highlight">236</i>&nbsp;         This attempts to execute the request and will retry when either
+<i class="no-highlight">237</i>&nbsp;         1. 401/403 error, the account instance is updated and does not exceed OAuth retry limit.
+<i class="no-highlight">238</i>&nbsp;            This is separated from the Snap request attempts setting.
+<i class="no-highlight">239</i>&nbsp;         2. The error code matches the user select retry policy,
+<i class="no-highlight">240</i>&nbsp;            and the current request attempts does not exceed the max request attempts setting.
+<i class="no-highlight">241</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        while ((isAccountReloaded &amp;&amp; oauthRetry &lt; maxOAuthRetries) || retry &lt; maxRetries) {</b>
+<i class="no-highlight">243</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                if (retry + oauthRetry &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                    LOG.debug(String.format(EXECUTING_REQUEST, retry + oauthRetry));</b>
+<i class="no-highlight">246</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                if (httpResponse != null) {</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                    EntityUtils.consumeQuietly(httpResponse.getEntity());</b>
+<i class="no-highlight">249</i>&nbsp;                }
+<i class="no-highlight">250</i>&nbsp;                // always reset to false because the next attempt could be a different error
+<i class="no-highlight">251</i>&nbsp;                // For example, get 401 -&gt; reload account -&gt; retry -&gt; get 503
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                isAccountReloaded = false;</b>
+<i class="no-highlight">253</i>&nbsp;
+<i class="no-highlight">254</i>&nbsp;                // create entity if null or cannot produce its data more than once
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                if (dataHandler != null &amp;&amp; (entity == null || !entity.isRepeatable())) {</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                    entity = dataHandler.createEntity(payloadDocument);</b>
+<i class="no-highlight">257</i>&nbsp;                }
+<i class="no-highlight">258</i>&nbsp;                // The request() method invocation below will throw exception for connection or
+<i class="no-highlight">259</i>&nbsp;                //  network failures.
+<i class="no-highlight">260</i>&nbsp;                // If so then retries are handled in catch block.
+<i class="no-highlight">261</i>&nbsp;                // Else, if there is any client/server error then isRetryRequested() will decide
+<i class="no-highlight">262</i>&nbsp;                //  whether to do retry or not based on user&#39;s retry policy
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                httpResponse = request(url, entity);</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                if (retryDecider != null &amp;&amp; httpResponse != null) {</b>
+<i class="no-highlight">265</i>&nbsp;                    /*
+<i class="no-highlight">266</i>&nbsp;                    &quot;retryImmediately&quot; will check if the account is OAuth, the response
+<i class="no-highlight">267</i>&nbsp;                     status code is 401 or 403, and that the server has a different account
+<i class="no-highlight">268</i>&nbsp;                     instance FQID than the one the Snap currently has; if so, it will reload the
+<i class="no-highlight">269</i>&nbsp;                     account instance from the Platform and rebuild the Authorization header.
+<i class="no-highlight">270</i>&nbsp;                     */
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                    if (oauthRetry &lt; maxOAuthRetries</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                            &amp;&amp; retryDecider.retryImmediately(httpResponse)) {</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                        oauthRetry++;</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                        isAccountReloaded = true;</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                        LOG.warn(&quot;jrest_retry - retrying request immediately&quot;);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                        continue;</b>
+<i class="no-highlight">277</i>&nbsp;                    }
+<i class="no-highlight">278</i>&nbsp;
+<i class="no-highlight">279</i>&nbsp;                    /*
+<i class="no-highlight">280</i>&nbsp;                    Then, if the response is 429 &quot;Too Many Requests&quot;, we will try to capture the
+<i class="no-highlight">281</i>&nbsp;                    value from the &#39;Retry-After&#39; Header, and retry the request automatically
+<i class="no-highlight">282</i>&nbsp;                     */
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                    if (httpResponse.getStatusLine() != null</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                            &amp;&amp; httpResponse.getStatusLine().getStatusCode() == 429) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                        long timeout = getIntervalFromRetryAfter(httpResponse);</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                        LOG.warn(&quot;jrest_retry - The endpoint returns {}, will retry after {} &quot; +</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                                &quot;seconds&quot;, httpResponse.getStatusLine().getStatusCode(), timeout);</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                        retry++;</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                        sleepFor(timeout);</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                        continue;</b>
+<i class="no-highlight">291</i>&nbsp;                    }
+<i class="no-highlight">292</i>&nbsp;
+<i class="no-highlight">293</i>&nbsp;                    /*
+<i class="no-highlight">294</i>&nbsp;                    Otherwise, if the user decides to retry on 4xx/5xx errors then that is handled
+<i class="no-highlight">295</i>&nbsp;                    in isRetryRequired() method. It will check if the response code matches
+<i class="no-highlight">296</i>&nbsp;                    the select retry policy.
+<i class="no-highlight">297</i>&nbsp;                     */
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                    if (isRetryRequested(httpResponse)) {</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                        retry++;</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                        LOG.warn(String.format(&quot;jrest_retry - retrying request after %d seconds&quot;,</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                                retryInterval));</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                        sleepFor(retryInterval);</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                        continue;</b>
+<i class="no-highlight">304</i>&nbsp;                    }
+<i class="no-highlight">305</i>&nbsp;                }
+<i class="no-highlight">306</i>&nbsp;                // otherwise give up
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                break;</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;            } catch (ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                retry++;</b>
+<i class="no-highlight">310</i>&nbsp;                // By default, any exception occurred as a result of invocation is retried
+<i class="no-highlight">311</i>&nbsp;                // So connection/network errors would be retried here
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                if (retry == maxRetries) {</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                    SnapDataException ex = new SnapDataException(e, e.getMessage())</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                            .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                            .withResolution(e.getResolution());</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                    errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                    return null;</b>
+<i class="no-highlight">318</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                sleepFor(retryInterval);</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                LOG.error(String.format(REQUEST_EXECUTION_FAILED_RETRYING, maxRetries - retry), e);</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;            }</b>
+<i class="no-highlight">322</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        return execute(url, httpResponse, document);</b>
+<i class="no-highlight">324</i>&nbsp;    }
+<i class="no-highlight">325</i>&nbsp;
+<i class="no-highlight">326</i>&nbsp;    /**
+<i class="no-highlight">327</i>&nbsp;     * Try to get the retry interval from the Retry-After Header.
+<i class="no-highlight">328</i>&nbsp;     *
+<i class="no-highlight">329</i>&nbsp;     * If the Retry-After is a number,
+<i class="no-highlight">330</i>&nbsp;     * we will treat it as the number of seconds.
+<i class="no-highlight">331</i>&nbsp;     *
+<i class="no-highlight">332</i>&nbsp;     * Otherwise, it would be a datetime, and we will
+<i class="no-highlight">333</i>&nbsp;     * calculate the interval accordingly.
+<i class="no-highlight">334</i>&nbsp;     *
+<i class="no-highlight">335</i>&nbsp;     * The interval would not be longer than 15 mins
+<i class="no-highlight">336</i>&nbsp;     *
+<i class="no-highlight">337</i>&nbsp;     * If the Header is not present, we will follow the retry interval set from the Snap
+<i class="no-highlight">338</i>&nbsp;     * @param httpResponse
+<i class="no-highlight">339</i>&nbsp;     * @return
+<i class="no-highlight">340</i>&nbsp;     */
+<i class="no-highlight">341</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">342</i>&nbsp;    long getIntervalFromRetryAfter(HttpResponse httpResponse) {
+<b class="nc"><i class="no-highlight">343</i>&nbsp;        long timeout = retryInterval;</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;        Header retryAfterHeader = httpResponse.getFirstHeader(HttpHeaders.RETRY_AFTER);</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        if (retryAfterHeader != null) {</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;            if (StringUtils.isNumeric(retryAfterHeader.getValue())) {</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                timeout = Long.parseLong(retryAfterHeader.getValue());</b>
+<i class="no-highlight">348</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                Date retryAfter = DateUtils.parseDate(retryAfterHeader.getValue());</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                if (retryAfter != null) {</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                    timeout = TimeUnit.MILLISECONDS.toSeconds(</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                            retryAfter.getTime() - new Date().getTime());</b>
+<i class="no-highlight">353</i>&nbsp;                }
+<i class="no-highlight">354</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">355</i>&nbsp;            timeout = Math.min(timeout, 5 * 60); // We wait for 5 mins maximum</b>
+<i class="no-highlight">356</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        return timeout;</b>
+<i class="no-highlight">358</i>&nbsp;    }
+<i class="no-highlight">359</i>&nbsp;
+<i class="no-highlight">360</i>&nbsp;    boolean isRetryRequested(HttpResponse httpResponse) {
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        if (httpResponse != null) {</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;            StatusLine statusLine = httpResponse.getStatusLine();</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;            if (statusLine != null) {</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                int statusCode = statusLine.getStatusCode();</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                return isUsersRetryChoiceMatched(statusCode);</b>
+<i class="no-highlight">366</i>&nbsp;            }
+<i class="no-highlight">367</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        return false;</b>
+<i class="no-highlight">369</i>&nbsp;    }
+<i class="no-highlight">370</i>&nbsp;
+<i class="no-highlight">371</i>&nbsp;    private boolean isUsersRetryChoiceMatched(int statusCode) {
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        switch (retryPolicy) {</b>
+<i class="no-highlight">373</i>&nbsp;            case RETRY_ON_CONNECTION_ERRORS:
+<i class="no-highlight">374</i>&nbsp;                // If its a connection error then the code flow wouldn&#39;t come to this point.
+<i class="no-highlight">375</i>&nbsp;                // Its not a connection error but 4xx or 5xx error but user chose to retry only on
+<i class="no-highlight">376</i>&nbsp;                //  connection errors.  So, return false.
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                return false;</b>
+<i class="no-highlight">378</i>&nbsp;            case RETRY_ON_CONNECTION_AND_AUTH_ERRORS_401_AND_403:
+<i class="no-highlight">379</i>&nbsp;                // User chose to retry if its 401 or 403 error status code
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                return (statusCode == 401 || statusCode == 403);</b>
+<i class="no-highlight">381</i>&nbsp;            case RETRY_ON_CONNECTION_AND_EVERY_400_ERROR:
+<i class="no-highlight">382</i>&nbsp;                // User chose to retry if its any 4xx error
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                return (statusCode &gt;= 400 &amp;&amp; statusCode &lt; 500);</b>
+<i class="no-highlight">384</i>&nbsp;            case RETRY_ON_CONNECTION_AND_EVERY_500_ERROR:
+<i class="no-highlight">385</i>&nbsp;                // User chose to retry if its any 5xx error
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                return (statusCode &gt;= 500);</b>
+<i class="no-highlight">387</i>&nbsp;            case RETRY_ON_CONNECTION_AND_EVERY_400_OR_500_ERROR:
+<i class="no-highlight">388</i>&nbsp;                // User chose to retry if its any 4xx or 5xx error
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                return (statusCode &gt;= 400);</b>
+<i class="no-highlight">390</i>&nbsp;            default:
+<i class="no-highlight">391</i>&nbsp;                // I prefer to throw error in case in future someone just adds a new policy and
+<i class="no-highlight">392</i>&nbsp;                //  didn&#39;t handle it then it should be brought to light instead of sinking it.
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                throw new SnapDataException(ERR_UNSUPPORTED_RETRY_OPTION_MSG)</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                        .formatWith(retryPolicy)</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                        .withResolutionAsDefect();</b>
+<i class="no-highlight">396</i>&nbsp;        }
+<i class="no-highlight">397</i>&nbsp;    }
+<i class="no-highlight">398</i>&nbsp;
+<i class="no-highlight">399</i>&nbsp;    public void sleepFor(long retryIntervalInSeconds) {
+<i class="no-highlight">400</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">401</i>&nbsp;            TimeUnit.SECONDS.sleep(retryIntervalInSeconds);</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        } catch (InterruptedException e1) {</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;            LOG.error(e1.getMessage(), e1);</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;        }</b>
+<i class="no-highlight">405</i>&nbsp;    }
+<i class="no-highlight">406</i>&nbsp;
+<i class="no-highlight">407</i>&nbsp;    /**
+<i class="no-highlight">408</i>&nbsp;     * Executes the request with a current document
+<i class="no-highlight">409</i>&nbsp;     *
+<i class="no-highlight">410</i>&nbsp;     * @param document    as the document to use
+<i class="no-highlight">411</i>&nbsp;     * @param urlResolver as the URL resolver
+<i class="no-highlight">412</i>&nbsp;     * @param dataHandler as the handler that processes the incoming document
+<i class="no-highlight">413</i>&nbsp;     */
+<i class="no-highlight">414</i>&nbsp;    public Object execute(Document document, URLResolver urlResolver,
+<i class="no-highlight">415</i>&nbsp;            @Nullable RequestDataHandler&lt;? extends HttpEntity&gt; dataHandler) {
+<b class="nc"><i class="no-highlight">416</i>&nbsp;        return execute(document, document, urlResolver, dataHandler);</b>
+<i class="no-highlight">417</i>&nbsp;    }
+<i class="no-highlight">418</i>&nbsp;
+<i class="no-highlight">419</i>&nbsp;    protected Object execute(String url, HttpResponse httpResponse, Document document) {
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        if (httpResponse == null) {</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;            return null;</b>
+<i class="no-highlight">422</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        if (restHttpClient != null &amp;&amp; restHttpClient.getCookieStore() != null) {</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;            restResponseProcessor.addAllCookie(restHttpClient.getCookieStore().getCookies());</b>
+<i class="no-highlight">425</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">426</i>&nbsp;        return restResponseProcessor.process(httpResponse, document, headers, url);</b>
+<i class="no-highlight">427</i>&nbsp;    }
+<i class="no-highlight">428</i>&nbsp;
+<i class="no-highlight">429</i>&nbsp;    /**
+<i class="no-highlight">430</i>&nbsp;     * Executes the request and returns the {@link HttpResponse}
+<i class="no-highlight">431</i>&nbsp;     *
+<i class="no-highlight">432</i>&nbsp;     * @param url    the url being executed
+<i class="no-highlight">433</i>&nbsp;     * @param entity the http entity if any
+<i class="no-highlight">434</i>&nbsp;     *
+<i class="no-highlight">435</i>&nbsp;     * @return the http response
+<i class="no-highlight">436</i>&nbsp;     */
+<i class="no-highlight">437</i>&nbsp;    protected HttpResponse request(String url, @Nullable HttpEntity entity) {
+<b class="nc"><i class="no-highlight">438</i>&nbsp;        HttpUriRequest uriRequest = null;</b>
+<i class="no-highlight">439</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">440</i>&nbsp;            switch (method) {</b>
+<i class="no-highlight">441</i>&nbsp;                case HttpGet.METHOD_NAME:
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                    uriRequest = new HttpGet(url);</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;                    break;</b>
+<i class="no-highlight">444</i>&nbsp;                case HttpPost.METHOD_NAME:
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                    uriRequest = setEntity(new HttpPost(url), entity);</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                    break;</b>
+<i class="no-highlight">447</i>&nbsp;                case HttpPut.METHOD_NAME:
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                    uriRequest = setEntity(new HttpPut(url), entity);</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                    break;</b>
+<i class="no-highlight">450</i>&nbsp;                case HttpDelete.METHOD_NAME:
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                    if (entity == null) {</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                        uriRequest = new HttpDelete(url);</b>
+<i class="no-highlight">453</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                        uriRequest = new HttpDeleteWithEntity(url);</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                        ((HttpDeleteWithEntity) uriRequest).setEntity(entity);</b>
+<i class="no-highlight">456</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                    break;</b>
+<i class="no-highlight">458</i>&nbsp;                case HttpPatch.METHOD_NAME:
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                    uriRequest = setEntity(new HttpPatch(url), entity);</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                    break;</b>
+<i class="no-highlight">461</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                    throw new IOException(String.format(ERR_HTTP_METHOD, method));</b>
+<i class="no-highlight">463</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">464</i>&nbsp;            if (headers != null) {</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                uriRequest.setHeaders(headers);</b>
+<i class="no-highlight">466</i>&nbsp;            }
+<i class="no-highlight">467</i>&nbsp;
+<b class="nc"><i class="no-highlight">468</i>&nbsp;            return restHttpClient.executeRequest(uriRequest, trustCerts, readSocketTimeoutInSec,</b>
+<i class="no-highlight">469</i>&nbsp;                    connTimeoutInSec, followRedirects);
+<b class="nc"><i class="no-highlight">470</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;            throw new ExecutionException(e, ERR_HTTP_REQUEST)</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                    .withResolution(ERR_PROPERTIES_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;            if (uriRequest != null) {</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;                uriRequest.abort();</b>
+<i class="no-highlight">477</i>&nbsp;            }
+<i class="no-highlight">478</i>&nbsp;            // TODO - MK: move this into SnapServiceImpl L300, we do not log the stacktrace
+<i class="no-highlight">479</i>&nbsp;            //            during suggest values.
+<b class="nc"><i class="no-highlight">480</i>&nbsp;            LOG.error(REQUEST_EXECUTION_FAILED, e);</b>
+<i class="no-highlight">481</i>&nbsp;            String reason;
+<i class="no-highlight">482</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">483</i>&nbsp;                String entityContent = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;                if (entity != null) {</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;                    entityContent = EntityUtils.toString(entity);</b>
+<i class="no-highlight">486</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                reason = String.format(ERR_HTTP_REQUEST_REASON, method, url,</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                        Arrays.toString(headers), entityContent, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;            } catch (IOException e1) {</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                throw new ExecutionException(e, ERR_PROVIDED_HTTP_ENTITY)</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                        .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;            throw new ExecutionException(e, ERR_HTTP_REQUEST)</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                    .withResolution(ERR_PROPERTIES_RESOLUTION);</b>
+<i class="no-highlight">496</i>&nbsp;        }
+<i class="no-highlight">497</i>&nbsp;    }
+<i class="no-highlight">498</i>&nbsp;
+<i class="no-highlight">499</i>&nbsp;    private HttpUriRequest setEntity(HttpEntityEnclosingRequestBase uriRequest, HttpEntity entity)
+<i class="no-highlight">500</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">501</i>&nbsp;        if (entity != null) {</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;            uriRequest.setEntity(entity);</b>
+<i class="no-highlight">503</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">504</i>&nbsp;        return uriRequest;</b>
+<i class="no-highlight">505</i>&nbsp;    }
+<i class="no-highlight">506</i>&nbsp;
+<i class="no-highlight">507</i>&nbsp;    /**
+<i class="no-highlight">508</i>&nbsp;     * Gets the output document, which is used in case of REST Get pagenation.
+<i class="no-highlight">509</i>&nbsp;     *
+<i class="no-highlight">510</i>&nbsp;     * @return document which is written to the output view
+<i class="no-highlight">511</i>&nbsp;     */
+<i class="no-highlight">512</i>&nbsp;    public Document getOutputDocument() {
+<b class="nc"><i class="no-highlight">513</i>&nbsp;        return restResponseProcessor.getOutputDocument();</b>
+<i class="no-highlight">514</i>&nbsp;    }
+<i class="no-highlight">515</i>&nbsp;
+<i class="no-highlight">516</i>&nbsp;    /**
+<i class="no-highlight">517</i>&nbsp;     * Cleans up the class for memory management and garbage collection.
+<i class="no-highlight">518</i>&nbsp;     */
+<i class="no-highlight">519</i>&nbsp;    public void cleanup() {
+<b class="nc"><i class="no-highlight">520</i>&nbsp;        restResponseProcessor.cleanup();</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;        if (restHttpClient != null) {</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;            restHttpClient.close();</b>
+<i class="no-highlight">523</i>&nbsp;        }
+<i class="no-highlight">524</i>&nbsp;    }
+<i class="no-highlight">525</i>&nbsp;
+<i class="no-highlight">526</i>&nbsp;    /**
+<i class="no-highlight">527</i>&nbsp;     * HttpDelete does not have setEntity() method. Some endpoint requires an entity for HttpDelete
+<i class="no-highlight">528</i>&nbsp;     * request. Therefore, use this class for HttpDelete if entity is not null
+<i class="no-highlight">529</i>&nbsp;     */
+<i class="no-highlight">530</i>&nbsp;    private class HttpDeleteWithEntity extends HttpPost {
+<b class="nc"><i class="no-highlight">531</i>&nbsp;        public HttpDeleteWithEntity(String url) {</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;            super(url);</b>
+<i class="no-highlight">533</i>&nbsp;        }
+<i class="no-highlight">534</i>&nbsp;
+<i class="no-highlight">535</i>&nbsp;        @Override
+<i class="no-highlight">536</i>&nbsp;        public String getMethod() {
+<b class="nc"><i class="no-highlight">537</i>&nbsp;            return HttpDelete.METHOD_NAME;</b>
+<i class="no-highlight">538</i>&nbsp;        }
+<i class="no-highlight">539</i>&nbsp;    }
+<i class="no-highlight">540</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

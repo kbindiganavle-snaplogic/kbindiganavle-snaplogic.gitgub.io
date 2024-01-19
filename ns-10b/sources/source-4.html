@@ -1,0 +1,301 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AutoWekaWrapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.mlcore.autoweka</a>
+</div>
+
+<h1>Coverage Summary for Class: AutoWekaWrapper (com.snaplogic.snaps.mlcore.autoweka)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AutoWekaWrapper</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/85)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.mlcore.autoweka;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">15</i>&nbsp;import org.joda.time.DateTime;
+<i class="no-highlight">16</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">17</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">18</i>&nbsp;import weka.core.Instances;
+<i class="no-highlight">19</i>&nbsp;import weka.core.converters.ArffSaver;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import java.io.File;
+<i class="no-highlight">22</i>&nbsp;import java.io.FileInputStream;
+<i class="no-highlight">23</i>&nbsp;import java.io.FileOutputStream;
+<i class="no-highlight">24</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">25</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">26</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">27</i>&nbsp;import java.util.List;
+<i class="no-highlight">28</i>&nbsp;import java.util.Set;
+<i class="no-highlight">29</i>&nbsp;import java.util.zip.ZipEntry;
+<i class="no-highlight">30</i>&nbsp;import java.util.zip.ZipInputStream;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.mlcore.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.mlcore.automl.Messages.ERR_BUILD_MODEL;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;/**
+<i class="no-highlight">36</i>&nbsp; * This class is responsible for converting information from pipeline to be the format that AutoWeka can execute
+<i class="no-highlight">37</i>&nbsp; */
+<i class="no-highlight">38</i>&nbsp;public class AutoWekaWrapper {
+<i class="no-highlight">39</i>&nbsp;
+<b class="nc"><i class="no-highlight">40</i>&nbsp;    private static Logger logger = LoggerFactory.getLogger(AutoWekaWrapper.class);</b>
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;    private AutoWekaParams autoWekaParams;
+<i class="no-highlight">43</i>&nbsp;
+<b class="nc"><i class="no-highlight">44</i>&nbsp;    public AutoWekaWrapper(AutoWekaParams autoWekaParams) {</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;        this.autoWekaParams = autoWekaParams;</b>
+<i class="no-highlight">46</i>&nbsp;    }
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;    private File saveInstancesToArff(File autoWekaTmpDir) throws IOException {
+<i class="no-highlight">49</i>&nbsp;
+<b class="nc"><i class="no-highlight">50</i>&nbsp;        File dataSetFile = new File(autoWekaTmpDir.getAbsolutePath() + File.separator + &quot;dataset.arff&quot;);</b>
+<i class="no-highlight">51</i>&nbsp;
+<b class="nc"><i class="no-highlight">52</i>&nbsp;        Instances instances = autoWekaParams.getDataInstances();</b>
+<i class="no-highlight">53</i>&nbsp;
+<b class="nc"><i class="no-highlight">54</i>&nbsp;        ArffSaver saver = new ArffSaver();</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;        saver.setInstances(instances);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;        saver.setFile(dataSetFile);</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        saver.writeBatch();</b>
+<i class="no-highlight">58</i>&nbsp;
+<b class="nc"><i class="no-highlight">59</i>&nbsp;        return dataSetFile;</b>
+<i class="no-highlight">60</i>&nbsp;    }
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;    private void prepareAutoWekaFiles(File autoWekaTmpDir) throws IOException {
+<i class="no-highlight">63</i>&nbsp;
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        File paramsTmpPath = new File(autoWekaTmpDir.getAbsolutePath() + File.separator);</b>
+<i class="no-highlight">65</i>&nbsp;
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        InputStream is = getClass().getResourceAsStream(&quot;/autoweka/params.zip&quot;);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        Set&lt;String&gt; allowedAlgorithmSet = autoWekaParams.getAllowedAlgorithmSet();</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        unzip(is, paramsTmpPath, allowedAlgorithmSet);</b>
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;    }
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;    private static void unzip(InputStream inputStream, File destDir, Set&lt;String&gt; allowedAlgorithmSet) throws IOException {
+<i class="no-highlight">73</i>&nbsp;        // create output directory if it doesn&#39;t exist
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        if (!destDir.exists()) destDir.mkdirs();</b>
+<i class="no-highlight">75</i>&nbsp;        FileInputStream fis;
+<i class="no-highlight">76</i>&nbsp;        //buffer for read and write data to file
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        byte[] buffer = new byte[1024];</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        ZipInputStream zis = null;</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        ZipEntry ze = null;</b>
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">82</i>&nbsp;            zis = new ZipInputStream(inputStream);</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;            ze = zis.getNextEntry();</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;            while (ze != null) {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                String fileName = ze.getName();</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                File newFile = new File(destDir + File.separator + fileName);</b>
+<i class="no-highlight">87</i>&nbsp;
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                if (ze.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    newFile.mkdirs();</b>
+<i class="no-highlight">90</i>&nbsp;                } else {
+<i class="no-highlight">91</i>&nbsp;
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                    if (!newFile.getAbsolutePath().contains(&quot;attribselection/eval&quot;) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                            !newFile.getAbsolutePath().contains(&quot;attribselection/search&quot;) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                            fileName.endsWith(&quot;.params&quot;)</b>
+<i class="no-highlight">95</i>&nbsp;                    ) {
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                        String algorithmName = fileName.substring(fileName.lastIndexOf(&#39;/&#39;) + 1, fileName.lastIndexOf(&quot;.params&quot;));</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                        if (!allowedAlgorithmSet.contains(algorithmName)) {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                            ze = zis.getNextEntry();</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                            continue;</b>
+<i class="no-highlight">100</i>&nbsp;                        }
+<i class="no-highlight">101</i>&nbsp;                    }
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;                    //create directories for sub directories in zip
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                    FileOutputStream fos = new FileOutputStream(newFile);</b>
+<i class="no-highlight">105</i>&nbsp;                    int len;
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                    while ((len = zis.read(buffer)) &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                        fos.write(buffer, 0, len);</b>
+<i class="no-highlight">108</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                    fos.close();</b>
+<i class="no-highlight">110</i>&nbsp;                }
+<i class="no-highlight">111</i>&nbsp;                //close this ZipEntry
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                zis.closeEntry();</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                ze = zis.getNextEntry();</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            }</b>
+<i class="no-highlight">115</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            if (zis != null) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                zis.closeEntry();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                zis.close();</b>
+<i class="no-highlight">119</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        }</b>
+<i class="no-highlight">121</i>&nbsp;    }
+<i class="no-highlight">122</i>&nbsp;
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;    private AutoWEKAResult runAutoWekaClassifier(File autoWekaTmpDir, File dataSetFile, File smacTempDir) {
+<i class="no-highlight">125</i>&nbsp;
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        AutoWEKAClassifierSnaplogic classifier = new AutoWEKAClassifierSnaplogic(autoWekaTmpDir, smacTempDir);</b>
+<i class="no-highlight">127</i>&nbsp;
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        long timeLimit = autoWekaParams.getTimeLimit() == 0 ? Integer.MAX_VALUE : autoWekaParams.getTimeLimit();</b>
+<i class="no-highlight">129</i>&nbsp;
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        List&lt;String&gt; dataList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        dataList.add(&quot;-t&quot;);</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        dataList.add(dataSetFile.getAbsolutePath());</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        dataList.add(&quot;-timeLimit&quot;);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        dataList.add(timeLimit + &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        dataList.add(&quot;-no-cv&quot;);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        dataList.add(&quot;-seed&quot;);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        dataList.add(autoWekaParams.getSeed() + &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        dataList.add(&quot;-metric&quot;);</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        dataList.add(autoWekaParams.getMetric());</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        dataList.add(&quot;-foldNo&quot;);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        dataList.add(autoWekaParams.getFoldNo() + &quot;&quot;);</b>
+<i class="no-highlight">142</i>&nbsp;
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        long modelLimit = autoWekaParams.getModelLimit() == 0 ? Integer.MAX_VALUE : autoWekaParams.getModelLimit();</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        if (modelLimit == 1 &amp;&amp; autoWekaParams.getExternalModel() != null) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            modelLimit--;</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            dataList.add(&quot;-skipSearch&quot;);</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            dataList.add(&quot;true&quot;);</b>
+<i class="no-highlight">148</i>&nbsp;        }
+<i class="no-highlight">149</i>&nbsp;
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        dataList.add(&quot;-runCountLimit&quot;);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        dataList.add(modelLimit + &quot;&quot;);</b>
+<i class="no-highlight">152</i>&nbsp;
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        classifier.setExternalModel(autoWekaParams.getExternalModel());</b>
+<i class="no-highlight">154</i>&nbsp;
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        AutoWEKAResult autoWEKAResult = new AutoWEKAResult();</b>
+<i class="no-highlight">156</i>&nbsp;
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        autoWEKAResult.setStartTime(new DateTime());</b>
+<i class="no-highlight">158</i>&nbsp;
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        classifier.runMain(dataList.toArray(new String[dataList.size()]));</b>
+<i class="no-highlight">160</i>&nbsp;
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        autoWEKAResult.setFinishTime(new DateTime());</b>
+<i class="no-highlight">162</i>&nbsp;
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        autoWEKAResult.setMetaClassifier(classifier);</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        autoWEKAResult.setClassifier(classifier.getResultClassifier());</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        autoWEKAResult.setClassifierAttributes(classifier.getResultClassifierAttributes());</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        autoWEKAResult.setEvaluation(classifier.getEvaluation());</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        autoWEKAResult.setRunResultHistory(classifier.getRunResultHistory());</b>
+<i class="no-highlight">168</i>&nbsp;
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        return autoWEKAResult;</b>
+<i class="no-highlight">170</i>&nbsp;
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    public AutoWEKAResult run() {
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">176</i>&nbsp;            File tmpDir = autoWekaParams.getSnapTmpFolder();</b>
+<i class="no-highlight">177</i>&nbsp;            // create unique folder for particular run
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;
+<b class="nc"><i class="no-highlight">180</i>&nbsp;            File autoWekaTmpDir = new File(tmpDir.getAbsolutePath() + File.separator + &quot;autoweka&quot;);</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;            autoWekaTmpDir.mkdir();</b>
+<i class="no-highlight">182</i>&nbsp;
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            File dataSetFile = saveInstancesToArff(autoWekaTmpDir);</b>
+<i class="no-highlight">184</i>&nbsp;
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            prepareAutoWekaFiles(autoWekaTmpDir);</b>
+<i class="no-highlight">186</i>&nbsp;
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            File smacTempDir = new File(tmpDir.getAbsolutePath() + File.separator + &quot;smac&quot;);</b>
+<i class="no-highlight">188</i>&nbsp;
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            return runAutoWekaClassifier(autoWekaTmpDir, dataSetFile, smacTempDir);</b>
+<i class="no-highlight">190</i>&nbsp;
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            throw new SnapDataException(e, ERR_BUILD_MODEL)</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">194</i>&nbsp;        }
+<i class="no-highlight">195</i>&nbsp;    }
+<i class="no-highlight">196</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

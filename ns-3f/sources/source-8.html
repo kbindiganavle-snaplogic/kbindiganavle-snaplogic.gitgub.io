@@ -1,0 +1,318 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > HttpSnapOauth2Auth</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.http.auth</a>
+</div>
+
+<h1>Coverage Summary for Class: HttpSnapOauth2Auth (com.snaplogic.snap.api.http.auth)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HttpSnapOauth2Auth</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/77)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.http.auth;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.http.HttpSnapResponse;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.http.HttpSnapService;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.http.exceptions.HttpCoreConnectionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.http.exceptions.HttpCoreDataException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.http.requests.HttpSnapRequest;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.http.requests.entities.HttpUrlEncodedFormEntity;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">22</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">23</i>&nbsp;import org.apache.http.HttpHeaders;
+<i class="no-highlight">24</i>&nbsp;import org.apache.http.entity.ContentType;
+<i class="no-highlight">25</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">26</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">29</i>&nbsp;import java.util.List;
+<i class="no-highlight">30</i>&nbsp;import java.util.Map;
+<i class="no-highlight">31</i>&nbsp;import java.util.function.Supplier;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snap.api.http.Constants.RESPONSE_ENTITY_KEY;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;/**
+<i class="no-highlight">36</i>&nbsp; * An auth object represents OAuth2.0 authentication. The AUTH_CODE auth type, to be more specific
+<i class="no-highlight">37</i>&nbsp; */
+<i class="no-highlight">38</i>&nbsp;public class HttpSnapOauth2Auth implements HttpSnapAuthentication {
+<i class="no-highlight">39</i>&nbsp;    protected final static String GRANT_TYPE = &quot;grant_type&quot;;
+<i class="no-highlight">40</i>&nbsp;    protected final static String CLIENT_ID = &quot;client_id&quot;;
+<i class="no-highlight">41</i>&nbsp;    protected final static String CLIENT_SECRET = &quot;client_secret&quot;;
+<i class="no-highlight">42</i>&nbsp;    protected final static String REFRESH_TOKEN = &quot;refresh_token&quot;;
+<i class="no-highlight">43</i>&nbsp;    protected final static String ACCESS_TOKEN = &quot;access_token&quot;;
+<i class="no-highlight">44</i>&nbsp;    protected final static String SCOPE = &quot;scope&quot;;
+<b class="nc"><i class="no-highlight">45</i>&nbsp;    private final static Logger LOG = LoggerFactory.getLogger(HttpSnapOauth2Auth.class);</b>
+<i class="no-highlight">46</i>&nbsp;    private final static String BEARER_TOKEN_FMT = &quot;Bearer %s&quot;;
+<i class="no-highlight">47</i>&nbsp;    protected String accessToken;
+<i class="no-highlight">48</i>&nbsp;    protected boolean headerAuth;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;    protected String refreshToken;
+<i class="no-highlight">51</i>&nbsp;    protected String clientID;
+<i class="no-highlight">52</i>&nbsp;    protected String clientSecret;
+<i class="no-highlight">53</i>&nbsp;    protected String authUrl;
+<i class="no-highlight">54</i>&nbsp;    protected String tokenUrl;
+<i class="no-highlight">55</i>&nbsp;    protected String scope;
+<i class="no-highlight">56</i>&nbsp;    private AuthData authData;
+<i class="no-highlight">57</i>&nbsp;    private Supplier&lt;HttpSnapAuthentication&gt; reloadSupplier;
+<i class="no-highlight">58</i>&nbsp;
+<b class="nc"><i class="no-highlight">59</i>&nbsp;    public HttpSnapOauth2Auth() {</b>
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;    }
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;    /**
+<i class="no-highlight">64</i>&nbsp;     * In case we need to reload the access token in the future
+<i class="no-highlight">65</i>&nbsp;     */
+<i class="no-highlight">66</i>&nbsp;    public HttpSnapOauth2Auth(String accessToken) {
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        this(accessToken, false);</b>
+<i class="no-highlight">68</i>&nbsp;    }
+<i class="no-highlight">69</i>&nbsp;
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    public HttpSnapOauth2Auth(String accessToken, boolean isHeaderAuth) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        this.accessToken = accessToken;</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;        this.isHeaderAuth(isHeaderAuth);</b>
+<i class="no-highlight">73</i>&nbsp;    }
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    public HttpSnapOauth2Auth withAccessToken(String accessToken) {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        this.accessToken = accessToken;</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        return this;</b>
+<i class="no-highlight">79</i>&nbsp;    }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    public HttpSnapOauth2Auth withRefreshToken(String refreshToken) {
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        this.refreshToken = refreshToken;</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        return this;</b>
+<i class="no-highlight">84</i>&nbsp;    }
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;    public HttpSnapOauth2Auth withClientID(String clientID) {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        this.clientID = clientID;</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        return this;</b>
+<i class="no-highlight">89</i>&nbsp;    }
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;    public HttpSnapOauth2Auth withClientSecret(String clientSecret) {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        this.clientSecret = clientSecret;</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        return this;</b>
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    public HttpSnapOauth2Auth withAuthUrl(String authUrl) {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        this.authUrl = authUrl;</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        return this;</b>
+<i class="no-highlight">99</i>&nbsp;    }
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;    public HttpSnapOauth2Auth withScope(String scope) {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        this.scope = scope;</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        return this;</b>
+<i class="no-highlight">104</i>&nbsp;    }
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;    public HttpSnapOauth2Auth withTokenUrl(String tokenUrl) {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        this.tokenUrl = tokenUrl;</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        return null;</b>
+<i class="no-highlight">109</i>&nbsp;    }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    public void isHeaderAuth(boolean headerAuth) {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        this.headerAuth = headerAuth;</b>
+<i class="no-highlight">113</i>&nbsp;    }
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;    public HttpSnapOauth2Auth withReloadSupplier(Supplier&lt;HttpSnapAuthentication&gt; reloadSupplier) {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        this.reloadSupplier = reloadSupplier;</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        return this;</b>
+<i class="no-highlight">118</i>&nbsp;    }
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;    @Override
+<i class="no-highlight">121</i>&nbsp;    public AuthData generateAuthInfo() {
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        if (authData != null) {</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;            authData.update(newAuthData());</b>
+<i class="no-highlight">124</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">125</i>&nbsp;            authData = newAuthData();</b>
+<i class="no-highlight">126</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        return authData;</b>
+<i class="no-highlight">128</i>&nbsp;    }
+<i class="no-highlight">129</i>&nbsp;
+<i class="no-highlight">130</i>&nbsp;    /**
+<i class="no-highlight">131</i>&nbsp;     * Reload the generated authentication data with the given reload supplier.
+<i class="no-highlight">132</i>&nbsp;     */
+<i class="no-highlight">133</i>&nbsp;    public void reloadAuthData() throws HttpCoreDataException {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        if (reloadSupplier != null &amp;&amp; reloadSupplier.get() != null) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            if (authData != null) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                authData.update(reloadSupplier.get().generateAuthInfo());</b>
+<i class="no-highlight">137</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                authData = reloadSupplier.get().generateAuthInfo();</b>
+<i class="no-highlight">139</i>&nbsp;            }
+<i class="no-highlight">140</i>&nbsp;        }
+<i class="no-highlight">141</i>&nbsp;    }
+<i class="no-highlight">142</i>&nbsp;
+<i class="no-highlight">143</i>&nbsp;    private AuthData newAuthData() {
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        AuthData authData = new AuthData();</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        if (headerAuth) {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            List&lt;Pair&lt;String, String&gt;&gt; headers = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            headers.add(Pair.of(HttpHeaders.AUTHORIZATION, String.format(BEARER_TOKEN_FMT,</b>
+<i class="no-highlight">148</i>&nbsp;                    accessToken)));
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            authData.setAuthHeader(headers);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            List&lt;Pair&lt;String, String&gt;&gt; params = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            params.add(Pair.of(ACCESS_TOKEN, accessToken));</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;            authData.setAuthUrlParam(params);</b>
+<i class="no-highlight">154</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        return authData;</b>
+<i class="no-highlight">156</i>&nbsp;    }
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;    public boolean refresh() {
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        if (StringUtils.isEmpty(refreshToken) || StringUtils.isEmpty(clientID)</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                || StringUtils.isEmpty(clientSecret) || StringUtils.isEmpty(authUrl)) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            LOG.warn(&quot;Refreshing the access token requires all of the following: authorization &quot; +</b>
+<i class="no-highlight">162</i>&nbsp;                    &quot;URL, Refresh Token, ClientID, Client Secret&quot;);
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            return false;</b>
+<i class="no-highlight">164</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        List&lt;Pair&lt;String, String&gt;&gt; refreshParams = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        refreshParams.add(Pair.of(GRANT_TYPE, &quot;refresh_token&quot;));</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        refreshParams.add(Pair.of(REFRESH_TOKEN, refreshToken));</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        refreshParams.add(Pair.of(CLIENT_ID, clientID));</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        refreshParams.add(Pair.of(CLIENT_SECRET, clientSecret));</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        if (StringUtils.isNotEmpty(scope)) {</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            refreshParams.add(Pair.of(SCOPE, scope));</b>
+<i class="no-highlight">172</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        List&lt;Pair&lt;String, String&gt;&gt; headers = Arrays.asList(Pair.of(HttpHeaders.CONTENT_TYPE,</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                ContentType.APPLICATION_FORM_URLENCODED.getMimeType()));</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        try (HttpSnapService service = HttpSnapService.builder().build()) {</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;            HttpSnapRequest postSnapRequest =</b>
+<i class="no-highlight">177</i>&nbsp;                    new HttpSnapRequest(&quot;POST&quot;, authUrl, null
+<i class="no-highlight">178</i>&nbsp;                            , headers, new HttpUrlEncodedFormEntity(refreshParams));
+<b class="nc"><i class="no-highlight">179</i>&nbsp;            HttpSnapResponse response = service.request(postSnapRequest);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;            return extractAccessToken(response);</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            LOG.warn(&quot;Failed to refresh the access token due to an error&quot;, e);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            return false;</b>
+<i class="no-highlight">184</i>&nbsp;        }
+<i class="no-highlight">185</i>&nbsp;    }
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;    protected boolean extractAccessToken(HttpSnapResponse response) {
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        if (response.getHttpStatusCode() &gt;= 300) {</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            System.out.println(response);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;            LOG.warn(&quot;Failed to refresh the access token due to an error. Response: &quot;, response);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;            return false;</b>
+<i class="no-highlight">192</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        Map&lt;String, Object&gt; responseMap = response.toMap();</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        boolean updated = false;</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        if (responseMap.containsKey(RESPONSE_ENTITY_KEY)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                &amp;&amp; responseMap.get(RESPONSE_ENTITY_KEY) instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            Map entity = (Map) responseMap.get(RESPONSE_ENTITY_KEY);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            if (entity.containsKey(ACCESS_TOKEN)) {</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                accessToken = String.valueOf(entity.get(ACCESS_TOKEN));</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                updated = true;</b>
+<i class="no-highlight">201</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            if (entity.containsKey(REFRESH_TOKEN)) {</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                refreshToken = String.valueOf(entity.get(REFRESH_TOKEN));</b>
+<i class="no-highlight">204</i>&nbsp;            }
+<i class="no-highlight">205</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        return updated;</b>
+<i class="no-highlight">207</i>&nbsp;    }
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;    public boolean auth() throws HttpCoreConnectionException, HttpCoreDataException {
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        throw new UnsupportedOperationException(&quot;Authorize operation is not yet supported for &quot; +</b>
+<i class="no-highlight">211</i>&nbsp;                &quot;Authorization Code flow&quot;);
+<i class="no-highlight">212</i>&nbsp;    }
+<i class="no-highlight">213</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

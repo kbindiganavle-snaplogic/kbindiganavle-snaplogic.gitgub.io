@@ -1,0 +1,657 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > TptUpdateScript</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.teradata</a>
+</div>
+
+<h1>Coverage Summary for Class: TptUpdateScript (com.snaplogic.snaps.teradata)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TptUpdateScript</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/101)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.teradata;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseConfig;
+<i class="no-highlight">14</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">15</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">16</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">17</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import java.util.List;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import static com.snaplogic.snaps.teradata.TPTScript.doEscape;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;/**
+<i class="no-highlight">24</i>&nbsp; * Formats script for TPT Update, Upsert, delete and Insert snaps
+<i class="no-highlight">25</i>&nbsp; *
+<i class="no-highlight">26</i>&nbsp; * @since Oct, 2016
+<i class="no-highlight">27</i>&nbsp; */
+<i class="no-highlight">28</i>&nbsp;public class TptUpdateScript {
+<b class="nc"><i class="no-highlight">29</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(TptUpdateScript.class);</b>
+<i class="no-highlight">30</i>&nbsp;    private static final String FORMAT_UPSERT_SCRIPT =
+<i class="no-highlight">31</i>&nbsp;            &quot;DEFINE JOB SNAP_UPLOAD_JOB\n&quot; +
+<i class="no-highlight">32</i>&nbsp;                    &quot;DESCRIPTION &#39;Load a Teradata table from a file&#39;\n&quot; +
+<i class="no-highlight">33</i>&nbsp;                    &quot;  (\n&quot; +
+<i class="no-highlight">34</i>&nbsp;                    &quot;    DEFINE SCHEMA TABLE_SCHEMA\n&quot; +
+<i class="no-highlight">35</i>&nbsp;                    &quot;    (%s\n&quot; +
+<i class="no-highlight">36</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">37</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">38</i>&nbsp;                    &quot;    DEFINE OPERATOR INSERT_CONNECTOR\n&quot; +
+<i class="no-highlight">39</i>&nbsp;                    &quot;    TYPE DATACONNECTOR PRODUCER\n&quot; +
+<i class="no-highlight">40</i>&nbsp;                    &quot;    SCHEMA TABLE_SCHEMA\n&quot; +
+<i class="no-highlight">41</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">42</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">43</i>&nbsp;                    &quot;      VARCHAR DirectoryPath= &#39;&#39;,\n&quot; +
+<i class="no-highlight">44</i>&nbsp;                    &quot;      VARCHAR FileName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">45</i>&nbsp;                    &quot;      VARCHAR Format = &#39;Delimited&#39;,\n&quot; +
+<i class="no-highlight">46</i>&nbsp;                    &quot;      VARCHAR OpenMode = &#39;Read&#39;,\n&quot; +
+<i class="no-highlight">47</i>&nbsp;                    &quot;      VARCHAR TextDelimiter =&#39;þ&#39;,\n&quot; +
+<i class="no-highlight">48</i>&nbsp;                    &quot;      VARCHAR AccessModuleName = &#39;np_axsmod&#39;\n&quot; +
+<i class="no-highlight">49</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">50</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">51</i>&nbsp;                    &quot;    DEFINE OPERATOR TABLE_DDL\n&quot; +
+<i class="no-highlight">52</i>&nbsp;                    &quot;    TYPE DDL\n&quot; +
+<i class="no-highlight">53</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">54</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">55</i>&nbsp;                    &quot;      VARCHAR LogonMech = &#39;&#39;,\n&quot; +
+<i class="no-highlight">56</i>&nbsp;                    &quot;      VARCHAR TdpId = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">57</i>&nbsp;                    &quot;      VARCHAR UserName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">58</i>&nbsp;                    &quot;      VARCHAR UserPassword = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">59</i>&nbsp;                    &quot;      VARCHAR ErrorList = [&#39;2580&#39;,&#39;3807&#39;]\n&quot; +
+<i class="no-highlight">60</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">61</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">62</i>&nbsp;                    &quot;    DEFINE OPERATOR UPDATE_OPERATOR\n&quot; +
+<i class="no-highlight">63</i>&nbsp;                    &quot;    TYPE UPDATE\n&quot; +
+<i class="no-highlight">64</i>&nbsp;                    &quot;    SCHEMA *\n&quot; +
+<i class="no-highlight">65</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">66</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">67</i>&nbsp;                    &quot;      VARCHAR LogonMech = &#39;&#39;,\n&quot; +
+<i class="no-highlight">68</i>&nbsp;                    &quot;      VARCHAR PrivateLogName = &#39;tpt_load_log&#39;,\n&quot; +
+<i class="no-highlight">69</i>&nbsp;                    &quot;      VARCHAR TdpId = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">70</i>&nbsp;                    &quot;      VARCHAR UserName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">71</i>&nbsp;                    &quot;      VARCHAR UserPassword = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">72</i>&nbsp;                    &quot;      VARCHAR LogTable = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">73</i>&nbsp;                    &quot;      VARCHAR ErrorTable1 = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">74</i>&nbsp;                    &quot;      VARCHAR ErrorTable2 = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">75</i>&nbsp;                    &quot;      VARCHAR TargetTable = &#39;%s&#39;\n&quot; +
+<i class="no-highlight">76</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">77</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">78</i>&nbsp;                    &quot;    STEP RUN_LOG_CLEAN_UP\n&quot; +
+<i class="no-highlight">79</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">80</i>&nbsp;                    &quot;    APPLY\n&quot; +
+<i class="no-highlight">81</i>&nbsp;                    &quot;      (&#39;RELEASE MLOAD %s;&#39;),\n&quot; +
+<i class="no-highlight">82</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">83</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">84</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">85</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;)\n&quot; +
+<i class="no-highlight">86</i>&nbsp;                    &quot;      TO OPERATOR (TABLE_DDL);\n&quot; +
+<i class="no-highlight">87</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">88</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">89</i>&nbsp;                    &quot;   STEP RUN_UPDATE_QUERY\n&quot; +
+<i class="no-highlight">90</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">91</i>&nbsp;                    &quot;      APPLY\n&quot; +
+<i class="no-highlight">92</i>&nbsp;                    &quot;      (\n&quot; +
+<i class="no-highlight">93</i>&nbsp;                    &quot;        &#39;UPDATE %s SET %s WHERE %s;&#39;,\n&quot; +
+<i class="no-highlight">94</i>&nbsp;                    &quot;        &#39;INSERT INTO %s (%s) VALUES (%s);&#39;\n&quot; +
+<i class="no-highlight">95</i>&nbsp;                    &quot;      )\n&quot; +
+<i class="no-highlight">96</i>&nbsp;                    &quot;      INSERT FOR MISSING UPDATE ROWS\n&quot; +
+<i class="no-highlight">97</i>&nbsp;                    &quot;      TO OPERATOR (UPDATE_OPERATOR)\n&quot; +
+<i class="no-highlight">98</i>&nbsp;                    &quot;      SELECT * FROM OPERATOR(INSERT_CONNECTOR);\n&quot; +
+<i class="no-highlight">99</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">100</i>&nbsp;                    &quot;);&quot;;
+<i class="no-highlight">101</i>&nbsp;    private static final String FORMAT_UPDATE_SCRIPT =
+<i class="no-highlight">102</i>&nbsp;            &quot;DEFINE JOB SNAP_UPLOAD_JOB\n&quot; +
+<i class="no-highlight">103</i>&nbsp;                    &quot;DESCRIPTION &#39;Load a Teradata table from a file&#39;\n&quot; +
+<i class="no-highlight">104</i>&nbsp;                    &quot;  (\n&quot; +
+<i class="no-highlight">105</i>&nbsp;                    &quot;    DEFINE SCHEMA TABLE_SCHEMA\n&quot; +
+<i class="no-highlight">106</i>&nbsp;                    &quot;    (%s\n&quot; +
+<i class="no-highlight">107</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">108</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">109</i>&nbsp;                    &quot;    DEFINE OPERATOR INSERT_CONNECTOR\n&quot; +
+<i class="no-highlight">110</i>&nbsp;                    &quot;    TYPE DATACONNECTOR PRODUCER\n&quot; +
+<i class="no-highlight">111</i>&nbsp;                    &quot;    SCHEMA TABLE_SCHEMA\n&quot; +
+<i class="no-highlight">112</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">113</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">114</i>&nbsp;                    &quot;      VARCHAR DirectoryPath= &#39;&#39;,\n&quot; +
+<i class="no-highlight">115</i>&nbsp;                    &quot;      VARCHAR FileName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">116</i>&nbsp;                    &quot;      VARCHAR Format = &#39;Delimited&#39;,\n&quot; +
+<i class="no-highlight">117</i>&nbsp;                    &quot;      VARCHAR OpenMode = &#39;Read&#39;,\n&quot; +
+<i class="no-highlight">118</i>&nbsp;                    &quot;      VARCHAR TextDelimiter =&#39;þ&#39;,\n&quot; +
+<i class="no-highlight">119</i>&nbsp;                    &quot;      VARCHAR AccessModuleName = &#39;np_axsmod&#39;\n&quot; +
+<i class="no-highlight">120</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">121</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">122</i>&nbsp;                    &quot;    DEFINE OPERATOR TABLE_DDL\n&quot; +
+<i class="no-highlight">123</i>&nbsp;                    &quot;    TYPE DDL\n&quot; +
+<i class="no-highlight">124</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">125</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">126</i>&nbsp;                    &quot;      VARCHAR LogonMech = &#39;&#39;,\n&quot; +
+<i class="no-highlight">127</i>&nbsp;                    &quot;      VARCHAR TdpId = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">128</i>&nbsp;                    &quot;      VARCHAR UserName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">129</i>&nbsp;                    &quot;      VARCHAR UserPassword = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">130</i>&nbsp;                    &quot;      VARCHAR ErrorList = [&#39;2580&#39;,&#39;2583&#39;,&#39;3807&#39;]\n&quot; +
+<i class="no-highlight">131</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">132</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">133</i>&nbsp;                    &quot;    DEFINE OPERATOR UPDATE_OPERATOR\n&quot; +
+<i class="no-highlight">134</i>&nbsp;                    &quot;    TYPE UPDATE\n&quot; +
+<i class="no-highlight">135</i>&nbsp;                    &quot;    SCHEMA *\n&quot; +
+<i class="no-highlight">136</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">137</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">138</i>&nbsp;                    &quot;      VARCHAR LogonMech = &#39;&#39;,\n&quot; +
+<i class="no-highlight">139</i>&nbsp;                    &quot;      VARCHAR PrivateLogName = &#39;tpt_load_log&#39;,\n&quot; +
+<i class="no-highlight">140</i>&nbsp;                    &quot;      VARCHAR TdpId = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">141</i>&nbsp;                    &quot;      VARCHAR UserName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">142</i>&nbsp;                    &quot;      VARCHAR UserPassword = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">143</i>&nbsp;                    &quot;      VARCHAR LogTable = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">144</i>&nbsp;                    &quot;      VARCHAR ErrorTable1 = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">145</i>&nbsp;                    &quot;      VARCHAR ErrorTable2 = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">146</i>&nbsp;                    &quot;      VARCHAR TargetTable = &#39;%s&#39;\n&quot; +
+<i class="no-highlight">147</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">148</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">149</i>&nbsp;                    &quot;    STEP RUN_LOG_CLEAN_UP\n&quot; +
+<i class="no-highlight">150</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">151</i>&nbsp;                    &quot;    APPLY\n&quot; +
+<i class="no-highlight">152</i>&nbsp;                    &quot;      (&#39;RELEASE MLOAD %s;&#39;),\n&quot; +
+<i class="no-highlight">153</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">154</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">155</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">156</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;)\n&quot; +
+<i class="no-highlight">157</i>&nbsp;                    &quot;      TO OPERATOR (TABLE_DDL);\n&quot; +
+<i class="no-highlight">158</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">159</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">160</i>&nbsp;                    &quot;   STEP RUN_UPDATE_QUERY\n&quot; +
+<i class="no-highlight">161</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">162</i>&nbsp;                    &quot;      APPLY\n&quot; +
+<i class="no-highlight">163</i>&nbsp;                    &quot;      (\n&quot; +
+<i class="no-highlight">164</i>&nbsp;                    &quot;        &#39;UPDATE %s SET %s WHERE %s;&#39;\n&quot; +
+<i class="no-highlight">165</i>&nbsp;                    &quot;      )\n&quot; +
+<i class="no-highlight">166</i>&nbsp;                    &quot;      TO OPERATOR (UPDATE_OPERATOR)\n&quot; +
+<i class="no-highlight">167</i>&nbsp;                    &quot;      SELECT * FROM OPERATOR(INSERT_CONNECTOR);\n&quot; +
+<i class="no-highlight">168</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">169</i>&nbsp;                    &quot;);&quot;;
+<i class="no-highlight">170</i>&nbsp;
+<i class="no-highlight">171</i>&nbsp;    private static final String FORMAT_DELETE_SCRIPT =
+<i class="no-highlight">172</i>&nbsp;            &quot;DEFINE JOB SNAP_DELETE_JOB\n&quot; +
+<i class="no-highlight">173</i>&nbsp;                    &quot;DESCRIPTION &#39;External File Delete From  Table&#39;\n&quot; +
+<i class="no-highlight">174</i>&nbsp;                    &quot;  (\n&quot; +
+<i class="no-highlight">175</i>&nbsp;                    &quot;    DEFINE SCHEMA TABLE_SCHEMA\n&quot; +
+<i class="no-highlight">176</i>&nbsp;                    &quot;    (%s\n&quot; +
+<i class="no-highlight">177</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">178</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">179</i>&nbsp;                    &quot;    DEFINE OPERATOR TABLE_DDL\n&quot; +
+<i class="no-highlight">180</i>&nbsp;                    &quot;    TYPE DDL\n&quot; +
+<i class="no-highlight">181</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">182</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">183</i>&nbsp;                    &quot;      VARCHAR LogonMech = &#39;&#39;,\n&quot; +
+<i class="no-highlight">184</i>&nbsp;                    &quot;      VARCHAR TdpId = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">185</i>&nbsp;                    &quot;      VARCHAR UserName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">186</i>&nbsp;                    &quot;      VARCHAR UserPassword = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">187</i>&nbsp;                    &quot;      VARCHAR ErrorList = [&#39;2580&#39;,&#39;2583&#39;,&#39;3807&#39;]\n&quot; +
+<i class="no-highlight">188</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">189</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">190</i>&nbsp;                    &quot;    DEFINE OPERATOR UPDATE_OPERATOR\n&quot; +
+<i class="no-highlight">191</i>&nbsp;                    &quot;    DESCRIPTION &#39;Teradata PT UPDATE OPERATOR&#39;\n&quot; +
+<i class="no-highlight">192</i>&nbsp;                    &quot;    TYPE UPDATE\n&quot; +
+<i class="no-highlight">193</i>&nbsp;                    &quot;    SCHEMA TABLE_SCHEMA\n&quot; +
+<i class="no-highlight">194</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">195</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">196</i>&nbsp;                    &quot;      VARCHAR PrivateLogName = &#39;tpt_delete_log&#39;,\n&quot; +
+<i class="no-highlight">197</i>&nbsp;                    &quot;      VARCHAR TargetTable = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">198</i>&nbsp;                    &quot;      VARCHAR DeleteTask = &#39;Y&#39;,\n&quot; +
+<i class="no-highlight">199</i>&nbsp;                    &quot;      VARCHAR TdpId = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">200</i>&nbsp;                    &quot;      VARCHAR UserName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">201</i>&nbsp;                    &quot;      VARCHAR UserPassword = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">202</i>&nbsp;                    &quot;      VARCHAR LogTable = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">203</i>&nbsp;                    &quot;      VARCHAR ErrorTable1 = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">204</i>&nbsp;                    &quot;      VARCHAR ErrorTable2 = &#39;%s&#39;\n&quot; +
+<i class="no-highlight">205</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">206</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">207</i>&nbsp;                    &quot;    DEFINE OPERATOR DATA_PRODUCER\n&quot; +
+<i class="no-highlight">208</i>&nbsp;                    &quot;    DESCRIPTION &#39;DATA CONNECTOR OPERATOR&#39;\n&quot; +
+<i class="no-highlight">209</i>&nbsp;                    &quot;    TYPE DATACONNECTOR PRODUCER\n&quot; +
+<i class="no-highlight">210</i>&nbsp;                    &quot;    SCHEMA TABLE_SCHEMA\n&quot; +
+<i class="no-highlight">211</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">212</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">213</i>&nbsp;                    &quot;      VARCHAR FileName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">214</i>&nbsp;                    &quot;      VARCHAR Format = &#39;Delimited&#39;,\n&quot; +
+<i class="no-highlight">215</i>&nbsp;                    &quot;      VARCHAR IndicatorMode,\n&quot; +
+<i class="no-highlight">216</i>&nbsp;                    &quot;      VARCHAR TextDelimiter =&#39;þ&#39;,\n&quot; +
+<i class="no-highlight">217</i>&nbsp;                    &quot;      VARCHAR OpenMode = &#39;Read&#39;\n&quot; +
+<i class="no-highlight">218</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">219</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">220</i>&nbsp;                    &quot;    STEP RUN_LOG_CLEAN_UP\n&quot; +
+<i class="no-highlight">221</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">222</i>&nbsp;                    &quot;    APPLY\n&quot; +
+<i class="no-highlight">223</i>&nbsp;                    &quot;      (&#39;RELEASE MLOAD %s;&#39;),\n&quot; +
+<i class="no-highlight">224</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">225</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">226</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">227</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;)\n&quot; +
+<i class="no-highlight">228</i>&nbsp;                    &quot;    TO OPERATOR (TABLE_DDL);\n&quot; +
+<i class="no-highlight">229</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">230</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">231</i>&nbsp;                    &quot;   STEP RUN_UPDATE_QUERY\n&quot; +
+<i class="no-highlight">232</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">233</i>&nbsp;                    &quot;      APPLY\n&quot; +
+<i class="no-highlight">234</i>&nbsp;                    &quot;      (\n&quot; +
+<i class="no-highlight">235</i>&nbsp;                    &quot;        &#39;DELETE FROM %s %s %s;&#39;\n&quot; +
+<i class="no-highlight">236</i>&nbsp;                    &quot;      )\n&quot; +
+<i class="no-highlight">237</i>&nbsp;                    &quot;      TO OPERATOR (UPDATE_OPERATOR [1])\n&quot; +
+<i class="no-highlight">238</i>&nbsp;                    &quot;      SELECT * FROM OPERATOR (DATA_PRODUCER[1]);\n&quot; +
+<i class="no-highlight">239</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">240</i>&nbsp;                    &quot;);&quot;;
+<i class="no-highlight">241</i>&nbsp;    private static final String FORMAT_INSERT_SCRIPT =
+<i class="no-highlight">242</i>&nbsp;            &quot;DEFINE JOB SNAP_INSERT_JOB\n&quot; +
+<i class="no-highlight">243</i>&nbsp;                    &quot;DESCRIPTION &#39;Load a Teradata table from a file&#39;\n&quot; +
+<i class="no-highlight">244</i>&nbsp;                    &quot;  (\n&quot; +
+<i class="no-highlight">245</i>&nbsp;                    &quot;    DEFINE SCHEMA TABLE_SCHEMA\n&quot; +
+<i class="no-highlight">246</i>&nbsp;                    &quot;    (%s\n&quot; +
+<i class="no-highlight">247</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">248</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">249</i>&nbsp;                    &quot;    DEFINE OPERATOR INSERT_CONNECTOR\n&quot; +
+<i class="no-highlight">250</i>&nbsp;                    &quot;    TYPE DATACONNECTOR PRODUCER\n&quot; +
+<i class="no-highlight">251</i>&nbsp;                    &quot;    SCHEMA TABLE_SCHEMA\n&quot; +
+<i class="no-highlight">252</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">253</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">254</i>&nbsp;                    &quot;      VARCHAR DirectoryPath= &#39;&#39;,\n&quot; +
+<i class="no-highlight">255</i>&nbsp;                    &quot;      VARCHAR FileName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">256</i>&nbsp;                    &quot;      VARCHAR Format = &#39;Delimited&#39;,\n&quot; +
+<i class="no-highlight">257</i>&nbsp;                    &quot;      VARCHAR OpenMode = &#39;Read&#39;,\n&quot; +
+<i class="no-highlight">258</i>&nbsp;                    &quot;      VARCHAR TextDelimiter = &#39;þ&#39;,\n&quot; +
+<i class="no-highlight">259</i>&nbsp;                    &quot;      VARCHAR AccessModuleName = &#39;np_axsmod&#39;\n&quot; +
+<i class="no-highlight">260</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">261</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">262</i>&nbsp;                    &quot;    DEFINE OPERATOR TABLE_DDL\n&quot; +
+<i class="no-highlight">263</i>&nbsp;                    &quot;    TYPE DDL\n&quot; +
+<i class="no-highlight">264</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">265</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">266</i>&nbsp;                    &quot;      VARCHAR LogonMech = &#39;&#39;,\n&quot; +
+<i class="no-highlight">267</i>&nbsp;                    &quot;      VARCHAR TdpId = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">268</i>&nbsp;                    &quot;      VARCHAR UserName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">269</i>&nbsp;                    &quot;      VARCHAR UserPassword = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">270</i>&nbsp;                    &quot;      VARCHAR ErrorList = [&#39;2580&#39;,&#39;3807&#39;]\n&quot; +
+<i class="no-highlight">271</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">272</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">273</i>&nbsp;                    &quot;    DEFINE OPERATOR UPDATE_OPERATOR\n&quot; +
+<i class="no-highlight">274</i>&nbsp;                    &quot;    TYPE UPDATE\n&quot; +
+<i class="no-highlight">275</i>&nbsp;                    &quot;    SCHEMA *\n&quot; +
+<i class="no-highlight">276</i>&nbsp;                    &quot;    ATTRIBUTES\n&quot; +
+<i class="no-highlight">277</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">278</i>&nbsp;                    &quot;      VARCHAR LogonMech = &#39;&#39;,\n&quot; +
+<i class="no-highlight">279</i>&nbsp;                    &quot;      VARCHAR PrivateLogName = &#39;tpt_load_log&#39;,\n&quot; +
+<i class="no-highlight">280</i>&nbsp;                    &quot;      VARCHAR TdpId = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">281</i>&nbsp;                    &quot;      VARCHAR UserName = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">282</i>&nbsp;                    &quot;      VARCHAR UserPassword = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">283</i>&nbsp;                    &quot;      VARCHAR LogTable = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">284</i>&nbsp;                    &quot;      VARCHAR ErrorTable1 = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">285</i>&nbsp;                    &quot;      VARCHAR ErrorTable2 = &#39;%s&#39;,\n&quot; +
+<i class="no-highlight">286</i>&nbsp;                    &quot;      VARCHAR TargetTable = &#39;%s&#39;\n&quot; +
+<i class="no-highlight">287</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">288</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">289</i>&nbsp;                    &quot;    STEP RUN_LOG_CLEAN_UP\n&quot; +
+<i class="no-highlight">290</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">291</i>&nbsp;                    &quot;    APPLY\n&quot; +
+<i class="no-highlight">292</i>&nbsp;                    &quot;      (&#39;RELEASE MLOAD %s;&#39;),\n&quot; +
+<i class="no-highlight">293</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">294</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">295</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;),\n&quot; +
+<i class="no-highlight">296</i>&nbsp;                    &quot;      (&#39;DROP TABLE %s;&#39;)\n&quot; +
+<i class="no-highlight">297</i>&nbsp;                    &quot;      TO OPERATOR (TABLE_DDL);\n&quot; +
+<i class="no-highlight">298</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">299</i>&nbsp;                    &quot;\n&quot; +
+<i class="no-highlight">300</i>&nbsp;                    &quot;   STEP RUN_INSERT_QUERY\n&quot; +
+<i class="no-highlight">301</i>&nbsp;                    &quot;    (\n&quot; +
+<i class="no-highlight">302</i>&nbsp;                    &quot;      APPLY\n&quot; +
+<i class="no-highlight">303</i>&nbsp;                    &quot;      (\n&quot; +
+<i class="no-highlight">304</i>&nbsp;                    &quot;        &#39;INSERT INTO %s (%s) VALUES (%s);&#39;\n&quot; +
+<i class="no-highlight">305</i>&nbsp;                    &quot;      )\n&quot; +
+<i class="no-highlight">306</i>&nbsp;                    &quot;      TO OPERATOR (UPDATE_OPERATOR [1])\n&quot; +
+<i class="no-highlight">307</i>&nbsp;                    &quot;      SELECT * FROM OPERATOR(INSERT_CONNECTOR[1]);\n&quot; +
+<i class="no-highlight">308</i>&nbsp;                    &quot;    );\n&quot; +
+<i class="no-highlight">309</i>&nbsp;                    &quot;);&quot;;
+<i class="no-highlight">310</i>&nbsp;    private static final String STARS = &quot;*****&quot;;
+<i class="no-highlight">311</i>&nbsp;    private static final String FORMAT_DEFINE_FIELD = &quot;\n    \&quot;%s\&quot; VARCHAR&quot;;
+<i class="no-highlight">312</i>&nbsp;    private static final String FORMAT_DEFINE_FIELD_DELTE = &quot;\n   \&quot;%s\&quot; VARCHAR&quot;;
+<i class="no-highlight">313</i>&nbsp;    private static final String FORMAT_VALUE_FIELD = &quot;:\&quot;%s\&quot;&quot;;
+<i class="no-highlight">314</i>&nbsp;    private static final String FORMAT_INSERT_FIELD = &quot;\&quot;%s\&quot;&quot;;
+<i class="no-highlight">315</i>&nbsp;    private static final String FORMAT_SET_FIELD = &quot;\&quot;%s\&quot;=:\&quot;%s\&quot;&quot;;
+<i class="no-highlight">316</i>&nbsp;    private static final String FORMAT_WHERE_FIELD = &quot;\&quot;%s\&quot;=:\&quot;%s\&quot;&quot;;
+<i class="no-highlight">317</i>&nbsp;    private static final String COMMA = &quot;,&quot;;
+<i class="no-highlight">318</i>&nbsp;    private static final String COMMA_SPACE = &quot;, &quot;;
+<i class="no-highlight">319</i>&nbsp;    private static final String SLASH = &quot;/&quot;;
+<i class="no-highlight">320</i>&nbsp;    private static final String SPACE_AND_SPACE = &quot; AND &quot;;
+<i class="no-highlight">321</i>&nbsp;    private static final String JDBC_URL_HOST_PREFIX = &quot;://&quot;;
+<i class="no-highlight">322</i>&nbsp;    private static final String WHERE_STRING = &quot;WHERE&quot;;
+<i class="no-highlight">323</i>&nbsp;    private String dbTableName;
+<i class="no-highlight">324</i>&nbsp;    private String obfuscatedScript;
+<i class="no-highlight">325</i>&nbsp;
+<b class="nc"><i class="no-highlight">326</i>&nbsp;    public TptUpdateScript(String dbTableName) {</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        this.dbTableName = dbTableName;</b>
+<i class="no-highlight">328</i>&nbsp;    }
+<i class="no-highlight">329</i>&nbsp;
+<i class="no-highlight">330</i>&nbsp;    protected String formatUpdateScript(String filename, String logTableName, String
+<i class="no-highlight">331</i>&nbsp;                errorTableName1, String errorTableName2, String workTable, DatabaseConfig
+<i class="no-highlight">332</i>&nbsp;                databaseConfig, List&lt;Pair&lt;String, String&gt;&gt; inputViewFields, List&lt;String&gt;
+<i class="no-highlight">333</i>&nbsp;                whereFileds, List&lt;String&gt; primaryColumns, boolean upsert, boolean isWinPlex) {
+<i class="no-highlight">334</i>&nbsp;        // iterate the table fields and prepare the define fields, insert fields and value fields
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        StringBuilder defineFields = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        StringBuilder insertFields = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;        StringBuilder valueFields = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        StringBuilder setFields = new StringBuilder();</b>
+<i class="no-highlight">339</i>&nbsp;
+<i class="no-highlight">340</i>&nbsp;        String fieldName;
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        for (int i = 0; i &lt; inputViewFields.size(); ++i) {</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;            fieldName = inputViewFields.get(i).getKey();</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            defineFields.append(String.format(FORMAT_DEFINE_FIELD, fieldName));</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;            insertFields.append(String.format(FORMAT_INSERT_FIELD, fieldName));</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;            valueFields.append(String.format(FORMAT_VALUE_FIELD, fieldName));</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;            if (!primaryColumns.contains(fieldName) &amp;&amp; !whereFileds.contains(fieldName)) {</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                setFields.append(String.format(FORMAT_SET_FIELD, fieldName, fieldName));</b>
+<i class="no-highlight">348</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">349</i>&nbsp;            if (i &lt; (inputViewFields.size() - 1)) {</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                defineFields.append(COMMA);</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                insertFields.append(COMMA_SPACE);</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                valueFields.append(COMMA_SPACE);</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                if (!primaryColumns.contains(fieldName) &amp;&amp; !whereFileds.contains(fieldName)) {</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                    setFields.append(COMMA_SPACE);</b>
+<i class="no-highlight">355</i>&nbsp;                }
+<i class="no-highlight">356</i>&nbsp;
+<i class="no-highlight">357</i>&nbsp;            }
+<i class="no-highlight">358</i>&nbsp;        }
+<i class="no-highlight">359</i>&nbsp;        // get db host name
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        String url = databaseConfig.getJdbcUrl();</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        String host = url;</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        int hostStartPos = url.indexOf(JDBC_URL_HOST_PREFIX) + JDBC_URL_HOST_PREFIX.length();</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        if (hostStartPos &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            int hostEndPos = url.indexOf(SLASH, hostStartPos);</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;            if (hostEndPos &gt; hostStartPos) {</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                host = url.substring(hostStartPos, hostEndPos);</b>
+<i class="no-highlight">367</i>&nbsp;            }
+<i class="no-highlight">368</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        host = doEscape(host, isWinPlex);</b>
+<i class="no-highlight">370</i>&nbsp;        // prepare username and password
+<b class="nc"><i class="no-highlight">371</i>&nbsp;        String username = doEscape(databaseConfig.getUsername(), isWinPlex);</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        String password = doEscape(databaseConfig.getPassword(), isWinPlex);</b>
+<i class="no-highlight">373</i>&nbsp;        //Construct the where clause from the whereCloumn list
+<b class="nc"><i class="no-highlight">374</i>&nbsp;        StringBuilder whereClause = new StringBuilder();</b>
+<i class="no-highlight">375</i>&nbsp;        String where;
+<b class="nc"><i class="no-highlight">376</i>&nbsp;        if (whereFileds != null &amp;&amp; whereFileds.size() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;            for (int i = 0; i &lt; whereFileds.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                whereClause.append(String.format(FORMAT_WHERE_FIELD, whereFileds.get(i),</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                        whereFileds.get(i)));</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                if (i &lt; (whereFileds.size() - 1)) {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                    whereClause.append(SPACE_AND_SPACE);</b>
+<i class="no-highlight">382</i>&nbsp;                }
+<i class="no-highlight">383</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">384</i>&nbsp;            where = whereClause.toString();</b>
+<i class="no-highlight">385</i>&nbsp;        } else {
+<i class="no-highlight">386</i>&nbsp;            // if no whereclause update all the fields
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            where = setFields.toString().replace(COMMA_SPACE, SPACE_AND_SPACE);</b>
+<i class="no-highlight">388</i>&nbsp;        }
+<i class="no-highlight">389</i>&nbsp;        //Upsert
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        if (upsert) {</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            return genUpsertScript(filename, logTableName, errorTableName1, errorTableName2,</b>
+<i class="no-highlight">392</i>&nbsp;                    workTable, defineFields, setFields, host, username, password, where,
+<i class="no-highlight">393</i>&nbsp;                    insertFields, valueFields);
+<i class="no-highlight">394</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            return genUpdateScript(filename, logTableName, errorTableName1, errorTableName2,</b>
+<i class="no-highlight">396</i>&nbsp;                    workTable, defineFields, setFields, host, username, password, where);
+<i class="no-highlight">397</i>&nbsp;        }
+<i class="no-highlight">398</i>&nbsp;    }
+<i class="no-highlight">399</i>&nbsp;
+<i class="no-highlight">400</i>&nbsp;    private String genUpdateScript(final String filename, final String logTableName, final String
+<i class="no-highlight">401</i>&nbsp;                errorTableName1, final String errorTableName2, final String workTable, final
+<i class="no-highlight">402</i>&nbsp;                StringBuilder defineFields, final StringBuilder setFields, final String host, final
+<i class="no-highlight">403</i>&nbsp;                String username, final String password, final String where) {
+<b class="nc"><i class="no-highlight">404</i>&nbsp;        String scriptFormat = FORMAT_UPDATE_SCRIPT;</b>
+<i class="no-highlight">405</i>&nbsp;        // format TPT Update script with obfuscated password
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        obfuscatedScript = String.format(scriptFormat, defineFields, filename, host,</b>
+<i class="no-highlight">407</i>&nbsp;                username, STARS, host, username, STARS, logTableName, errorTableName1,
+<i class="no-highlight">408</i>&nbsp;                errorTableName2, dbTableName, dbTableName, logTableName,
+<i class="no-highlight">409</i>&nbsp;                errorTableName1, errorTableName2,
+<i class="no-highlight">410</i>&nbsp;                workTable, dbTableName, setFields, where);
+<i class="no-highlight">411</i>&nbsp;        // format TPT Load script
+<b class="nc"><i class="no-highlight">412</i>&nbsp;        return String.format(scriptFormat, defineFields, filename, host,</b>
+<i class="no-highlight">413</i>&nbsp;                username, password, host, username, password, logTableName, errorTableName1,
+<i class="no-highlight">414</i>&nbsp;                errorTableName2, dbTableName, dbTableName, logTableName,
+<i class="no-highlight">415</i>&nbsp;                errorTableName1, errorTableName2,
+<i class="no-highlight">416</i>&nbsp;                workTable, dbTableName, setFields, where);
+<i class="no-highlight">417</i>&nbsp;    }
+<i class="no-highlight">418</i>&nbsp;
+<i class="no-highlight">419</i>&nbsp;    private String genUpsertScript(final String filename, final String logTableName, final String
+<i class="no-highlight">420</i>&nbsp;                errorTableName1, final String errorTableName2, final String workTable, final
+<i class="no-highlight">421</i>&nbsp;                StringBuilder defineFields, final StringBuilder setFields, final String host, final
+<i class="no-highlight">422</i>&nbsp;                String username, final String password, final String where, final StringBuilder
+<i class="no-highlight">423</i>&nbsp;                insertFields, final StringBuilder valueFields) {
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        String scriptFormat = FORMAT_UPSERT_SCRIPT;</b>
+<i class="no-highlight">425</i>&nbsp;        // format TPT Upsert script with obfuscated password
+<b class="nc"><i class="no-highlight">426</i>&nbsp;        obfuscatedScript = String.format(scriptFormat, defineFields, filename, host,</b>
+<i class="no-highlight">427</i>&nbsp;                username, STARS, host, username, STARS, logTableName, errorTableName1,
+<i class="no-highlight">428</i>&nbsp;                errorTableName2, dbTableName, dbTableName, logTableName, errorTableName1,
+<i class="no-highlight">429</i>&nbsp;                errorTableName2, workTable, dbTableName, setFields, where, dbTableName, insertFields
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                        .toString(), valueFields.toString());</b>
+<i class="no-highlight">431</i>&nbsp;        // format TPT Load script
+<b class="nc"><i class="no-highlight">432</i>&nbsp;        return String.format(scriptFormat, defineFields, filename, host,</b>
+<i class="no-highlight">433</i>&nbsp;                username, password, host, username, password, logTableName, errorTableName1,
+<i class="no-highlight">434</i>&nbsp;                errorTableName2, dbTableName, dbTableName, logTableName, errorTableName1,
+<i class="no-highlight">435</i>&nbsp;                errorTableName2, workTable, dbTableName, setFields, where, dbTableName, insertFields
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                        .toString(), valueFields.toString());</b>
+<i class="no-highlight">437</i>&nbsp;    }
+<i class="no-highlight">438</i>&nbsp;
+<i class="no-highlight">439</i>&nbsp;    public String formatInsertScript(String filename, String logTableName, String
+<i class="no-highlight">440</i>&nbsp;            errorTableName1, String errorTableName2, String workTable, DatabaseConfig
+<i class="no-highlight">441</i>&nbsp;            databaseConfig, List&lt;Pair&lt;String, String&gt;&gt; inputViewFields, boolean isWinPlex) {
+<i class="no-highlight">442</i>&nbsp;        // iterate the table fields and prepare the define fields, insert fields and value fields
+<b class="nc"><i class="no-highlight">443</i>&nbsp;        StringBuilder defineFields = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;        StringBuilder insertFields = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;        StringBuilder valueFields = new StringBuilder();</b>
+<i class="no-highlight">446</i>&nbsp;
+<i class="no-highlight">447</i>&nbsp;        String fieldName;
+<b class="nc"><i class="no-highlight">448</i>&nbsp;        for (int i = 0; i &lt; inputViewFields.size(); ++i) {</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;            fieldName = inputViewFields.get(i).getKey();</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;            defineFields.append(String.format(FORMAT_DEFINE_FIELD, fieldName));</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;            insertFields.append(String.format(FORMAT_INSERT_FIELD, fieldName));</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;            valueFields.append(String.format(FORMAT_VALUE_FIELD, fieldName));</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;            if (i &lt; (inputViewFields.size() - 1)) {</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                defineFields.append(COMMA);</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                insertFields.append(COMMA_SPACE);</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                valueFields.append(COMMA_SPACE);</b>
+<i class="no-highlight">457</i>&nbsp;            }
+<i class="no-highlight">458</i>&nbsp;        }
+<i class="no-highlight">459</i>&nbsp;        // get db host name
+<b class="nc"><i class="no-highlight">460</i>&nbsp;        String url = databaseConfig.getJdbcUrl();</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;        String host = url;</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;        int hostStartPos = url.indexOf(JDBC_URL_HOST_PREFIX) + JDBC_URL_HOST_PREFIX.length();</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;        if (hostStartPos &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;            int hostEndPos = url.indexOf(SLASH, hostStartPos);</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;            if (hostEndPos &gt; hostStartPos) {</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                host = url.substring(hostStartPos, hostEndPos);</b>
+<i class="no-highlight">467</i>&nbsp;            }
+<i class="no-highlight">468</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">469</i>&nbsp;        host = doEscape(host, isWinPlex);</b>
+<i class="no-highlight">470</i>&nbsp;        // prepare username and password
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        String username = doEscape(databaseConfig.getUsername(), isWinPlex);</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;        String password = doEscape(databaseConfig.getPassword(), isWinPlex);</b>
+<i class="no-highlight">473</i>&nbsp;
+<i class="no-highlight">474</i>&nbsp;        //Insert
+<b class="nc"><i class="no-highlight">475</i>&nbsp;        return genInsertScript(filename, logTableName, errorTableName1, errorTableName2,</b>
+<i class="no-highlight">476</i>&nbsp;                workTable, defineFields, host, username, password,
+<i class="no-highlight">477</i>&nbsp;                insertFields, valueFields);
+<i class="no-highlight">478</i>&nbsp;    }
+<i class="no-highlight">479</i>&nbsp;
+<i class="no-highlight">480</i>&nbsp;    public String formatDeleteScript(String filename, String logTableName, List&lt;Pair&lt;String,
+<i class="no-highlight">481</i>&nbsp;                String&gt;&gt; inputViewFields, String errorTableName1, String errorTableName2,
+<i class="no-highlight">482</i>&nbsp;                String workTable, DatabaseConfig databaseConfig, String whereConditionString,
+<i class="no-highlight">483</i>&nbsp;                boolean isWinPlex) {
+<i class="no-highlight">484</i>&nbsp;        // iterate the table fields and prepare the define fields, insert fields and value fields
+<b class="nc"><i class="no-highlight">485</i>&nbsp;        StringBuilder defineFields = new StringBuilder();</b>
+<i class="no-highlight">486</i>&nbsp;        String fieldName;
+<b class="nc"><i class="no-highlight">487</i>&nbsp;        for (int i = 0; i &lt; inputViewFields.size(); ++i) {</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;            fieldName = inputViewFields.get(i).getKey();</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;            defineFields.append(String.format(FORMAT_DEFINE_FIELD_DELTE, fieldName));</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            if (i &lt; (inputViewFields.size() - 1)) {</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                defineFields.append(COMMA);</b>
+<i class="no-highlight">492</i>&nbsp;            }
+<i class="no-highlight">493</i>&nbsp;        }
+<i class="no-highlight">494</i>&nbsp;        // get db host name
+<b class="nc"><i class="no-highlight">495</i>&nbsp;        String url = databaseConfig.getJdbcUrl();</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;        String host = url;</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;        int hostStartPos = url.indexOf(JDBC_URL_HOST_PREFIX) + JDBC_URL_HOST_PREFIX.length();</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;        if (hostStartPos &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;            int hostEndPos = url.indexOf(SLASH, hostStartPos);</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;            if (hostEndPos &gt; hostStartPos) {</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                host = url.substring(hostStartPos, hostEndPos);</b>
+<i class="no-highlight">502</i>&nbsp;            }
+<i class="no-highlight">503</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">504</i>&nbsp;        host = doEscape(host, isWinPlex);</b>
+<i class="no-highlight">505</i>&nbsp;        // prepare username and password
+<b class="nc"><i class="no-highlight">506</i>&nbsp;        String username = doEscape(databaseConfig.getUsername(), isWinPlex);</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;        String password = doEscape(databaseConfig.getPassword(), isWinPlex);</b>
+<i class="no-highlight">508</i>&nbsp;        //Construct the where clause from the whereCloumn list
+<b class="nc"><i class="no-highlight">509</i>&nbsp;        return genDeleteScript(logTableName, filename, errorTableName1, errorTableName2, workTable,</b>
+<i class="no-highlight">510</i>&nbsp;                defineFields, dbTableName, host, username, password, whereConditionString);
+<i class="no-highlight">511</i>&nbsp;    }
+<i class="no-highlight">512</i>&nbsp;
+<i class="no-highlight">513</i>&nbsp;    private String genDeleteScript(final String logTableName, final String filename,
+<i class="no-highlight">514</i>&nbsp;            final String errorTableName1, final String errorTableName2, final String workTable,
+<i class="no-highlight">515</i>&nbsp;            final StringBuilder defineFields, final String dbTableName, final String host,
+<i class="no-highlight">516</i>&nbsp;            final String username, final String password, final String whereConditionString) {
+<b class="nc"><i class="no-highlight">517</i>&nbsp;        String WHERE = StringUtils.isNotBlank(whereConditionString) ? WHERE_STRING :</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;                StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;        obfuscatedScript = String.format(FORMAT_DELETE_SCRIPT, defineFields, host, username,</b>
+<i class="no-highlight">520</i>&nbsp;                STARS, dbTableName, host, username, STARS, logTableName, errorTableName1,
+<i class="no-highlight">521</i>&nbsp;                errorTableName2, filename, dbTableName, logTableName, errorTableName1,
+<i class="no-highlight">522</i>&nbsp;                errorTableName2, workTable, dbTableName, WHERE, whereConditionString);
+<b class="nc"><i class="no-highlight">523</i>&nbsp;        return String.format(FORMAT_DELETE_SCRIPT, defineFields, host, username,</b>
+<i class="no-highlight">524</i>&nbsp;                password, dbTableName, host, username, password, logTableName, errorTableName1,
+<i class="no-highlight">525</i>&nbsp;                errorTableName2, filename, dbTableName, logTableName, errorTableName1,
+<i class="no-highlight">526</i>&nbsp;                errorTableName2, workTable, dbTableName, WHERE, whereConditionString);
+<i class="no-highlight">527</i>&nbsp;    }
+<i class="no-highlight">528</i>&nbsp;
+<i class="no-highlight">529</i>&nbsp;    private String genInsertScript(final String filename, final String logTableName,
+<i class="no-highlight">530</i>&nbsp;                final String errorTableName1, final String errorTableName2, final String workTable,
+<i class="no-highlight">531</i>&nbsp;                final StringBuilder defineFields, final String host, final String username, final
+<i class="no-highlight">532</i>&nbsp;                String password, final StringBuilder insertFields, final StringBuilder
+<i class="no-highlight">533</i>&nbsp;                        valueFields) {
+<i class="no-highlight">534</i>&nbsp;
+<i class="no-highlight">535</i>&nbsp;        // format TPT Insert script with obfuscated password
+<b class="nc"><i class="no-highlight">536</i>&nbsp;        obfuscatedScript = String.format(FORMAT_INSERT_SCRIPT, defineFields, filename, host,</b>
+<i class="no-highlight">537</i>&nbsp;                username, STARS, host, username, STARS, logTableName, errorTableName1,
+<i class="no-highlight">538</i>&nbsp;                errorTableName2, dbTableName, dbTableName, logTableName, errorTableName1,
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                errorTableName2, workTable, dbTableName, insertFields.toString(),</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;                valueFields.toString());</b>
+<i class="no-highlight">541</i>&nbsp;        // format TPT Insert script
+<b class="nc"><i class="no-highlight">542</i>&nbsp;        return String.format(FORMAT_INSERT_SCRIPT, defineFields, filename, host,</b>
+<i class="no-highlight">543</i>&nbsp;                username, password, host, username, password, logTableName, errorTableName1,
+<i class="no-highlight">544</i>&nbsp;                errorTableName2, dbTableName, dbTableName, logTableName, errorTableName1,
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                errorTableName2, workTable, dbTableName, insertFields.toString(),</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                valueFields.toString());</b>
+<i class="no-highlight">547</i>&nbsp;    }
+<i class="no-highlight">548</i>&nbsp;
+<i class="no-highlight">549</i>&nbsp;    String getObfuscatedScript() {
+<b class="nc"><i class="no-highlight">550</i>&nbsp;        return obfuscatedScript;</b>
+<i class="no-highlight">551</i>&nbsp;    }
+<i class="no-highlight">552</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

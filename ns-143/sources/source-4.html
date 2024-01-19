@@ -1,0 +1,422 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SalesforceFields</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.sync</a>
+</div>
+
+<h1>Coverage Summary for Class: SalesforceFields (com.snaplogic.snaps.salesforce.sync)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SalesforceFields</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/92)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">SalesforceFields$UndefinedValueHanlder</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/94)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.sync;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.base.Strings;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snaps.salesforce.common.SalesforceObjectMapper;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snaps.salesforce.common.SnapContext;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snaps.salesforce.response.AbstractResponse;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.util.DefaultValueHandler;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.util.ExpressionUtils;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">30</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">33</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">34</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">35</i>&nbsp;import java.util.List;
+<i class="no-highlight">36</i>&nbsp;import java.util.Map;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snaps.salesforce.SFReadCommon.MIN_CHUNK_SIZE;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snaps.salesforce.response.ResponseIterator.COMMA;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snaps.salesforce.sync.Messages.ERR_CUSTOMER_SUPPORT;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snaps.salesforce.sync.Messages.ERR_NO_READABLE_FIELD;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.salesforce.sync.Messages.ERR_NO_READABLE_FIELD_REASON;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.salesforce.sync.Messages.PLEASE_CHOOSE_AN_OUTPUT_FIELD_LIMIT_AND_RETRY;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;/**
+<i class="no-highlight">46</i>&nbsp; * Constructs the entire set of fields in a given Salesforce object type.
+<i class="no-highlight">47</i>&nbsp; * This class is needed because SOQL does not have &quot;SELECT * FROM ...&quot;.
+<i class="no-highlight">48</i>&nbsp; */
+<i class="no-highlight">49</i>&nbsp;public class SalesforceFields implements AutoCloseable {
+<b class="nc"><i class="no-highlight">50</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(SalesforceFields.class);</b>
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;    private static final String NAME_FIELDS = &quot;fields&quot;;
+<i class="no-highlight">53</i>&nbsp;    private static final String ADDRESS = &quot;address&quot;;
+<i class="no-highlight">54</i>&nbsp;    private static final String LOCATION = &quot;location&quot;;
+<i class="no-highlight">55</i>&nbsp;    private static final String QUERY_LENGTH_THRESHOLD = &quot;_queryLengthThreshold&quot;;
+<b class="nc"><i class="no-highlight">56</i>&nbsp;    private static final Integer MIN_QUERY_LIMIT = 200;</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;    private static final Integer MAX_QUERY_LIMIT = 100000;</b>
+<i class="no-highlight">58</i>&nbsp;    static final String KEY_NAME = &quot;name&quot;;
+<i class="no-highlight">59</i>&nbsp;    static final String KEY_TYPE = &quot;type&quot;;
+<i class="no-highlight">60</i>&nbsp;    static final String FORMAT_REST_URL = &quot;https://%s/services/data/v%s/sobjects/%s/describe&quot;;
+<i class="no-highlight">61</i>&nbsp;    static final String ID = &quot;Id&quot;;
+<i class="no-highlight">62</i>&nbsp;    private Map&lt;String, Object&gt; responseMap;
+<b class="nc"><i class="no-highlight">63</i>&nbsp;    private String lastUrl = null;</b>
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    /**
+<i class="no-highlight">66</i>&nbsp;     * A SOQL query limit is 100,000 characters. However, the REST query also has a HTTP header
+<i class="no-highlight">67</i>&nbsp;     * limit size of 16kb. Since only GET requests are supported this means using REST will hit
+<i class="no-highlight">68</i>&nbsp;     * the request header size limit before hitting the SOQL limit.
+<i class="no-highlight">69</i>&nbsp;     * https://help.salesforce.com/articleView?id=000187052&amp;type=1
+<i class="no-highlight">70</i>&nbsp;     * https://developer.salesforce.com/docs/atlas.en-us.salesforce_app_limits_cheatsheet
+<i class="no-highlight">71</i>&nbsp;     * .meta/salesforce_app_limits_cheatsheet/salesforce_app_limits_platform_soslsoql.htm
+<i class="no-highlight">72</i>&nbsp;     */
+<i class="no-highlight">73</i>&nbsp;    private static final int MAX_QUERY_LIMIT_REST = 14000;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;    /**
+<i class="no-highlight">76</i>&nbsp;     * A SOQL query limit is 100,000 characters. This is set slightly under that limit to account
+<i class="no-highlight">77</i>&nbsp;     * for the query being expanded by SFDC as described in the documentation.
+<i class="no-highlight">78</i>&nbsp;     * https://developer.salesforce.com/docs/atlas.en-us.salesforce_app_limits_cheatsheet
+<i class="no-highlight">79</i>&nbsp;     * .meta/salesforce_app_limits_cheatsheet/salesforce_app_limits_platform_soslsoql.htm
+<i class="no-highlight">80</i>&nbsp;     */
+<i class="no-highlight">81</i>&nbsp;    private static final int MAX_QUERY_LIMIT_BULK = 99000;
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;    private static final int BUFFER_AMT = 100;
+<i class="no-highlight">84</i>&nbsp;    protected final SalesforceObjectMapper objectMapper;
+<i class="no-highlight">85</i>&nbsp;    private final DescribeUtils describeUtils;
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;    @Inject
+<b class="nc"><i class="no-highlight">88</i>&nbsp;    protected SalesforceFields(DescribeUtils describeUtils, SalesforceObjectMapper objectMapper) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        this.describeUtils = describeUtils;</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        this.objectMapper = objectMapper;</b>
+<i class="no-highlight">91</i>&nbsp;    }
+<i class="no-highlight">92</i>&nbsp;
+<i class="no-highlight">93</i>&nbsp;    /**
+<i class="no-highlight">94</i>&nbsp;     * Gets all readable field names for a given SObject type using REST API. This method is needed
+<i class="no-highlight">95</i>&nbsp;     * because the query operation in Salesforce API does not have &quot;SELECT ALL ...&quot;.
+<i class="no-highlight">96</i>&nbsp;     * If limit/offset are not used and the query length might exceed the max query length because
+<i class="no-highlight">97</i>&nbsp;     * of too many fiedls, it return more than one string.
+<i class="no-highlight">98</i>&nbsp;     *
+<i class="no-highlight">99</i>&nbsp;     * @param abResponse - RestReadResponse or BulkReadResponse object
+<i class="no-highlight">100</i>&nbsp;     * @param options    - options for Salesforce operation
+<i class="no-highlight">101</i>&nbsp;     * @param loginInfo  - login authentication info
+<i class="no-highlight">102</i>&nbsp;     * @param limit      - at most how many fields to retrieve
+<i class="no-highlight">103</i>&nbsp;     * @param offset     - start getting fields from this number
+<i class="no-highlight">104</i>&nbsp;     *
+<i class="no-highlight">105</i>&nbsp;     * @return list of comma-separated string for all readable fields
+<i class="no-highlight">106</i>&nbsp;     * @throws IOException if any error occurs while handling http request or response
+<i class="no-highlight">107</i>&nbsp;     */
+<i class="no-highlight">108</i>&nbsp;    public List&lt;String&gt; getFieldNames(AbstractResponse&lt;?&gt; abResponse, Options options,
+<i class="no-highlight">109</i>&nbsp;            Login loginInfo, int limit, int offset) throws IOException {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        final String objectType = options.getObjectType();</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        Map&lt;String, Object&gt; sObjectMap = getSObject(abResponse, objectType, options, loginInfo);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        return getReadableFields(sObjectMap, objectType, options, limit, offset);</b>
+<i class="no-highlight">113</i>&nbsp;    }
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;    /**
+<i class="no-highlight">116</i>&nbsp;     * Get the associated parent entity type for the given object. For example, for CaseFeed, we
+<i class="no-highlight">117</i>&nbsp;     * would expect to get &quot;Case&quot; as the parent entity type. This is achieved by executing a
+<i class="no-highlight">118</i>&nbsp;     * DESCRIBE for the current object.
+<i class="no-highlight">119</i>&nbsp;     *
+<i class="no-highlight">120</i>&nbsp;     * @param abResponse - RestReadResponse or BulkReadResponse object
+<i class="no-highlight">121</i>&nbsp;     * @param options    - options for Salesforce operation
+<i class="no-highlight">122</i>&nbsp;     * @param loginInfo  - login authentication info
+<i class="no-highlight">123</i>&nbsp;     * @return the parent object type, or {@code null} if none was found.
+<i class="no-highlight">124</i>&nbsp;     * @throws IOException if any error occurs while handling http request or response
+<i class="no-highlight">125</i>&nbsp;     */
+<i class="no-highlight">126</i>&nbsp;    public String getParentEntity(AbstractResponse&lt;?&gt; abResponse, Options options, Login loginInfo)
+<i class="no-highlight">127</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        Map&lt;String, Object&gt; sObjectMap = getSObject(abResponse, options.getObjectType(), options,</b>
+<i class="no-highlight">129</i>&nbsp;                loginInfo);
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        return getAssociateParentEntity(sObjectMap);</b>
+<i class="no-highlight">131</i>&nbsp;    }
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">134</i>&nbsp;    protected InputStream executeRequest(AbstractResponse&lt;?&gt; abResponse, Options options,
+<i class="no-highlight">135</i>&nbsp;                                         Login loginInfo, String restUrl) throws IOException {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        return describeUtils.executeRequest(abResponse, options, loginInfo,</b>
+<i class="no-highlight">137</i>&nbsp;                restUrl);
+<i class="no-highlight">138</i>&nbsp;    }
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">141</i>&nbsp;    public Map&lt;String, Object&gt; getSObject(AbstractResponse&lt;?&gt; abResponse, String objectType,
+<i class="no-highlight">142</i>&nbsp;            Options options, Login loginInfo) throws IOException {
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        String restUrl = options.getDescriptionUrl();</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        if (StringUtils.isBlank(restUrl)) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            restUrl = String.format(FORMAT_REST_URL, options.getHostFromServiceUrl(),</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                    options.getServiceVersion(), objectType);</b>
+<i class="no-highlight">147</i>&nbsp;        }
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;        // Sanity check to ensure it&#39;s the same URL/object before loading the cached response.
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        if (responseMap != null &amp;&amp; restUrl.equalsIgnoreCase(lastUrl)) {</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            return responseMap;</b>
+<i class="no-highlight">152</i>&nbsp;        }
+<i class="no-highlight">153</i>&nbsp;
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        try (InputStream inputStream = executeRequest(abResponse, options,</b>
+<i class="no-highlight">155</i>&nbsp;                loginInfo, restUrl)) {
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            responseMap = objectMapper.readValue(inputStream);</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            lastUrl = restUrl;</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            return responseMap;</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        }</b>
+<i class="no-highlight">160</i>&nbsp;    }
+<i class="no-highlight">161</i>&nbsp;
+<i class="no-highlight">162</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">163</i>&nbsp;    public List&lt;Map&lt;String, Object&gt;&gt; getFieldDefinitions(AbstractResponse&lt;?&gt; abResponse,
+<i class="no-highlight">164</i>&nbsp;            Options options, Login loginInfo) throws IOException {
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        String restUrl = String.format(FORMAT_REST_URL, options.getHostFromServiceUrl(),</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                options.getServiceVersion(), options.getObjectType());</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        try (InputStream inputStream = describeUtils.executeRequest(abResponse, options,</b>
+<i class="no-highlight">168</i>&nbsp;                loginInfo, restUrl)) {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            responseMap = objectMapper.readValue(inputStream);</b>
+<i class="no-highlight">170</i>&nbsp;            // get field names
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            return (List&lt;Map&lt;String, Object&gt;&gt;) responseMap.get(NAME_FIELDS);</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        }</b>
+<i class="no-highlight">173</i>&nbsp;    }
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;    public Map&lt;String, Object&gt; describe(AbstractResponse&lt;?&gt; abResponse,
+<i class="no-highlight">176</i>&nbsp;            Options options, Login loginInfo) throws IOException {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        String restUrl = String.format(FORMAT_REST_URL, options.getHostFromServiceUrl(),</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                options.getServiceVersion(), options.getObjectType());</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        try (InputStream inputStream = describeUtils.executeRequest(abResponse, options,</b>
+<i class="no-highlight">180</i>&nbsp;                loginInfo, restUrl)) {
+<b class="nc"><i class="no-highlight">181</i>&nbsp;            return objectMapper.readValue(inputStream);</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        }</b>
+<i class="no-highlight">183</i>&nbsp;    }
+<i class="no-highlight">184</i>&nbsp;
+<i class="no-highlight">185</i>&nbsp;    protected List&lt;String&gt; getReadableFields(Map&lt;String, Object&gt; responseBody, String objectType,
+<i class="no-highlight">186</i>&nbsp;                                             Options options, int limit, int offset)
+<i class="no-highlight">187</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        boolean isBulkAPI = options.isBulkAPI();</b>
+<i class="no-highlight">189</i>&nbsp;        // get field names
+<i class="no-highlight">190</i>&nbsp;        @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; fieldMapList = (List&lt;Map&lt;String, Object&gt;&gt;) responseBody</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .get(NAME_FIELDS);</b>
+<i class="no-highlight">193</i>&nbsp;
+<i class="no-highlight">194</i>&nbsp;        //The where clause is not accounted for because this would break backwards compatibility.
+<i class="no-highlight">195</i>&nbsp;        //The snap was released without checking the where clause length when calculating the limit
+<i class="no-highlight">196</i>&nbsp;        //so if this changes now it could break existing snaps.
+<i class="no-highlight">197</i>&nbsp;        //The limits are set below the actual limit and part of that buffer is a crude way to
+<i class="no-highlight">198</i>&nbsp;        //account the length of the where clause.
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        int maxQueryLimit = isBulkAPI ? MAX_QUERY_LIMIT_BULK : MAX_QUERY_LIMIT_REST;</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        Integer queryLimit = getQueryLimitFromPipelineParameter(options);</b>
+<i class="no-highlight">201</i>&nbsp;        // For testing purpose, &#39;queryLengthThreshold&#39; can be set as a pipeline parameter other
+<i class="no-highlight">202</i>&nbsp;        // than the hard-coded. (1000 &lt; queryLengthThreshold &lt; 100000)
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        maxQueryLimit = queryLimit != null ? queryLimit : maxQueryLimit;</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        if (options.isDisableVerticalSlicing()) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            maxQueryLimit = Integer.MAX_VALUE;</b>
+<i class="no-highlight">206</i>&nbsp;        }
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;        // format a comma-separated string for all readable fields
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        List&lt;String&gt; fieldList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        StringBuilder stringBuilder = new StringBuilder(ID).append(COMMA);</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        int characterCount = BUFFER_AMT; // buffer for select rest syntax</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        int fieldCount = 0;</b>
+<i class="no-highlight">213</i>&nbsp;        String fields;
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        for (int i = offset; i &lt; fieldMapList.size() &amp;&amp; fieldCount &lt; limit; i++) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            Map&lt;String, Object&gt; fieldMap = fieldMapList.get(i);</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;            if (!(isBulkAPI &amp;&amp; (ADDRESS.equals(fieldMap.get(KEY_TYPE))</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                    || LOCATION.equals(fieldMap.get(KEY_TYPE))))) {</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                String fieldName = (String) fieldMap.get(KEY_NAME);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                if (!fieldName.equalsIgnoreCase(ID)) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                    characterCount += fieldName.length() + 1;</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                    if (characterCount &gt; maxQueryLimit) {</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                        if (limit == Integer.MAX_VALUE &amp;&amp; (options.getBatchSize() &lt; MIN_CHUNK_SIZE</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                                || options.getIsPreview())) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                            fields = stringBuilder.toString();</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                            fieldList.add(StringUtils.removeEnd(fields, COMMA));</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                            stringBuilder = new StringBuilder(ID).append(COMMA);</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                            characterCount = BUFFER_AMT;</b>
+<i class="no-highlight">228</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                            String message = String.format(Messages.FIELD_LIST_EXCEEDS_LIMIT_AT,</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                                    fieldCount, fieldName);</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                            throw new SnapDataException(message)</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                                .withReason(message)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                                .withResolution(PLEASE_CHOOSE_AN_OUTPUT_FIELD_LIMIT_AND_RETRY);</b>
+<i class="no-highlight">234</i>&nbsp;                        }
+<i class="no-highlight">235</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                    stringBuilder.append(fieldName).append(COMMA);</b>
+<i class="no-highlight">237</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                fieldCount++;</b>
+<i class="no-highlight">239</i>&nbsp;            }
+<i class="no-highlight">240</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">241</i>&nbsp;        fields = stringBuilder.toString();</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        if (Strings.isNullOrEmpty(fields)) {</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            throw new ExecutionException(ERR_NO_READABLE_FIELD).formatWith(objectType)</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                    .withReason(ERR_NO_READABLE_FIELD_REASON)</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                    .withResolution(ERR_CUSTOMER_SUPPORT);</b>
+<i class="no-highlight">246</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        fieldList.add(StringUtils.removeEnd(fields, COMMA));</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        return fieldList;</b>
+<i class="no-highlight">249</i>&nbsp;    }
+<i class="no-highlight">250</i>&nbsp;
+<i class="no-highlight">251</i>&nbsp;    protected String getAssociateParentEntity(Map&lt;String, Object&gt; responseBody) throws IOException {
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        return (String) responseBody.computeIfAbsent(&quot;associateParentEntity&quot;, s -&gt; null);</b>
+<i class="no-highlight">253</i>&nbsp;    }
+<i class="no-highlight">254</i>&nbsp;
+<i class="no-highlight">255</i>&nbsp;    private Integer getQueryLimitFromPipelineParameter(Options options) {
+<i class="no-highlight">256</i>&nbsp;        Integer queryLimit;
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        SnapContext snapContext = options.getSnapContext();</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        if (snapContext != null) {</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            ExpressionUtils expressionUtils = snapContext.getExpressionUtils();</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;            PropertyValues propertyValues = snapContext.getPropertyValues();</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            String queryLimitStr = expressionUtils</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                    .createExpressionProperty(propertyValues, true, QUERY_LENGTH_THRESHOLD)</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                    .eval(null, null, new UndefinedValueHanlder());</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            if (StringUtils.isNotBlank(queryLimitStr)) {</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                queryLimit = Integer.valueOf(queryLimitStr);</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                queryLimit = queryLimit &lt; MIN_QUERY_LIMIT ? MIN_QUERY_LIMIT : queryLimit;</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                return queryLimit &gt; MAX_QUERY_LIMIT ? MAX_QUERY_LIMIT : queryLimit;</b>
+<i class="no-highlight">268</i>&nbsp;            }
+<i class="no-highlight">269</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        return null;</b>
+<i class="no-highlight">271</i>&nbsp;    }
+<i class="no-highlight">272</i>&nbsp;
+<b class="nc"><i class="no-highlight">273</i>&nbsp;    private class UndefinedValueHanlder extends DefaultValueHandler {</b>
+<i class="no-highlight">274</i>&nbsp;        @Override
+<i class="no-highlight">275</i>&nbsp;        public Object handleUndefinedReference(final Document originalDocument,
+<i class="no-highlight">276</i>&nbsp;                final String fieldName, final String fieldPath) throws SnapDataException {
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            return null;</b>
+<i class="no-highlight">278</i>&nbsp;        }
+<i class="no-highlight">279</i>&nbsp;    }
+<i class="no-highlight">280</i>&nbsp;
+<i class="no-highlight">281</i>&nbsp;    public Map&lt;String, Object&gt; getResponseMap() {
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        return responseMap;</b>
+<i class="no-highlight">283</i>&nbsp;    }
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;    @Override
+<i class="no-highlight">286</i>&nbsp;    public void close() {
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        responseMap = null;</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        lastUrl = null;</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        describeUtils.close();</b>
+<i class="no-highlight">290</i>&nbsp;    }
+<i class="no-highlight">291</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

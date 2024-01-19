@@ -1,0 +1,245 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MultiPartDataHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.rest</a>
+</div>
+
+<h1>Coverage Summary for Class: MultiPartDataHandler (com.snaplogic.snaps.rest)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MultiPartDataHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/55)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.rest;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.binary.UrlUtils;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.rest.RequestDataHandler;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.rest.RestMultiPartRelatedUtil;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">21</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">22</i>&nbsp;import org.apache.http.entity.ContentType;
+<i class="no-highlight">23</i>&nbsp;import org.apache.http.entity.mime.HttpMultipartMode;
+<i class="no-highlight">24</i>&nbsp;import org.apache.http.entity.mime.MultipartEntityBuilder;
+<i class="no-highlight">25</i>&nbsp;import org.apache.http.entity.mime.content.InputStreamBody;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">28</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">29</i>&nbsp;import java.util.List;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snaps.rest.Messages.ERR_ACCESS_DENIED;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.rest.Messages.ERR_ACCESS_DENIED_REASON;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.rest.Messages.ERR_FILE_NOT_FOUND;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.rest.Messages.REASON_INPUTSTREAM;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.rest.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;/**
+<i class="no-highlight">38</i>&nbsp; * Handles multipart file uploading by generating an
+<i class="no-highlight">39</i>&nbsp; * InputStreamEntity from a given list of files
+<i class="no-highlight">40</i>&nbsp; */
+<i class="no-highlight">41</i>&nbsp;public class MultiPartDataHandler implements RequestDataHandler&lt;HttpEntity&gt; {
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;    private static final ContentType TEXT_PLAIN_UTF8 =
+<b class="nc"><i class="no-highlight">44</i>&nbsp;            ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8);</b>
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;    private final List&lt;String&gt; partValues;
+<i class="no-highlight">47</i>&nbsp;    private final List&lt;String&gt; partKeys;
+<i class="no-highlight">48</i>&nbsp;    private final List&lt;String&gt; uploadFileNames;
+<i class="no-highlight">49</i>&nbsp;    private final List&lt;String&gt; mimeContentTypes;
+<i class="no-highlight">50</i>&nbsp;    private final List&lt;SnapDataException&gt; errorList;
+<i class="no-highlight">51</i>&nbsp;    private final String uploadBodyType;
+<i class="no-highlight">52</i>&nbsp;    private final List&lt;Object&gt; httpEntityList;
+<i class="no-highlight">53</i>&nbsp;    private final FileHandlerUtil fileHandlerUtil;
+<i class="no-highlight">54</i>&nbsp;    private final List&lt;String&gt; partTypes;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;    public MultiPartDataHandler(List&lt;String&gt; partTypes, List&lt;String&gt; partValues,
+<i class="no-highlight">57</i>&nbsp;            List&lt;String&gt; partKeys, List&lt;String&gt; uploadFileName, UrlUtils urlUtils,
+<i class="no-highlight">58</i>&nbsp;            boolean chunkedTransferEncoding, List&lt;String&gt; mimeContentType,
+<b class="nc"><i class="no-highlight">59</i>&nbsp;            String uploadBodyType, List&lt;Object&gt; httpEntityList) {</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;        this.partTypes = partTypes;</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;        this.partValues = partValues;</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        this.partKeys = partKeys;</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        this.uploadFileNames = uploadFileName;</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        this.mimeContentTypes = mimeContentType;</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        errorList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        this.uploadBodyType = uploadBodyType;</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        this.httpEntityList = httpEntityList;</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        this.fileHandlerUtil = new FileHandlerUtil(urlUtils, chunkedTransferEncoding);</b>
+<i class="no-highlight">69</i>&nbsp;    }
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    @Override
+<i class="no-highlight">72</i>&nbsp;    public HttpEntity createEntity(final Document document) {
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                .setCharset(StandardCharsets.UTF_8)</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                .setMode(HttpMultipartMode.RFC6532); // supports UTF-8 header values</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        for (int fileListIterator = 0; fileListIterator &lt; partValues.size(); fileListIterator++) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;            String partType = partTypes.get(fileListIterator);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;            String partValue = partValues.get(fileListIterator);</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;            String partKey = partKeys.get(fileListIterator);</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;            String uploadFileName = uploadFileNames.get(fileListIterator);</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;            String mimeContentType = mimeContentTypes.get(fileListIterator);</b>
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                if (StringUtils.isBlank(partType) || StringUtils.equalsIgnoreCase(partType,</b>
+<i class="no-highlight">85</i>&nbsp;                        RestWriteCommon.FILE_TYPE)) {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                    String filename =</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                            fileHandlerUtil.getFilename(partValue, uploadFileName);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                    InputStreamBody inputStreamBody =</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                            fileHandlerUtil.getInputBody(partValue, mimeContentType, filename);</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                    if (StringUtils.equalsIgnoreCase(uploadBodyType,</b>
+<i class="no-highlight">91</i>&nbsp;                            RestWriteCommon.MULTIPART_RELATED)) {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                        entityBuilder.setMimeSubtype(RestWriteCommon.RELATED_SUB_TYPE);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                        Object httpEntityEvaluated = httpEntityList.get(fileListIterator);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                        if (httpEntityEvaluated == null || &quot;$&quot;.equals(httpEntityEvaluated)) {</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                            RestWriteCommon.INVALID_MULTIPART_RELATED_SNAP_CONFIG.report();</b>
+<i class="no-highlight">96</i>&nbsp;                        }
+<i class="no-highlight">97</i>&nbsp;                        //To get Multipart fileName in case of Multipart related
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                        entityBuilder = RestMultiPartRelatedUtil.addFileNameForMultiPartRelated(</b>
+<i class="no-highlight">99</i>&nbsp;                                entityBuilder, filename, httpEntityEvaluated);
+<i class="no-highlight">100</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                    entityBuilder.addPart(partKey, inputStreamBody);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                } else {</b>
+<i class="no-highlight">103</i>&nbsp;                    // Typically, there&#39;s no need to specify a content type for a text part.
+<i class="no-highlight">104</i>&nbsp;                    // But if no content type is specified in the call to addTextBody, the
+<i class="no-highlight">105</i>&nbsp;                    // default content type is text/plain with the ISO_8859_1 charset. That
+<i class="no-highlight">106</i>&nbsp;                    // charset doesn&#39;t handle non-Latin characters. So use UTF-8 instead.
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                    ContentType contentType = StringUtils.isBlank(mimeContentType) ?</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                            TEXT_PLAIN_UTF8 : ContentType.parse(mimeContentType);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                    entityBuilder.addTextBody(partKey, partValue, contentType);</b>
+<i class="no-highlight">110</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                String reason = e.getMessage();</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                SnapDataException snapDataException = new SnapDataException(</b>
+<i class="no-highlight">114</i>&nbsp;                        ERR_FILE_NOT_FOUND)
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                        .formatWith(partValue)</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                        .withReason(StringUtils.isNotBlank(reason) ? reason : REASON_INPUTSTREAM)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                errorList.add(snapDataException);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            } catch (SecurityException e) {</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                SnapDataException snapDataException = new SnapDataException(</b>
+<i class="no-highlight">121</i>&nbsp;                        ERR_ACCESS_DENIED)
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                        .formatWith(partValue)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                        .withReason(ERR_ACCESS_DENIED_REASON)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                errorList.add(snapDataException);</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;            } catch (SnapDataException fileHandlerSnapDataException) {</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                errorList.add(fileHandlerSnapDataException);</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;            }</b>
+<i class="no-highlight">129</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        return entityBuilder.build();</b>
+<i class="no-highlight">131</i>&nbsp;    }
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;    public List&lt;SnapDataException&gt; getErrorList() {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        return errorList;</b>
+<i class="no-highlight">135</i>&nbsp;    }
+<i class="no-highlight">136</i>&nbsp;
+<i class="no-highlight">137</i>&nbsp;    protected void close() {
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        fileHandlerUtil.close();</b>
+<i class="no-highlight">139</i>&nbsp;    }
+<i class="no-highlight">140</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

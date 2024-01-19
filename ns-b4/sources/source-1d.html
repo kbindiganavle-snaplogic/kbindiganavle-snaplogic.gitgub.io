@@ -1,0 +1,344 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EltSort</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt</a>
+</div>
+
+<h1>Coverage Summary for Class: EltSort (com.snaplogic.snaps.elt)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EltSort</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/89)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020-2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.SuggestExecutionProvider;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.ExecutionMode;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.ctx.PushdownContext;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.parts.OrderByPart;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snaps.elt.utils.EltUtils;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">39</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">40</i>&nbsp;import java.util.List;
+<i class="no-highlight">41</i>&nbsp;import java.util.Map;
+<i class="no-highlight">42</i>&nbsp;import java.util.Set;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.*;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.*;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.extractQueryFromInputDocument;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.extractSnapTypeFromInputDocument;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;/**
+<i class="no-highlight">50</i>&nbsp; * Performs ELT Sort Operation on the input SQL.
+<i class="no-highlight">51</i>&nbsp; * Conceptually it works in the following manner:
+<i class="no-highlight">52</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">53</i>&nbsp; * SELECT *
+<i class="no-highlight">54</i>&nbsp; * FROM (inputSql)
+<i class="no-highlight">55</i>&nbsp; * ORDER BY &lt;sql_expr1&gt; ASC NULLS FIRST, &lt;sql_expr2&gt; DESC NULLS LAST, ...
+<i class="no-highlight">56</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">57</i>&nbsp; * NULLS FIRST indicates nulls will come first and then the non-null
+<i class="no-highlight">58</i>&nbsp; * values appear later. In other words if ASCENDING ORDER is specified,
+<i class="no-highlight">59</i>&nbsp; * null values are considered lower than non-null values and hence they
+<i class="no-highlight">60</i>&nbsp; * appear first.
+<i class="no-highlight">61</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">62</i>&nbsp; * NULLS LAST indicates will come last and the non-null values will appear
+<i class="no-highlight">63</i>&nbsp; * first. In other words if DESCENDING ORDER is specified, null values will
+<i class="no-highlight">64</i>&nbsp; * be considered greater than non-null values and hence they appear last.
+<i class="no-highlight">65</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">66</i>&nbsp; * If no null ordering clause is specified, NULLS LAST is the default null ordering
+<i class="no-highlight">67</i>&nbsp; * clause used when the ORDER BY clause is ASCENDING.
+<i class="no-highlight">68</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">69</i>&nbsp; * If no null ordering clause is specified, NULLS FIRST is the default null ordering
+<i class="no-highlight">70</i>&nbsp; * clause used when the ORDER BY clause is DESCENDING.
+<i class="no-highlight">71</i>&nbsp; *
+<i class="no-highlight">72</i>&nbsp; * @author Pradeep Sathyanarayan
+<i class="no-highlight">73</i>&nbsp; */
+<i class="no-highlight">74</i>&nbsp;@General(title = ELT_SORT_TITLE, purpose = ELT_SORT_PURPOSE,
+<i class="no-highlight">75</i>&nbsp;        docLink = ELT_SORT_DOC_LINK)
+<i class="no-highlight">76</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">77</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">78</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">79</i>&nbsp;@Category(snap = SnapCategory.TRANSFORM)
+<i class="no-highlight">80</i>&nbsp;@Accounts(provides = {EltDatabaseAccount.class})
+<b class="nc"><i class="no-highlight">81</i>&nbsp;public class EltSort extends BaseElt implements SuggestExecutionProvider, InputSchemaProvider {</b>
+<i class="no-highlight">82</i>&nbsp;
+<b class="nc"><i class="no-highlight">83</i>&nbsp;    static final List&lt;String&gt; SORT_PUSHDOWN_SNAP_LIST =</b>
+<i class="no-highlight">84</i>&nbsp;            new ImmutableList
+<i class="no-highlight">85</i>&nbsp;                    .Builder&lt;String&gt;()
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                    .add(ELT_AGGREGATE_TITLE)</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                    .add(ELT_COALESCE_TITLE)</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                    .add(ELT_CASE_TITLE)</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    .add(ELT_FILTER_TITLE)</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                    .add(ELT_INSERT_SELECT_TITLE)</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                    .add(ELT_JOIN_TITLE)</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                    .add(ELT_LOAD_TITLE)</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                    .add(ELT_MERGE_INTO_TITLE)</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    .add(ELT_PIVOT_TITLE)</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                    .add(ELT_SORT_TITLE)</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                    .add(ELT_SCD2_TITLE)</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                    .add(ELT_TRANSFORM_TITLE)</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                    .add(ELT_UNPIVOT_TITLE)</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                    .add(ELT_WINDOW_FUNCTIONS_TITLE)</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                    .add(ELT_UNIQUE_TITLE)</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                    .add(ELT_SELECT_TITLE)</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                    .build();</b>
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;
+<b class="nc"><i class="no-highlight">105</i>&nbsp;    private static final Set&lt;String&gt; ALLOWED_VALUES = ImmutableSet.of(ASCENDING, DESCENDING);</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;    private static final Set&lt;String&gt; ALLOWED_SORT_NULLS = ImmutableSet.of(NULLS_FIRST, NULLS_LAST);</b>
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    private static final int MIN_LENGTH = 1;
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    private String orderByClauseList;
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;    @Override
+<i class="no-highlight">114</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        SnapProperty sortPathColumn = builder</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                .describe(SORT_PATH_PROP, SORT_PATH_LABEL, SORT_PATH_DESC)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                .withMinLength(MIN_LENGTH)</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        SnapProperty sortOrderColumn = builder</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .describe(SORT_ORDER_INDIVIDUAL_PROP, SORT_ORDER_INDIVIDUAL_LABEL,</b>
+<i class="no-highlight">123</i>&nbsp;                        SORT_ORDER_INDIVIDUAL_DESC)
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                .withAllowedValues(ALLOWED_VALUES)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .defaultValue(ASCENDING)</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        SnapProperty sortNulls = builder</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .describe(SORT_NULLS_INDIVIDUAL_PROP, SORT_NULLS_INDIVIDUAL_LABEL,</b>
+<i class="no-highlight">130</i>&nbsp;                        SORT_NULLS_INDIVIDUAL_DESC)
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                .withAllowedValues(ALLOWED_SORT_NULLS)</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                .defaultValue(NULLS_FIRST)</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        builder.describe(SORT_PATHS_PROP, SORT_PATHS_LABEL, SORT_PATHS_DESC)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                .withEntry(sortPathColumn)</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                .withEntry(sortOrderColumn)</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                .withEntry(sortNulls)</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                .add();</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    @Override
+<i class="no-highlight">145</i>&nbsp;    protected void configureSnap(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        setSnapLevelSubQueryPushDownParam(DISABLE_SORT_SUBQUERY_PUSHDOWN);</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        EltUtils.checkSnapPlacement(inputViews, ELT_SORT_TITLE);</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        orderByClauseList = buildOrderByFieldsList(propertyValues, SORT_PATHS_PROP, false);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        executeSqlInPreview = Boolean.TRUE.equals(propertyValues.get(EXEC_SQL_IN_PREVIEW_PROP));</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        executionMode = propertyValues.get(ExecutionMode.EXECUTION_MODE_KEY).toString();</b>
+<i class="no-highlight">152</i>&nbsp;    }
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;    @Override
+<i class="no-highlight">155</i>&nbsp;    protected void processDocument(final Document document, final String inputViewName) {
+<i class="no-highlight">156</i>&nbsp;
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        String inputSqlString = extractQueryFromInputDocument(document);</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        List&lt;String&gt; previousSnapTypes = extractSnapTypeFromInputDocument(document);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        if (StringUtils.isBlank(inputSqlString)) {</b>
+<i class="no-highlight">160</i>&nbsp;            return;
+<i class="no-highlight">161</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        if (validationInProgress) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            schemaSupportService.defineInputSchema(schemaProvider, inputSqlString, inputViewName);</b>
+<i class="no-highlight">164</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        String dtName = &quot;Sort_&quot; + getDerivedTableName();</b>
+<i class="no-highlight">166</i>&nbsp;        String sqlSort;
+<i class="no-highlight">167</i>&nbsp;
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        List&lt;String&gt; snapTypes = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        snapTypes.add(ELT_SORT_TITLE);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        snapTypes.addAll(previousSnapTypes);</b>
+<i class="no-highlight">171</i>&nbsp;
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        String queryWithoutSort = inputSqlString;</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        PushdownContext ctx = PushdownContext.get(document).orElse(null);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        if (canPushdown(document, SORT_PUSHDOWN_SNAP_LIST)) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            PushdownContext temporaryCtx = PushdownContext.getOrCreate(document, dtName);</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;            temporaryCtx.setOrderByPart(null);</b>
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;            // Eliminate Sort snap during pipeline execution
+<b class="nc"><i class="no-highlight">179</i>&nbsp;            if (isExecutionInProgress()) {</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                sqlSort = queryWithoutSort;</b>
+<i class="no-highlight">181</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                pushdownSortExpression(temporaryCtx);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                sqlSort = pushdownQueryBuilder.buildSql(temporaryCtx);</b>
+<i class="no-highlight">184</i>&nbsp;            }
+<i class="no-highlight">185</i>&nbsp;
+<i class="no-highlight">186</i>&nbsp;            // Eliminate Sort snap for the following snaps
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            snapTypes.remove(ELT_SORT_TITLE);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        } else if (isAzureSynapseDb()) {</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            inputSqlString = addUniqueQueryID(inputSqlString);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;            sqlSort = String.format(</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    AZURE_SYNAPSE_ORDER_BY_SQL, inputSqlString, getDerivedTableName(),</b>
+<i class="no-highlight">192</i>&nbsp;                    inputSqlString, dtName, orderByClauseList);
+<i class="no-highlight">193</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">194</i>&nbsp;            sqlSort = String.format(ORDER_BY_SQL, inputSqlString, dtName, orderByClauseList);</b>
+<i class="no-highlight">195</i>&nbsp;        }
+<i class="no-highlight">196</i>&nbsp;
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        Map&lt;String, Object&gt; output = getOutputViewMapForSort(document, sqlSort, queryWithoutSort,</b>
+<i class="no-highlight">198</i>&nbsp;                snapTypes, ctx);
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        if (handlePreview(documentUtility.newDocument(output), document, account,</b>
+<i class="no-highlight">200</i>&nbsp;                validationInProgress, previewRowCount, executionMode, executeSqlInPreview)) {
+<i class="no-highlight">201</i>&nbsp;            return;
+<i class="no-highlight">202</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        outputViews.write(documentUtility.newDocument(output), document);</b>
+<i class="no-highlight">204</i>&nbsp;    }
+<i class="no-highlight">205</i>&nbsp;
+<i class="no-highlight">206</i>&nbsp;    private void pushdownSortExpression(PushdownContext ctx) {
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        OrderByPart orderByPart = new OrderByPart();</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        orderByPart.setOrderByClauseList(orderByClauseList);</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        ctx.setOrderByPart(orderByPart);</b>
+<i class="no-highlight">210</i>&nbsp;    }
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;    @Override
+<i class="no-highlight">213</i>&nbsp;    public void configureForSuggest(final PropertyValues propertyValues,
+<i class="no-highlight">214</i>&nbsp;                                    final BigInteger maxSuggestValue) {
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        configurePreviewProps(maxSuggestValue);</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        configure(propertyValues);</b>
+<i class="no-highlight">217</i>&nbsp;    }
+<i class="no-highlight">218</i>&nbsp;
+<i class="no-highlight">219</i>&nbsp;    @Override
+<i class="no-highlight">220</i>&nbsp;    public void executeForSuggest() {
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        execute();</b>
+<i class="no-highlight">222</i>&nbsp;    }
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;    @Override
+<i class="no-highlight">225</i>&nbsp;    public void defineInputSchema(final SchemaProvider schemaProvider) {
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        this.schemaProvider = schemaProvider;</b>
+<i class="no-highlight">227</i>&nbsp;    }
+<i class="no-highlight">228</i>&nbsp;
+<i class="no-highlight">229</i>&nbsp;    private Map&lt;String, Object&gt; getOutputViewMapForSort(final Document document,
+<i class="no-highlight">230</i>&nbsp;                                                        final String sqlSort,
+<i class="no-highlight">231</i>&nbsp;                                                        final String inputSqlString,
+<i class="no-highlight">232</i>&nbsp;                                                        final List&lt;String&gt; snapTypes,
+<i class="no-highlight">233</i>&nbsp;                                                        final PushdownContext ctx) {
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        Map&lt;String, Object&gt; output = getOutputViewMap(document, sqlSort,</b>
+<i class="no-highlight">235</i>&nbsp;                snapTypes, ctx);
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        output.put(ELT_SORT_SNAP_INPUT_SQL, inputSqlString);</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        return output;</b>
+<i class="no-highlight">238</i>&nbsp;    }
+<i class="no-highlight">239</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

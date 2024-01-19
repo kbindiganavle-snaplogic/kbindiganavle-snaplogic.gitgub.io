@@ -1,0 +1,801 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AzureSynapseUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: AzureSynapseUtils (com.snaplogic.snaps.elt.utils)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AzureSynapseUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/299)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AzureSynapseUtils$AzureDataLakeClient</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/304)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020-2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt.utils;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.azure.identity.ClientSecretCredentialBuilder;
+<i class="no-highlight">14</i>&nbsp;import com.azure.storage.blob.BlobServiceClient;
+<i class="no-highlight">15</i>&nbsp;import com.azure.storage.blob.BlobServiceClientBuilder;
+<i class="no-highlight">16</i>&nbsp;import com.azure.storage.common.StorageSharedKeyCredential;
+<i class="no-highlight">17</i>&nbsp;import com.azure.storage.file.datalake.DataLakeServiceClient;
+<i class="no-highlight">18</i>&nbsp;import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snaps.elt.Messages;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">24</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">27</i>&nbsp;import java.sql.PreparedStatement;
+<i class="no-highlight">28</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">29</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">30</i>&nbsp;import java.util.List;
+<i class="no-highlight">31</i>&nbsp;import java.util.Map;
+<i class="no-highlight">32</i>&nbsp;import java.util.UUID;
+<i class="no-highlight">33</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">34</i>&nbsp;import java.util.stream.Stream;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.*;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.*;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;/**
+<i class="no-highlight">40</i>&nbsp; * Util class to hold all the Azure Synapse specific common util methods
+<i class="no-highlight">41</i>&nbsp; */
+<i class="no-highlight">42</i>&nbsp;public class AzureSynapseUtils {
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;    private static final String QUERY_WITH_UNIQUE_ID_TEMPLATE = &quot;/* %s */ %s&quot;;
+<i class="no-highlight">45</i>&nbsp;    private static final String ENDPOINT_FORMAT = &quot;https://%s%s&quot;;
+<i class="no-highlight">46</i>&nbsp;
+<b class="nc"><i class="no-highlight">47</i>&nbsp;    private AzureSynapseUtils() {}</b>
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;    /**
+<i class="no-highlight">50</i>&nbsp;     * Adds a unique identifier as a comment at the start of the query.
+<i class="no-highlight">51</i>&nbsp;     *
+<i class="no-highlight">52</i>&nbsp;     * @param sqlQuery SQL query to which you want to add a unique id
+<i class="no-highlight">53</i>&nbsp;     * @return query with a unique id at the start of the query
+<i class="no-highlight">54</i>&nbsp;     */
+<i class="no-highlight">55</i>&nbsp;    public static String addUniqueIdToAzureSynapseQuery(String sqlQuery) {
+<b class="nc"><i class="no-highlight">56</i>&nbsp;        return String.format(QUERY_WITH_UNIQUE_ID_TEMPLATE, UUID.randomUUID(), sqlQuery);</b>
+<i class="no-highlight">57</i>&nbsp;    }
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;    /**
+<i class="no-highlight">60</i>&nbsp;     * Validates azure synapse account settings for bulk load operation. Other elt snaps do not
+<i class="no-highlight">61</i>&nbsp;     * need most of these properties set.
+<i class="no-highlight">62</i>&nbsp;     *
+<i class="no-highlight">63</i>&nbsp;     * @param endpoint    external storage endpoint
+<i class="no-highlight">64</i>&nbsp;     * @param accountName name of azure external storage account
+<i class="no-highlight">65</i>&nbsp;     * @param container   container in storage account
+<i class="no-highlight">66</i>&nbsp;     * @param errFilePath error file path
+<i class="no-highlight">67</i>&nbsp;     * @param isErrorFile true if error file path present
+<i class="no-highlight">68</i>&nbsp;     */
+<i class="no-highlight">69</i>&nbsp;    public static void validateAzureSynapseAccountSettingsForLoad(String endpoint,
+<i class="no-highlight">70</i>&nbsp;                                                                  String accountName,
+<i class="no-highlight">71</i>&nbsp;                                                                  String container,
+<i class="no-highlight">72</i>&nbsp;                                                                  String errFilePath,
+<i class="no-highlight">73</i>&nbsp;                                                                  boolean isErrorFile) {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        if (StringUtils.isBlank(endpoint)) {</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ENDPOINT)</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ENDPOINT)</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                    .withResolution(RES_BLANK_AZURE_ENDPOINT);</b>
+<i class="no-highlight">78</i>&nbsp;        }
+<i class="no-highlight">79</i>&nbsp;
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        if (StringUtils.isBlank(accountName)) {</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_ACCOUNT);</b>
+<i class="no-highlight">84</i>&nbsp;        }
+<i class="no-highlight">85</i>&nbsp;
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        if (StringUtils.isBlank(container)) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_CONTAINER)</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_CONTAINER)</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_CONTAINER);</b>
+<i class="no-highlight">90</i>&nbsp;        }
+<i class="no-highlight">91</i>&nbsp;
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        if (isErrorFile &amp;&amp; StringUtils.isBlank(errFilePath)) {</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ERRORFILE)</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ERRORFILE)</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_ERRORFILE);</b>
+<i class="no-highlight">96</i>&nbsp;        }
+<i class="no-highlight">97</i>&nbsp;    }
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;    /**
+<i class="no-highlight">100</i>&nbsp;     * Prefixes a period to the azure external storage account endpoint
+<i class="no-highlight">101</i>&nbsp;     *
+<i class="no-highlight">102</i>&nbsp;     * @param endpoint external storage account endpoint
+<i class="no-highlight">103</i>&nbsp;     * @return endpoint with a period prefixed
+<i class="no-highlight">104</i>&nbsp;     */
+<i class="no-highlight">105</i>&nbsp;    public static String prefixPeriodToAzureEndpoint(String endpoint) {
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        if (endpoint.startsWith(&quot;.&quot;)) {</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            return endpoint;</b>
+<i class="no-highlight">108</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        return &quot;.&quot; + endpoint;</b>
+<i class="no-highlight">110</i>&nbsp;    }
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;    /**
+<i class="no-highlight">113</i>&nbsp;     * Gets the column metadata for a column in an Azure Synapse Table that can be directly used
+<i class="no-highlight">114</i>&nbsp;     * while adding a column during rollback
+<i class="no-highlight">115</i>&nbsp;     * @param databaseName Azure synapse database
+<i class="no-highlight">116</i>&nbsp;     * @param schemaName schema name
+<i class="no-highlight">117</i>&nbsp;     * @param tableName table name
+<i class="no-highlight">118</i>&nbsp;     * @param columnName column name for which metadata is to be fetched
+<i class="no-highlight">119</i>&nbsp;     * @return column metadata
+<i class="no-highlight">120</i>&nbsp;     */
+<i class="no-highlight">121</i>&nbsp;    public static String getColumnMetaDataSqlForAzureSynapseTable(String databaseName,
+<i class="no-highlight">122</i>&nbsp;                                                                  String schemaName,
+<i class="no-highlight">123</i>&nbsp;                                                                  String tableName,
+<i class="no-highlight">124</i>&nbsp;                                                                  String columnName) {
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        return String.format(AZURE_SYNAPSE_FETCH_COLUMN_METADATA_SQL,</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                StringUtils.strip(databaseName, DOUBLE_QUOTES),</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                StringUtils.strip(schemaName, DOUBLE_QUOTES),</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                StringUtils.strip(tableName, DOUBLE_QUOTES),</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                StringUtils.strip(columnName, DOUBLE_QUOTES));</b>
+<i class="no-highlight">130</i>&nbsp;    }
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;    /**
+<i class="no-highlight">133</i>&nbsp;     * Gets the column name and datatype with a delimiter string for easy retrieval of complete
+<i class="no-highlight">134</i>&nbsp;     * datatype of all columns in a specified Azure Synapse Table
+<i class="no-highlight">135</i>&nbsp;     * @param databaseName Azure synapse database
+<i class="no-highlight">136</i>&nbsp;     * @param schemaName schema name
+<i class="no-highlight">137</i>&nbsp;     * @param tableName table name
+<i class="no-highlight">138</i>&nbsp;     * @return column metadata
+<i class="no-highlight">139</i>&nbsp;     */
+<i class="no-highlight">140</i>&nbsp;    public static String getColumnDataTypesSqlForAzureSynapseTable(String databaseName,
+<i class="no-highlight">141</i>&nbsp;                                                                   String schemaName,
+<i class="no-highlight">142</i>&nbsp;                                                                   String tableName) {
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        return String.format(AZURE_SYNAPSE_FETCH_COLUMN_NAME_AND_TYPE_WITH_PRECISION_SQL,</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                StringUtils.strip(databaseName, DOUBLE_QUOTES),</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                StringUtils.strip(schemaName, DOUBLE_QUOTES),</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                StringUtils.strip(tableName, DOUBLE_QUOTES));</b>
+<i class="no-highlight">147</i>&nbsp;    }
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;    /**
+<i class="no-highlight">150</i>&nbsp;     * Gets the column metadata for a table in an Azure Synapse Table
+<i class="no-highlight">151</i>&nbsp;     * @param databaseName Azure synapse database
+<i class="no-highlight">152</i>&nbsp;     * @param schemaName schema name
+<i class="no-highlight">153</i>&nbsp;     * @param tableName table name
+<i class="no-highlight">154</i>&nbsp;     * @return columns metadata
+<i class="no-highlight">155</i>&nbsp;     */
+<i class="no-highlight">156</i>&nbsp;    public static String getColumnMetaDataForTableAzureSynapseSql(String databaseName,
+<i class="no-highlight">157</i>&nbsp;                                                                  String schemaName,
+<i class="no-highlight">158</i>&nbsp;                                                                  String tableName) {
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        return String.format(AZURE_SYNAPSE_FETCH_COLUMN_METADATA_SQL_WITHOUT_PK,</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                StringUtils.strip(databaseName, DOUBLE_QUOTES),</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                StringUtils.strip(schemaName, DOUBLE_QUOTES),</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                StringUtils.strip(tableName, DOUBLE_QUOTES));</b>
+<i class="no-highlight">163</i>&nbsp;    }
+<i class="no-highlight">164</i>&nbsp;
+<i class="no-highlight">165</i>&nbsp;    /**
+<i class="no-highlight">166</i>&nbsp;     * Gets azure datalake and blob clients based on shared key credentials
+<i class="no-highlight">167</i>&nbsp;     *
+<i class="no-highlight">168</i>&nbsp;     * @param accountName name of azure account
+<i class="no-highlight">169</i>&nbsp;     * @param endpoint    azure account endpoint
+<i class="no-highlight">170</i>&nbsp;     * @param storageKey  storagekey for account
+<i class="no-highlight">171</i>&nbsp;     * @return a class containing datalake client and blob client
+<i class="no-highlight">172</i>&nbsp;     */
+<i class="no-highlight">173</i>&nbsp;    public static AzureDataLakeClient getAzureSharedKeyClients(String accountName,
+<i class="no-highlight">174</i>&nbsp;                                                               String endpoint, String storageKey) {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        DataLakeServiceClient dlsClient = new DataLakeServiceClientBuilder().credential(</b>
+<i class="no-highlight">176</i>&nbsp;                new StorageSharedKeyCredential(accountName, storageKey))
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .endpoint(String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .buildClient();</b>
+<i class="no-highlight">179</i>&nbsp;
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        BlobServiceClient bsClient = new BlobServiceClientBuilder().credential(</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                new StorageSharedKeyCredential(accountName, storageKey)).endpoint(</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .buildClient();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        return new AzureDataLakeClient(dlsClient, bsClient);</b>
+<i class="no-highlight">185</i>&nbsp;    }
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;    /**
+<i class="no-highlight">188</i>&nbsp;     * Gets azure datalake and blob clients based on SAS token
+<i class="no-highlight">189</i>&nbsp;     *
+<i class="no-highlight">190</i>&nbsp;     * @param accountName name of azure account
+<i class="no-highlight">191</i>&nbsp;     * @param endpoint    azure account endpoint
+<i class="no-highlight">192</i>&nbsp;     * @param sasToken  sasToken for account
+<i class="no-highlight">193</i>&nbsp;     * @return a class containing datalake client and blob client
+<i class="no-highlight">194</i>&nbsp;     */
+<i class="no-highlight">195</i>&nbsp;    public static AzureDataLakeClient getAzureSasTokenClients(String accountName,
+<i class="no-highlight">196</i>&nbsp;                                                               String endpoint, String sasToken) {
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        DataLakeServiceClient dlsClient = new DataLakeServiceClientBuilder()</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                .sasToken(sasToken).endpoint(</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                .buildClient();</b>
+<i class="no-highlight">201</i>&nbsp;
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        BlobServiceClient bsClient = new BlobServiceClientBuilder()</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                .sasToken(sasToken).endpoint(</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                .buildClient();</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        return new AzureDataLakeClient(dlsClient, bsClient);</b>
+<i class="no-highlight">207</i>&nbsp;    }
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;    /**
+<i class="no-highlight">210</i>&nbsp;     * Gets azure datalake and blob clients based on AAD credentials
+<i class="no-highlight">211</i>&nbsp;     *
+<i class="no-highlight">212</i>&nbsp;     * @param accountName  name of azure account
+<i class="no-highlight">213</i>&nbsp;     * @param tenantId     Azure active directory tenant id
+<i class="no-highlight">214</i>&nbsp;     * @param clientId     Azure active directory client id
+<i class="no-highlight">215</i>&nbsp;     * @param clientSecret Azure active directory client secret
+<i class="no-highlight">216</i>&nbsp;     * @param endpoint     endpoint of azure account
+<i class="no-highlight">217</i>&nbsp;     * @return a class containing datalake client and blob client
+<i class="no-highlight">218</i>&nbsp;     */
+<i class="no-highlight">219</i>&nbsp;    public static AzureDataLakeClient getAzureAADClients(String accountName, String tenantId,
+<i class="no-highlight">220</i>&nbsp;                                                         String clientId, String clientSecret,
+<i class="no-highlight">221</i>&nbsp;                                                         String endpoint) {
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        DataLakeServiceClient dlsClient = new DataLakeServiceClientBuilder().credential(</b>
+<i class="no-highlight">223</i>&nbsp;                new ClientSecretCredentialBuilder()
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                        .tenantId(tenantId)</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                        .clientId(clientId)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                        .clientSecret(clientSecret).build()).endpoint(</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                .buildClient();</b>
+<i class="no-highlight">229</i>&nbsp;
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        BlobServiceClient bsClient = new BlobServiceClientBuilder().credential(</b>
+<i class="no-highlight">231</i>&nbsp;                new ClientSecretCredentialBuilder()
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                        .tenantId(tenantId)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                        .clientId(clientId)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                        .clientSecret(clientSecret).build()).endpoint(</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                .buildClient();</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        return new AzureDataLakeClient(dlsClient, bsClient);</b>
+<i class="no-highlight">238</i>&nbsp;    }
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;    /**
+<i class="no-highlight">241</i>&nbsp;     * Class to hold both azure datalake and blob clients
+<i class="no-highlight">242</i>&nbsp;     */
+<i class="no-highlight">243</i>&nbsp;    public static class AzureDataLakeClient {
+<i class="no-highlight">244</i>&nbsp;        private final DataLakeServiceClient dlsClient;
+<i class="no-highlight">245</i>&nbsp;        private final BlobServiceClient bsClient;
+<i class="no-highlight">246</i>&nbsp;
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        private AzureDataLakeClient(DataLakeServiceClient dlsClient, BlobServiceClient bsClient) {</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;            this.dlsClient = dlsClient;</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;            this.bsClient = bsClient;</b>
+<i class="no-highlight">250</i>&nbsp;        }
+<i class="no-highlight">251</i>&nbsp;
+<i class="no-highlight">252</i>&nbsp;        public DataLakeServiceClient getDataLakeServiceClient() {
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            return dlsClient;</b>
+<i class="no-highlight">254</i>&nbsp;        }
+<i class="no-highlight">255</i>&nbsp;
+<i class="no-highlight">256</i>&nbsp;        public BlobServiceClient getBlobServiceClient() {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            return bsClient;</b>
+<i class="no-highlight">258</i>&nbsp;        }
+<i class="no-highlight">259</i>&nbsp;    }
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;    /**
+<i class="no-highlight">262</i>&nbsp;     * Builds Azure Synapse drop table sql
+<i class="no-highlight">263</i>&nbsp;     * @param table table to be dropped
+<i class="no-highlight">264</i>&nbsp;     * @return drop table sql
+<i class="no-highlight">265</i>&nbsp;     */
+<i class="no-highlight">266</i>&nbsp;    public static String buildAzureSynapseDropTableSql(String table) {
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        return String.format(DROP_TABLE_SQL_AZURE_SYNAPSE_FMT, table);</b>
+<i class="no-highlight">268</i>&nbsp;    }
+<i class="no-highlight">269</i>&nbsp;
+<i class="no-highlight">270</i>&nbsp;    /**
+<i class="no-highlight">271</i>&nbsp;     * Builds Azure Synapse rename table sql
+<i class="no-highlight">272</i>&nbsp;     * @param fromTableName table to be renamed
+<i class="no-highlight">273</i>&nbsp;     * @param toTableName new table name to be used
+<i class="no-highlight">274</i>&nbsp;     * @return rename table sql
+<i class="no-highlight">275</i>&nbsp;     */
+<i class="no-highlight">276</i>&nbsp;    public static String buildAzureSynapseRenameTableSql(String fromTableName, String toTableName) {
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        return String.format(RENAME_TABLE_SQL_AZURESYNAPSE_FMT, fromTableName,</b>
+<i class="no-highlight">278</i>&nbsp;                             toTableName);
+<i class="no-highlight">279</i>&nbsp;    }
+<i class="no-highlight">280</i>&nbsp;
+<i class="no-highlight">281</i>&nbsp;    /**
+<i class="no-highlight">282</i>&nbsp;     * Builds Azure Synapse create table sql
+<i class="no-highlight">283</i>&nbsp;     * @param targetTablePath table to be created
+<i class="no-highlight">284</i>&nbsp;     * @param hashColumn column used for hash distribution
+<i class="no-highlight">285</i>&nbsp;     * @param createColumnsStr columns with their respective datatypes to be used in create sql
+<i class="no-highlight">286</i>&nbsp;     * @param tableOptionList table options to be used in create sql
+<i class="no-highlight">287</i>&nbsp;     * @return create table sql
+<i class="no-highlight">288</i>&nbsp;     */
+<i class="no-highlight">289</i>&nbsp;    public static String buildAzureSynapseCreateTableSql(String targetTablePath,
+<i class="no-highlight">290</i>&nbsp;                                                         String hashColumn,
+<i class="no-highlight">291</i>&nbsp;                                                         String createColumnsStr,
+<i class="no-highlight">292</i>&nbsp;                                                         List&lt;String&gt; tableOptionList) {
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        if (StringUtils.isBlank(hashColumn)) {</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;            if (CollectionUtils.isNotEmpty(tableOptionList)) {</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                return String.format(CREATE_TABLE_SQL_AZURE_SYNAPSE_WITH_FMT,</b>
+<i class="no-highlight">296</i>&nbsp;                        targetTablePath, createColumnsStr,
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                        getWithClauseAzureSynapse(hashColumn, tableOptionList));</b>
+<i class="no-highlight">298</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">299</i>&nbsp;            return String.format(CREATE_TABLE_SQL_AZURE_SYNAPSE_FMT, targetTablePath,</b>
+<i class="no-highlight">300</i>&nbsp;                    createColumnsStr);
+<i class="no-highlight">301</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">302</i>&nbsp;            if (CollectionUtils.isNotEmpty(tableOptionList)) {</b>
+<i class="no-highlight">303</i>&nbsp;                // Distribution table option has the precedence over the given hashColumn.
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                return String.format(CREATE_TABLE_SQL_AZURE_SYNAPSE_WITH_FMT,</b>
+<i class="no-highlight">305</i>&nbsp;                        targetTablePath, createColumnsStr,
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                        getWithClauseAzureSynapse(hashColumn, tableOptionList));</b>
+<i class="no-highlight">307</i>&nbsp;            }
+<i class="no-highlight">308</i>&nbsp;            // Use the given hashCOluum to have &quot;DISTRIBUTION = HASH ( $hashColumn )&quot;
+<b class="nc"><i class="no-highlight">309</i>&nbsp;            return String</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                    .format(CREATE_TABLE_SQL_AZURESYNAPSE_WITH_HASH_DISTRIBUTION,</b>
+<i class="no-highlight">311</i>&nbsp;                            targetTablePath, createColumnsStr, hashColumn);
+<i class="no-highlight">312</i>&nbsp;        }
+<i class="no-highlight">313</i>&nbsp;    }
+<i class="no-highlight">314</i>&nbsp;
+<i class="no-highlight">315</i>&nbsp;    public static String buildAzureSynapseCreateTableAsSelectSql(String targetTablePath,
+<i class="no-highlight">316</i>&nbsp;                                                                 String hashColumn,
+<i class="no-highlight">317</i>&nbsp;                                                                 String inputSqlString,
+<i class="no-highlight">318</i>&nbsp;                                                                 String derivedTableName,
+<i class="no-highlight">319</i>&nbsp;                                                                 List&lt;String&gt; tableOptionList) {
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        if (StringUtils.isBlank(hashColumn)) {</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;            if (CollectionUtils.isNotEmpty(tableOptionList)) {</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                return String.format(AZURE_SYNAPSE_CREATE_TABLE_AS_WITH_TABLE_OPTIONS_SQL,</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                        targetTablePath, getWithClauseAzureSynapse(hashColumn, tableOptionList),</b>
+<i class="no-highlight">324</i>&nbsp;                        inputSqlString, derivedTableName);
+<i class="no-highlight">325</i>&nbsp;
+<i class="no-highlight">326</i>&nbsp;            }
+<i class="no-highlight">327</i>&nbsp;            // If both are empty, use ROUND ROBIN distribution.
+<b class="nc"><i class="no-highlight">328</i>&nbsp;            return String.format(AZURE_SYNAPSE_CREATE_TABLE_AS_SQL,</b>
+<i class="no-highlight">329</i>&nbsp;                    targetTablePath, inputSqlString, derivedTableName);
+<i class="no-highlight">330</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">331</i>&nbsp;            if (CollectionUtils.isNotEmpty(tableOptionList)) {</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                return String.format(AZURE_SYNAPSE_CREATE_TABLE_AS_WITH_TABLE_OPTIONS_SQL,</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                        targetTablePath, getWithClauseAzureSynapse(hashColumn, tableOptionList),</b>
+<i class="no-highlight">334</i>&nbsp;                        inputSqlString, derivedTableName);
+<i class="no-highlight">335</i>&nbsp;            }
+<i class="no-highlight">336</i>&nbsp;            // If tableOptionList is empty, use the hashColumn to have HASH distribution.
+<b class="nc"><i class="no-highlight">337</i>&nbsp;            return String.format(AZURE_SYNAPSE_HASH_DISTRIBUTION_CREATE_TABLE_AS_SQL,</b>
+<i class="no-highlight">338</i>&nbsp;                    targetTablePath, hashColumn, inputSqlString,
+<i class="no-highlight">339</i>&nbsp;                    derivedTableName);
+<i class="no-highlight">340</i>&nbsp;        }
+<i class="no-highlight">341</i>&nbsp;    }
+<i class="no-highlight">342</i>&nbsp;
+<i class="no-highlight">343</i>&nbsp;    public static String buildAzureSynapseEmptyCreateTableAsSelectSql(String targetTablePath,
+<i class="no-highlight">344</i>&nbsp;                                                                 String hashColumn,
+<i class="no-highlight">345</i>&nbsp;                                                                 String inputSqlString,
+<i class="no-highlight">346</i>&nbsp;                                                                 String derivedTableName,
+<i class="no-highlight">347</i>&nbsp;                                                                 List&lt;String&gt; tableOptionList) {
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        if (StringUtils.isBlank(hashColumn)) {</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;            if (CollectionUtils.isNotEmpty(tableOptionList)) {</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                return String.format(AZURE_SYNAPSE_CREATE_EMPTY_TABLE_AS_WITH_TABLE_OPTIONS_SQL,</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                        targetTablePath, getWithClauseAzureSynapse(hashColumn, tableOptionList),</b>
+<i class="no-highlight">352</i>&nbsp;                        inputSqlString, derivedTableName);
+<i class="no-highlight">353</i>&nbsp;
+<i class="no-highlight">354</i>&nbsp;            }
+<i class="no-highlight">355</i>&nbsp;            // If both are empty, use ROUND ROBIN distribution.
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            return String.format(AZURE_SYNAPSE_CREATE_EMPTY_TABLE_AS_SQL,</b>
+<i class="no-highlight">357</i>&nbsp;                    targetTablePath, inputSqlString, derivedTableName);
+<i class="no-highlight">358</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">359</i>&nbsp;            if (CollectionUtils.isNotEmpty(tableOptionList)) {</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                return String.format(AZURE_SYNAPSE_CREATE_EMPTY_TABLE_AS_WITH_TABLE_OPTIONS_SQL,</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                        targetTablePath, getWithClauseAzureSynapse(hashColumn, tableOptionList),</b>
+<i class="no-highlight">362</i>&nbsp;                        inputSqlString, derivedTableName);
+<i class="no-highlight">363</i>&nbsp;            }
+<i class="no-highlight">364</i>&nbsp;            // If tableOptionList is empty, use the hashColumn to have HASH distribution.
+<b class="nc"><i class="no-highlight">365</i>&nbsp;            return String.format(AZURE_SYNAPSE_HASH_DISTRIBUTION_CREATE_EMPTY_TABLE_AS_SQL,</b>
+<i class="no-highlight">366</i>&nbsp;                    targetTablePath, hashColumn, inputSqlString,
+<i class="no-highlight">367</i>&nbsp;                    derivedTableName);
+<i class="no-highlight">368</i>&nbsp;        }
+<i class="no-highlight">369</i>&nbsp;    }
+<i class="no-highlight">370</i>&nbsp;
+<i class="no-highlight">371</i>&nbsp;    private static String getWithClauseAzureSynapse(String hashColumn,
+<i class="no-highlight">372</i>&nbsp;                                                    List&lt;String&gt; tableOptionList) {
+<b class="nc"><i class="no-highlight">373</i>&nbsp;        StringBuilder withClauseBuilder = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;        boolean first = true;</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        boolean distributionTableOptionExists = false;</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;        for (String tableOption : tableOptionList) {</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;            if (first) {</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                first = false;</b>
+<i class="no-highlight">379</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                withClauseBuilder.append(COMMA_SPACE);</b>
+<i class="no-highlight">381</i>&nbsp;            }
+<i class="no-highlight">382</i>&nbsp;
+<b class="nc"><i class="no-highlight">383</i>&nbsp;            tableOption = tableOption.trim();</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;            if (tableOption.startsWith(PREFIX_DISTRIBUTION)) {</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                distributionTableOptionExists = true;</b>
+<i class="no-highlight">386</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            withClauseBuilder.append(tableOption);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        }</b>
+<i class="no-highlight">389</i>&nbsp;        // Append Hash distribution with the given hashColumn if
+<i class="no-highlight">390</i>&nbsp;        // no distribution table option is given.
+<b class="nc"><i class="no-highlight">391</i>&nbsp;        if (!distributionTableOptionExists) {</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            if (!first) {</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                withClauseBuilder.append(COMMA_SPACE);</b>
+<i class="no-highlight">394</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            withClauseBuilder.append(</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                    String.format(AZURE_SYNAPSE_HASH_DISTRIBUTION_CLAUSE, hashColumn));</b>
+<i class="no-highlight">397</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">398</i>&nbsp;        return withClauseBuilder.toString();</b>
+<i class="no-highlight">399</i>&nbsp;    }
+<i class="no-highlight">400</i>&nbsp;
+<i class="no-highlight">401</i>&nbsp;    public static String getAzureSynapseDistribution(Connection conn, String targetTablePath) {
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        try (PreparedStatement stmt =</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;                     conn.prepareStatement(</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                             String.format(GET_TABLE_DISTRIBUTION, targetTablePath))) {</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;            String distributionPolicy = &quot;&quot;;</b>
+<i class="no-highlight">406</i>&nbsp;
+<b class="nc"><i class="no-highlight">407</i>&nbsp;            try (ResultSet resultSet = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                int rowCount = 0;</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                while (resultSet.next()) {</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                    rowCount++;</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                    distributionPolicy = resultSet.getString(AZURE_SYNAPSE_DISTRIBUTION_POLICY);</b>
+<i class="no-highlight">412</i>&nbsp;                }
+<i class="no-highlight">413</i>&nbsp;
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                if (rowCount != 1) {</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                    throw new SnapDataException(ERR_BULK_LOAD)</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                            .withReason(ERROR_PERFORMING_RETRIEVAL_OF_TARGET_TABLE_DDL)</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                            .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">418</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;            return distributionPolicy;</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;            throw new SnapDataException(e, ERR_BULK_LOAD)</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;                    .withReason(ERROR_PERFORMING_RETRIEVAL_OF_TARGET_TABLE_DDL)</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">425</i>&nbsp;        }
+<i class="no-highlight">426</i>&nbsp;    }
+<i class="no-highlight">427</i>&nbsp;
+<i class="no-highlight">428</i>&nbsp;    public static String getAzureSynapseTableStructure(Connection conn, String targetTablePath) {
+<b class="nc"><i class="no-highlight">429</i>&nbsp;        try (PreparedStatement stmt =</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                     conn.prepareStatement(String.format(GET_TABLE_STRUCTURE_CONSTRAINT,</b>
+<i class="no-highlight">431</i>&nbsp;                             targetTablePath))) {
+<b class="nc"><i class="no-highlight">432</i>&nbsp;            String tableStructureOption = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;            try (ResultSet resultSet = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                int rowCount = 0;</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                while (resultSet.next()) {</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                    rowCount++;</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;                    String tableStructureType = resultSet.getString(&quot;type_desc&quot;);</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;                    if (&quot;CLUSTERED COLUMNSTORE&quot;.equals(tableStructureType)) {</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                        tableStructureOption =</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                                getClusteredColumnStoreTableStructureOption(resultSet);</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                    } else if (&quot;CLUSTERED&quot;.equals(tableStructureType)) {</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                        tableStructureOption = getClusteredTableStructureOption(resultSet);</b>
+<i class="no-highlight">443</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                        tableStructureOption = tableStructureType;</b>
+<i class="no-highlight">445</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                if (rowCount != 1) {</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                    throw new SnapDataException(ERR_BULK_LOAD)</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                            .withReason(ERROR_PERFORMING_RETRIEVAL_OF_TARGET_TABLE_DDL)</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                            .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">451</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">452</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;            return tableStructureOption;</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;            throw new SnapDataException(e, ERR_BULK_LOAD)</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                    .withReason(ERROR_PERFORMING_RETRIEVAL_OF_TARGET_TABLE_DDL)</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">458</i>&nbsp;        }
+<i class="no-highlight">459</i>&nbsp;    }
+<i class="no-highlight">460</i>&nbsp;
+<i class="no-highlight">461</i>&nbsp;    private static String getClusteredColumnStoreTableStructureOption(
+<i class="no-highlight">462</i>&nbsp;            ResultSet resultSet) throws SQLException {
+<i class="no-highlight">463</i>&nbsp;
+<b class="nc"><i class="no-highlight">464</i>&nbsp;        String definedColumns = getDefinedColumns(resultSet);</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;        if (definedColumns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;            return &quot;CLUSTERED COLUMNSTORE INDEX&quot;;</b>
+<i class="no-highlight">467</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">468</i>&nbsp;            return &quot;CLUSTERED COLUMNSTORE INDEX ORDER&quot;.concat(&quot;(&quot;)</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                    .concat(definedColumns).concat(&quot;)&quot;);</b>
+<i class="no-highlight">470</i>&nbsp;        }
+<i class="no-highlight">471</i>&nbsp;    }
+<i class="no-highlight">472</i>&nbsp;
+<i class="no-highlight">473</i>&nbsp;    private static String getClusteredTableStructureOption(ResultSet resultSet)
+<i class="no-highlight">474</i>&nbsp;            throws SQLException {
+<i class="no-highlight">475</i>&nbsp;
+<b class="nc"><i class="no-highlight">476</i>&nbsp;        String definedColumns = getDefinedColumns(resultSet);</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;        if (definedColumns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;            throw new SnapDataException(ERR_BULK_LOAD)</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;                    .withReason(ERROR_PERFORMING_RETRIEVAL_OF_TARGET_TABLE_DDL)</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">481</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">482</i>&nbsp;            return &quot;CLUSTERED INDEX&quot;.concat(&quot;(&quot;).concat(definedColumns).concat(&quot;)&quot;);</b>
+<i class="no-highlight">483</i>&nbsp;        }
+<i class="no-highlight">484</i>&nbsp;    }
+<i class="no-highlight">485</i>&nbsp;
+<i class="no-highlight">486</i>&nbsp;    private static String getDefinedColumns(ResultSet resultSet) throws SQLException {
+<b class="nc"><i class="no-highlight">487</i>&nbsp;        String firstColumn = resultSet.getString(&quot;name&quot;);</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;        if (firstColumn != null) {</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;            StringBuilder sb = new StringBuilder(firstColumn)</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                    .append(getDescKeyOrEmptyString(resultSet));</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;            while (resultSet.next()) {</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                if (sb.length() == 0) {</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                    sb.append(resultSet.getString(&quot;name&quot;));</b>
+<i class="no-highlight">494</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                    sb.append(&quot;, &quot;).append(resultSet.getString(&quot;name&quot;));</b>
+<i class="no-highlight">496</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                sb.append(getDescKeyOrEmptyString(resultSet));</b>
+<i class="no-highlight">498</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">499</i>&nbsp;            return sb.toString();</b>
+<i class="no-highlight">500</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">501</i>&nbsp;        return &quot;&quot;;</b>
+<i class="no-highlight">502</i>&nbsp;    }
+<i class="no-highlight">503</i>&nbsp;
+<i class="no-highlight">504</i>&nbsp;    private static String getDescKeyOrEmptyString(ResultSet resultSet) throws SQLException {
+<b class="nc"><i class="no-highlight">505</i>&nbsp;        return resultSet.getBoolean(&quot;is_descending_key&quot;) ? &quot; DESC&quot; : &quot;&quot;;</b>
+<i class="no-highlight">506</i>&nbsp;    }
+<i class="no-highlight">507</i>&nbsp;
+<i class="no-highlight">508</i>&nbsp;    public static String getAzureSynapsePartition(Connection conn, String targetTablePath) {
+<b class="nc"><i class="no-highlight">509</i>&nbsp;        try (PreparedStatement stmt =</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;                     conn.prepareStatement(String.format(GET_TABLE_PARTITION, targetTablePath))) {</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;            String partitionConstraint = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;            try (ResultSet resultSet = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                if (resultSet.next()) {</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;                    String partitionColumn = resultSet.getString(&quot;name&quot;);</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;                    boolean boundaryValueRight = resultSet.getBoolean(&quot;boundary_right&quot;);</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;                    StringBuilder partitionValues = new StringBuilder(&quot;&#39;&quot;)</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;                            .append(resultSet.getString(&quot;value&quot;)).append(&quot;&#39;&quot;);</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;                    while (resultSet.next()) {</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;                        partitionValues.append(&quot;, &#39;&quot;).append(resultSet.getString(</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;                                &quot;value&quot;)).append(&quot;&#39;&quot;);</b>
+<i class="no-highlight">521</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                    partitionConstraint = &quot;PARTITION (&quot;</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                            .concat(partitionColumn)</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                            .concat(&quot; RANGE&quot;)</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                            .concat(boundaryValueRight ? &quot; RIGHT &quot; : &quot; LEFT &quot;)</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                            .concat(&quot;FOR VALUES (&quot;)</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                            .concat(partitionValues.toString()).concat(&quot;))&quot;);</b>
+<i class="no-highlight">528</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">529</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;            return partitionConstraint;</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;            throw new SnapDataException(e, ERR_BULK_LOAD)</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;                    .withReason(ERROR_PERFORMING_RETRIEVAL_OF_TARGET_TABLE_DDL)</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">535</i>&nbsp;        }
+<i class="no-highlight">536</i>&nbsp;    }
+<i class="no-highlight">537</i>&nbsp;
+<i class="no-highlight">538</i>&nbsp;    public static String getAzureSynapseTableConstraints(Connection conn, String targetTablePath) {
+<b class="nc"><i class="no-highlight">539</i>&nbsp;        try (PreparedStatement stmt =</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;                     conn.prepareStatement(String.format(GET_TABLE_CONSTRAINTS, targetTablePath))) {</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;            StringBuilder keyConstraints = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;            try (ResultSet rs = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                int prevId = 0;</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;                while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                    int currentId = rs.getInt(&quot;object_id&quot;);</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                    String type = rs.getString(&quot;type&quot;);</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;                    String column = rs.getString(&quot;column_name&quot;);</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;                    if (currentId == prevId) {</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;                        keyConstraints.append(&quot;, &quot;).append(column);</b>
+<i class="no-highlight">550</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">551</i>&nbsp;                        if (prevId == 0) {</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;                            keyConstraints.append(type).append(&quot;(&quot;).append(column);</b>
+<i class="no-highlight">553</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">554</i>&nbsp;                            keyConstraints.append(&quot;) &quot;).append(AZURE_SYNAPSE_NOT_ENFORCED)</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;                                    .append(&quot;, &quot;).append(type).append(&quot; (&quot;).append(column);</b>
+<i class="no-highlight">556</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">557</i>&nbsp;                        prevId = currentId;</b>
+<i class="no-highlight">558</i>&nbsp;                    }
+<i class="no-highlight">559</i>&nbsp;
+<b class="nc"><i class="no-highlight">560</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;            String keyConstraintsString = keyConstraints.toString();</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;            keyConstraintsString =</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;                    keyConstraintsString.replace(&quot;PK&quot;, AZURE_SYNAPSE_PK_CONSTRAINT);</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;            keyConstraintsString =</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                    keyConstraintsString.replace(&quot;UQ&quot;, AZURE_SYNAPSE_UQ_CONSTRAINT);</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;            return keyConstraintsString.isEmpty() ? &quot;&quot; :</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                    keyConstraintsString + &quot; ) &quot; + AZURE_SYNAPSE_NOT_ENFORCED;</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;            throw new SnapDataException(e, ERR_BULK_LOAD)</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;                    .withReason(ERROR_PERFORMING_RETRIEVAL_OF_TARGET_TABLE_DDL)</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">573</i>&nbsp;        }
+<i class="no-highlight">574</i>&nbsp;    }
+<i class="no-highlight">575</i>&nbsp;
+<i class="no-highlight">576</i>&nbsp;    public static String getColumnsDataForTableTypeAzureSynapse(String databaseName,
+<i class="no-highlight">577</i>&nbsp;                                                                String schemaName,
+<i class="no-highlight">578</i>&nbsp;                                                       String tableName, Connection dbConnection) {
+<b class="nc"><i class="no-highlight">579</i>&nbsp;        String fetchColumnMetadataSql =</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;                AzureSynapseUtils.getColumnMetaDataForTableAzureSynapseSql(databaseName,</b>
+<i class="no-highlight">581</i>&nbsp;                        schemaName, tableName);
+<b class="nc"><i class="no-highlight">582</i>&nbsp;        StringBuilder columnsMetaData = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;        try (PreparedStatement stmt = dbConnection.prepareStatement(fetchColumnMetadataSql)) {</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;            try (ResultSet resultSet = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;                if (resultSet.next()) {</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;                    columnsMetaData</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                            .append(resultSet.getString(&quot;COLUMN_NAME&quot;))</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;                            .append(SPACE)</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;                            .append(resultSet.getString(AZURE_SYNAPSE_COLUMN_INFO_COLUMN_NAME));</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;                    while (resultSet.next()){</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                        columnsMetaData</b>
+<b class="nc"><i class="no-highlight">592</i>&nbsp;                                .append(COMMA_SPACE)</b>
+<b class="nc"><i class="no-highlight">593</i>&nbsp;                                .append(resultSet.getString(&quot;COLUMN_NAME&quot;))</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                                .append(SPACE)</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;                                .append(resultSet.getString(AZURE_SYNAPSE_COLUMN_INFO_COLUMN_NAME));</b>
+<i class="no-highlight">596</i>&nbsp;                    }
+<i class="no-highlight">597</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                    throw new SnapDataException(REASON_INVALID_COLUMN_DATA_TYPE)</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;                            .withResolution(RESOLUTION_BULK_LOAD);</b>
+<i class="no-highlight">600</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">601</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;            throw new SnapDataException(e, Messages.ERR_ROLLBACK_AZURESYNAPSE_BULK_LOAD)</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;                    .withResolution(RESOLUTION_BULK_LOAD);</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;        return columnsMetaData.toString();</b>
+<i class="no-highlight">608</i>&nbsp;    }
+<i class="no-highlight">609</i>&nbsp;
+<i class="no-highlight">610</i>&nbsp;    public static Map&lt;String, String&gt; getColumnsDataTypeForTableAzureSynapse(
+<i class="no-highlight">611</i>&nbsp;            String fetchColumnMetadataSql, Connection dbConnection,
+<i class="no-highlight">612</i>&nbsp;            Map&lt;String, String&gt; columnNameType) {
+<b class="nc"><i class="no-highlight">613</i>&nbsp;        StringBuilder columnsMetaData = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">614</i>&nbsp;        try (PreparedStatement stmt = dbConnection.prepareStatement(fetchColumnMetadataSql)) {</b>
+<b class="nc"><i class="no-highlight">615</i>&nbsp;            try (ResultSet resultSet = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;                if (resultSet.next()) {</b>
+<b class="nc"><i class="no-highlight">617</i>&nbsp;                    columnsMetaData</b>
+<b class="nc"><i class="no-highlight">618</i>&nbsp;                            .append(resultSet.getString(&quot;COLUMN_NAME&quot;))</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;                            .append(SPACE)</b>
+<b class="nc"><i class="no-highlight">620</i>&nbsp;                            .append(resultSet.getString(AZURE_SYNAPSE_COLUMN_INFO_COLUMN_NAME));</b>
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                    while (resultSet.next()){</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                        columnsMetaData</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;                                .append(COMMA_SPACE)</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;                                .append(resultSet.getString(&quot;COLUMN_NAME&quot;))</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;                                .append(SPACE)</b>
+<b class="nc"><i class="no-highlight">626</i>&nbsp;                                .append(resultSet.getString(AZURE_SYNAPSE_COLUMN_INFO_COLUMN_NAME));</b>
+<i class="no-highlight">627</i>&nbsp;                    }
+<i class="no-highlight">628</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">629</i>&nbsp;                    throw new SnapDataException(REASON_INVALID_COLUMN_DATA_TYPE)</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;                            .withResolution(RESOLUTION_BULK_LOAD);</b>
+<i class="no-highlight">631</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">632</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">633</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">634</i>&nbsp;            throw new SnapDataException(e, Messages.ERR_ROLLBACK_AZURESYNAPSE_BULK_LOAD)</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;                    .withResolution(RESOLUTION_BULK_LOAD);</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;        }</b>
+<i class="no-highlight">638</i>&nbsp;
+<b class="nc"><i class="no-highlight">639</i>&nbsp;        List&lt;String&gt; colDefs = Stream.of(columnsMetaData.toString().split(&quot;\\s+[,]\\s+&quot;, -1))</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;                .collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;        for (String colDef : colDefs) {</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;            if (StringUtils.isNotBlank(colDef)) {</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;                int indexOfDataTypeBegin = colDef.indexOf(&quot;dtbegin:&quot;) + &quot;dtbegin:&quot;.length();</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;                int indexOfDataTypeEnd = colDef.indexOf(&quot;:dtend&quot;);</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                String colName = colDef.substring(0, colDef.indexOf(&quot;dtbegin:&quot;)).trim();</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;                String colType = colDef.substring(indexOfDataTypeBegin, indexOfDataTypeEnd).trim();</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                columnNameType.put(colName, colType);</b>
+<i class="no-highlight">648</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">649</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">650</i>&nbsp;        return columnNameType;</b>
+<i class="no-highlight">651</i>&nbsp;    }
+<i class="no-highlight">652</i>&nbsp;
+<i class="no-highlight">653</i>&nbsp;    public static Map&lt;String, String&gt; wrapBooleanValues(Map&lt;String, String&gt; scdMeaningValueMap) {
+<b class="nc"><i class="no-highlight">654</i>&nbsp;        scdMeaningValueMap.entrySet().forEach(entry -&gt; {</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;            String value = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">656</i>&nbsp;            if (TRUE_BOOLEAN_STR.equalsIgnoreCase(value) ||</b>
+<b class="nc"><i class="no-highlight">657</i>&nbsp;                    FALSE_BOOLEAN_STR.equalsIgnoreCase(value)) {</b>
+<b class="nc"><i class="no-highlight">658</i>&nbsp;                entry.setValue(StringUtils.wrap(value, &quot;&#39;&quot;));</b>
+<i class="no-highlight">659</i>&nbsp;            }
+<i class="no-highlight">660</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">661</i>&nbsp;        return scdMeaningValueMap;</b>
+<i class="no-highlight">662</i>&nbsp;    }
+<i class="no-highlight">663</i>&nbsp;
+<i class="no-highlight">664</i>&nbsp;    public static String wrapBooleanValue(String value){
+<b class="nc"><i class="no-highlight">665</i>&nbsp;        if (TRUE_BOOLEAN_STR.equalsIgnoreCase(value) || FALSE_BOOLEAN_STR.equalsIgnoreCase(value)) {</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;            return StringUtils.wrap(value, &quot;&#39;&quot;);</b>
+<i class="no-highlight">667</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">668</i>&nbsp;        return value;</b>
+<i class="no-highlight">669</i>&nbsp;    }
+<i class="no-highlight">670</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

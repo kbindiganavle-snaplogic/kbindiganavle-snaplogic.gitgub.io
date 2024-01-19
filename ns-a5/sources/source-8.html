@@ -1,0 +1,481 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ConfluentKafkaServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.confluentkafka</a>
+</div>
+
+<h1>Coverage Summary for Class: ConfluentKafkaServiceImpl (com.snaplogic.snaps.confluentkafka)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ConfluentKafkaServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/170)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.confluentkafka;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.cache.Cache;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.cache.CacheBuilder;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.utilities.URLEncoder;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">20</i>&nbsp;import org.apache.kafka.clients.CommonClientConfigs;
+<i class="no-highlight">21</i>&nbsp;import org.apache.kafka.clients.admin.Admin;
+<i class="no-highlight">22</i>&nbsp;import org.apache.kafka.clients.admin.Config;
+<i class="no-highlight">23</i>&nbsp;import org.apache.kafka.clients.admin.ConfigEntry;
+<i class="no-highlight">24</i>&nbsp;import org.apache.kafka.clients.admin.DescribeClusterOptions;
+<i class="no-highlight">25</i>&nbsp;import org.apache.kafka.clients.admin.DescribeClusterResult;
+<i class="no-highlight">26</i>&nbsp;import org.apache.kafka.clients.admin.DescribeConfigsResult;
+<i class="no-highlight">27</i>&nbsp;import org.apache.kafka.clients.admin.DescribeTopicsOptions;
+<i class="no-highlight">28</i>&nbsp;import org.apache.kafka.clients.admin.DescribeTopicsResult;
+<i class="no-highlight">29</i>&nbsp;import org.apache.kafka.clients.admin.TopicDescription;
+<i class="no-highlight">30</i>&nbsp;import org.apache.kafka.clients.consumer.Consumer;
+<i class="no-highlight">31</i>&nbsp;import org.apache.kafka.clients.consumer.ConsumerConfig;
+<i class="no-highlight">32</i>&nbsp;import org.apache.kafka.clients.consumer.KafkaConsumer;
+<i class="no-highlight">33</i>&nbsp;import org.apache.kafka.clients.producer.KafkaProducer;
+<i class="no-highlight">34</i>&nbsp;import org.apache.kafka.clients.producer.Producer;
+<i class="no-highlight">35</i>&nbsp;import org.apache.kafka.common.Node;
+<i class="no-highlight">36</i>&nbsp;import org.apache.kafka.common.PartitionInfo;
+<i class="no-highlight">37</i>&nbsp;import org.apache.kafka.common.TopicPartitionInfo;
+<i class="no-highlight">38</i>&nbsp;import org.apache.kafka.common.acl.AclOperation;
+<i class="no-highlight">39</i>&nbsp;import org.apache.kafka.common.config.ConfigResource;
+<i class="no-highlight">40</i>&nbsp;import org.apache.kafka.common.errors.InterruptException;
+<i class="no-highlight">41</i>&nbsp;import org.apache.kafka.common.serialization.Deserializer;
+<i class="no-highlight">42</i>&nbsp;import org.apache.kafka.common.serialization.Serializer;
+<i class="no-highlight">43</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">44</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import java.io.File;
+<i class="no-highlight">47</i>&nbsp;import java.io.FileOutputStream;
+<i class="no-highlight">48</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">49</i>&nbsp;import java.io.PrintWriter;
+<i class="no-highlight">50</i>&nbsp;import java.io.StringWriter;
+<i class="no-highlight">51</i>&nbsp;import java.net.URL;
+<i class="no-highlight">52</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">53</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">54</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">55</i>&nbsp;import java.util.Comparator;
+<i class="no-highlight">56</i>&nbsp;import java.util.List;
+<i class="no-highlight">57</i>&nbsp;import java.util.Map;
+<i class="no-highlight">58</i>&nbsp;import java.util.Properties;
+<i class="no-highlight">59</i>&nbsp;import java.util.Set;
+<i class="no-highlight">60</i>&nbsp;import java.util.SortedSet;
+<i class="no-highlight">61</i>&nbsp;import java.util.TreeSet;
+<i class="no-highlight">62</i>&nbsp;import java.util.UUID;
+<i class="no-highlight">63</i>&nbsp;import java.util.concurrent.ExecutionException;
+<i class="no-highlight">64</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">65</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+<i class="no-highlight">68</i>&nbsp;import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.confluentkafka.Constants.BYTE_ARRAY_DESERIALIZER_CLASS;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.confluentkafka.Constants.DEFAULT_GROUP_ID;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.confluentkafka.Messages.ERR_NO_BROKERS_SET;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.confluentkafka.Messages.LOG_FAILED_DELETE_TEMP;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;/**
+<i class="no-highlight">76</i>&nbsp; * Provides services to the Consumer and the Producer Snaps.
+<i class="no-highlight">77</i>&nbsp; *
+<i class="no-highlight">78</i>&nbsp; * @author smudassir
+<i class="no-highlight">79</i>&nbsp; * @author dweiss
+<i class="no-highlight">80</i>&nbsp; */
+<b class="nc"><i class="no-highlight">81</i>&nbsp;public class ConfluentKafkaServiceImpl implements ConfluentKafkaService {</b>
+<i class="no-highlight">82</i>&nbsp;
+<b class="nc"><i class="no-highlight">83</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(ConfluentKafkaServiceImpl.class);</b>
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;    private File tmpDir;
+<b class="nc"><i class="no-highlight">86</i>&nbsp;    private List&lt;File&gt; tempFilesForSuggest = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;    private static final Cache&lt;String, Boolean&gt; DIAGNOSTICS_CACHE =
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            CacheBuilder.newBuilder().expireAfterWrite(15, TimeUnit.MINUTES).build();</b>
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;    @Override
+<i class="no-highlight">92</i>&nbsp;    public String getBrokerString(List&lt;String&gt; brokerList) {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        if ((brokerList == null) || (brokerList.size() == 0)) {</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;            throw new IllegalArgumentException(ERR_NO_BROKERS_SET);</b>
+<i class="no-highlight">95</i>&nbsp;        }
+<i class="no-highlight">96</i>&nbsp;
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        StringBuilder builder = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        builder.append(brokerList.get(0));</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        for (int i = 1; i &lt; brokerList.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            builder.append(&quot;,&quot;);</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            builder.append(brokerList.get(i));</b>
+<i class="no-highlight">102</i>&nbsp;        }
+<i class="no-highlight">103</i>&nbsp;
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        return builder.toString();</b>
+<i class="no-highlight">105</i>&nbsp;    }
+<i class="no-highlight">106</i>&nbsp;
+<i class="no-highlight">107</i>&nbsp;    @Override
+<i class="no-highlight">108</i>&nbsp;    public &lt;K, V&gt; Consumer&lt;K, V&gt; createConsumer(Properties properties,
+<i class="no-highlight">109</i>&nbsp;                                                Deserializer&lt;K&gt; keyDeser,
+<i class="no-highlight">110</i>&nbsp;                                                Deserializer&lt;V&gt; valDeser) {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        return new KafkaConsumer&lt;&gt;(properties, keyDeser, valDeser);</b>
+<i class="no-highlight">112</i>&nbsp;    }
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    @Override
+<i class="no-highlight">115</i>&nbsp;    public Consumer&lt;?, ?&gt; getDefaultConsumer(ConfluentKafkaAccount account, String groupId) {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        Properties props = new Properties();</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, BYTE_ARRAY_DESERIALIZER_CLASS);</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BYTE_ARRAY_DESERIALIZER_CLASS);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        account.update(props);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        return new KafkaConsumer&lt;&gt;(props);</b>
+<i class="no-highlight">123</i>&nbsp;    }
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;    @Override
+<i class="no-highlight">126</i>&nbsp;    public Set&lt;String&gt; fetchTopics(ConfluentKafkaAccount account) {
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        Consumer&lt;?, ?&gt; consumer = null;</b>
+<i class="no-highlight">128</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;            consumer = getDefaultConsumer(account, DEFAULT_GROUP_ID);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            Map&lt;String, List&lt;PartitionInfo&gt;&gt; topicInfo = consumer.listTopics();</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            return topicInfo.keySet();</b>
+<i class="no-highlight">132</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            cleanup();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            closeConsumer(consumer);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        }</b>
+<i class="no-highlight">136</i>&nbsp;    }
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;    @Override
+<i class="no-highlight">139</i>&nbsp;    public Set&lt;Integer&gt; fetchPartitions(String topic, ConfluentKafkaAccount account) {
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        Consumer&lt;?, ?&gt; consumer = null;</b>
+<i class="no-highlight">141</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            consumer = getDefaultConsumer(account, DEFAULT_GROUP_ID);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            List&lt;PartitionInfo&gt; infoList = consumer.partitionsFor(topic);</b>
+<i class="no-highlight">144</i>&nbsp;
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            TreeSet&lt;Integer&gt; intSet = new TreeSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            for (PartitionInfo info : infoList) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                intSet.add(info.partition());</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            }</b>
+<i class="no-highlight">149</i>&nbsp;
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            return intSet;</b>
+<i class="no-highlight">151</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            cleanup();</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;            closeConsumer(consumer);</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        }</b>
+<i class="no-highlight">155</i>&nbsp;    }
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;    private void closeConsumer(Consumer&lt;?, ?&gt; consumer) {
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        if (consumer != null) {</b>
+<i class="no-highlight">159</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                consumer.unsubscribe();</b>
+<i class="no-highlight">161</i>&nbsp;            } finally {
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                try {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                    consumer.close();</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                } catch (InterruptException ie) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                    LOG.warn(&quot;Exception on first attempt to close consumer&quot;, ie);</b>
+<i class="no-highlight">166</i>&nbsp;                    // This call to Thread.interrupted() is critical since it clears the interrupted
+<i class="no-highlight">167</i>&nbsp;                    // status and may allow the second call to close() to succeed. Don&#39;t remove!
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                    LOG.debug(&quot;Thread.interrupted={}&quot;, Thread.interrupted());</b>
+<i class="no-highlight">169</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                        consumer.close();</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                    } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                        LOG.warn(&quot;Exception on second attempt to close consumer&quot;, e);</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            }</b>
+<i class="no-highlight">176</i>&nbsp;        }
+<i class="no-highlight">177</i>&nbsp;    }
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;    @Override
+<i class="no-highlight">180</i>&nbsp;    public void closeProducer(Producer&lt;?, ?&gt; producer) {
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        if (producer != null) {</b>
+<i class="no-highlight">182</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                producer.flush();</b>
+<i class="no-highlight">184</i>&nbsp;            } finally {
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                try {</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                    producer.close();</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                } catch (InterruptException ie) {</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                    LOG.warn(&quot;Exception on first attempt to close producer&quot;, ie);</b>
+<i class="no-highlight">189</i>&nbsp;                    // This call to Thread.interrupted() is critical since it clears the interrupted
+<i class="no-highlight">190</i>&nbsp;                    // status and may allow the second call to close() to succeed. Don&#39;t remove!
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    LOG.debug(&quot;Thread.interrupted={}&quot;, Thread.interrupted());</b>
+<i class="no-highlight">192</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                        producer.close();</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                    } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                        LOG.warn(&quot;Exception on second attempt to close producer&quot;, e);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            }</b>
+<i class="no-highlight">199</i>&nbsp;        }
+<i class="no-highlight">200</i>&nbsp;    }
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;    @Override
+<i class="no-highlight">203</i>&nbsp;    public &lt;K, V&gt; Producer&lt;K, V&gt; createProducer(Properties producerConfigProperties,
+<i class="no-highlight">204</i>&nbsp;                                                Serializer&lt;K&gt; keySer,
+<i class="no-highlight">205</i>&nbsp;                                                Serializer&lt;V&gt; valSer) {
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        return new KafkaProducer&lt;&gt;(producerConfigProperties, keySer, valSer);</b>
+<i class="no-highlight">207</i>&nbsp;    }
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;    @Override
+<i class="no-highlight">210</i>&nbsp;    public String getRealFile(String fname, String prefix, String suffix) {
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        File file = new File(fname);</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        if (!file.exists()) {</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            URLEncoder urlEncoder = new URLEncoder();</b>
+<i class="no-highlight">214</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                URL url = urlEncoder.validateAndEncodeURI(fname).toURL();</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                byte[] bytes = IOUtils.toByteArray(url);</b>
+<i class="no-highlight">217</i>&nbsp;                File tempFile;
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                if (tmpDir != null) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                    tempFile = File.createTempFile(prefix, suffix, tmpDir);</b>
+<i class="no-highlight">220</i>&nbsp;                } else {
+<i class="no-highlight">221</i>&nbsp;                    // tmpDir can be null during property suggest or account validate
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                    tempFile = File.createTempFile(prefix, suffix);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                    tempFilesForSuggest.add(tempFile);</b>
+<i class="no-highlight">224</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                LOG.debug(&quot;Create temp file for {}, {}&quot;, fname, tempFile.getAbsolutePath());</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                FileOutputStream fos = new FileOutputStream(tempFile);</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                IOUtils.write(bytes, fos);</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                fos.flush();</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                fos.close();</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                fname = tempFile.getAbsolutePath();</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                throw new SnapDataException(e, &quot;Unable to write sldb file to file system&quot;);</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;            }</b>
+<i class="no-highlight">234</i>&nbsp;        }
+<i class="no-highlight">235</i>&nbsp;
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        return fname;</b>
+<i class="no-highlight">237</i>&nbsp;    }
+<i class="no-highlight">238</i>&nbsp;
+<i class="no-highlight">239</i>&nbsp;    @Override
+<i class="no-highlight">240</i>&nbsp;    public void setTmpDir(File tmpDir) {
+<b class="nc"><i class="no-highlight">241</i>&nbsp;        this.tmpDir = tmpDir;</b>
+<i class="no-highlight">242</i>&nbsp;    }
+<i class="no-highlight">243</i>&nbsp;
+<i class="no-highlight">244</i>&nbsp;    @Override
+<i class="no-highlight">245</i>&nbsp;    public UUID generateUUID() {
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        return UUID.randomUUID();</b>
+<i class="no-highlight">247</i>&nbsp;    }
+<i class="no-highlight">248</i>&nbsp;
+<i class="no-highlight">249</i>&nbsp;    @Override
+<i class="no-highlight">250</i>&nbsp;    public void validateSchemaRegistry(SchemaRegistryClient client) throws IOException, RestClientException {
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        client.getAllSubjects();</b>
+<i class="no-highlight">252</i>&nbsp;    }
+<i class="no-highlight">253</i>&nbsp;
+<i class="no-highlight">254</i>&nbsp;    @Override
+<i class="no-highlight">255</i>&nbsp;    public void cleanup() {
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        for (File file : tempFilesForSuggest) {</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            if (file != null) {</b>
+<i class="no-highlight">258</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                    file.delete();</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                    LOG.info(LOG_FAILED_DELETE_TEMP, file.toString());</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                }</b>
+<i class="no-highlight">263</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        }</b>
+<i class="no-highlight">265</i>&nbsp;    }
+<i class="no-highlight">266</i>&nbsp;
+<i class="no-highlight">267</i>&nbsp;    @Override
+<i class="no-highlight">268</i>&nbsp;    public void logClusterDiagnostics(Properties props) {
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        String key = props.getProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        if (key == null) {</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            LOG.warn(&quot;props doesn&#39;t define {}&quot;, CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG);</b>
+<i class="no-highlight">272</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            Boolean cached = DIAGNOSTICS_CACHE.getIfPresent(key);</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;            if (cached == null) {</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                try (Admin admin = Admin.create(props)) {</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                    LOG.info(&quot;{}&quot;, describeCluster(admin));</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                    LOG.warn(&quot;can&#39;t log diagnostics for cluster&quot;, e);</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                DIAGNOSTICS_CACHE.put(key, Boolean.TRUE);</b>
+<i class="no-highlight">281</i>&nbsp;            }
+<i class="no-highlight">282</i>&nbsp;        }
+<i class="no-highlight">283</i>&nbsp;    }
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;    @Override
+<i class="no-highlight">286</i>&nbsp;    public void logTopicDiagnostics(Properties props, Collection&lt;String&gt; topicNames) {
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        String key = props.getProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG);</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        if (key == null) {</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;            LOG.warn(&quot;props doesn&#39;t define {}&quot;, CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG);</b>
+<i class="no-highlight">290</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">291</i>&nbsp;            key = key + &#39;|&#39; + topicNames;</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;            Boolean cached = DIAGNOSTICS_CACHE.getIfPresent(key);</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;            if (cached == null) {</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                try (Admin admin = Admin.create(props)) {</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                    LOG.info(&quot;{}&quot;, describeTopics(admin, topicNames));</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                    LOG.warn(&quot;can&#39;t log diagnostics for topics&quot;, e);</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                DIAGNOSTICS_CACHE.put(key, Boolean.TRUE);</b>
+<i class="no-highlight">300</i>&nbsp;            }
+<i class="no-highlight">301</i>&nbsp;        }
+<i class="no-highlight">302</i>&nbsp;    }
+<i class="no-highlight">303</i>&nbsp;
+<i class="no-highlight">304</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">305</i>&nbsp;    String describeCluster(Admin admin) throws ExecutionException, InterruptedException {
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        DescribeClusterResult result = admin.describeCluster(</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                new DescribeClusterOptions().includeAuthorizedOperations(true));</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        String clusterId = result.clusterId().get();</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        Collection&lt;Node&gt; nodes = result.nodes().get();</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        Node controller = result.controller().get();</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        Set&lt;AclOperation&gt; authorizedOperations = result.authorizedOperations().get();</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        StringWriter sw = new StringWriter();</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        PrintWriter pw = new PrintWriter(sw);</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        pw.println(&quot;cluster metadata:&quot;);</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        pw.printf(&quot;  clusterId=%s\n&quot;, clusterId);</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        pw.printf(&quot;    operations=%s\n&quot;, authorizedOperations);</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        pw.printf(&quot;    nodes (%d):\n&quot;, nodes.size());</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;        for (Node node : nodes) {</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            pw.printf(&quot;      %s\n&quot;, node);</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        pw.printf(&quot;    controller=%s\n&quot;, controller);</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        if (controller != null) {</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;            appendConfigs(admin, pw, new ConfigResource(ConfigResource.Type.BROKER, controller.idString()));</b>
+<i class="no-highlight">324</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">325</i>&nbsp;        return sw.toString().trim();</b>
+<i class="no-highlight">326</i>&nbsp;    }
+<i class="no-highlight">327</i>&nbsp;
+<i class="no-highlight">328</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">329</i>&nbsp;    String describeTopics(Admin admin, Collection&lt;String&gt; topicNames)
+<i class="no-highlight">330</i>&nbsp;            throws ExecutionException, InterruptedException {
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        DescribeTopicsResult result = admin.describeTopics(topicNames,</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                new DescribeTopicsOptions().includeAuthorizedOperations(true));</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        Map&lt;String, TopicDescription&gt; topicDescriptionMap = result.allTopicNames().get();</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;        StringWriter sw = new StringWriter();</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        PrintWriter pw = new PrintWriter(sw);</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        pw.println(&quot;topic metadata:&quot;);</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;        for (TopicDescription desc : topicDescriptionMap.values()) {</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;            String name = desc.name();</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;            List&lt;TopicPartitionInfo&gt; partitionInfos = desc.partitions();</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;            pw.printf(&quot;  name=%s, topicId=%s\n&quot;, name, desc.topicId());</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;            pw.printf(&quot;    operations=%s\n&quot;, desc.authorizedOperations());</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;            pw.printf(&quot;    partitions (%d):\n&quot;, partitionInfos.size());</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            for (TopicPartitionInfo info : partitionInfos) {</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                pw.printf(&quot;      %s\n&quot;, toString(info));</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;            appendConfigs(admin, pw, new ConfigResource(ConfigResource.Type.TOPIC, name));</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        return sw.toString().trim();</b>
+<i class="no-highlight">349</i>&nbsp;    }
+<i class="no-highlight">350</i>&nbsp;
+<i class="no-highlight">351</i>&nbsp;    private String toString(TopicPartitionInfo info) {
+<b class="nc"><i class="no-highlight">352</i>&nbsp;        return String.format(&quot;%s: leader=%s, replicas=%s, isr=%s&quot;,</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                info.partition(),</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                info.leader().idString(),</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                toIDs(info.replicas()),</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                toIDs(info.isr()));</b>
+<i class="no-highlight">357</i>&nbsp;    }
+<i class="no-highlight">358</i>&nbsp;
+<i class="no-highlight">359</i>&nbsp;    private List&lt;String&gt; toIDs(List&lt;Node&gt; nodes) {
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        return nodes.stream().map(Node::idString).collect(Collectors.toList());</b>
+<i class="no-highlight">361</i>&nbsp;    }
+<i class="no-highlight">362</i>&nbsp;
+<i class="no-highlight">363</i>&nbsp;    private void appendConfigs(Admin admin, PrintWriter pw, ConfigResource configResource)
+<i class="no-highlight">364</i>&nbsp;            throws ExecutionException, InterruptedException {
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        DescribeConfigsResult configsResult =</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                admin.describeConfigs(Collections.singleton(configResource));</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        for (Config config : configsResult.all().get().values()) {</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            SortedSet&lt;ConfigEntry&gt; entries = new TreeSet&lt;&gt;(Comparator.comparing(ConfigEntry::name));</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            entries.addAll(config.entries());</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;            pw.printf(&quot;    configs (%d):\n&quot;, entries.size());</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;            for (ConfigEntry entry : entries) {</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                pw.printf(&quot;      %s=%s\n&quot;, entry.name(), entry.value());</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;        }</b>
+<i class="no-highlight">375</i>&nbsp;    }
+<i class="no-highlight">376</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

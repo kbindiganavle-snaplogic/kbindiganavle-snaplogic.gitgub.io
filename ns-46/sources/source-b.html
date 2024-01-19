@@ -1,0 +1,574 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > S3Service</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.s3</a>
+</div>
+
+<h1>Coverage Summary for Class: S3Service (com.snaplogic.snap.api.s3)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">S3Service</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/93)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">S3Service$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">S3Service$Builder</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/41)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/120)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.s3;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.SdkClientException;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.services.s3.AmazonS3;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.s3.model.CopyObjectRequest;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.services.s3.model.DeleteObjectRequest;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.s3.model.GetObjectRequest;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.s3.model.ListObjectsRequest;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.services.s3.model.ObjectListing;
+<i class="no-highlight">21</i>&nbsp;import com.amazonaws.services.s3.model.Owner;
+<i class="no-highlight">22</i>&nbsp;import com.amazonaws.services.s3.model.RestoreObjectRequest;
+<i class="no-highlight">23</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">26</i>&nbsp;import org.joda.time.DateTime;
+<i class="no-highlight">27</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">28</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import java.io.File;
+<i class="no-highlight">31</i>&nbsp;import java.net.URL;
+<i class="no-highlight">32</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">33</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">34</i>&nbsp;import java.util.List;
+<i class="no-highlight">35</i>&nbsp;import java.util.Map;
+<i class="no-highlight">36</i>&nbsp;import java.util.concurrent.CompletableFuture;
+<i class="no-highlight">37</i>&nbsp;import java.util.concurrent.ConcurrentHashMap;
+<i class="no-highlight">38</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">39</i>&nbsp;import java.util.concurrent.ThreadPoolExecutor;
+<i class="no-highlight">40</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import static com.amazonaws.services.s3.Headers.STORAGE_CLASS;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.expression.util.JaninoUtils.SIZE;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.BUCKET;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.LAST_MODIFIED;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.LIST_PAGE_SIZE;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.OBJECT_KEY;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.OWNER_DISPLAY_NAME;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.OWNER_ID;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.PATH;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.S3_PATH_FORMAT;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.getCurrentStorageClass;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import static org.apache.commons.io.FileUtils.ONE_MB;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;/**
+<i class="no-highlight">57</i>&nbsp; * Provides S3 core services for S3 object uploads and downloads
+<i class="no-highlight">58</i>&nbsp; */
+<i class="no-highlight">59</i>&nbsp;public class S3Service {
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(S3Service.class);</b>
+<i class="no-highlight">61</i>&nbsp;    private S3ClientConfig s3ClientConfig;
+<b class="nc"><i class="no-highlight">62</i>&nbsp;    private S3ClientService s3ClientService = new S3ClientService();</b>
+<i class="no-highlight">63</i>&nbsp;    private Integer threadPoolSize;
+<i class="no-highlight">64</i>&nbsp;    private Long multipartSize;
+<i class="no-highlight">65</i>&nbsp;    private File tempDir;
+<i class="no-highlight">66</i>&nbsp;    private ThreadPoolExecutor executor;
+<i class="no-highlight">67</i>&nbsp;    private ThreadPoolExecutor multipartCopyExecutor;
+<i class="no-highlight">68</i>&nbsp;    private AmazonS3 amazonS3;
+<i class="no-highlight">69</i>&nbsp;    private long downloadId;
+<i class="no-highlight">70</i>&nbsp;    private List&lt;Pair&lt;Upload, CompletableFuture&lt;Upload&gt;&gt;&gt; activeUploadTasks;
+<b class="nc"><i class="no-highlight">71</i>&nbsp;    private ConcurrentHashMap&lt;Long, Throwable&gt; failedDownloads = new ConcurrentHashMap&lt;&gt;();</b>
+<i class="no-highlight">72</i>&nbsp;    private boolean isStaging;
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;    /**
+<i class="no-highlight">75</i>&nbsp;     * Creates a default builder for S3Service.
+<i class="no-highlight">76</i>&nbsp;     *
+<i class="no-highlight">77</i>&nbsp;     * @return a default builder for S3Service
+<i class="no-highlight">78</i>&nbsp;     */
+<i class="no-highlight">79</i>&nbsp;    public static Builder builder() {
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        return new Builder();</b>
+<i class="no-highlight">81</i>&nbsp;    }
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;    /**
+<i class="no-highlight">84</i>&nbsp;     * Initiates S3 object download in a separate thread. This method is not thread-safe.
+<i class="no-highlight">85</i>&nbsp;     * This method should not be called concurrently.
+<i class="no-highlight">86</i>&nbsp;     *
+<i class="no-highlight">87</i>&nbsp;     * @param getObjectRequest - GetObjectRequest object
+<i class="no-highlight">88</i>&nbsp;     *
+<i class="no-highlight">89</i>&nbsp;     * @return CompletableFuture&lt;Download&gt; task which caller should join in a separate thread,
+<i class="no-highlight">90</i>&nbsp;     * otherwise, it may hang if more than one S3 multipart object downloads are submitted
+<i class="no-highlight">91</i>&nbsp;     */
+<i class="no-highlight">92</i>&nbsp;    public CompletableFuture&lt;Download&gt; submitDownload(GetObjectRequest getObjectRequest) {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        refreshAmazonS3IfNeeded();</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        Download download = new Download(this, getObjectRequest, downloadId++);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        return CompletableFuture.supplyAsync(download, executor);</b>
+<i class="no-highlight">96</i>&nbsp;    }
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;    /**
+<i class="no-highlight">99</i>&nbsp;     * Initiates S3 object upload in a separate thread. This method is not thread-safe.
+<i class="no-highlight">100</i>&nbsp;     * This method should not be called concurrently.
+<i class="no-highlight">101</i>&nbsp;     *
+<i class="no-highlight">102</i>&nbsp;     * @param uploadRequest - {@link Upload.UploadRequest} object
+<i class="no-highlight">103</i>&nbsp;     *
+<i class="no-highlight">104</i>&nbsp;     * @return CompletableFuture&lt;Upload&gt; task
+<i class="no-highlight">105</i>&nbsp;     */
+<i class="no-highlight">106</i>&nbsp;    public CompletableFuture&lt;Upload&gt; submitUpload(Upload.UploadRequest uploadRequest) {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        refreshAmazonS3IfNeeded();</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        if (activeUploadTasks == null) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;            activeUploadTasks = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">110</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            checkTotalUploadThreads();</b>
+<i class="no-highlight">112</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        Upload upload = new Upload(this, uploadRequest);</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        CompletableFuture&lt;Upload&gt; task = CompletableFuture.supplyAsync(upload, executor);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        activeUploadTasks.add(Pair.of(upload, task));</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        return task;</b>
+<i class="no-highlight">117</i>&nbsp;    }
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;    /**
+<i class="no-highlight">120</i>&nbsp;     * Lists up to 1000 object summaries which match the prefix in the bucket.
+<i class="no-highlight">121</i>&nbsp;     * If &#39;maxKeys&#39; is specified in listObjectRequest and is smaller than 1000, it tries to list up
+<i class="no-highlight">122</i>&nbsp;     * to the maxKeys value. The provided attributes include bucket, object key, path, size,
+<i class="no-highlight">123</i>&nbsp;     * last modified and owner. If larger than 1000 S3 objects are expected to match
+<i class="no-highlight">124</i>&nbsp;     * the prefix, call this method repeatedly until objectListing.isTruncated() is false.
+<i class="no-highlight">125</i>&nbsp;     *
+<i class="no-highlight">126</i>&nbsp;     * @param listObjectsRequest - ListObjectRequest object
+<i class="no-highlight">127</i>&nbsp;     * @return ObjectListing object
+<i class="no-highlight">128</i>&nbsp;     */
+<i class="no-highlight">129</i>&nbsp;    public ObjectListing listObjects(ListObjectsRequest listObjectsRequest) {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        refreshAmazonS3IfNeeded();</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        return amazonS3.listObjects(listObjectsRequest);</b>
+<i class="no-highlight">132</i>&nbsp;    }
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    /**
+<i class="no-highlight">135</i>&nbsp;     * Lists attributes of all S3 objects which match the prefix in the bucket.
+<i class="no-highlight">136</i>&nbsp;     * If &#39;maxKeys&#39; is specified in listObjectRequest, it tries to list up to the maxKeys value.
+<i class="no-highlight">137</i>&nbsp;     * The provided attributes include bucket, object key, path, size, last modified and owner.
+<i class="no-highlight">138</i>&nbsp;     * This method may cause a memory spike or out of memory if an extremely large number of S3
+<i class="no-highlight">139</i>&nbsp;     * objects match the prefix. In such case, call listObjects() method repeatedly to receive
+<i class="no-highlight">140</i>&nbsp;     * 1000 attributes at a time.
+<i class="no-highlight">141</i>&nbsp;     *
+<i class="no-highlight">142</i>&nbsp;     * @param listObjectsRequest - ListObjectRequest object
+<i class="no-highlight">143</i>&nbsp;     * @return list of S3 object attributes
+<i class="no-highlight">144</i>&nbsp;     */
+<i class="no-highlight">145</i>&nbsp;    public List&lt;Map&lt;String, Object&gt;&gt; listAllObjects(ListObjectsRequest listObjectsRequest) {
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        refreshAmazonS3IfNeeded();</b>
+<i class="no-highlight">147</i>&nbsp;        ObjectListing objectListing;
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; results = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">149</i>&nbsp;        do {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            objectListing = amazonS3.listObjects(listObjectsRequest);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            objectListing.getObjectSummaries()</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                    .forEach(p -&gt; {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                        results.add(new LinkedHashMap&lt;&gt;() {{</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                            put(BUCKET, p.getBucketName());</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                            put(OBJECT_KEY, p.getKey());</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                            put(PATH, String.format(S3_PATH_FORMAT, p.getBucketName(), p.getKey()));</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                            put(SIZE, p.getSize());</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                            put(LAST_MODIFIED, new DateTime(p.getLastModified()));</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                            String storageClass = getCurrentStorageClass(p.getStorageClass());</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                            put(STORAGE_CLASS, storageClass);</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                            Owner owner = p.getOwner();</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                            put(OWNER_DISPLAY_NAME, (owner != null) ? owner.getDisplayName() : &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                            put(OWNER_ID, (owner != null) ? owner.getId() : &quot;&quot;);</b>
+<i class="no-highlight">164</i>&nbsp;                        }});
+<i class="no-highlight">165</i>&nbsp;                    });
+<b class="nc"><i class="no-highlight">166</i>&nbsp;            if (listObjectsRequest.getMaxKeys() == null) {</b>
+<i class="no-highlight">167</i>&nbsp;                // list all objects until objectListing.isTruncated() is false
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            } else if (listObjectsRequest.getMaxKeys() &gt; results.size()) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                listObjectsRequest.setMaxKeys(listObjectsRequest.getMaxKeys() - LIST_PAGE_SIZE);</b>
+<i class="no-highlight">170</i>&nbsp;            } else {
+<i class="no-highlight">171</i>&nbsp;                break;
+<i class="no-highlight">172</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">173</i>&nbsp;            listObjectsRequest.setMarker(objectListing.getNextMarker());</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        } while (objectListing.isTruncated());</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        return results;</b>
+<i class="no-highlight">176</i>&nbsp;    }
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;    /**
+<i class="no-highlight">179</i>&nbsp;     * Initiates S3 object delete request in a separate thread.
+<i class="no-highlight">180</i>&nbsp;     * This method is not thread-safe and should not be called concurrently.
+<i class="no-highlight">181</i>&nbsp;     *
+<i class="no-highlight">182</i>&nbsp;     * @param deleteObjectRequest - DeleteObjectRequest object
+<i class="no-highlight">183</i>&nbsp;     *
+<i class="no-highlight">184</i>&nbsp;     * @return CompletableFuture&lt;Delete&gt; task
+<i class="no-highlight">185</i>&nbsp;     */
+<i class="no-highlight">186</i>&nbsp;    public CompletableFuture&lt;Delete&gt; submitDelete(DeleteObjectRequest deleteObjectRequest) {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        refreshAmazonS3IfNeeded();</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        return CompletableFuture.supplyAsync(new Delete(this, deleteObjectRequest), executor);</b>
+<i class="no-highlight">189</i>&nbsp;    }
+<i class="no-highlight">190</i>&nbsp;
+<i class="no-highlight">191</i>&nbsp;    /**
+<i class="no-highlight">192</i>&nbsp;     * Initiates S3 object copy request in a separate thread.
+<i class="no-highlight">193</i>&nbsp;     * This method is not thread-safe and should not be called concurrently.
+<i class="no-highlight">194</i>&nbsp;     *
+<i class="no-highlight">195</i>&nbsp;     * @param copyObjectRequest - CopyObjectRequest object
+<i class="no-highlight">196</i>&nbsp;     *
+<i class="no-highlight">197</i>&nbsp;     * @return CompletableFuture&lt;Delete&gt; task
+<i class="no-highlight">198</i>&nbsp;     */
+<i class="no-highlight">199</i>&nbsp;    public CompletableFuture&lt;Copy&gt; submitCopy(CopyObjectRequest copyObjectRequest) {
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        refreshAmazonS3IfNeeded();</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        return CompletableFuture.supplyAsync(new Copy(this, copyObjectRequest), executor);</b>
+<i class="no-highlight">202</i>&nbsp;    }
+<i class="no-highlight">203</i>&nbsp;
+<i class="no-highlight">204</i>&nbsp;    /**
+<i class="no-highlight">205</i>&nbsp;     * Generates pre-signed URL to access an S3 object.
+<i class="no-highlight">206</i>&nbsp;     *
+<i class="no-highlight">207</i>&nbsp;     * @param generatePresignedUrlRequest - GeneratePresignedUrlRequest object
+<i class="no-highlight">208</i>&nbsp;     * @return pre-signed URL
+<i class="no-highlight">209</i>&nbsp;     * @throws SdkClientException - If there were any problems pre-signing the request for the
+<i class="no-highlight">210</i>&nbsp;     *                              Amazon S3 resource.
+<i class="no-highlight">211</i>&nbsp;     */
+<i class="no-highlight">212</i>&nbsp;    public URL generatePresignedUrl(GeneratePresignedUrlRequest generatePresignedUrlRequest)
+<i class="no-highlight">213</i>&nbsp;            throws SdkClientException {
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        refreshAmazonS3IfNeeded();</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        return amazonS3.generatePresignedUrl(generatePresignedUrlRequest);</b>
+<i class="no-highlight">216</i>&nbsp;    }
+<i class="no-highlight">217</i>&nbsp;
+<i class="no-highlight">218</i>&nbsp;    /**
+<i class="no-highlight">219</i>&nbsp;     * Submits a ChangeStorageClass task in a separate thread.
+<i class="no-highlight">220</i>&nbsp;     * @param changeStorageClass - ChangeStorageClass class object
+<i class="no-highlight">221</i>&nbsp;     * @return CompletableFuture&lt;ChangeStorageClass&gt; task
+<i class="no-highlight">222</i>&nbsp;     */
+<i class="no-highlight">223</i>&nbsp;    public CompletableFuture&lt;ChangeStorageClass&gt; submitChangeStorageClass(
+<i class="no-highlight">224</i>&nbsp;            ChangeStorageClass changeStorageClass) {
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        refreshAmazonS3IfNeeded();</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        return CompletableFuture.supplyAsync(changeStorageClass.withAmazonS3(amazonS3), executor);</b>
+<i class="no-highlight">227</i>&nbsp;    }
+<i class="no-highlight">228</i>&nbsp;
+<i class="no-highlight">229</i>&nbsp;    /**
+<i class="no-highlight">230</i>&nbsp;     * Submits a task to restore an archived S3 object in a separate thread.
+<i class="no-highlight">231</i>&nbsp;     * @param restoreObjectRequest - RestoreObjectRequest object
+<i class="no-highlight">232</i>&nbsp;     * @return CompletableFuture&lt;RestoreObjectRequest&gt; task
+<i class="no-highlight">233</i>&nbsp;     */
+<i class="no-highlight">234</i>&nbsp;    public CompletableFuture&lt;RestoreObjectRequest&gt; submitRestore(RestoreObjectRequest
+<i class="no-highlight">235</i>&nbsp;            restoreObjectRequest) {
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        refreshAmazonS3IfNeeded();</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        return CompletableFuture.supplyAsync(</b>
+<i class="no-highlight">238</i>&nbsp;                new Restore(amazonS3, restoreObjectRequest), executor);
+<i class="no-highlight">239</i>&nbsp;    }
+<i class="no-highlight">240</i>&nbsp;
+<i class="no-highlight">241</i>&nbsp;    /**
+<i class="no-highlight">242</i>&nbsp;     * Gets Throwable object if one of a part download fails.
+<i class="no-highlight">243</i>&nbsp;     *
+<i class="no-highlight">244</i>&nbsp;     * @param downloadId - multipart file download ID
+<i class="no-highlight">245</i>&nbsp;     * @return Throwable object or null
+<i class="no-highlight">246</i>&nbsp;     */
+<i class="no-highlight">247</i>&nbsp;    public Throwable getThrowableFor(long downloadId) {
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        return failedDownloads.get(downloadId);</b>
+<i class="no-highlight">249</i>&nbsp;    }
+<i class="no-highlight">250</i>&nbsp;
+<i class="no-highlight">251</i>&nbsp;    public void shutdown() {
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        shutdownExecutor(executor);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        shutdownExecutor(multipartCopyExecutor);</b>
+<i class="no-highlight">254</i>&nbsp;    }
+<i class="no-highlight">255</i>&nbsp;
+<i class="no-highlight">256</i>&nbsp;    private void shutdownExecutor(ThreadPoolExecutor executor) {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        if (executor != null) {</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            executor.shutdown();</b>
+<i class="no-highlight">259</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                executor.awaitTermination(30L, TimeUnit.SECONDS);</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                LOG.debug(&quot;Thread pool was interrupted while awaiting termination&quot;, e);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                executor.shutdownNow();</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            }</b>
+<i class="no-highlight">265</i>&nbsp;        }
+<i class="no-highlight">266</i>&nbsp;    }
+<i class="no-highlight">267</i>&nbsp;
+<i class="no-highlight">268</i>&nbsp;    /**
+<i class="no-highlight">269</i>&nbsp;     * Creates a new AmazonS3 for Cross-account IAM Role if its session is about to expire.
+<i class="no-highlight">270</i>&nbsp;     * @return - true if the session is refreshed
+<i class="no-highlight">271</i>&nbsp;     */
+<i class="no-highlight">272</i>&nbsp;    public boolean refreshAmazonS3IfNeeded() {
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        if (s3ClientService.isAboutToExpire()) {</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;            synchronized (amazonS3) {</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                amazonS3.shutdown();</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                amazonS3 = s3ClientService.getAmazonS3Client(s3ClientConfig);</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;            LOG.warn(&quot;Session for Cross-account IAM Role is refreshed&quot;);</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;            return true;</b>
+<i class="no-highlight">280</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        return false;</b>
+<i class="no-highlight">282</i>&nbsp;    }
+<i class="no-highlight">283</i>&nbsp;
+<i class="no-highlight">284</i>&nbsp;    public S3ClientConfig getS3ClientConfig() {
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        return s3ClientConfig;</b>
+<i class="no-highlight">286</i>&nbsp;    }
+<i class="no-highlight">287</i>&nbsp;
+<i class="no-highlight">288</i>&nbsp;    public Integer getThreadPoolSize() {
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        return threadPoolSize;</b>
+<i class="no-highlight">290</i>&nbsp;    }
+<i class="no-highlight">291</i>&nbsp;
+<i class="no-highlight">292</i>&nbsp;    public Integer getMaxRetries() {
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        return s3ClientConfig.getMaxRetries();</b>
+<i class="no-highlight">294</i>&nbsp;    }
+<i class="no-highlight">295</i>&nbsp;
+<i class="no-highlight">296</i>&nbsp;    public Long getMultipartSize() {
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        return multipartSize;</b>
+<i class="no-highlight">298</i>&nbsp;    }
+<i class="no-highlight">299</i>&nbsp;
+<i class="no-highlight">300</i>&nbsp;    public File getTempDir() {
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        return tempDir;</b>
+<i class="no-highlight">302</i>&nbsp;    }
+<i class="no-highlight">303</i>&nbsp;
+<i class="no-highlight">304</i>&nbsp;    public AmazonS3 getAmazonS3() {
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        return amazonS3;</b>
+<i class="no-highlight">306</i>&nbsp;    }
+<i class="no-highlight">307</i>&nbsp;
+<i class="no-highlight">308</i>&nbsp;    public ConcurrentHashMap&lt;Long, Throwable&gt; getFailedDownloads() {
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        return failedDownloads;</b>
+<i class="no-highlight">310</i>&nbsp;    }
+<i class="no-highlight">311</i>&nbsp;
+<i class="no-highlight">312</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">313</i>&nbsp;    public ThreadPoolExecutor getExecutor() {
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        return executor;</b>
+<i class="no-highlight">315</i>&nbsp;    }
+<i class="no-highlight">316</i>&nbsp;
+<i class="no-highlight">317</i>&nbsp;    /**
+<i class="no-highlight">318</i>&nbsp;     * When there are multiple large-object-copies in progress, they share this thread pool for the
+<i class="no-highlight">319</i>&nbsp;     * multipart copy and this package-private method should be thread-safe. The maximum number of
+<i class="no-highlight">320</i>&nbsp;     * threads used during multiple object-copies can be twice as large as threadPoolSize.
+<i class="no-highlight">321</i>&nbsp;     * @return thread pool executor for multipart copy
+<i class="no-highlight">322</i>&nbsp;     */
+<i class="no-highlight">323</i>&nbsp;    synchronized ThreadPoolExecutor getMultipartCopyExecutor() {
+<b class="nc"><i class="no-highlight">324</i>&nbsp;        if (multipartCopyExecutor == null) {</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;            multipartCopyExecutor =</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                    (ThreadPoolExecutor) Executors.newFixedThreadPool(threadPoolSize);</b>
+<i class="no-highlight">327</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        return multipartCopyExecutor;</b>
+<i class="no-highlight">329</i>&nbsp;    }
+<i class="no-highlight">330</i>&nbsp;
+<i class="no-highlight">331</i>&nbsp;    // private constructor to be used by build() below
+<b class="nc"><i class="no-highlight">332</i>&nbsp;    private S3Service(Builder builder) {</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        s3ClientConfig = builder.s3ClientConfig;</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;        threadPoolSize = builder.threadPoolSize;</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        multipartSize = builder.multipartSize;</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        tempDir = builder.tempDir;</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;        isStaging = builder.isStaging;</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        amazonS3 = builder.amazonS3;</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;        if (amazonS3 == null) {</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;            amazonS3 = s3ClientService.getAmazonS3Client(s3ClientConfig);</b>
+<i class="no-highlight">341</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">342</i>&nbsp;        if (threadPoolSize != null &amp;&amp; threadPoolSize &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadPoolSize);</b>
+<i class="no-highlight">344</i>&nbsp;        }
+<i class="no-highlight">345</i>&nbsp;    }
+<i class="no-highlight">346</i>&nbsp;
+<i class="no-highlight">347</i>&nbsp;    private void checkTotalUploadThreads() {
+<i class="no-highlight">348</i>&nbsp;        // remove all completed tasks from the active upload task list
+<b class="nc"><i class="no-highlight">349</i>&nbsp;        activeUploadTasks.removeIf(p -&gt; p.getRight().isDone());</b>
+<i class="no-highlight">350</i>&nbsp;        // wait until the total number of threads used by active upload tasks is less than or
+<i class="no-highlight">351</i>&nbsp;        // equal to given thread pool size
+<b class="nc"><i class="no-highlight">352</i>&nbsp;        while (threadPoolSize &lt; activeUploadTasks.stream()</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                .mapToInt(p -&gt; p.getLeft().getThreads())</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                .sum()) {</b>
+<i class="no-highlight">355</i>&nbsp;            // wait until the oldest task is completed
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            activeUploadTasks.remove(0)</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                    .getRight()</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                    .join();</b>
+<i class="no-highlight">359</i>&nbsp;        }
+<i class="no-highlight">360</i>&nbsp;    }
+<i class="no-highlight">361</i>&nbsp;
+<i class="no-highlight">362</i>&nbsp;    public boolean isStaging() {
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        return isStaging;</b>
+<i class="no-highlight">364</i>&nbsp;    }
+<i class="no-highlight">365</i>&nbsp;
+<i class="no-highlight">366</i>&nbsp;    /**
+<i class="no-highlight">367</i>&nbsp;     * S3Service Builder
+<i class="no-highlight">368</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">369</i>&nbsp;    public static class Builder {</b>
+<i class="no-highlight">370</i>&nbsp;        private S3ClientConfig s3ClientConfig;
+<i class="no-highlight">371</i>&nbsp;        private Integer threadPoolSize;
+<i class="no-highlight">372</i>&nbsp;        private Long multipartSize;
+<i class="no-highlight">373</i>&nbsp;        private File tempDir;
+<i class="no-highlight">374</i>&nbsp;        private AmazonS3 amazonS3;
+<i class="no-highlight">375</i>&nbsp;        private boolean isStaging;
+<i class="no-highlight">376</i>&nbsp;
+<i class="no-highlight">377</i>&nbsp;        public Builder s3ClientConfig(S3ClientConfig s3ClientConfig) {
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            this.s3ClientConfig = s3ClientConfig;</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            return this;</b>
+<i class="no-highlight">380</i>&nbsp;        }
+<i class="no-highlight">381</i>&nbsp;
+<i class="no-highlight">382</i>&nbsp;        public Builder threadPoolSize(Integer threadPoolSize) {
+<b class="nc"><i class="no-highlight">383</i>&nbsp;            this.threadPoolSize = threadPoolSize;</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;            return this;</b>
+<i class="no-highlight">385</i>&nbsp;        }
+<i class="no-highlight">386</i>&nbsp;
+<i class="no-highlight">387</i>&nbsp;        public Builder multipartSizeInMB(Integer multipartSizeInMB) {
+<b class="nc"><i class="no-highlight">388</i>&nbsp;            this.multipartSize = multipartSizeInMB * ONE_MB;</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;            return this;</b>
+<i class="no-highlight">390</i>&nbsp;        }
+<i class="no-highlight">391</i>&nbsp;
+<i class="no-highlight">392</i>&nbsp;        public Builder multipartSize(Long multipartSize) {
+<b class="nc"><i class="no-highlight">393</i>&nbsp;            this.multipartSize = multipartSize;</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;            return this;</b>
+<i class="no-highlight">395</i>&nbsp;        }
+<i class="no-highlight">396</i>&nbsp;
+<i class="no-highlight">397</i>&nbsp;        public Builder tempDir(File tempDir) {
+<b class="nc"><i class="no-highlight">398</i>&nbsp;            this.tempDir = tempDir;</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;            return this;</b>
+<i class="no-highlight">400</i>&nbsp;        }
+<i class="no-highlight">401</i>&nbsp;
+<i class="no-highlight">402</i>&nbsp;        public Builder amazonS3(AmazonS3 amazonS3) {
+<b class="nc"><i class="no-highlight">403</i>&nbsp;            this.amazonS3 = amazonS3;</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;            return this;</b>
+<i class="no-highlight">405</i>&nbsp;        }
+<i class="no-highlight">406</i>&nbsp;
+<i class="no-highlight">407</i>&nbsp;        public Builder isStaging(boolean isStaging) {
+<b class="nc"><i class="no-highlight">408</i>&nbsp;            this.isStaging = isStaging;</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;            return this;</b>
+<i class="no-highlight">410</i>&nbsp;        }
+<i class="no-highlight">411</i>&nbsp;
+<i class="no-highlight">412</i>&nbsp;        public S3Service build() {
+<b class="nc"><i class="no-highlight">413</i>&nbsp;            return new S3Service(this);</b>
+<i class="no-highlight">414</i>&nbsp;        }
+<i class="no-highlight">415</i>&nbsp;    }
+<i class="no-highlight">416</i>&nbsp;
+<i class="no-highlight">417</i>&nbsp;    public S3Service.Builder toBuilder() {
+<b class="nc"><i class="no-highlight">418</i>&nbsp;        return new S3Service.Builder()</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            .s3ClientConfig(this.s3ClientConfig)</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;            .threadPoolSize(this.threadPoolSize)</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;            .multipartSize(this.multipartSize)</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;            .tempDir(this.tempDir);</b>
+<i class="no-highlight">423</i>&nbsp;    }
+<i class="no-highlight">424</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,188 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MatchResult</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.mldatapreparation.deduplicate</a>
+</div>
+
+<h1>Coverage Summary for Class: MatchResult (com.snaplogic.snaps.mldatapreparation.deduplicate)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MatchResult</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2019, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.mldatapreparation.deduplicate;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">15</i>&nbsp;import no.priv.garshol.duke.Record;
+<i class="no-highlight">16</i>&nbsp;import no.priv.garshol.duke.matchers.AbstractMatchListener;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import java.util.List;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;/**
+<i class="no-highlight">21</i>&nbsp; * Result of deduplicate operation.
+<i class="no-highlight">22</i>&nbsp; */
+<i class="no-highlight">23</i>&nbsp;public class MatchResult extends AbstractMatchListener {
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;    private DuplicateSet[] mapping;
+<i class="no-highlight">26</i>&nbsp;    private List&lt;Document&gt; masterDataset;
+<i class="no-highlight">27</i>&nbsp;
+<b class="nc"><i class="no-highlight">28</i>&nbsp;    public MatchResult(List&lt;Document&gt; masterDataset) {</b>
+<b class="nc"><i class="no-highlight">29</i>&nbsp;        this.masterDataset = masterDataset;</b>
+<b class="nc"><i class="no-highlight">30</i>&nbsp;        this.mapping = new DuplicateSet[this.masterDataset.size()];</b>
+<b class="nc"><i class="no-highlight">31</i>&nbsp;        for (int i = 0; i &lt; this.mapping.length; i++) {</b>
+<b class="nc"><i class="no-highlight">32</i>&nbsp;            this.mapping[i] = null;</b>
+<i class="no-highlight">33</i>&nbsp;        }
+<i class="no-highlight">34</i>&nbsp;    }
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;    public void matches(Record r1, Record r2, double confidence) {
+<b class="nc"><i class="no-highlight">37</i>&nbsp;        int firstRecordIndex = Integer.parseInt(r1.getValue(&quot;id&quot;));</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;        int secondRecordIndex = Integer.parseInt(r2.getValue(&quot;id&quot;));</b>
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;        DuplicateSet duplicateSet;
+<i class="no-highlight">41</i>&nbsp;
+<b class="nc"><i class="no-highlight">42</i>&nbsp;        synchronized (this) {</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;            boolean hasFirstIndex = this.mapping[firstRecordIndex] != null;</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;            boolean hasSecondIndex = this.mapping[secondRecordIndex] != null;</b>
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;            // if both index already have duplicate set, we need to ensure that they are the same object
+<i class="no-highlight">47</i>&nbsp;            // Otherwise we need to merge value to new one and reassign to all index
+<b class="nc"><i class="no-highlight">48</i>&nbsp;            if (hasFirstIndex &amp;&amp; hasSecondIndex) {</b>
+<i class="no-highlight">49</i>&nbsp;
+<b class="nc"><i class="no-highlight">50</i>&nbsp;                DuplicateSet firstSet = this.mapping[firstRecordIndex];</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;                DuplicateSet secondSet = this.mapping[secondRecordIndex];</b>
+<i class="no-highlight">52</i>&nbsp;                // check if they refer to different same object
+<b class="nc"><i class="no-highlight">53</i>&nbsp;                if(firstSet != secondSet) {</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;                    duplicateSet = new DuplicateSet();</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;                    duplicateSet.merge(firstSet);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;                    duplicateSet.merge(secondSet);</b>
+<i class="no-highlight">57</i>&nbsp;
+<b class="nc"><i class="no-highlight">58</i>&nbsp;                    duplicateSet.getGroupIndices().stream().forEach(</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;                            index -&gt; this.mapping[index] = duplicateSet</b>
+<i class="no-highlight">60</i>&nbsp;                    );
+<i class="no-highlight">61</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">62</i>&nbsp;                    duplicateSet = firstSet;</b>
+<i class="no-highlight">63</i>&nbsp;                }
+<i class="no-highlight">64</i>&nbsp;
+<b class="nc"><i class="no-highlight">65</i>&nbsp;            } else if (hasFirstIndex) {</b>
+<i class="no-highlight">66</i>&nbsp;
+<b class="nc"><i class="no-highlight">67</i>&nbsp;                duplicateSet = this.mapping[firstRecordIndex];</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            } else if (this.mapping[secondRecordIndex] != null) {</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                duplicateSet = this.mapping[secondRecordIndex];</b>
+<i class="no-highlight">70</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                duplicateSet = new DuplicateSet();</b>
+<i class="no-highlight">72</i>&nbsp;            }
+<i class="no-highlight">73</i>&nbsp;
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            duplicateSet.updateMatchResult(firstRecordIndex, secondRecordIndex, confidence);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;            this.mapping[firstRecordIndex] = duplicateSet;</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            this.mapping[secondRecordIndex] = duplicateSet;</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        }</b>
+<i class="no-highlight">78</i>&nbsp;    }
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;    public DuplicateSet[] getMapping() {
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        return mapping;</b>
+<i class="no-highlight">82</i>&nbsp;    }
+<i class="no-highlight">83</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,204 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ArrayDocsUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform.inmemory</a>
+</div>
+
+<h1>Coverage Summary for Class: ArrayDocsUtil (com.snaplogic.snaps.transform.inmemory)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ArrayDocsUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.transform.inmemory;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.BiMap;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.HashBiMap;
+<i class="no-highlight">16</i>&nbsp;import org.apache.commons.collections.keyvalue.MultiKey;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">19</i>&nbsp;import java.util.Map;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;/**
+<i class="no-highlight">22</i>&nbsp; * This converts documents to an array representation from a map representation and vice versa.
+<i class="no-highlight">23</i>&nbsp; * The purpose of this is to represent a document with less Java overhead.
+<i class="no-highlight">24</i>&nbsp; */
+<b class="nc"><i class="no-highlight">25</i>&nbsp;class ArrayDocsUtil {</b>
+<i class="no-highlight">26</i>&nbsp;    /**
+<i class="no-highlight">27</i>&nbsp;     * The index for the next cached field names set.
+<i class="no-highlight">28</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">29</i>&nbsp;    private int fieldNameIndex = 0;</b>
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;    /**
+<i class="no-highlight">32</i>&nbsp;     * A map used map a field name set to its pointer. This is used when adding lookup documents
+<i class="no-highlight">33</i>&nbsp;     * to see if the fields have already been cached. The key contains all fields in the document.
+<i class="no-highlight">34</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">35</i>&nbsp;    private final BiMap&lt;MultiKey, Integer&gt; fieldNameToPointer = HashBiMap.create();</b>
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;    /**
+<i class="no-highlight">38</i>&nbsp;     * A map used to lookup a set of document field names from a pointer. The array representation of the lookup
+<i class="no-highlight">39</i>&nbsp;     * documents store the integer pointer to the field names at the 0 index. When a matching document is found
+<i class="no-highlight">40</i>&nbsp;     * the field names are used to convert the array document back to the original, less memory efficient map to give
+<i class="no-highlight">41</i>&nbsp;     * to the client.
+<i class="no-highlight">42</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">43</i>&nbsp;    private final BiMap&lt;Integer, MultiKey&gt; pointerToFieldNames = fieldNameToPointer.inverse();</b>
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;    public int getFieldNameSetsSize() {
+<b class="nc"><i class="no-highlight">46</i>&nbsp;        return fieldNameToPointer.size();</b>
+<i class="no-highlight">47</i>&nbsp;    }
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;    /**
+<i class="no-highlight">50</i>&nbsp;     * Converts the array representation of a document back to a map.
+<i class="no-highlight">51</i>&nbsp;     *
+<i class="no-highlight">52</i>&nbsp;     * @param arrayValue The document array value representation
+<i class="no-highlight">53</i>&nbsp;     * @return The map representation of the document.
+<i class="no-highlight">54</i>&nbsp;     */
+<i class="no-highlight">55</i>&nbsp;    public Map&lt;String, Object&gt; buildMapDocument(Object[] arrayValue) {
+<b class="nc"><i class="no-highlight">56</i>&nbsp;        Map&lt;String, Object&gt; mapDoc = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;        //Lookup field names
+<b class="nc"><i class="no-highlight">59</i>&nbsp;        Object fieldNamesPointer = arrayValue[0];</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;        String[] fieldNames = (String[]) pointerToFieldNames.get(fieldNamesPointer).getKeys();</b>
+<i class="no-highlight">61</i>&nbsp;
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        for (int i = 1; i &lt; arrayValue.length; i++) {</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;            String fieldName = fieldNames[i - 1];</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;            Object fieldValue = arrayValue[i];</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;            mapDoc.put(fieldName, fieldValue);</b>
+<i class="no-highlight">66</i>&nbsp;        }
+<i class="no-highlight">67</i>&nbsp;
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        return mapDoc;</b>
+<i class="no-highlight">69</i>&nbsp;    }
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    /**
+<i class="no-highlight">72</i>&nbsp;     * Converts the document map representation to an array representation. This is done because it is more memory
+<i class="no-highlight">73</i>&nbsp;     * efficient to cache the lookup documents as arrays. The field names are stored in a shared cache and the
+<i class="no-highlight">74</i>&nbsp;     * pointer to the field names is stored at index 0 of the array.
+<i class="no-highlight">75</i>&nbsp;     *
+<i class="no-highlight">76</i>&nbsp;     * @param document The document to convert to an array.
+<i class="no-highlight">77</i>&nbsp;     * @return The array representation of the document
+<i class="no-highlight">78</i>&nbsp;     */
+<i class="no-highlight">79</i>&nbsp;    public Object[] buildArrayDocument(Map&lt;String, Object&gt; document) {
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        String[] fieldNames = new String[document.size()];</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        Object[] fieldValues = new Object[document.size() + 1];</b>
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;        //Convert map to array to save space.
+<i class="no-highlight">84</i>&nbsp;        //Leave the first space open for the field names pointer
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        int nameIndex = 0;</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        int valueIndex = 1;</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; entry : document.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            fieldNames[nameIndex++] = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            fieldValues[valueIndex++] = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        }</b>
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;        //Set the field names pointer
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        MultiKey fieldNamesKey = new MultiKey(fieldNames);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        Integer fieldNamePointer = fieldNameToPointer.computeIfAbsent(fieldNamesKey, k -&gt; fieldNameIndex++);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        fieldValues[0] = fieldNamePointer;</b>
+<i class="no-highlight">96</i>&nbsp;
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        return fieldValues;</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

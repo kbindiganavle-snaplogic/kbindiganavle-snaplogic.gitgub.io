@@ -1,0 +1,361 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > GoogleBigQueryOAuthAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.google.bigquery</a>
+</div>
+
+<h1>Coverage Summary for Class: GoogleBigQueryOAuthAccount (com.snaplogic.snaps.google.bigquery)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GoogleBigQueryOAuthAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/89)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.google.bigquery;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.api.client.auth.oauth2.Credential;
+<i class="no-highlight">14</i>&nbsp;import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+<i class="no-highlight">15</i>&nbsp;import com.google.api.client.http.HttpRequestInitializer;
+<i class="no-highlight">16</i>&nbsp;import com.google.api.client.http.HttpTransport;
+<i class="no-highlight">17</i>&nbsp;import com.google.api.client.http.apache.v2.ApacheHttpTransport;
+<i class="no-highlight">18</i>&nbsp;import com.google.api.client.json.JsonFactory;
+<i class="no-highlight">19</i>&nbsp;import com.google.api.client.json.gson.GsonFactory;
+<i class="no-highlight">20</i>&nbsp;import com.google.api.services.bigquery.Bigquery;
+<i class="no-highlight">21</i>&nbsp;import com.google.api.services.bigquery.BigqueryScopes;
+<i class="no-highlight">22</i>&nbsp;import com.google.api.services.storage.Storage;
+<i class="no-highlight">23</i>&nbsp;import com.google.api.services.storage.StorageScopes;
+<i class="no-highlight">24</i>&nbsp;import com.google.auth.Credentials;
+<i class="no-highlight">25</i>&nbsp;import com.google.auth.oauth2.AccessToken;
+<i class="no-highlight">26</i>&nbsp;import com.google.auth.oauth2.GoogleCredentials;
+<i class="no-highlight">27</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">28</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">29</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.common.services.SnapControl;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.account.oauth2.OAuth2Account;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.util.ProxyHttpClient;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">45</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">46</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">49</i>&nbsp;import java.util.List;
+<i class="no-highlight">50</i>&nbsp;import java.util.Set;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.google.bigquery.Constants.*;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snaps.google.bigquery.Messages.*;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;/**
+<i class="no-highlight">56</i>&nbsp; * The GoogleBigQueryOAuthAccount that makes the authenticated request using the access token
+<i class="no-highlight">57</i>&nbsp; * of the {@link OAuth2Account} via Google&#39;s OAuth API&#39;s.
+<i class="no-highlight">58</i>&nbsp; *
+<i class="no-highlight">59</i>&nbsp; * @author kgade
+<i class="no-highlight">60</i>&nbsp; */
+<i class="no-highlight">61</i>&nbsp;@General(title = GOOGLE_BIGQUERY_OAUTH2_ACCOUNT_TITLE,
+<i class="no-highlight">62</i>&nbsp;        docLink = DOCLINK_OAUTH2_ACCOUNT)
+<i class="no-highlight">63</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">64</i>&nbsp;@AccountCategory(type = AccountType.OAUTH2)
+<b class="nc"><i class="no-highlight">65</i>&nbsp;public class GoogleBigQueryOAuthAccount extends OAuth2Account&lt;Bigquery&gt; implements</b>
+<i class="no-highlight">66</i>&nbsp;        StorageServiceProvider, GoogleCredentialsProvider, GoogleBigQuerySqlOptions {
+<b class="nc"><i class="no-highlight">67</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(GoogleBigQueryOAuthAccount.class);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;    static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();</b>
+<i class="no-highlight">69</i>&nbsp;    private static final String AUTO_REFRESH_TOKEN = &quot;autoRefreshToken&quot;;
+<i class="no-highlight">70</i>&nbsp;    private static final String REFRESH_TOKEN = &quot;refresh_token&quot;;
+<i class="no-highlight">71</i>&nbsp;    private static final String AUTH_ENDPOINT_CONFIG = &quot;auth_endpoint_config&quot;;
+<i class="no-highlight">72</i>&nbsp;    private static final int SECONDS_LEFT_THRESHOLD = 60;
+<i class="no-highlight">73</i>&nbsp;    private PropertyValues propertyValues;
+<i class="no-highlight">74</i>&nbsp;    private Boolean autoRefreshToken;
+<i class="no-highlight">75</i>&nbsp;    private String refreshToken;
+<i class="no-highlight">76</i>&nbsp;    private HttpTransport httpTransport;
+<i class="no-highlight">77</i>&nbsp;    private boolean defaultStandardSql;
+<i class="no-highlight">78</i>&nbsp;    @Inject
+<i class="no-highlight">79</i>&nbsp;    private SnapControl snapControl;
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    @Override
+<i class="no-highlight">82</i>&nbsp;    public List&lt;SnapProperty&gt; defineAuthEndpointProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        return new ImmutableList</b>
+<i class="no-highlight">84</i>&nbsp;                .Builder&lt;SnapProperty&gt;()
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                .add(propertyBuilder.describe(ACCESS_TYPE, ACCESS_TYPE_LABEL, ACCESS_TYPE_DESC)</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                        .makeReadOnly()</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                        .defaultValue(ACCESS_TYPE_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                        .build())</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                .add(propertyBuilder.describe(APPROVAL_PROMPT, APPROVAL_PROMPT_LABEL,</b>
+<i class="no-highlight">90</i>&nbsp;                        APPROVAL_PROMPT_DESC)
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                        .makeReadOnly()</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                        .defaultValue(APPROVAL_PROMPT_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                        .build())</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                .add(propertyBuilder.describe(DEFAULT_STANDARD_SQL_PROP, DEFAULT_STANDARD_SQL_LABEL,</b>
+<i class="no-highlight">95</i>&nbsp;                        DEFAULT_STANDARD_SQL_DESC)
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                        .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                        .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                        .build())</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                .build();</b>
+<i class="no-highlight">100</i>&nbsp;    }
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;    @Override
+<i class="no-highlight">103</i>&nbsp;    public List&lt;SnapProperty&gt; defineTokenEndpointProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        return new ImmutableList</b>
+<i class="no-highlight">105</i>&nbsp;                .Builder&lt;SnapProperty&gt;()
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                .add(propertyBuilder.describe(TOKEN_TRANSPORT, TOKEN_TRANSPORT_LABEL,</b>
+<i class="no-highlight">107</i>&nbsp;                        TOKEN_TRANSPORT_DESC)
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                        .makeReadOnly()</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                        .defaultValue(TOKEN_TRANSPORT_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                        .build())</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                .build();</b>
+<i class="no-highlight">112</i>&nbsp;    }
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    @Override
+<i class="no-highlight">115</i>&nbsp;    protected void configureAdditional(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        this.propertyValues = propertyValues;</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        this.autoRefreshToken = propertyValues.get(AUTO_REFRESH_TOKEN);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        this.refreshToken = (Boolean.TRUE.equals(autoRefreshToken) ? (String) propertyValues.get</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                (REFRESH_TOKEN) : null);</b>
+<i class="no-highlight">120</i>&nbsp;
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        String defaultStandardSqlProperty = new JsonPathBuilder(AUTH_ENDPOINT_CONFIG)</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .appendValueElement().appendCurrentElement(DEFAULT_STANDARD_SQL_PROP).build();</b>
+<i class="no-highlight">123</i>&nbsp;
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        this.defaultStandardSql = propertyValues.getBoolean(defaultStandardSqlProperty, false);</b>
+<i class="no-highlight">125</i>&nbsp;    }
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;    @Override
+<i class="no-highlight">128</i>&nbsp;    public Bigquery connect() throws ExecutionException {
+<i class="no-highlight">129</i>&nbsp;        // Refresh access token if necessary
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        Long secondsLeft = refreshAccessTokenIfExpired(propertyValues, snapControl);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        if (secondsLeft == null) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            LOG.debug(&quot;Failed to refresh access token.&quot;);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        } else if (secondsLeft &lt; SECONDS_LEFT_THRESHOLD) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            if (secondsLeft &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                LOG.debug(&quot;Only {} seconds left before the access token expires&quot;,</b>
+<i class="no-highlight">136</i>&nbsp;                        secondsLeft);
+<i class="no-highlight">137</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                LOG.debug(&quot;The access token expired {} seconds ago&quot;, -secondsLeft);</b>
+<i class="no-highlight">139</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            long expire = Long.parseLong(propertyValues.get(ACCESS_TOKEN_EXPIRATION));</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            secondsLeft = expire - System.currentTimeMillis() / 1000;</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            LOG.debug(&quot;New access token expires in {} seconds&quot;, secondsLeft);</b>
+<i class="no-highlight">143</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        if (httpTransport == null) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            httpTransport = new ApacheHttpTransport(new ProxyHttpClient());</b>
+<i class="no-highlight">146</i>&nbsp;        }
+<i class="no-highlight">147</i>&nbsp;
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        HttpRequestInitializer httpRequestInitializer = request -&gt; {</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            request.setReadTimeout(FIVE_MINS_AS_MILLI_SECS);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            request.setConnectTimeout(THREE_MINS_AS_MILLI_SECS);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            request.setSuppressUserAgentSuffix(true);</b>
+<i class="no-highlight">152</i>&nbsp;        };
+<i class="no-highlight">153</i>&nbsp;
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        Credential credential = new GoogleCredential.Builder()</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                .setTransport(httpTransport)</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                .setJsonFactory(JSON_FACTORY)</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                .setClientSecrets(getClientId(), getClientSecret())</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .setRequestInitializer(httpRequestInitializer)</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        credential.setAccessToken(getAccessToken());</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        credential.setRefreshToken(refreshToken);</b>
+<i class="no-highlight">162</i>&nbsp;
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        return new Bigquery.Builder(httpTransport, JSON_FACTORY, credential)</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                .setApplicationName(APPLICATION_NAME)</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                .build();</b>
+<i class="no-highlight">166</i>&nbsp;    }
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;    @Override
+<i class="no-highlight">169</i>&nbsp;    protected String setAuthorizationEndpoint() {
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        return AUTH_ENDPOINT_URL;</b>
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    @Override
+<i class="no-highlight">174</i>&nbsp;    protected String setTokenEndpoint() {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        return TOKEN_ENDPOINT_URL;</b>
+<i class="no-highlight">176</i>&nbsp;    }
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;    @Override
+<i class="no-highlight">179</i>&nbsp;    public void disconnect() throws ExecutionException {
+<i class="no-highlight">180</i>&nbsp;        //NO OP
+<i class="no-highlight">181</i>&nbsp;    }
+<i class="no-highlight">182</i>&nbsp;
+<i class="no-highlight">183</i>&nbsp;    @Override
+<i class="no-highlight">184</i>&nbsp;    protected String setDefaultScope() {
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        Set&lt;String&gt; scopes = new HashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        scopes.addAll(StorageScopes.all());</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        scopes.add(BigqueryScopes.BIGQUERY);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        return StringUtils.join(scopes, SPACE);</b>
+<i class="no-highlight">189</i>&nbsp;    }
+<i class="no-highlight">190</i>&nbsp;
+<i class="no-highlight">191</i>&nbsp;    @Override
+<i class="no-highlight">192</i>&nbsp;    protected String setDefaultClientId() {
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        return CLIENT_ID_DEFAULT;</b>
+<i class="no-highlight">194</i>&nbsp;    }
+<i class="no-highlight">195</i>&nbsp;
+<i class="no-highlight">196</i>&nbsp;    @Override
+<i class="no-highlight">197</i>&nbsp;    protected String setDefaultClientSecret() {
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        return CLIENT_SECRET_DEFAULT;</b>
+<i class="no-highlight">199</i>&nbsp;    }
+<i class="no-highlight">200</i>&nbsp;
+<i class="no-highlight">201</i>&nbsp;    @Override
+<i class="no-highlight">202</i>&nbsp;    public Storage getStorageService() {
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        Credential credential = new GoogleCredential.Builder()</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                .setTransport(httpTransport)</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                .setJsonFactory(JSON_FACTORY)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .setClientSecrets(getClientId(), getClientSecret())</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        credential.setAccessToken(getAccessToken());</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        return new Storage.Builder(httpTransport, JSON_FACTORY, credential)</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .setApplicationName(GOOGLE_CLOUD_STORAGE_APP_NAME)</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                .build();</b>
+<i class="no-highlight">212</i>&nbsp;    }
+<i class="no-highlight">213</i>&nbsp;
+<i class="no-highlight">214</i>&nbsp;    @Override
+<i class="no-highlight">215</i>&nbsp;    public Credentials getStorageCredentials() {
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        Set&lt;String&gt; scopes = new HashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;        scopes.addAll(StorageScopes.all());</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        return new GoogleCredentials(new AccessToken(getAccessToken(), null))</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                .createScoped(scopes);</b>
+<i class="no-highlight">220</i>&nbsp;    }
+<i class="no-highlight">221</i>&nbsp;
+<i class="no-highlight">222</i>&nbsp;    @Override
+<i class="no-highlight">223</i>&nbsp;    public Credentials getBigQueryCredentials() {
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        Set&lt;String&gt; scopes = new HashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        scopes.add(BigqueryScopes.BIGQUERY);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        return new GoogleCredentials(new AccessToken(getAccessToken(), null))</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .createScoped(scopes);</b>
+<i class="no-highlight">228</i>&nbsp;    }
+<i class="no-highlight">229</i>&nbsp;
+<i class="no-highlight">230</i>&nbsp;    @Override
+<i class="no-highlight">231</i>&nbsp;    public boolean isDefaultStandardSql() {
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        return defaultStandardSql;</b>
+<i class="no-highlight">233</i>&nbsp;    }
+<i class="no-highlight">234</i>&nbsp;
+<i class="no-highlight">235</i>&nbsp;    /**
+<i class="no-highlight">236</i>&nbsp;     * Refresh access token if it is about to expire in less than 1 minute or has already expired.
+<i class="no-highlight">237</i>&nbsp;     * This is a synchronized method to avoid multiple refresh requests among multiple account
+<i class="no-highlight">238</i>&nbsp;     * instances.
+<i class="no-highlight">239</i>&nbsp;     *
+<i class="no-highlight">240</i>&nbsp;     * @param propertyValues - PropertyValues object from configure()
+<i class="no-highlight">241</i>&nbsp;     * @param snapControl    - SnapControl object injected into Snap account
+<i class="no-highlight">242</i>&nbsp;     * @return number of seconds left until it expires, null if it fails to refresh
+<i class="no-highlight">243</i>&nbsp;     */
+<i class="no-highlight">244</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">245</i>&nbsp;    protected synchronized Long refreshAccessTokenIfExpired(PropertyValues propertyValues,
+<i class="no-highlight">246</i>&nbsp;            SnapControl snapControl) {
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        long expire = Long.parseLong(propertyValues.get(ACCESS_TOKEN_EXPIRATION));</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        long secondsLeft = expire - System.currentTimeMillis() / 1000;</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        if (secondsLeft &lt; SECONDS_LEFT_THRESHOLD) {</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;            if (!snapControl.reloadSnapAccount(true)) {</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                return null;</b>
+<i class="no-highlight">252</i>&nbsp;            }
+<i class="no-highlight">253</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        return secondsLeft;</b>
+<i class="no-highlight">255</i>&nbsp;    }
+<i class="no-highlight">256</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

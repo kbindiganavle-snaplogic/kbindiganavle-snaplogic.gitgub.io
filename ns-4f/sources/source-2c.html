@@ -1,0 +1,356 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RedshiftCrossAccountIAMRoleAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.accounts</a>
+</div>
+
+<h1>Coverage Summary for Class: RedshiftCrossAccountIAMRoleAccount (com.snaplogic.snap.api.sql.accounts)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RedshiftCrossAccountIAMRoleAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/83)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql.accounts;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.auth.AWSCredentialsProvider;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.regions.Regions;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.services.securitytoken.model.Credentials;
+<i class="no-highlight">21</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import java.util.List;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.Messages.*;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;/**
+<i class="no-highlight">39</i>&nbsp; * As part of JIRA ticket [SNAP-6868], Redshift Bulk snaps (Bulk Load, Bulk Unload,
+<i class="no-highlight">40</i>&nbsp; *  and Bulk Upsert) can perform their respective operations with an S3 Bucket that belongs
+<i class="no-highlight">41</i>&nbsp; *  to an AWS account completely different than that of the Redshift instance.
+<i class="no-highlight">42</i>&nbsp; *
+<i class="no-highlight">43</i>&nbsp; * And, this is done via IAM roles.
+<i class="no-highlight">44</i>&nbsp; *
+<i class="no-highlight">45</i>&nbsp; * First, an IAM role should be assigned to the S3 bucket saying so and so external account/role
+<i class="no-highlight">46</i>&nbsp; *  can read it.
+<i class="no-highlight">47</i>&nbsp; * Then, another IAM role should be assigned to the Redshift Cluster which assumes the former IAM
+<i class="no-highlight">48</i>&nbsp; *  role.
+<i class="no-highlight">49</i>&nbsp; *
+<i class="no-highlight">50</i>&nbsp; * Setup instructions are here:
+<i class="no-highlight">51</i>&nbsp; *  https://aws.amazon.com/premiumsupport/knowledge-center/redshift-s3-cross-account/
+<i class="no-highlight">52</i>&nbsp; *
+<i class="no-highlight">53</i>&nbsp; */
+<i class="no-highlight">54</i>&nbsp;@General(title = REDSHIFT_CROSS_ACCOUNT_IAM_ROLE_TITLE,
+<i class="no-highlight">55</i>&nbsp;        docLink = REDSHIFT_CROSS_ACCOUNT_IAM_ROLE_DOC_LINK)
+<i class="no-highlight">56</i>&nbsp;@AccountCategory(type = AccountType.DATABASE)
+<b class="nc"><i class="no-highlight">57</i>&nbsp;public class RedshiftCrossAccountIAMRoleAccount extends RedshiftDatabaseAccount {</b>
+<i class="no-highlight">58</i>&nbsp;    private static final String CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_READ_PROP =
+<i class="no-highlight">59</i>&nbsp;            &quot;iamArnForBucketRead&quot;;
+<i class="no-highlight">60</i>&nbsp;    private static final String IAM_PROPERTIES_BUCKET_PROP = &quot;iamPropertiesBucket&quot;;
+<i class="no-highlight">61</i>&nbsp;    private static final String IAM_ROLE_CREDENTIALS_FORMAT =
+<i class="no-highlight">62</i>&nbsp;            &quot;aws_iam_role=arn:aws:iam::%s:role/%s&quot;;
+<i class="no-highlight">63</i>&nbsp;    private static final String CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_WRITE_PROP =
+<i class="no-highlight">64</i>&nbsp;            &quot;iamArnForBucketWrite&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String ASSUME_ROLE_SESSION_NAME_FMT =
+<i class="no-highlight">66</i>&nbsp;            &quot;SL_BulkLoad_via_S3_BulkLoadWrapper_%s_%d&quot;;
+<i class="no-highlight">67</i>&nbsp;    private static final String EXTERNAL_ID_PROP = &quot;externalId&quot;;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;    private String arnCrossAccountIAMRoleBucketRead;
+<i class="no-highlight">70</i>&nbsp;    private String arnCrossAccountIamRoleForBucketWrite;
+<i class="no-highlight">71</i>&nbsp;    private String externalId;
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;    @Override
+<i class="no-highlight">74</i>&nbsp;    protected void defineRegion(final PropertyBuilder propertyBuilder,
+<i class="no-highlight">75</i>&nbsp;            List&lt;SnapProperty&gt; connectionProperties) {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        connectionProperties.add(propertyBuilder.describe(REGION_PROP, S3_REGION_LABEL,</b>
+<i class="no-highlight">77</i>&nbsp;                REGION_DESC)
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                .build());</b>
+<i class="no-highlight">80</i>&nbsp;    }
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;    @Override
+<i class="no-highlight">83</i>&nbsp;    protected void defineAdditionalPropertiesBeforeS3(List&lt;SnapProperty&gt; connectionProperties,
+<i class="no-highlight">84</i>&nbsp;            PropertyBuilder propertyBuilder) {
+<i class="no-highlight">85</i>&nbsp;    }
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;    @Override
+<i class="no-highlight">88</i>&nbsp;    public void validateAccountSetup() {
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        String errorMsg = null;</b>
+<i class="no-highlight">90</i>&nbsp;
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        if (StringUtils.isBlank(awsAccountIDRedshift)) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            errorMsg = IAM_ACCOUNT_ID_MISSING_REDSHIFT;</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        } else if (StringUtils.isBlank(iamRoleNameRedshift)) {</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;            errorMsg = IAM_ROLE_NAME_MISSING_REDSHIFT;</b>
+<i class="no-highlight">95</i>&nbsp;        }
+<i class="no-highlight">96</i>&nbsp;        // S3 Bucket Read IAM role can be left empty if Redshift Cluster is
+<i class="no-highlight">97</i>&nbsp;        // in the same AWS account and region as S3.
+<i class="no-highlight">98</i>&nbsp;
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        if (StringUtils.isNotBlank(errorMsg)) {</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            throw new ConfigurationException(CROSS_ACCOUNT_IAM_CONFIG_ERROR)</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                    .withReason(errorMsg)</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">103</i>&nbsp;        }
+<i class="no-highlight">104</i>&nbsp;    }
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;    public void validateAccountCustom() {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        if (!staging) {</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            if (StringUtils.isBlank(s3Bucket)) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                throw new ConfigurationException(CROSS_ACCOUNT_IAM_CONFIG_ERROR)</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                        .withReason(S3_BUCKET_MISSING)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">112</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            super.validateAccountSetup();</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            if (StringUtils.isBlank(arnCrossAccountIamRoleForBucketWrite)) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                throw new ConfigurationException(CROSS_ACCOUNT_IAM_CONFIG_ERROR)</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                        .withReason(CROSS_ACCOUNT_IAM_ROLE_MISSING)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">118</i>&nbsp;            }
+<i class="no-highlight">119</i>&nbsp;        }
+<i class="no-highlight">120</i>&nbsp;    }
+<i class="no-highlight">121</i>&nbsp;
+<i class="no-highlight">122</i>&nbsp;    public String getArnCrossAccountIAMRoleBucketRead() {
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        return arnCrossAccountIAMRoleBucketRead;</b>
+<i class="no-highlight">124</i>&nbsp;    }
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    @Override
+<i class="no-highlight">127</i>&nbsp;    protected void readRegion(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        ExpressionProperty regionNameExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">130</i>&nbsp;                CONNECTION_PROPERTIES_PROP, REGION_PROP));
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        regionName = regionNameExpr.eval(null);</b>
+<i class="no-highlight">132</i>&nbsp;    }
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    @Override
+<i class="no-highlight">135</i>&nbsp;    protected void defineS3Properties(final PropertyBuilder propertyBuilder,
+<i class="no-highlight">136</i>&nbsp;            List&lt;SnapProperty&gt; connectionProperties) {
+<i class="no-highlight">137</i>&nbsp;        // ARN of cross-account IAM role to write to bucket
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        connectionProperties.add(</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                propertyBuilder.describe(CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_WRITE_PROP,</b>
+<i class="no-highlight">140</i>&nbsp;                        CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_WRITE_LABEL,
+<i class="no-highlight">141</i>&nbsp;                        CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_WRITE_DESC)
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                        .expression()</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                        .build());</b>
+<i class="no-highlight">144</i>&nbsp;        // ExternalID
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        connectionProperties.add(</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                propertyBuilder.describe(EXTERNAL_ID_PROP, EXTERNAL_ID_LABEL, EXTERNAL_ID_DESC)</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                        .expression()</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                        .build());</b>
+<i class="no-highlight">149</i>&nbsp;    }
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    @Override
+<i class="no-highlight">152</i>&nbsp;    protected void readS3Properties(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        ExpressionProperty arnCrossAccountIamRoleForBucketWriteExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">155</i>&nbsp;                CONNECTION_PROPERTIES_PROP, CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_WRITE_PROP));
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        arnCrossAccountIamRoleForBucketWrite = arnCrossAccountIamRoleForBucketWriteExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        ExpressionProperty externalIdExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">159</i>&nbsp;                        CONNECTION_PROPERTIES_PROP, EXTERNAL_ID_PROP));
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        externalId = externalIdExpr.eval(null);</b>
+<i class="no-highlight">161</i>&nbsp;    }
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;    @Override
+<i class="no-highlight">164</i>&nbsp;    protected void buildIAMRolePropertiesForRedshift(final PropertyBuilder propertyBuilder,
+<i class="no-highlight">165</i>&nbsp;            boolean region) {
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        super.buildIAMRolePropertiesForRedshift(propertyBuilder, false);</b>
+<i class="no-highlight">167</i>&nbsp;    }
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;    @Override
+<i class="no-highlight">170</i>&nbsp;    protected void buildIAMRolePropertiesForBucket(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        List&lt;SnapProperty&gt; iamPropertiesBucket = Lists.newArrayListWithCapacity(2);</b>
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;        // builds ARN for cross account IAM role on S3 Bucket
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        iamPropertiesBucket.add(propertyBuilder.describe(</b>
+<i class="no-highlight">175</i>&nbsp;                CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_READ_PROP,
+<i class="no-highlight">176</i>&nbsp;                CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_READ_LABEL,
+<i class="no-highlight">177</i>&nbsp;                CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_READ_DESC)
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .build());</b>
+<i class="no-highlight">180</i>&nbsp;        // add the above properties as a group &quot;IAM properties&quot;
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        PropertyBuilder iamPropertiesBuilder = propertyBuilder.describe(IAM_PROPERTIES_BUCKET_PROP,</b>
+<i class="no-highlight">182</i>&nbsp;                IAM_PROPERTIES_BUCKET_LABEL, IAM_PROPERTIES_BUCKET_DESC)
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .type(SnapType.COMPOSITE);</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        for (SnapProperty iamProperty : iamPropertiesBucket) {</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            iamPropertiesBuilder = iamPropertiesBuilder.withEntry(iamProperty);</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        iamPropertiesBuilder.add();</b>
+<i class="no-highlight">188</i>&nbsp;    }
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;    @Override
+<i class="no-highlight">191</i>&nbsp;    protected void readIAMRolePropertiesForRedshift(final PropertyValues propertyValues,
+<i class="no-highlight">192</i>&nbsp;            boolean region) {
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        super.readIAMRolePropertiesForRedshift(propertyValues, false);</b>
+<i class="no-highlight">194</i>&nbsp;    }
+<i class="no-highlight">195</i>&nbsp;
+<i class="no-highlight">196</i>&nbsp;    @Override
+<i class="no-highlight">197</i>&nbsp;    protected void readIAMRolePropertiesForBucket(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        ExpressionProperty arnCrossAccountIAMRoleBucketReadExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">200</i>&nbsp;                IAM_PROPERTIES_BUCKET_PROP, CROSS_ACCOUNT_IAM_ROLE_ARN_BUCKET_READ_PROP));
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        arnCrossAccountIAMRoleBucketRead = arnCrossAccountIAMRoleBucketReadExpr.eval(null);</b>
+<i class="no-highlight">202</i>&nbsp;    }
+<i class="no-highlight">203</i>&nbsp;
+<i class="no-highlight">204</i>&nbsp;    /**
+<i class="no-highlight">205</i>&nbsp;     * Get the IAM roles needed in the Redshift&#39;s COPY command
+<i class="no-highlight">206</i>&nbsp;     *
+<i class="no-highlight">207</i>&nbsp;     * @return credentials
+<i class="no-highlight">208</i>&nbsp;     */
+<i class="no-highlight">209</i>&nbsp;    public String getCredentials(boolean withSingleQuote) {
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        StringBuilder sb = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        if (withSingleQuote) {</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;            sb.append(&quot;&#39;&quot;);</b>
+<i class="no-highlight">213</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        sb.append(String.format(IAM_ROLE_CREDENTIALS_FORMAT,</b>
+<i class="no-highlight">215</i>&nbsp;            awsAccountIDRedshift, iamRoleNameRedshift));
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        if (StringUtils.isNotBlank(arnCrossAccountIAMRoleBucketRead)) {</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            sb.append(&quot;,&quot;).append(arnCrossAccountIAMRoleBucketRead);</b>
+<i class="no-highlight">218</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        if (withSingleQuote) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            sb.append(&quot;&#39;&quot;);</b>
+<i class="no-highlight">221</i>&nbsp;        }
+<i class="no-highlight">222</i>&nbsp;        // ex: &#39;aws_iam_role=arn:aws:iam::123:role/role-A,arn:aws:iam::456:role/role-B&#39;
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        return sb.toString();</b>
+<i class="no-highlight">224</i>&nbsp;    }
+<i class="no-highlight">225</i>&nbsp;
+<i class="no-highlight">226</i>&nbsp;    public Credentials getCredentialFromCrossAccountIamRoleForBucketWrite() {
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        if (StringUtils.isBlank(arnCrossAccountIamRoleForBucketWrite)) {</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;            return null;</b>
+<i class="no-highlight">229</i>&nbsp;        }
+<i class="no-highlight">230</i>&nbsp;        AWSCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                .getInstance();</b>
+<i class="no-highlight">232</i>&nbsp;        AWSSecurityTokenService sts =
+<i class="no-highlight">233</i>&nbsp;                AWSSecurityTokenServiceClientBuilder
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                        .standard()</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                        .withRegion(StringUtils.isNotBlank(regionName) ?</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                                regionName :</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                                Regions.DEFAULT_REGION.getName())</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                        .withCredentials(credentialsProvider)</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        String sessionName = String.format(ASSUME_ROLE_SESSION_NAME_FMT, this.hashCode(),</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                System.nanoTime());</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        AssumeRoleRequest assumeRequest = new AssumeRoleRequest()</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                .withRoleArn(arnCrossAccountIamRoleForBucketWrite)</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                .withRoleSessionName(sessionName);</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        if (StringUtils.isNotBlank(externalId)) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            assumeRequest = assumeRequest.withExternalId(externalId);</b>
+<i class="no-highlight">247</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        AssumeRoleResult assumeRoleResult = sts.assumeRole(assumeRequest);</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        return assumeRoleResult.getCredentials();</b>
+<i class="no-highlight">250</i>&nbsp;    }
+<i class="no-highlight">251</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

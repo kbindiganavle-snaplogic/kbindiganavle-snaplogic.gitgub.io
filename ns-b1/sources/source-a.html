@@ -1,0 +1,743 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DynamoDBCommon</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.dynamodb</a>
+</div>
+
+<h1>Coverage Summary for Class: DynamoDBCommon (com.snaplogic.snaps.dynamodb)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DynamoDBCommon</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/45)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/242)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015 - 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.dynamodb;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.AmazonClientException;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.TableCollection;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
+<i class="no-highlight">21</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+<i class="no-highlight">22</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
+<i class="no-highlight">23</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
+<i class="no-highlight">24</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.TableDescription;
+<i class="no-highlight">25</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">26</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">27</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">28</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.data.model.DocumentMapData;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.data.model.SchemaData;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.document.schema.generator.provider.SchemaGeneratorObjectMapper;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.expression.ObjectType;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.schema.parser.DocumentSchemaStreamReader;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.util.SnapObjectMapper;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">50</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">51</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">52</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import java.io.ByteArrayInputStream;
+<i class="no-highlight">55</i>&nbsp;import java.io.ByteArrayOutputStream;
+<i class="no-highlight">56</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">57</i>&nbsp;import java.math.BigDecimal;
+<i class="no-highlight">58</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">59</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">60</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">61</i>&nbsp;import java.util.List;
+<i class="no-highlight">62</i>&nbsp;import java.util.Map;
+<i class="no-highlight">63</i>&nbsp;import java.util.concurrent.ExecutorService;
+<i class="no-highlight">64</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">65</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.*;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.dynamodb.DataType.BOOL;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.dynamodb.DataType.NUMBER;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.dynamodb.DataType.STRING;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.*;
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;/**
+<i class="no-highlight">74</i>&nbsp; * Holds properties and operations common to snaps.
+<i class="no-highlight">75</i>&nbsp; *
+<i class="no-highlight">76</i>&nbsp; * @author kgade
+<i class="no-highlight">77</i>&nbsp; */
+<i class="no-highlight">78</i>&nbsp;@Accounts(provides = DynamoDBAccount.class)
+<b class="nc"><i class="no-highlight">79</i>&nbsp;public abstract class DynamoDBCommon extends SimpleSnap {</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBCommon.class);</b>
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;    private static final String TABLE_NAME_PROP = &quot;TableName&quot;;
+<i class="no-highlight">83</i>&nbsp;    private static final String TOTAL_SEGMENTS_PROP = &quot;TotalSegments&quot;;
+<i class="no-highlight">84</i>&nbsp;    private static final String THREAD_COUNT_PROP = &quot;ThreadCount&quot;;
+<i class="no-highlight">85</i>&nbsp;    private static final String BATCH_SIZE_PROP = &quot;BatchSize&quot;;
+<i class="no-highlight">86</i>&nbsp;    protected static final String PROJECTION_EXPR_PROP = &quot;ProjectionExpr&quot;;
+<i class="no-highlight">87</i>&nbsp;    protected static final String FILTER_EXPR_PROP = &quot;FilterExpr&quot;;
+<i class="no-highlight">88</i>&nbsp;    private static final String UPDATE_EXPR_PROP = &quot;UpdateExpr&quot;;
+<i class="no-highlight">89</i>&nbsp;    private static final String CONDITIONAL_EXPR_PROP = &quot;ConditionalExpr&quot;;
+<i class="no-highlight">90</i>&nbsp;    private static final String REQ_DELAY_PROP = &quot;ReqDelay&quot;;
+<i class="no-highlight">91</i>&nbsp;    private static final String DELETE_CONDITION_PROP = &quot;DeleteCondition&quot;;
+<i class="no-highlight">92</i>&nbsp;    private static final String EXPR_ATTR_VALUES_PROP = &quot;ExprAttrValues&quot;;
+<i class="no-highlight">93</i>&nbsp;    protected static final String EXPR_ATTR_NAME_PROP = &quot;ExprAttrName&quot;;
+<i class="no-highlight">94</i>&nbsp;    protected static final String EXPR_ATTR_TYPE_PROP = &quot;ExprAttrType&quot;;
+<i class="no-highlight">95</i>&nbsp;    protected static final String EXPR_ATTR_VALUE_PROP = &quot;ExprAttrValue&quot;;
+<i class="no-highlight">96</i>&nbsp;    protected static final String PASS_THROUGH_PROP = &quot;passThrough&quot;;
+<i class="no-highlight">97</i>&nbsp;    protected ExpressionProperty tableNameExp;
+<i class="no-highlight">98</i>&nbsp;    protected String tableName;
+<i class="no-highlight">99</i>&nbsp;    protected int totalSegments;
+<i class="no-highlight">100</i>&nbsp;    protected String projectionExpr;
+<i class="no-highlight">101</i>&nbsp;    protected String filterExpr;
+<i class="no-highlight">102</i>&nbsp;    protected String conditionalExpr;
+<i class="no-highlight">103</i>&nbsp;    protected String updateExpr;
+<i class="no-highlight">104</i>&nbsp;    protected List&lt;Map&lt;String, ExpressionProperty&gt;&gt; exprAttrParams;
+<i class="no-highlight">105</i>&nbsp;    protected String deleteCondition;
+<b class="nc"><i class="no-highlight">106</i>&nbsp;    protected int threadCount = 1;</b>
+<i class="no-highlight">107</i>&nbsp;    protected int batchSize;
+<i class="no-highlight">108</i>&nbsp;    protected int reqDelay;
+<i class="no-highlight">109</i>&nbsp;    Map&lt;String, Map&lt;String, Object&gt;&gt; columnSchema;
+<i class="no-highlight">110</i>&nbsp;    protected Map&lt;String, Object&gt; keySchema;
+<i class="no-highlight">111</i>&nbsp;    @Inject
+<i class="no-highlight">112</i>&nbsp;    protected SnapObjectMapper objectMapper;
+<i class="no-highlight">113</i>&nbsp;    @Inject
+<i class="no-highlight">114</i>&nbsp;    protected DynamoDBAccount dynamodbAccount;
+<i class="no-highlight">115</i>&nbsp;    @Inject
+<i class="no-highlight">116</i>&nbsp;    protected DynamoDBConverter converter;
+<i class="no-highlight">117</i>&nbsp;    @Inject
+<i class="no-highlight">118</i>&nbsp;    protected SchemaGeneratorObjectMapper schemaWriter;
+<i class="no-highlight">119</i>&nbsp;    @Inject
+<i class="no-highlight">120</i>&nbsp;    protected DocumentSchemaStreamReader documentSchemaStreamReader;
+<i class="no-highlight">121</i>&nbsp;    protected boolean isPreview;
+<i class="no-highlight">122</i>&nbsp;    protected TableDescription tableDescription;
+<i class="no-highlight">123</i>&nbsp;    protected Map&lt;String, Object&gt; tableSchema;
+<i class="no-highlight">124</i>&nbsp;    protected boolean passThrough;
+<i class="no-highlight">125</i>&nbsp;    protected AmazonDynamoDB client;
+<i class="no-highlight">126</i>&nbsp;    protected DynamoDB dynamoDB;
+<i class="no-highlight">127</i>&nbsp;    protected NameMap nameMap;
+<i class="no-highlight">128</i>&nbsp;    protected ValueMap valueMap;
+<i class="no-highlight">129</i>&nbsp;    protected ExecutorService executor;
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;    private void createTableSchema(List&lt;AttributeDefinition&gt; attributeDefinitions) {
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        tableSchema = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        columnSchema = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        for (AttributeDefinition entry : attributeDefinitions) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            Map&lt;String, Object&gt; columnTypeMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            String attrName = entry.getAttributeName();</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            String attrType = entry.getAttributeType();</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            switch (attrType) {</b>
+<i class="no-highlight">139</i>&nbsp;                case BOOL:
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                    columnTypeMap.put(attrType, false);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                    break;</b>
+<i class="no-highlight">142</i>&nbsp;                case NUMBER:
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                    columnTypeMap.put(attrType, BigDecimal.ZERO);</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                    break;</b>
+<i class="no-highlight">145</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                    columnTypeMap.put(attrType, StringUtils.EMPTY);</b>
+<i class="no-highlight">147</i>&nbsp;                    break;
+<i class="no-highlight">148</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            columnSchema.put(attrName, columnTypeMap);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        Map&lt;String, Object&gt; itemMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        itemMap.put(ITEM, columnSchema);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        tableSchema.put(PUT_REQUEST, itemMap);</b>
+<i class="no-highlight">154</i>&nbsp;    }
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;    private void createKeySchema(List&lt;KeySchemaElement&gt; keySchemaElements) {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        keySchema = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        Map&lt;String, Object&gt; keyColumnSchema = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        if (keySchemaElements != null) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            for (KeySchemaElement entry : keySchemaElements) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                String attrName = entry.getAttributeName();</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                keyColumnSchema.put(attrName, columnSchema.get(attrName));</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            keySchema.put(KEY, keyColumnSchema);</b>
+<i class="no-highlight">165</i>&nbsp;        }
+<i class="no-highlight">166</i>&nbsp;    }
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;    @Override
+<i class="no-highlight">169</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        definePropertiesInOrder(propertyBuilder);</b>
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    /**
+<i class="no-highlight">174</i>&nbsp;     * Subclasses must override this method to tell the needed properties to be defined in the
+<i class="no-highlight">175</i>&nbsp;     * desired order
+<i class="no-highlight">176</i>&nbsp;     */
+<i class="no-highlight">177</i>&nbsp;    protected abstract void definePropertiesInOrder(final PropertyBuilder propertyBuilder);
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;    /**
+<i class="no-highlight">180</i>&nbsp;     * Defines property for Table name
+<i class="no-highlight">181</i>&nbsp;     */
+<i class="no-highlight">182</i>&nbsp;    protected void defineTableNameProperty(final PropertyBuilder propertyBuilder,
+<i class="no-highlight">183</i>&nbsp;            boolean expression) {
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        PropertyBuilder tableNamePropertyBuilder =</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                propertyBuilder.describe(TABLE_NAME_PROP, TABLE_NAME_LABEL, TABLE_NAME_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                        .required();</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        if (expression) {</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;            tableNamePropertyBuilder = tableNamePropertyBuilder.expression(</b>
+<i class="no-highlight">189</i>&nbsp;                    SnapProperty.DecoratorType.ACCEPTS_SCHEMA);
+<i class="no-highlight">190</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        tableNamePropertyBuilder</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt;</b>
+<i class="no-highlight">193</i>&nbsp;                        suggestionBuilder.node(TABLE_NAME_PROP)
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                                .suggestions(listTables().toArray(new String[0])))</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .add();</b>
+<i class="no-highlight">196</i>&nbsp;    }
+<i class="no-highlight">197</i>&nbsp;
+<i class="no-highlight">198</i>&nbsp;    /**
+<i class="no-highlight">199</i>&nbsp;     * Reads the value of Table name property as plain text
+<i class="no-highlight">200</i>&nbsp;     */
+<i class="no-highlight">201</i>&nbsp;    protected void readTableNameProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        tableName = propertyValues.get(TABLE_NAME_PROP);</b>
+<i class="no-highlight">203</i>&nbsp;    }
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;    /**
+<i class="no-highlight">206</i>&nbsp;     * Reads the value of Table name property as an expression
+<i class="no-highlight">207</i>&nbsp;     */
+<i class="no-highlight">208</i>&nbsp;    protected void readTableNamePropertyAsExp(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        tableNameExp = propertyValues.getAsExpression(TABLE_NAME_PROP);</b>
+<i class="no-highlight">210</i>&nbsp;    }
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;    /**
+<i class="no-highlight">213</i>&nbsp;     * Evaluates table name expression based on given input document
+<i class="no-highlight">214</i>&nbsp;     *
+<i class="no-highlight">215</i>&nbsp;     * @param inputDoc
+<i class="no-highlight">216</i>&nbsp;     */
+<i class="no-highlight">217</i>&nbsp;    protected void evaluateTableNameExp(Document inputDoc) {
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        tableName = tableNameExp.eval(inputDoc);</b>
+<i class="no-highlight">219</i>&nbsp;    }
+<i class="no-highlight">220</i>&nbsp;
+<i class="no-highlight">221</i>&nbsp;    /**
+<i class="no-highlight">222</i>&nbsp;     * Defines property for Thread count
+<i class="no-highlight">223</i>&nbsp;     */
+<i class="no-highlight">224</i>&nbsp;    protected void defineThreadCountProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .describe(THREAD_COUNT_PROP, THREAD_COUNT_LABEL, THREAD_COUNT_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                .withMaxValue(MAX_THREAD_COUNT)</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                .add();</b>
+<i class="no-highlight">230</i>&nbsp;    }
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;    /**
+<i class="no-highlight">233</i>&nbsp;     * Reads the value of Thread count property
+<i class="no-highlight">234</i>&nbsp;     */
+<i class="no-highlight">235</i>&nbsp;    protected void readThreadCountProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        BigInteger threadCountAsBigInt = propertyValues.get(THREAD_COUNT_PROP);</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        threadCount = (threadCountAsBigInt == null ? 0 : threadCountAsBigInt.intValue());</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        threadCount = (threadCount &gt; 0 ? threadCount : 1);</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        executor = Executors.newFixedThreadPool(threadCount);</b>
+<i class="no-highlight">240</i>&nbsp;    }
+<i class="no-highlight">241</i>&nbsp;
+<i class="no-highlight">242</i>&nbsp;    /**
+<i class="no-highlight">243</i>&nbsp;     * Defines property for Total segments
+<i class="no-highlight">244</i>&nbsp;     */
+<i class="no-highlight">245</i>&nbsp;    protected void defineTotalSegmentsProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        propertyBuilder.describe(TOTAL_SEGMENTS_PROP, TOTAL_SEGMENTS_LABEL,</b>
+<i class="no-highlight">247</i>&nbsp;                TOTAL_SEGMENTS_DESCRIPTION)
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                .add();</b>
+<i class="no-highlight">251</i>&nbsp;    }
+<i class="no-highlight">252</i>&nbsp;
+<i class="no-highlight">253</i>&nbsp;    /**
+<i class="no-highlight">254</i>&nbsp;     * Reads the value of Total segments property
+<i class="no-highlight">255</i>&nbsp;     */
+<i class="no-highlight">256</i>&nbsp;    protected void readTotalSegmentsProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        ExpressionProperty totalSegmentsAsExpr =</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                propertyValues.getAsExpression(TOTAL_SEGMENTS_PROP);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        Object countObj = totalSegmentsAsExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        if (countObj != null) {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            Object objTotalSegments = ObjectType.attemptToConvertToBigDecimal(countObj);</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;            if (objTotalSegments instanceof BigDecimal) {</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                if (!isPreview) {</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                    totalSegments = ((BigDecimal) objTotalSegments).intValue();</b>
+<i class="no-highlight">265</i>&nbsp;                }
+<i class="no-highlight">266</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                throw new ExecutionException(ERROR_INVALID_TOTAL_SEGMENTS)</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                        .formatWith(totalSegments)</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                        .withReason(REASON_INVALID_TOTAL_SEGMENTS)</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                        .withResolution(RESOLUTION_INVALID_TOTAL_SEGMENTS);</b>
+<i class="no-highlight">271</i>&nbsp;            }
+<i class="no-highlight">272</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        totalSegments = (totalSegments &gt; 0) ? totalSegments : 1;</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        executor = Executors.newFixedThreadPool(totalSegments);</b>
+<i class="no-highlight">275</i>&nbsp;    }
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;    /**
+<i class="no-highlight">278</i>&nbsp;     * Defines property for Batch size
+<i class="no-highlight">279</i>&nbsp;     */
+<i class="no-highlight">280</i>&nbsp;    protected void defineBatchSizeProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                .describe(BATCH_SIZE_PROP, BATCH_SIZE_LABEL, BATCH_SIZE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                .withMinValue(BigInteger.ONE.intValue())</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                .withMaxValue(WRITE_BATCH_SIZE)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                .defaultValue(BigInteger.ONE.intValue())</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                .add();</b>
+<i class="no-highlight">288</i>&nbsp;    }
+<i class="no-highlight">289</i>&nbsp;
+<i class="no-highlight">290</i>&nbsp;    /**
+<i class="no-highlight">291</i>&nbsp;     * Reads the value of Batch size property
+<i class="no-highlight">292</i>&nbsp;     */
+<i class="no-highlight">293</i>&nbsp;    protected void readBatchSizeProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        BigInteger batchSizeAsBigInt = propertyValues.get(BATCH_SIZE_PROP);</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        batchSize = (batchSizeAsBigInt == null ? 0 : batchSizeAsBigInt.intValue());</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        batchSize = (batchSize &gt; 0) ? batchSize : WRITE_BATCH_SIZE;</b>
+<i class="no-highlight">297</i>&nbsp;    }
+<i class="no-highlight">298</i>&nbsp;
+<i class="no-highlight">299</i>&nbsp;    /**
+<i class="no-highlight">300</i>&nbsp;     * Defines property for Projection expression
+<i class="no-highlight">301</i>&nbsp;     */
+<i class="no-highlight">302</i>&nbsp;    protected void defineProjectionExpressionProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        propertyBuilder.describe(PROJECTION_EXPR_PROP, PROJECTION_EXPR_LABEL,</b>
+<i class="no-highlight">304</i>&nbsp;                PROJECTION_EXPR_DESCRIPTION)
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                .add();</b>
+<i class="no-highlight">307</i>&nbsp;    }
+<i class="no-highlight">308</i>&nbsp;
+<i class="no-highlight">309</i>&nbsp;    /**
+<i class="no-highlight">310</i>&nbsp;     * Reads the value of Projection expression property
+<i class="no-highlight">311</i>&nbsp;     */
+<i class="no-highlight">312</i>&nbsp;    protected void readProjectionExpressionProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        ExpressionProperty exprProjectionExpr = propertyValues.getAsExpression</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                (PROJECTION_EXPR_PROP);</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        projectionExpr = exprProjectionExpr.eval(null);</b>
+<i class="no-highlight">316</i>&nbsp;    }
+<i class="no-highlight">317</i>&nbsp;
+<i class="no-highlight">318</i>&nbsp;    /**
+<i class="no-highlight">319</i>&nbsp;     * Defines property for Filter expression
+<i class="no-highlight">320</i>&nbsp;     */
+<i class="no-highlight">321</i>&nbsp;    protected void defineFilterExpressionProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        propertyBuilder.describe(FILTER_EXPR_PROP, FILTER_EXPR_LABEL,</b>
+<i class="no-highlight">323</i>&nbsp;                FILTER_EXPR_DESCRIPTION)
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                .add();</b>
+<i class="no-highlight">326</i>&nbsp;    }
+<i class="no-highlight">327</i>&nbsp;
+<i class="no-highlight">328</i>&nbsp;    /**
+<i class="no-highlight">329</i>&nbsp;     * Reads the value of Filter expression property
+<i class="no-highlight">330</i>&nbsp;     */
+<i class="no-highlight">331</i>&nbsp;    protected void readFilterExpressionProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">332</i>&nbsp;        ExpressionProperty exprFilterExpr = propertyValues.getAsExpression(FILTER_EXPR_PROP);</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        filterExpr = exprFilterExpr.eval(null);</b>
+<i class="no-highlight">334</i>&nbsp;    }
+<i class="no-highlight">335</i>&nbsp;
+<i class="no-highlight">336</i>&nbsp;    /**
+<i class="no-highlight">337</i>&nbsp;     * Defines property for Request delay
+<i class="no-highlight">338</i>&nbsp;     */
+<i class="no-highlight">339</i>&nbsp;    protected void defineRequestDelayProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">340</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                .describe(REQ_DELAY_PROP, REQ_DELAY_LABEL, REQ_DELAY_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                .add();</b>
+<i class="no-highlight">344</i>&nbsp;    }
+<i class="no-highlight">345</i>&nbsp;
+<i class="no-highlight">346</i>&nbsp;    /**
+<i class="no-highlight">347</i>&nbsp;     * Reads the value of Request delay property
+<i class="no-highlight">348</i>&nbsp;     */
+<i class="no-highlight">349</i>&nbsp;    protected void readRequestDelayProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">350</i>&nbsp;        BigInteger requestDelayAsBigInt = propertyValues.get(REQ_DELAY_PROP);</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;        reqDelay = (requestDelayAsBigInt == null ? 0 : requestDelayAsBigInt.intValue());</b>
+<i class="no-highlight">352</i>&nbsp;    }
+<i class="no-highlight">353</i>&nbsp;
+<i class="no-highlight">354</i>&nbsp;    /**
+<i class="no-highlight">355</i>&nbsp;     * Defines property for Conditional expression
+<i class="no-highlight">356</i>&nbsp;     */
+<i class="no-highlight">357</i>&nbsp;    protected void defineConditionalExpressionProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        propertyBuilder.describe(CONDITIONAL_EXPR_PROP, CONDITIONAL_EXPR_LABEL,</b>
+<i class="no-highlight">359</i>&nbsp;                CONDITIONAL_EXPR_DESCRIPTION)
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                .add();</b>
+<i class="no-highlight">362</i>&nbsp;    }
+<i class="no-highlight">363</i>&nbsp;
+<i class="no-highlight">364</i>&nbsp;    /**
+<i class="no-highlight">365</i>&nbsp;     * Reads the value of Conditional expression property
+<i class="no-highlight">366</i>&nbsp;     */
+<i class="no-highlight">367</i>&nbsp;    protected void readConditionalExpressionProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        ExpressionProperty exprConditionalExpr = propertyValues.getAsExpression</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                (CONDITIONAL_EXPR_PROP);</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;        conditionalExpr = exprConditionalExpr.eval(null);</b>
+<i class="no-highlight">371</i>&nbsp;    }
+<i class="no-highlight">372</i>&nbsp;
+<i class="no-highlight">373</i>&nbsp;    /**
+<i class="no-highlight">374</i>&nbsp;     * Defines property for Update expression
+<i class="no-highlight">375</i>&nbsp;     */
+<i class="no-highlight">376</i>&nbsp;    protected void defineUpdateExpressionProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        propertyBuilder.describe(UPDATE_EXPR_PROP, UPDATE_EXPR_LABEL, UPDATE_EXPR_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                .add();</b>
+<i class="no-highlight">380</i>&nbsp;    }
+<i class="no-highlight">381</i>&nbsp;
+<i class="no-highlight">382</i>&nbsp;    /**
+<i class="no-highlight">383</i>&nbsp;     * Reads the value of Update expression property
+<i class="no-highlight">384</i>&nbsp;     */
+<i class="no-highlight">385</i>&nbsp;    protected void readUpdateExpressionProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        ExpressionProperty exprUpdateExpr = propertyValues.getAsExpression(UPDATE_EXPR_PROP);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;        updateExpr = exprUpdateExpr.eval(null);</b>
+<i class="no-highlight">388</i>&nbsp;    }
+<i class="no-highlight">389</i>&nbsp;
+<i class="no-highlight">390</i>&nbsp;    /**
+<i class="no-highlight">391</i>&nbsp;     * Defines table property for Expression attribute values
+<i class="no-highlight">392</i>&nbsp;     */
+<i class="no-highlight">393</i>&nbsp;    protected void defineExpressionAttributeValuesProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">394</i>&nbsp;        SnapProperty exprAttr = propertyBuilder.describe(EXPR_ATTR_NAME_PROP, EXPR_ATTR_NAME_LABEL,</b>
+<i class="no-highlight">395</i>&nbsp;                EXPR_ATTR_NAME_DESCRIPTION)
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;        SnapProperty exprAttrType = propertyBuilder.describe(EXPR_ATTR_TYPE_PROP,</b>
+<i class="no-highlight">400</i>&nbsp;                EXPR_ATTR_TYPE_LABEL, EXPR_ATTR_TYPE_DESCRIPTION)
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;        SnapProperty exprAttrValue = propertyBuilder.describe(EXPR_ATTR_VALUE_PROP,</b>
+<i class="no-highlight">405</i>&nbsp;                EXPR_ATTR_VALUE_LABEL, EXPR_ATTR_VALUE_DESCRIPTION)
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;        propertyBuilder.describe(EXPR_ATTR_VALUES_PROP, EXPR_ATTR_VALUES_LABEL,</b>
+<i class="no-highlight">410</i>&nbsp;                EXPR_ATTR_VALUES_DESCRIPTION)
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                .withEntry(exprAttr)</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                .withEntry(exprAttrType)</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                .withEntry(exprAttrValue)</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                .add();</b>
+<i class="no-highlight">416</i>&nbsp;    }
+<i class="no-highlight">417</i>&nbsp;
+<i class="no-highlight">418</i>&nbsp;    /**
+<i class="no-highlight">419</i>&nbsp;     * Reads the table property Expression attribute values
+<i class="no-highlight">420</i>&nbsp;     */
+<i class="no-highlight">421</i>&nbsp;    protected void readExpressionAttributeValuesProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; params = propertyValues.get(EXPR_ATTR_VALUES_PROP);</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        if (CollectionUtils.isNotEmpty(params)) {</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;            exprAttrParams = Lists.newArrayListWithExpectedSize(params.size());</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;            for (Map&lt;String, String&gt; param : params) {</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                Map&lt;String, ExpressionProperty&gt; def = Maps.newHashMapWithExpectedSize(3);</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                ExpressionProperty exprAttrExprName = propertyValues.getExpressionPropertyFor(param,</b>
+<i class="no-highlight">428</i>&nbsp;                        EXPR_ATTR_NAME_PROP);
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                ExpressionProperty exprAttrExprType = propertyValues.getExpressionPropertyFor(param,</b>
+<i class="no-highlight">430</i>&nbsp;                        EXPR_ATTR_TYPE_PROP);
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                ExpressionProperty exprAttrExprValue = propertyValues.getExpressionPropertyFor</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                        (param,</b>
+<i class="no-highlight">433</i>&nbsp;                        EXPR_ATTR_VALUE_PROP);
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                def.put(EXPR_ATTR_NAME_PROP, exprAttrExprName);</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                def.put(EXPR_ATTR_TYPE_PROP, exprAttrExprType);</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                def.put(EXPR_ATTR_VALUE_PROP, exprAttrExprValue);</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;                exprAttrParams.add(def);</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;            }</b>
+<i class="no-highlight">439</i>&nbsp;        }
+<i class="no-highlight">440</i>&nbsp;    }
+<i class="no-highlight">441</i>&nbsp;
+<i class="no-highlight">442</i>&nbsp;    /**
+<i class="no-highlight">443</i>&nbsp;     * Defines property for Delete condition
+<i class="no-highlight">444</i>&nbsp;     */
+<i class="no-highlight">445</i>&nbsp;    protected void defineDeleteConditionProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">446</i>&nbsp;        propertyBuilder.describe(DELETE_CONDITION_PROP, DELETE_CONDITION_LABEL,</b>
+<i class="no-highlight">447</i>&nbsp;                DELETE_CONDITION_DESC)
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                .add();</b>
+<i class="no-highlight">449</i>&nbsp;    }
+<i class="no-highlight">450</i>&nbsp;
+<i class="no-highlight">451</i>&nbsp;    /**
+<i class="no-highlight">452</i>&nbsp;     * Reads the value of the property Delete condition
+<i class="no-highlight">453</i>&nbsp;     */
+<i class="no-highlight">454</i>&nbsp;    protected void readDeleteConditionProperty(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">455</i>&nbsp;        deleteCondition = propertyValues.get(DELETE_CONDITION_PROP);</b>
+<i class="no-highlight">456</i>&nbsp;    }
+<i class="no-highlight">457</i>&nbsp;
+<i class="no-highlight">458</i>&nbsp;    @Override
+<i class="no-highlight">459</i>&nbsp;    public void configure(PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">460</i>&nbsp;        if (dynamodbAccount == null) {</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;            throw new ConfigurationException(ERROR_ACCOUNT_NOT_DEFINED)</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                    .withReason(REASON_ACCOUNT_NOT_DEFINED)</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                    .withResolution(RESOLUTION_ACCOUNT_NOT_DEFINED);</b>
+<i class="no-highlight">464</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">465</i>&nbsp;        dynamoDB = getClient(dynamodbAccount.connect());</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;        passThrough = Boolean.TRUE.equals(propertyValues.get(PASS_THROUGH_PROP));</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;        configureAdditional(propertyValues);</b>
+<i class="no-highlight">468</i>&nbsp;    }
+<i class="no-highlight">469</i>&nbsp;
+<i class="no-highlight">470</i>&nbsp;    protected abstract void configureAdditional(PropertyValues propertyValues)
+<i class="no-highlight">471</i>&nbsp;            throws ConfigurationException;
+<i class="no-highlight">472</i>&nbsp;
+<i class="no-highlight">473</i>&nbsp;    @Override
+<i class="no-highlight">474</i>&nbsp;    protected void process(Document document, String inputView) {
+<b class="nc"><i class="no-highlight">475</i>&nbsp;        evaluateExprAttrParams(document);</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;        processDocument(document);</b>
+<i class="no-highlight">477</i>&nbsp;    }
+<i class="no-highlight">478</i>&nbsp;
+<i class="no-highlight">479</i>&nbsp;    protected abstract void processDocument(Document document);
+<i class="no-highlight">480</i>&nbsp;
+<i class="no-highlight">481</i>&nbsp;    /**
+<i class="no-highlight">482</i>&nbsp;     * Default method for defining input schema for the DynamoDB snaps
+<i class="no-highlight">483</i>&nbsp;     */
+<i class="no-highlight">484</i>&nbsp;    protected void defineInputSchemaDefault(final SchemaProvider schemaProvider) {
+<b class="nc"><i class="no-highlight">485</i>&nbsp;        for (String inputViewName : schemaProvider.getRegisteredViewNames()) {</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;            SchemaBuilder schemaBuilder = schemaProvider.getSchemaBuilder(inputViewName);</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;            schemaBuilder.type(SnapType.COMPOSITE);</b>
+<i class="no-highlight">488</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                tableDescription = this.describeTable(tableName);</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            } catch (AmazonClientException e) {</b>
+<i class="no-highlight">491</i>&nbsp;                // It would be handled by individual snap
+<i class="no-highlight">492</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">493</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;            ByteArrayOutputStream boas = new ByteArrayOutputStream();</b>
+<i class="no-highlight">495</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">496</i>&nbsp;                schemaWriter.writeValue(boas, keySchema);</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                throw new ExecutionException(e, ERROR_CREATING_TABLE_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                        .withReason(Throwables.getRootCause(e).getMessage())</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;                        .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;            ByteArrayInputStream bais = new ByteArrayInputStream(boas.toByteArray());</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;            this.documentSchemaStreamReader.initialize(bais);</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;            SchemaData schemaData = this.documentSchemaStreamReader.read();</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;            DocumentMapData mapData = schemaData.toDocumentSchemaData();</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;            Schema schema = mapData.getSchema();</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;            schemaProvider.setProvidedSchemaForViewName(inputViewName, schema);</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;        }</b>
+<i class="no-highlight">509</i>&nbsp;    }
+<i class="no-highlight">510</i>&nbsp;
+<i class="no-highlight">511</i>&nbsp;    /**
+<i class="no-highlight">512</i>&nbsp;     * Evaluates expression attributes given by the user
+<i class="no-highlight">513</i>&nbsp;     */
+<i class="no-highlight">514</i>&nbsp;    protected void evaluateExprAttrParams(final Document document) {
+<b class="nc"><i class="no-highlight">515</i>&nbsp;        if (exprAttrParams != null) {</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;            nameMap = new NameMap();</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;            valueMap = new ValueMap();</b>
+<i class="no-highlight">518</i>&nbsp;            Object attrValue;
+<b class="nc"><i class="no-highlight">519</i>&nbsp;            for (Map&lt;String, ExpressionProperty&gt; exprDef : exprAttrParams) {</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;                ExpressionProperty attrNameProp = exprDef.get(EXPR_ATTR_NAME_PROP);</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;                String attrName = attrNameProp.eval(document);</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                ExpressionProperty attrTypeProp = exprDef.get(EXPR_ATTR_TYPE_PROP);</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                String attrType = attrTypeProp.eval(document);</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                ExpressionProperty attrValueProp = exprDef.get(EXPR_ATTR_VALUE_PROP);</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                attrValue = attrValueProp.eval(document);</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                if (StringUtils.startsWith(attrName, POUND)) {</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                    nameMap.with(attrName, (String) attrValue);</b>
+<i class="no-highlight">528</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                    Object attributeValue = convertValue(attrType, attrValue);</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                    valueMap.with(attrName, attributeValue);</b>
+<i class="no-highlight">531</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">532</i>&nbsp;            }</b>
+<i class="no-highlight">533</i>&nbsp;        }
+<i class="no-highlight">534</i>&nbsp;    }
+<i class="no-highlight">535</i>&nbsp;
+<i class="no-highlight">536</i>&nbsp;    /**
+<i class="no-highlight">537</i>&nbsp;     * Parses the given value in JSON format for List, Set or Map type
+<i class="no-highlight">538</i>&nbsp;     *
+<i class="no-highlight">539</i>&nbsp;     * If the input is invalid, it will throw error
+<i class="no-highlight">540</i>&nbsp;     *
+<i class="no-highlight">541</i>&nbsp;     * @param attrType
+<i class="no-highlight">542</i>&nbsp;     * @param value
+<i class="no-highlight">543</i>&nbsp;     * @return instance of JSONArray or JSONObject
+<i class="no-highlight">544</i>&nbsp;     */
+<i class="no-highlight">545</i>&nbsp;    protected Object convertValue(String attrType, Object value) {
+<b class="nc"><i class="no-highlight">546</i>&nbsp;        Map&lt;String, Object&gt; typeMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;        if (StringUtils.isBlank(attrType)) {</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;            typeMap.put(STRING, value);</b>
+<i class="no-highlight">549</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">550</i>&nbsp;            typeMap.put(attrType, value);</b>
+<i class="no-highlight">551</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">552</i>&nbsp;        return DynamoDBItemConverter.toValue(typeMap);</b>
+<i class="no-highlight">553</i>&nbsp;    }
+<i class="no-highlight">554</i>&nbsp;
+<i class="no-highlight">555</i>&nbsp;    @Override
+<i class="no-highlight">556</i>&nbsp;    public void cleanup() {
+<b class="nc"><i class="no-highlight">557</i>&nbsp;        if (executor != null) {</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;            executor.shutdown();</b>
+<i class="no-highlight">559</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">560</i>&nbsp;                executor.awaitTermination(15L, TimeUnit.MINUTES);</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;            } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;                LOGGER.error(ERROR_THREAD_POOL_INTERRUPT, e);</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;                executor.shutdownNow();</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;            }</b>
+<i class="no-highlight">565</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">566</i>&nbsp;        if (client != null) {</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;            client.shutdown();</b>
+<i class="no-highlight">568</i>&nbsp;        }
+<i class="no-highlight">569</i>&nbsp;    }
+<i class="no-highlight">570</i>&nbsp;
+<i class="no-highlight">571</i>&nbsp;    protected DynamoDB getClient(DynamoDBAccountConfiguration config) {
+<b class="nc"><i class="no-highlight">572</i>&nbsp;        if (config == null) {</b>
+<b class="nc"><i class="no-highlight">573</i>&nbsp;            return new DynamoDB(AmazonDynamoDBClientBuilder.defaultClient());</b>
+<i class="no-highlight">574</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">575</i>&nbsp;        if (client == null) {</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;            client = AmazonDynamoDBClientBuilder.standard()</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                .withClientConfiguration(config.getClientConfiguration())</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;                .withCredentials(config.getCredentialsProvider())</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                .withEndpointConfiguration(config.getEndpointConfiguration())</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;                .build();</b>
+<i class="no-highlight">581</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">582</i>&nbsp;        return new DynamoDB(client);</b>
+<i class="no-highlight">583</i>&nbsp;    }
+<i class="no-highlight">584</i>&nbsp;
+<i class="no-highlight">585</i>&nbsp;    protected List&lt;String&gt; listTables() {
+<i class="no-highlight">586</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">587</i>&nbsp;            DynamoDB dynamoDB = getClient(dynamodbAccount.connect());</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;            TableCollection&lt;ListTablesResult&gt; tables = dynamoDB.listTables();</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;            List&lt;String&gt; tableNames = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;            tables.pages().forEach(page -&gt;</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                    page.forEach(table -&gt; tableNames.add(table.getTableName()))</b>
+<i class="no-highlight">592</i>&nbsp;            );
+<b class="nc"><i class="no-highlight">593</i>&nbsp;            return tableNames;</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;        } catch (AmazonClientException e) {</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;            throw new ExecutionException(e, ERROR_GET_TABLE_NAMES)</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">598</i>&nbsp;        }
+<i class="no-highlight">599</i>&nbsp;    }
+<i class="no-highlight">600</i>&nbsp;
+<i class="no-highlight">601</i>&nbsp;    protected TableDescription describeTable(String tableName) {
+<b class="nc"><i class="no-highlight">602</i>&nbsp;        TableDescription description = null;</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;        DynamoDB dynamoDB = getClient(dynamodbAccount.connect());</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;        description = dynamoDB.getTable(tableName).describe();</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;        createTableSchema(description.getAttributeDefinitions());</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;        createKeySchema(description.getKeySchema());</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;        return description;</b>
+<i class="no-highlight">608</i>&nbsp;    }
+<i class="no-highlight">609</i>&nbsp;
+<i class="no-highlight">610</i>&nbsp;    protected PrimaryKey getPrimaryKey(Map&lt;String, Object&gt; keyMap) {
+<b class="nc"><i class="no-highlight">611</i>&nbsp;        PrimaryKey primaryKey = new PrimaryKey();</b>
+<b class="nc"><i class="no-highlight">612</i>&nbsp;        keyMap.forEach((keyName, typeMap) -&gt; {</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;            Map&lt;String, Object&gt; typeMap1 = (Map&lt;String, Object&gt;) typeMap;</b>
+<b class="nc"><i class="no-highlight">614</i>&nbsp;            typeMap1.forEach((type, keyValue) -&gt; {</b>
+<b class="nc"><i class="no-highlight">615</i>&nbsp;                primaryKey.addComponent(keyName, convertValue(type, keyValue));</b>
+<i class="no-highlight">616</i>&nbsp;            });
+<i class="no-highlight">617</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">618</i>&nbsp;        return primaryKey;</b>
+<i class="no-highlight">619</i>&nbsp;    }
+<i class="no-highlight">620</i>&nbsp;
+<i class="no-highlight">621</i>&nbsp;    public PrimaryKey getPrimaryKeyFromInput(Map&lt;String, Object&gt; doc) {
+<b class="nc"><i class="no-highlight">622</i>&nbsp;        PrimaryKey primaryKey = new PrimaryKey();</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;        if (keySchema == null) {</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;            describeTable(tableName);</b>
+<i class="no-highlight">625</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">626</i>&nbsp;        Map&lt;String, Map&lt;String, Object&gt;&gt; key = KEY_SCHEMA_PATH.readStatic(keySchema);</b>
+<b class="nc"><i class="no-highlight">627</i>&nbsp;        key.keySet().forEach(keyName -&gt; {</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;            Map&lt;String, Object&gt; keyMap = (Map&lt;String, Object&gt;) doc.get(keyName);</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;            if (keyMap == null) {</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;                String msg = String.format(REASON_PRIMARY_KEY_NOT_FOUND, keyName);</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                throw new IllegalArgumentException(msg);</b>
+<i class="no-highlight">632</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">633</i>&nbsp;            ArrayList&lt;String&gt; strings = new ArrayList&lt;&gt;(keyMap.keySet());</b>
+<b class="nc"><i class="no-highlight">634</i>&nbsp;            primaryKey.addComponent(keyName, keyMap.get(strings.get(0)));</b>
+<i class="no-highlight">635</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">636</i>&nbsp;        return primaryKey;</b>
+<i class="no-highlight">637</i>&nbsp;    }
+<i class="no-highlight">638</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

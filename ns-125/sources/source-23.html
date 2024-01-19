@@ -1,0 +1,1678 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > NetsuiteCustomizationResolver</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.netsuite</a>
+</div>
+
+<h1>Coverage Summary for Class: NetsuiteCustomizationResolver (com.snaplogic.snaps.netsuite)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NetsuiteCustomizationResolver</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/804)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">NetsuiteCustomizationResolver$Sublist</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/49)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/808)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014 - 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.netsuite;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.core.JsonProcessingException;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.databind.JsonNode;
+<i class="no-highlight">15</i>&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+<i class="no-highlight">16</i>&nbsp;import com.fasterxml.jackson.datatype.joda.JodaModule;
+<i class="no-highlight">17</i>&nbsp;import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">19</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">20</i>&nbsp;import com.google.common.cache.Cache;
+<i class="no-highlight">21</i>&nbsp;import com.google.common.cache.CacheBuilder;
+<i class="no-highlight">22</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">23</i>&nbsp;import com.google.common.collect.ImmutableListMultimap;
+<i class="no-highlight">24</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">25</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">26</i>&nbsp;import com.google.common.collect.ListMultimap;
+<i class="no-highlight">27</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">28</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">29</i>&nbsp;import com.google.common.util.concurrent.UncheckedExecutionException;
+<i class="no-highlight">30</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">31</i>&nbsp;import com.google.inject.Singleton;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.api.Lint;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.api.Notification;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.api.Notifications;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.common.JsonFactoryModule;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.document.schema.model.ObjectSchemaNode;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.jsonpath.JsonPaths;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.TemplateEvaluator;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.soap.ClientBuilder;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.soap.InvocationService;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.schema.api.ObjectSchema;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.util.JsonPathUtil;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">51</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">52</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">55</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">56</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">57</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">58</i>&nbsp;import java.util.List;
+<i class="no-highlight">59</i>&nbsp;import java.util.Map;
+<i class="no-highlight">60</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">61</i>&nbsp;import java.util.Set;
+<i class="no-highlight">62</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;import javax.xml.namespace.QName;
+<i class="no-highlight">65</i>&nbsp;import javax.xml.soap.SOAPException;
+<i class="no-highlight">66</i>&nbsp;import javax.xml.soap.SOAPMessage;
+<i class="no-highlight">67</i>&nbsp;import javax.xml.stream.XMLStreamException;
+<i class="no-highlight">68</i>&nbsp;import javax.xml.ws.soap.SOAPFaultException;
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;import static com.google.common.base.Preconditions.checkArgument;
+<i class="no-highlight">71</i>&nbsp;import static com.google.common.base.Preconditions.checkNotNull;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.netsuite.Messages.*;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.netsuite.NetsuiteConstants.*;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;/**
+<i class="no-highlight">76</i>&nbsp; * Retrieves custom fields for a given object name.
+<i class="no-highlight">77</i>&nbsp; *
+<i class="no-highlight">78</i>&nbsp; * @author mklumpp
+<i class="no-highlight">79</i>&nbsp; * @author smudassir
+<i class="no-highlight">80</i>&nbsp; * @author ptaylor
+<i class="no-highlight">81</i>&nbsp; */
+<i class="no-highlight">82</i>&nbsp;@Singleton
+<b class="nc"><i class="no-highlight">83</i>&nbsp;class NetsuiteCustomizationResolver {</b>
+<i class="no-highlight">84</i>&nbsp;
+<b class="nc"><i class="no-highlight">85</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(NetsuiteCustomizationResolver.class);</b>
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;    private static final Cache&lt;String, List&lt;Map&lt;String, Object&gt;&gt;&gt; GET_CUSTOMIZATION_ID_CACHE =
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            CacheBuilder.newBuilder()</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    .expireAfterAccess(2, TimeUnit.MINUTES)</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                    .build();</b>
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;    private static final Cache&lt;String, List&lt;CustomFieldDef&gt;&gt; CUSTOM_RECORD_FIELDS_CACHE =
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            CacheBuilder.newBuilder()</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    .expireAfterAccess(5, TimeUnit.MINUTES)</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                    .build();</b>
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;    private static final Cache&lt;String, Map&lt;String, Object&gt;&gt; CUSTOM_FIELD_RECORD_CACHE =
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            CacheBuilder.newBuilder()</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                    .expireAfterAccess(5, TimeUnit.MINUTES)</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                    .build();</b>
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">103</i>&nbsp;    static void clearCaches() {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        GET_CUSTOMIZATION_ID_CACHE.invalidateAll();</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        CUSTOM_RECORD_FIELDS_CACHE.invalidateAll();</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        CUSTOM_FIELD_RECORD_CACHE.invalidateAll();</b>
+<i class="no-highlight">107</i>&nbsp;    }
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;    private static final String GET = &quot;get&quot;;
+<i class="no-highlight">110</i>&nbsp;    private static final String GET_CUSTOMIZATION_ID = &quot;getCustomizationId&quot;;
+<i class="no-highlight">111</i>&nbsp;    private static final String GET_LIST = &quot;getList&quot;;
+<i class="no-highlight">112</i>&nbsp;    private static final String PLATFORM_MSGS = &quot;platformMsgs&quot;;
+<i class="no-highlight">113</i>&nbsp;    private static final String FILTER_ALL = &quot;*&quot;;
+<i class="no-highlight">114</i>&nbsp;    private static final String SETUP_CUSTOM_PREFIX = &quot;setupCustom:&quot;;
+<i class="no-highlight">115</i>&nbsp;    private static final String RESP_CUSTOM_SCRIPT_ID = &quot;setupCustom:scriptId&quot;;
+<i class="no-highlight">116</i>&nbsp;    private static final String RESP_CUSTOM_FIELD_TYPE = &quot;setupCustom:fieldType&quot;;
+<i class="no-highlight">117</i>&nbsp;    private static final String RESP_CUSTOM_FIELD_LABEL = &quot;setupCustom:label&quot;;
+<i class="no-highlight">118</i>&nbsp;    private static final String RESP_INTERNAL_ID = &quot;@internalId&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String RESP_CUSTOM_RECORD_NAME = &quot;platformCore:name&quot;;
+<i class="no-highlight">120</i>&nbsp;    private static final String KEY_STATUS_DETAIL = &quot;platformCore:statusDetail&quot;;
+<i class="no-highlight">121</i>&nbsp;    private static final String KEY_IS_SUCCESS = &quot;@isSuccess&quot;;
+<i class="no-highlight">122</i>&nbsp;    private static final String KEY_STATUS_TYPE = &quot;@type&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String KEY_STATUS_CODE = &quot;platformCore:code&quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String KEY_STATUS_MESSAGE = &quot;platformCore:message&quot;;
+<i class="no-highlight">125</i>&nbsp;    private static final String ERROR_MSG = &quot;Unable to access some custom field metadata.&quot;;
+<i class="no-highlight">126</i>&nbsp;    private static final String ERROR_RES = &quot;Make sure that the role associated with the account has the required permissions.&quot; +
+<i class="no-highlight">127</i>&nbsp;            &quot; Check the log file for more details.&quot;;
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    static final String GET_ENVELOPE = &quot;&lt;soapenv:Envelope\n&quot; +
+<i class="no-highlight">130</i>&nbsp;            &quot;    xmlns:soapenv=\&quot;http://schemas.xmlsoap.org/soap/envelope/\&quot;\n&quot; +
+<i class="no-highlight">131</i>&nbsp;            &quot;    xmlns:platformCore=\&quot;urn:core_${year}_${release}.platform.webservices.netsuite.com\&quot;\n&quot; +
+<i class="no-highlight">132</i>&nbsp;            &quot;    xmlns:xsi=\&quot;http://www.w3.org/2001/XMLSchema-instance\&quot; \n&quot; +
+<i class="no-highlight">133</i>&nbsp;            &quot;    xmlns:platformMsgs=\&quot;urn:messages_${year}_${release}.platform.webservices.netsuite.com\&quot;&gt;\n&quot; +
+<i class="no-highlight">134</i>&nbsp;            &quot;    &lt;soapenv:Body&gt;\n&quot; +
+<i class="no-highlight">135</i>&nbsp;            &quot;        &lt;platformMsgs:get&gt;\n&quot; +
+<i class="no-highlight">136</i>&nbsp;            &quot;            &lt;platformMsgs:baseRef internalId=\&quot;$internalId\&quot; type=\&quot;$customizationType\&quot; xsi:type=\&quot;platformCore:RecordRef\&quot;/&gt;\n&quot; +
+<i class="no-highlight">137</i>&nbsp;            &quot;        &lt;/platformMsgs:get&gt;\n&quot; +
+<i class="no-highlight">138</i>&nbsp;            &quot;    &lt;/soapenv:Body&gt;\n&quot; +
+<i class="no-highlight">139</i>&nbsp;            &quot;&lt;/soapenv:Envelope&gt;&quot;;
+<i class="no-highlight">140</i>&nbsp;
+<i class="no-highlight">141</i>&nbsp;    static final String GET_CUSTOMIZATION_ID_ENVELOPE = &quot;&lt;soapenv:Envelope &quot; +
+<i class="no-highlight">142</i>&nbsp;            &quot;xmlns:soapenv=\&quot;http://schemas.xmlsoap.org/soap/envelope/\&quot; \n&quot; +
+<i class="no-highlight">143</i>&nbsp;            &quot;xmlns:platformMsgs=\&quot;urn:messages_${year}_${release}.platform.webservices.netsuite.com\&quot; \n&quot; +
+<i class="no-highlight">144</i>&nbsp;            &quot;xmlns:platformCore=\&quot;urn:core_${year}_${release}.platform.webservices.netsuite.com\&quot;&gt;\n&quot; +
+<i class="no-highlight">145</i>&nbsp;            &quot;&lt;soapenv:Body&gt;\n&quot; +
+<i class="no-highlight">146</i>&nbsp;            &quot;&lt;platformMsgs:getCustomizationId&gt;\n&quot; +
+<i class="no-highlight">147</i>&nbsp;            &quot;&lt;platformMsgs:customizationType getCustomizationType=\&quot;$customizationType\&quot;/&gt;\n&quot; +
+<i class="no-highlight">148</i>&nbsp;            &quot;&lt;platformMsgs:includeInactives&gt;false&lt;/platformMsgs:includeInactives&gt;\n&quot; +
+<i class="no-highlight">149</i>&nbsp;            &quot;&lt;/platformMsgs:getCustomizationId&gt;\n&quot; +
+<i class="no-highlight">150</i>&nbsp;            &quot;&lt;/soapenv:Body&gt;\n&quot; +
+<i class="no-highlight">151</i>&nbsp;            &quot;&lt;/soapenv:Envelope&gt;&quot;;
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    static final String GET_LIST_ENVELOPE = &quot;&lt;soapenv:Envelope xmlns:soapenv=&quot; +
+<i class="no-highlight">154</i>&nbsp;            &quot;\&quot;http://schemas.xmlsoap.org/soap/envelope/\&quot; \n&quot; +
+<i class="no-highlight">155</i>&nbsp;            &quot;xmlns:platformMsgs=\&quot;urn:messages_${year}_${release}.platform.webservices.netsuite.com\&quot; \n&quot; +
+<i class="no-highlight">156</i>&nbsp;            &quot;xmlns:platformCore=\&quot;urn:core_${year}_${release}.platform.webservices.netsuite.com\&quot;&gt;\n&quot; +
+<i class="no-highlight">157</i>&nbsp;            &quot;&lt;soapenv:Body&gt;\n&quot; +
+<i class="no-highlight">158</i>&nbsp;            &quot;&lt;platformMsgs:getList&gt;\n&quot; +
+<i class="no-highlight">159</i>&nbsp;            &quot;#foreach($baseRef in $baseRef)\n&quot; +
+<i class="no-highlight">160</i>&nbsp;            &quot;&lt;platformMsgs:baseRef internalId=\&quot;$baseRef.internalId\&quot; &quot; +
+<i class="no-highlight">161</i>&nbsp;            &quot;xmlns:xsi=\&quot;http://www.w3.org/2001/XMLSchema-instance\&quot; &quot; +
+<i class="no-highlight">162</i>&nbsp;            &quot;type=\&quot;$baseRef.type\&quot; xsi:type=\&quot;platformCore:CustomizationRef\&quot;/&gt;\n&quot; +
+<i class="no-highlight">163</i>&nbsp;            &quot;#end\n&quot; +
+<i class="no-highlight">164</i>&nbsp;            &quot;&lt;/platformMsgs:getList&gt;\n&quot; +
+<i class="no-highlight">165</i>&nbsp;            &quot;&lt;/soapenv:Body&gt;\n&quot; +
+<i class="no-highlight">166</i>&nbsp;            &quot;&lt;/soapenv:Envelope&gt;&quot;;
+<i class="no-highlight">167</i>&nbsp;
+<b class="nc"><i class="no-highlight">168</i>&nbsp;    private static final JsonPath STATUS_PATH_GET = JsonPaths.compileStatic</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            (&quot;$soapenv:Body.getResponse.readResponse.platformCore:status&quot;);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;    private static final JsonPath STATUS_PATH_GET_CUSTOMIZATION_ID = JsonPaths.compileStatic</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            (&quot;$soapenv:Body.getCustomizationIdResponse.platformCore:getCustomizationIdResult&quot; +</b>
+<i class="no-highlight">172</i>&nbsp;                    &quot;.platformCore:status&quot;);
+<b class="nc"><i class="no-highlight">173</i>&nbsp;    private static final JsonPath STATUS_PATH_GET_LIST = JsonPaths.compileStatic</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;            (&quot;$soapenv:Body.getListResponse.readResponseList.readResponse[0].platformCore:status&quot;);</b>
+<i class="no-highlight">175</i>&nbsp;
+<b class="nc"><i class="no-highlight">176</i>&nbsp;    private static final JsonPath CUSTOM_FIELD_LIST_PATH = JsonPaths.compileStatic</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;            (&quot;$soapenv:Body.getResponse.readResponse.record.setupCustom:customFieldList.setupCustom:customField&quot;);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;    private static final JsonPath CUSTOMIZATION_REF_PATH = JsonPaths.compileStatic</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;            (&quot;$soapenv:Body.getCustomizationIdResponse.platformCore:getCustomizationIdResult&quot; +</b>
+<i class="no-highlight">180</i>&nbsp;                    &quot;.platformCore:customizationRefList.platformCore:customizationRef&quot;);
+<b class="nc"><i class="no-highlight">181</i>&nbsp;    private static final JsonPath GET_LIST_READ_RESPONSE_PATH = JsonPaths.compileStatic</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            (&quot;$soapenv:Body.getListResponse.readResponseList.readResponse&quot;);</b>
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;    /* This path references the name of the of recType associated with an OtherCustomField record
+<i class="no-highlight">185</i>&nbsp;       returned by get or getList operation for an otherCustomField.  For example:
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;         &lt;record internalId=&quot;126&quot; xsi:type=&quot;setupCustom:OtherCustomField&quot; xmlns:setupCustom=&quot;urn:..&quot;&gt;
+<i class="no-highlight">188</i>&nbsp;             &lt;setupCustom:recType internalId=&quot;-289&quot; xmlns:platformCore=&quot;urn:...&quot;&gt;
+<i class="no-highlight">189</i>&nbsp;                 &lt;platformCore:name&gt;Address&lt;/platformCore:name&gt;
+<i class="no-highlight">190</i>&nbsp;             &lt;/setupCustom:recType&gt;
+<i class="no-highlight">191</i>&nbsp;    */
+<b class="nc"><i class="no-highlight">192</i>&nbsp;    private static final JsonPath REC_TYPE_INTERNAL_ID_PATH =</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            JsonPaths.compileStatic(&quot;$setupCustom:recType.@internalId&quot;);</b>
+<i class="no-highlight">194</i>&nbsp;
+<b class="nc"><i class="no-highlight">195</i>&nbsp;    static final JsonPath PATH_LABEL = JsonPaths.compileStatic(&quot;$label.value&quot;);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;    static final JsonPath PATH_INTERNAL_ID = JsonPaths.compileStatic(&quot;$internalId.value&quot;);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;    static final JsonPath PATH_FIELD_TYPE = JsonPaths.compileStatic(&quot;$fieldType.value&quot;);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;    static final JsonPath PATH_SUBLIST_NAME = JsonPaths.compileStatic(&quot;sublistName.value&quot;);</b>
+<i class="no-highlight">199</i>&nbsp;
+<i class="no-highlight">200</i>&nbsp;    @Notification(message = ERROR_MSG, resolution = ERROR_RES)
+<b class="nc"><i class="no-highlight">201</i>&nbsp;    private static final Lint RESPONSE_ERROR = new Lint();</b>
+<i class="no-highlight">202</i>&nbsp;    static {
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        Notifications.register(NetsuiteCustomizationResolver.class);</b>
+<i class="no-highlight">204</i>&nbsp;    }
+<i class="no-highlight">205</i>&nbsp;
+<i class="no-highlight">206</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">207</i>&nbsp;    static final int TIMEOUT_IN_SECONDS = 15;
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;    @Inject
+<i class="no-highlight">210</i>&nbsp;    private NetsuiteUtil netsuiteUtil;
+<i class="no-highlight">211</i>&nbsp;    @Inject
+<i class="no-highlight">212</i>&nbsp;    private TemplateEvaluator templateEvaluator;
+<i class="no-highlight">213</i>&nbsp;    @Inject
+<i class="no-highlight">214</i>&nbsp;    private InvocationService invocationService;
+<i class="no-highlight">215</i>&nbsp;    @Inject
+<i class="no-highlight">216</i>&nbsp;    private AllowedValuesHelper allowedValuesHelper;
+<i class="no-highlight">217</i>&nbsp;    @Inject
+<i class="no-highlight">218</i>&nbsp;    private JsonPathUtil jsonPathUtil;
+<i class="no-highlight">219</i>&nbsp;
+<i class="no-highlight">220</i>&nbsp;    /**
+<i class="no-highlight">221</i>&nbsp;     * These define how the CustomizationFieldType (setup.customizationTypes.xsd)
+<i class="no-highlight">222</i>&nbsp;     * maps to the value types defined as extensions of CustomFieldRef (platform.core.xsd)
+<i class="no-highlight">223</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">224</i>&nbsp;    static final Map&lt;String, String&gt; CUSTOM_FIELD_TYPE_MAP =</b>
+<i class="no-highlight">225</i>&nbsp;            new ImmutableMap.Builder&lt;String, String&gt;()
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                    .put(CF_TYPE_CHECK_BOX, BOOLEAN_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                    .put(CF_TYPE_CURRENCY, DOUBLE_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    .put(CF_TYPE_DATE, DATE_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                    .put(CF_TYPE_DATETIME, DATE_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                    .put(CF_TYPE_DECIMAL_NUMBER, DOUBLE_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    .put(CF_TYPE_DOCUMENT, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                    .put(CF_TYPE_E_MAIL_ADDRESS, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                    .put(CF_TYPE_FREE_FORM_TEXT, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                    .put(CF_TYPE_HELP, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                    .put(CF_TYPE_HYPERLINK, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                    .put(CF_TYPE_IMAGE, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                    .put(CF_TYPE_INLINE_HTML, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                    .put(CF_TYPE_INTEGER_NUMBER, LONG_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                    .put(CF_TYPE_LIST_RECORD, SELECT_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                    .put(CF_TYPE_LONG_TEXT, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                    .put(CF_TYPE_MULTIPLE_SELECT, MULTI_SELECT_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                    .put(CF_TYPE_PASSWORD, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                    .put(CF_TYPE_PERCENT, DOUBLE_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                    .put(CF_TYPE_PHONE_NUMBER, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                    .put(CF_TYPE_RICH_TEXT, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                    .put(CF_TYPE_TEXT_AREA, STRING_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                    .put(CF_TYPE_TIME_OF_DAY, DATE_CUSTOM_FIELD_REF)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                    .build();</b>
+<i class="no-highlight">249</i>&nbsp;    /**
+<i class="no-highlight">250</i>&nbsp;     * These define how the CustomizationFieldType (setup.customizationTypes.xsd)
+<i class="no-highlight">251</i>&nbsp;     * maps to the value types defined as extensions of SearchCustomField (platform.core.xsd)
+<i class="no-highlight">252</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">253</i>&nbsp;    static final Map&lt;String, String&gt; CUSTOM_SEARCH_FIELD_TYPE_MAP =</b>
+<i class="no-highlight">254</i>&nbsp;            new ImmutableMap.Builder&lt;String, String&gt;()
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                    .put(CF_TYPE_CHECK_BOX, SEARCH_BOOLEAN_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                    .put(CF_TYPE_CURRENCY, SEARCH_DOUBLE_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                    .put(CF_TYPE_DATE, SEARCH_DATE_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                    .put(CF_TYPE_DATETIME, SEARCH_DATE_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                    .put(CF_TYPE_DECIMAL_NUMBER, SEARCH_DOUBLE_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                    .put(CF_TYPE_DOCUMENT, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                    .put(CF_TYPE_E_MAIL_ADDRESS, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                    .put(CF_TYPE_FREE_FORM_TEXT, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                    .put(CF_TYPE_HELP, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                    .put(CF_TYPE_HYPERLINK, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                    .put(CF_TYPE_IMAGE, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                    .put(CF_TYPE_INLINE_HTML, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                    .put(CF_TYPE_INTEGER_NUMBER, SEARCH_LONG_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                    .put(CF_TYPE_LIST_RECORD, SEARCH_MULTI_SELECT_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                    .put(CF_TYPE_LONG_TEXT, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                    .put(CF_TYPE_MULTIPLE_SELECT, SEARCH_MULTI_SELECT_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                    .put(CF_TYPE_PASSWORD, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                    .put(CF_TYPE_PERCENT, SEARCH_DOUBLE_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                    .put(CF_TYPE_PHONE_NUMBER, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                    .put(CF_TYPE_RICH_TEXT, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                    .put(CF_TYPE_TEXT_AREA, SEARCH_STRING_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                    .put(CF_TYPE_TIME_OF_DAY, SEARCH_DATE_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                    .build();</b>
+<i class="no-highlight">278</i>&nbsp;
+<i class="no-highlight">279</i>&nbsp;    /**
+<i class="no-highlight">280</i>&nbsp;     * Useful link for custom fields:
+<i class="no-highlight">281</i>&nbsp;     * https://noblue.co.uk/blog/netsuite-tips-creating-custom-fields-for-your-records
+<i class="no-highlight">282</i>&nbsp;     * http://tellsaqib.github.io/NSPHP-Doc/class_net_suite_service.html#a628c9eb07887e8a540481850696f7a0e
+<i class="no-highlight">283</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">284</i>&nbsp;    static final ImmutableMap&lt;Type, String&gt; TYPE_TO_CUSTOM_FIELD_TYPE =</b>
+<i class="no-highlight">285</i>&nbsp;            new ImmutableMap.Builder&lt;Type, String&gt;()
+<i class="no-highlight">286</i>&nbsp;                    /*
+<i class="no-highlight">287</i>&nbsp;                     * Netsuite object to customization id (Custom Entity Fields) mappings.
+<i class="no-highlight">288</i>&nbsp;                     *
+<i class="no-highlight">289</i>&nbsp;                     * Custom Entity Fields – Used to add fields to entity records. These records
+<i class="no-highlight">290</i>&nbsp;                     * include Relationship and Employee records — such as customers, vendors,
+<i class="no-highlight">291</i>&nbsp;                     * employees, contacts, partners or groups.
+<i class="no-highlight">292</i>&nbsp;                     */
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                    .put(Type.CUSTOMER, ENT_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                    .put(Type.JOB, ENT_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                    .put(Type.VENDOR, ENT_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                    .put(Type.EMPLOYEE, ENT_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                    .put(Type.CONTACT, ENT_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                    .put(Type.PARTNER, ENT_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                    .put(Type.ENTITYGROUP, ENT_CUSTOM_FIELD)</b>
+<i class="no-highlight">300</i>&nbsp;                    /*
+<i class="no-highlight">301</i>&nbsp;                     * Netsuite object to customization id (Custom Item Fields) mappings.
+<i class="no-highlight">302</i>&nbsp;                     *
+<i class="no-highlight">303</i>&nbsp;                     * Custom Item Fields – Used to add fields to item records. These records
+<i class="no-highlight">304</i>&nbsp;                     * include Accounting and Website item records — such as inventory,
+<i class="no-highlight">305</i>&nbsp;                     * non-inventory, service, other charge, group, kit/package and assembly/bill
+<i class="no-highlight">306</i>&nbsp;                     * of materials item records.
+<i class="no-highlight">307</i>&nbsp;                     * */
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                    .put(Type.ASSEMBLYITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                    .put(Type.DESCRIPTIONITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                    .put(Type.DISCOUNTITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                    .put(Type.DOWNLOADITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                    .put(Type.ITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                    .put(Type.INVENTORYITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                    .put(Type.MARKUPITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                    .put(Type.NONINVENTORYPURCHASEITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                    .put(Type.NONINVENTORYRESALEITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                    .put(Type.NONINVENTORYSALEITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                    .put(Type.PAYMENTITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                    .put(Type.SERVICEPURCHASEITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                    .put(Type.SERVICERESALEITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                    .put(Type.SERVICESALEITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                    .put(Type.OTHERCHARGEPURCHASEITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                    .put(Type.OTHERCHARGERESALEITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                    .put(Type.OTHERCHARGESALEITEM, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                    .put(Type.ITEMGROUP, ITEM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                    .put(Type.KITITEM, ITEM_CUSTOM_FIELD)</b>
+<i class="no-highlight">327</i>&nbsp;                    /*
+<i class="no-highlight">328</i>&nbsp;                     * Netsuite object to customization id (Custom CRM Field) mappings.
+<i class="no-highlight">329</i>&nbsp;                     *
+<i class="no-highlight">330</i>&nbsp;                     * Custom CRM Fields – Used to add fields to CRM records. These records include
+<i class="no-highlight">331</i>&nbsp;                     * Activity, Marketing and Support records — such as tasks, events, campaigns or
+<i class="no-highlight">332</i>&nbsp;                     * cases.
+<i class="no-highlight">333</i>&nbsp;                     * */
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                    .put(Type.TASK, CRM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                    .put(Type.PROJECTTASK, CRM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                    .put(Type.PHONECALL, CRM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                    .put(Type.CALENDAREVENT, CRM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                    .put(Type.SUPPORTCASE, CRM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                    .put(Type.CAMPAIGN, CRM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                    .put(Type.SOLUTION, CRM_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                    .put(Type.ISSUE, CRM_CUSTOM_FIELD)</b>
+<i class="no-highlight">342</i>&nbsp;                    /*
+<i class="no-highlight">343</i>&nbsp;                     * Netsuite object to customization id (Custom Transaction Body Fields)
+<i class="no-highlight">344</i>&nbsp;                     * mappings.
+<i class="no-highlight">345</i>&nbsp;                     *
+<i class="no-highlight">346</i>&nbsp;                     * Custom Transaction Body Fields – Used to add fields to the body of
+<i class="no-highlight">347</i>&nbsp;                     * transaction records. These records include purchase, sale, journal entry
+<i class="no-highlight">348</i>&nbsp;                     * and expense report records — such as sales orders, invoices, purchase orders,
+<i class="no-highlight">349</i>&nbsp;                     * opportunities, web store transactions or item receipts.
+<i class="no-highlight">350</i>&nbsp;                     * */
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                    .put(Type.ASSEMBLYBUILD, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                    .put(Type.ASSEMBLYUNBUILD, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                    .put(Type.BINTRANSFER, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                    .put(Type.BINWORKSHEET, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                    .put(Type.CASHREFUND, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                    .put(Type.CASHSALE, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                    .put(Type.CHECK, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                    .put(Type.CREDITMEMO, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                    .put(Type.CUSTOMERDEPOSIT, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                    .put(Type.CUSTOMERPAYMENT, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                    .put(Type.CUSTOMERREFUND, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                    .put(Type.DEPOSIT, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                    .put(Type.DEPOSITAPPLICATION, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                    .put(Type.ESTIMATE, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                    .put(Type.EXPENSEREPORT, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                    .put(Type.INTERCOMPANYJOURNALENTRY, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                    .put(Type.INTERCOMPANYTRANSFERORDER, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                    .put(Type.INVENTORYADJUSTMENT, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                    .put(Type.INVENTORYTRANSFER, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                    .put(Type.INVOICE, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                    .put(Type.ITEMFULFILLMENT, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                    .put(Type.ITEMRECEIPT, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                    .put(Type.JOURNALENTRY, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                    .put(Type.OPPORTUNITY, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                    .put(Type.PAYCHECKJOURNAL, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                    .put(Type.PURCHASEORDER, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                    .put(Type.PURCHASEREQUISITION, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                    .put(Type.RETURNAUTHORIZATION, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                    .put(Type.SALESORDER, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                    .put(Type.STATISTICALJOURNALENTRY, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                    .put(Type.TRANSACTION, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                    .put(Type.TRANSFERORDER, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                    .put(Type.VENDORBILL, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                    .put(Type.VENDORCREDIT, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                    .put(Type.VENDORPAYMENT, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                    .put(Type.VENDORRETURNAUTHORIZATION, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                    .put(Type.WORKORDER, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                    .put(Type.WORKORDERCLOSE, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                    .put(Type.WORKORDERCOMPLETION, TBODY_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                    .put(Type.WORKORDERISSUE, TBODY_CUSTOM_FIELD)</b>
+<i class="no-highlight">391</i>&nbsp;                    /*
+<i class="no-highlight">392</i>&nbsp;                     * Netsuite object to customization id (Custom Transaction Column Fields)
+<i class="no-highlight">393</i>&nbsp;                     * mappings.
+<i class="no-highlight">394</i>&nbsp;                     *
+<i class="no-highlight">395</i>&nbsp;                     * Custom Transaction Column Fields – Used to add fields to the columns of
+<i class="no-highlight">396</i>&nbsp;                     * transaction records. These fields display in the line-item columns of
+<i class="no-highlight">397</i>&nbsp;                     * transaction records and include fields such as expense items, purchase items,
+<i class="no-highlight">398</i>&nbsp;                     * sales items, store items or opportunity items.
+<i class="no-highlight">399</i>&nbsp;                     * */
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                    .put(Type.TIMEENTRY, TCOL_CUSTOM_FIELD)</b>
+<i class="no-highlight">401</i>&nbsp;                    /*
+<i class="no-highlight">402</i>&nbsp;                     * Netsuite object to customization id (Custom Item Number Fields )
+<i class="no-highlight">403</i>&nbsp;                     * mappings.
+<i class="no-highlight">404</i>&nbsp;                     *
+<i class="no-highlight">405</i>&nbsp;                     * Custom Item Number Fields – Used to add fields to serial and lot numbered
+<i class="no-highlight">406</i>&nbsp;                     * inventory records to track information specific to each item or workflow
+<i class="no-highlight">407</i>&nbsp;                     * unique to your business.This could include quality control procedures or
+<i class="no-highlight">408</i>&nbsp;                     * recall information.
+<i class="no-highlight">409</i>&nbsp;                     * */
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                    .put(Type.SERIALIZEDASSEMBLYITEM, ITEM_NUMBER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                    .put(Type.SERIALIZEDINVENTORYITEM, ITEM_NUMBER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                    .put(Type.LOTNUMBEREDASSEMBLYITEM, ITEM_NUMBER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                    .put(Type.LOTNUMBEREDINVENTORYITEM, ITEM_NUMBER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                    .put(Type.GIFTCERTIFICATE, ITEM_NUMBER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                    .put(Type.GIFTCERTIFICATEITEM, ITEM_NUMBER_CUSTOM_FIELD)</b>
+<i class="no-highlight">416</i>&nbsp;                    /*
+<i class="no-highlight">417</i>&nbsp;                     * Netsuite object to customization id (Other Custom Fields) mappings.
+<i class="no-highlight">418</i>&nbsp;                     *
+<i class="no-highlight">419</i>&nbsp;                     * Other Custom Fields – Use to add fields to custom records not defined by the
+<i class="no-highlight">420</i>&nbsp;                     * above categories, including campaign events, classes, competitors,
+<i class="no-highlight">421</i>&nbsp;                     * departments, and locations.
+<i class="no-highlight">422</i>&nbsp;                     * */
+<b class="nc"><i class="no-highlight">423</i>&nbsp;                    .put(Type.ACCOUNT, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                    .put(Type.BIN, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;                    .put(Type.CLASS, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                    .put(Type.CLASSIFICATION, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                    .put(Type.DEPARTMENT, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                    .put(Type.EXPENSECATEGORY, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                    .put(Type.INBOUNDSHIPMENT, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                    .put(Type.LOCATION, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                    .put(Type.NOTE, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                    .put(Type.PAYROLLITEM, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                    .put(Type.PROMOTIONCODE, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                    .put(Type.TIMESHEET, OTHER_CUSTOM_FIELD)</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                    .build();</b>
+<i class="no-highlight">436</i>&nbsp;
+<b class="nc"><i class="no-highlight">437</i>&nbsp;     static final Map&lt;Type, String&gt; TYPE_TO_CUSTOM_FIELD_FILTER_FLAG =</b>
+<i class="no-highlight">438</i>&nbsp;            new ImmutableMap.Builder&lt;Type, String&gt;()
+<i class="no-highlight">439</i>&nbsp;                    //Objects to  custom entity field filter path mappings
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                    .put(Type.CUSTOMER, &quot;appliesToCustomer&quot;)</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                    .put(Type.JOB, &quot;appliesToProject&quot;)</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                    .put(Type.VENDOR, &quot;appliesToVendor&quot;)</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;                    .put(Type.EMPLOYEE, &quot;appliesToEmployee&quot;)</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                    .put(Type.CONTACT, &quot;appliesToContact&quot;)</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                    .put(Type.PARTNER, &quot;appliesToPartner&quot;)</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                    .put(Type.ENTITYGROUP, &quot;appliesToGroup&quot;)</b>
+<i class="no-highlight">447</i>&nbsp;                    //Objects to item custom field filter path mappings
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                    .put(Type.ASSEMBLYITEM, &quot;appliesToItemAssembly&quot;)</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                    .put(Type.INVENTORYITEM, &quot;appliesToInventory&quot;)</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                    .put(Type.NONINVENTORYPURCHASEITEM, &quot;appliesToNonInventory&quot;)</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                    .put(Type.NONINVENTORYRESALEITEM, &quot;appliesToNonInventory&quot;)</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                    .put(Type.NONINVENTORYSALEITEM, &quot;appliesToNonInventory&quot;)</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;                    .put(Type.SERVICEPURCHASEITEM, &quot;appliesToService&quot;)</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                    .put(Type.SERVICERESALEITEM, &quot;appliesToService&quot;)</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                    .put(Type.SERVICESALEITEM, &quot;appliesToService&quot;)</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                    .put(Type.OTHERCHARGEPURCHASEITEM, &quot;appliesToOtherCharge&quot;)</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                    .put(Type.OTHERCHARGERESALEITEM, &quot;appliesToOtherCharge&quot;)</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                    .put(Type.OTHERCHARGESALEITEM, &quot;appliesToOtherCharge&quot;)</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                    .put(Type.ITEMGROUP, &quot;appliesToGroup&quot;)</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                    .put(Type.KITITEM, &quot;appliesToKit&quot;)</b>
+<i class="no-highlight">461</i>&nbsp;                    //Objects to Crm custom field filter path mappings
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                    .put(Type.TASK, &quot;appliesToTask&quot;)</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                    .put(Type.PROJECTTASK, &quot;appliesToTask&quot;)</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                    .put(Type.PHONECALL, &quot;appliesToPhoneCall&quot;)</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                    .put(Type.CALENDAREVENT, &quot;appliesToEvent&quot;)</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                    .put(Type.SUPPORTCASE, &quot;appliesToCase&quot;)</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                    .put(Type.CAMPAIGN, &quot;appliesToCampaign&quot;)</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                    .put(Type.SOLUTION, &quot;appliesToSolution&quot;)</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                    .put(Type.ISSUE, &quot;appliesToIssue&quot;)</b>
+<i class="no-highlight">470</i>&nbsp;                    //Objects to transactionBody custom field filter path mappings
+<b class="nc"><i class="no-highlight">471</i>&nbsp;                    .put(Type.ASSEMBLYBUILD, &quot;bodyAssemblyBuild&quot;)</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                    .put(Type.ASSEMBLYUNBUILD, &quot;bodyAssemblyBuild&quot;)</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                    .put(Type.BINTRANSFER, &quot;bodyOtherTransaction&quot;)</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                    .put(Type.BINWORKSHEET, &quot;bodyOtherTransaction&quot;)</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                    .put(Type.CASHREFUND, &quot;bodySale&quot;)</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;                    .put(Type.CASHSALE, &quot;bodySale&quot;)</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;                    .put(Type.CHECK, &quot;bodyPurchase&quot;)</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;                    .put(Type.CREDITMEMO, &quot;bodySale&quot;)</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;                    .put(Type.ESTIMATE, &quot;bodySale&quot;)</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                    .put(Type.INVOICE, &quot;bodySale&quot;)</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                    .put(Type.PURCHASEORDER, &quot;bodyPurchase&quot;)</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;                    .put(Type.PURCHASEREQUISITION, &quot;bodyPurchase&quot;)</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;                    .put(Type.RETURNAUTHORIZATION, &quot;bodySale&quot;)</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;                    .put(Type.SALESORDER, &quot;bodySale&quot;)</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;                    .put(Type.OPPORTUNITY, &quot;bodyOpportunity&quot;)</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                    .put(Type.JOURNALENTRY, &quot;bodyJournal&quot;)</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                    .put(Type.INTERCOMPANYJOURNALENTRY, &quot;bodyJournal&quot;)</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                    .put(Type.STATISTICALJOURNALENTRY, &quot;bodyJournal&quot;)</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                    .put(Type.EXPENSEREPORT, &quot;bodyExpenseReport&quot;)</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                    .put(Type.ITEMRECEIPT, &quot;bodyItemReceipt&quot;)</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                    .put(Type.INVENTORYADJUSTMENT, &quot;bodyInventoryAdjustment&quot;)</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                    .put(Type.INVENTORYTRANSFER, &quot;bodyOtherTransaction&quot;)</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                    .put(Type.CUSTOMERPAYMENT, &quot;bodyCustomerPayment&quot;)</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                    .put(Type.CUSTOMERREFUND, &quot;bodyCustomerPayment&quot;)</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                    .put(Type.VENDORCREDIT, &quot;bodyPurchase&quot;)</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;                    .put(Type.VENDORPAYMENT, &quot;bodyVendorPayment&quot;)</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                    .put(Type.VENDORBILL, &quot;bodyPurchase&quot;)</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                    .put(Type.VENDORRETURNAUTHORIZATION, &quot;bodyPurchase&quot;)</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                    .put(Type.DEPOSIT, &quot;bodyDeposit&quot;)</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;                    .put(Type.CUSTOMERDEPOSIT, &quot;bodyDeposit&quot;)</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                    .put(Type.ITEMFULFILLMENT, &quot;bodyItemFulfillment&quot;)</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;                    .put(Type.TRANSFERORDER, &quot;bodyTransferOrder&quot;)</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;                    .put(Type.INTERCOMPANYTRANSFERORDER, &quot;bodyTransferOrder&quot;)</b>
+<i class="no-highlight">504</i>&nbsp;                    //Object to transaction item column fields filter path mappings
+<b class="nc"><i class="no-highlight">505</i>&nbsp;                    .put(Type.WORKORDER, &quot;bodyAssemblyBuild&quot;)</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                    .put(Type.TIMEENTRY, &quot;colTime&quot;)</b>
+<i class="no-highlight">507</i>&nbsp;                    //.put(Type.PAYCHECKJOURNAL, &quot;bodyPaycheck&quot;) // doesn&#39;t exist!
+<i class="no-highlight">508</i>&nbsp;                    //Object to transaction Item Number fields filter path mappings
+<b class="nc"><i class="no-highlight">509</i>&nbsp;                    .put(Type.SERIALIZEDASSEMBLYITEM, &quot;appliesToSerialized&quot;)</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;                    .put(Type.SERIALIZEDINVENTORYITEM, &quot;appliesToSerialized&quot;)</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                    .put(Type.LOTNUMBEREDASSEMBLYITEM, &quot;appliesToLots&quot;)</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                    .put(Type.LOTNUMBEREDINVENTORYITEM, &quot;appliesToLots&quot;)</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                    .put(Type.GIFTCERTIFICATE, &quot;appliesToGiftCerts&quot;)</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;                    .put(Type.GIFTCERTIFICATEITEM, &quot;appliesToGiftCerts&quot;)</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;                    .build();</b>
+<i class="no-highlight">516</i>&nbsp;
+<b class="nc"><i class="no-highlight">517</i>&nbsp;    private static final ListMultimap&lt;Type, Sublist&gt; TYPE_TO_TCOL_SUBLISTS =</b>
+<i class="no-highlight">518</i>&nbsp;            new ImmutableListMultimap.Builder&lt;Type, Sublist&gt;()
+<b class="nc"><i class="no-highlight">519</i>&nbsp;                    .put(Type.PURCHASEORDER, new Sublist(EXPENSE_LIST, EXPENSE, &quot;colExpense&quot;))</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;                    .put(Type.PURCHASEORDER, new Sublist(ITEM_LIST, ITEM, &quot;colPurchase&quot;))</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;                    .put(Type.PURCHASEREQUISITION, new Sublist(EXPENSE_LIST, EXPENSE, &quot;colExpense&quot;))</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                    .put(Type.PURCHASEREQUISITION, new Sublist(ITEM_LIST, ITEM, &quot;colPurchase&quot;))</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                    .put(Type.CASHREFUND, new Sublist(ITEM_LIST, ITEM, &quot;colSale&quot;))</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                    .put(Type.CASHSALE, new Sublist(ITEM_LIST, ITEM, &quot;colSale&quot;))</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                    .put(Type.CREDITMEMO, new Sublist(ITEM_LIST, ITEM, &quot;colSale&quot;))</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                    .put(Type.ESTIMATE, new Sublist(ITEM_LIST, ITEM, &quot;colSale&quot;))</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                    .put(Type.INVOICE, new Sublist(ITEM_LIST, ITEM, &quot;colSale&quot;))</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                    .put(Type.RETURNAUTHORIZATION, new Sublist(ITEM_LIST, ITEM, &quot;colSale&quot;))</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                    .put(Type.SALESORDER, new Sublist(ITEM_LIST, ITEM, &quot;colSale&quot;))</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                    .put(Type.OPPORTUNITY, new Sublist(ITEM_LIST, ITEM, &quot;colOpportunity&quot;))</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                    .put(Type.JOURNALENTRY, new Sublist(LINE_LIST, LINE, &quot;colJournal&quot;))</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                    .put(Type.INTERCOMPANYJOURNALENTRY, new Sublist(LINE_LIST, LINE, &quot;colJournal&quot;))</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;                    .put(Type.STATISTICALJOURNALENTRY, new Sublist(LINE_LIST, LINE, &quot;colJournal&quot;))</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;                    .put(Type.EXPENSEREPORT, new Sublist(EXPENSE_LIST, EXPENSE, &quot;colExpenseReport&quot;))</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                    .put(Type.ITEMRECEIPT, new Sublist(ITEM_LIST, ITEM, &quot;colItemReceipt&quot;))</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;                    .put(Type.ITEMFULFILLMENT, new Sublist(ITEM_LIST, ITEM, &quot;colItemFulfillment&quot;))</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                    .put(Type.VENDORBILL, new Sublist(EXPENSE_LIST, EXPENSE, &quot;colExpense&quot;))</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                    .put(Type.VENDORBILL, new Sublist(ITEM_LIST, ITEM, &quot;colPurchase&quot;))</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                    .put(Type.VENDORCREDIT, new Sublist(EXPENSE_LIST, EXPENSE, &quot;colExpense&quot;))</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;                    .put(Type.VENDORCREDIT, new Sublist(ITEM_LIST, ITEM, &quot;colPurchase&quot;))</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;                    .put(Type.VENDORRETURNAUTHORIZATION, new Sublist(EXPENSE_LIST, EXPENSE, &quot;colExpense&quot;))</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;                    .put(Type.VENDORRETURNAUTHORIZATION, new Sublist(ITEM_LIST, ITEM, &quot;colPurchase&quot;))</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                    .put(Type.CHECK, new Sublist(EXPENSE_LIST, EXPENSE, &quot;colExpense&quot;))</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;                    .put(Type.CHECK, new Sublist(ITEM_LIST, ITEM, &quot;colPurchase&quot;))</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                    .put(Type.WORKORDER, new Sublist(ITEM_LIST, ITEM, &quot;colBuild&quot;))</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                    .build();</b>
+<i class="no-highlight">547</i>&nbsp;
+<i class="no-highlight">548</i>&nbsp;    // these are still complete/correct for 2018.2 WSDL
+<b class="nc"><i class="no-highlight">549</i>&nbsp;    private static final Set&lt;Type&gt; TYPES_WITH_ADDRESSES = ImmutableSet.of(</b>
+<i class="no-highlight">550</i>&nbsp;            Type.CONTACT,
+<i class="no-highlight">551</i>&nbsp;            Type.CUSTOMER,
+<i class="no-highlight">552</i>&nbsp;            Type.PARTNER,
+<i class="no-highlight">553</i>&nbsp;            Type.VENDOR,
+<i class="no-highlight">554</i>&nbsp;            Type.JOB,
+<i class="no-highlight">555</i>&nbsp;            Type.EMPLOYEE
+<i class="no-highlight">556</i>&nbsp;    );
+<i class="no-highlight">557</i>&nbsp;
+<i class="no-highlight">558</i>&nbsp;    // These internalIds are consistent across NetSuite accounts.
+<i class="no-highlight">559</i>&nbsp;    // https://system.netsuite.com/app/help/helpcenter.nl?fid=section_n3432681.html
+<i class="no-highlight">560</i>&nbsp;    // and SOAP operation getSelectValue with recordType=otherCustomField and field=recType
+<b class="nc"><i class="no-highlight">561</i>&nbsp;    static final Map&lt;String, String&gt; REC_TYPE_TO_INTERNAL_ID =</b>
+<i class="no-highlight">562</i>&nbsp;            new ImmutableMap.Builder&lt;String, String&gt;()
+<b class="nc"><i class="no-highlight">563</i>&nbsp;                    .put(Type.ACCOUNT.getName(), &quot;-112&quot;)</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;                    .put(ADDRESS, &quot;-289&quot;) // this is only a sublist record type</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;                    .put(Type.BIN.getName(), &quot;-242&quot;)</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                    .put(Type.CLASS.getName(), &quot;-101&quot;)</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;                    .put(Type.CLASSIFICATION.getName(), &quot;-101&quot;)</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                    .put(Type.DEPARTMENT.getName(), &quot;-102&quot;)</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                    .put(Type.EXPENSECATEGORY.getName(), &quot;-126&quot;)</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;                    .put(Type.INBOUNDSHIPMENT.getName(), &quot;-427&quot;)</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;                    .put(Type.LOCATION.getName(), &quot;-103&quot;)</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;                    .put(Type.NOTE.getName(), &quot;-303&quot;)</b>
+<b class="nc"><i class="no-highlight">573</i>&nbsp;                    .put(Type.PAYROLLITEM.getName(), &quot;-265&quot;)</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;                    .put(Type.PROMOTIONCODE.getName(), &quot;-121&quot;)</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;                    .put(Type.SUBSIDIARY.getName(), &quot;-117&quot;)</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;                    .put(Type.TIMESHEET.getName(), &quot;-292&quot;)</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                    .build();</b>
+<i class="no-highlight">578</i>&nbsp;
+<i class="no-highlight">579</i>&nbsp;    private static class Sublist {
+<i class="no-highlight">580</i>&nbsp;        final String sublistName; // e.g. itemList
+<i class="no-highlight">581</i>&nbsp;        final String itemName; // e.g. item
+<i class="no-highlight">582</i>&nbsp;        final String filterFlag; // e.g. colSale
+<i class="no-highlight">583</i>&nbsp;
+<b class="nc"><i class="no-highlight">584</i>&nbsp;        Sublist(String sublistName, String itemName, String filterFlag) {</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;            this.sublistName = sublistName;</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;            this.itemName = itemName;</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;            this.filterFlag = filterFlag;</b>
+<i class="no-highlight">588</i>&nbsp;        }
+<i class="no-highlight">589</i>&nbsp;    }
+<i class="no-highlight">590</i>&nbsp;
+<b class="nc"><i class="no-highlight">591</i>&nbsp;    private static final Map&lt;String, String&gt; SUBLIST_NAME_TO_EXTRA_PATH = ImmutableMap.of(</b>
+<i class="no-highlight">592</i>&nbsp;            ADDRESSBOOK_LIST, ADDRESSBOOK_ADDRESS
+<i class="no-highlight">593</i>&nbsp;    );
+<i class="no-highlight">594</i>&nbsp;
+<i class="no-highlight">595</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">596</i>&nbsp;    void setNetsuiteUtil(NetsuiteUtil netsuiteUtil) {
+<b class="nc"><i class="no-highlight">597</i>&nbsp;        this.netsuiteUtil = netsuiteUtil;</b>
+<i class="no-highlight">598</i>&nbsp;    }
+<i class="no-highlight">599</i>&nbsp;
+<i class="no-highlight">600</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">601</i>&nbsp;    void setTemplateEvaluator(TemplateEvaluator templateEvaluator) {
+<b class="nc"><i class="no-highlight">602</i>&nbsp;        this.templateEvaluator = templateEvaluator;</b>
+<i class="no-highlight">603</i>&nbsp;    }
+<i class="no-highlight">604</i>&nbsp;
+<i class="no-highlight">605</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">606</i>&nbsp;    void setInvocationService(InvocationService invocationService) {
+<b class="nc"><i class="no-highlight">607</i>&nbsp;        this.invocationService = invocationService;</b>
+<i class="no-highlight">608</i>&nbsp;    }
+<i class="no-highlight">609</i>&nbsp;
+<i class="no-highlight">610</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">611</i>&nbsp;    void setAllowedValuesHelper(AllowedValuesHelper allowedValuesHelper) {
+<b class="nc"><i class="no-highlight">612</i>&nbsp;        this.allowedValuesHelper = allowedValuesHelper;</b>
+<i class="no-highlight">613</i>&nbsp;    }
+<i class="no-highlight">614</i>&nbsp;
+<i class="no-highlight">615</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">616</i>&nbsp;    void setJsonPathUtil(JsonPathUtil jsonPathUtil) {
+<b class="nc"><i class="no-highlight">617</i>&nbsp;        this.jsonPathUtil = jsonPathUtil;</b>
+<i class="no-highlight">618</i>&nbsp;    }
+<i class="no-highlight">619</i>&nbsp;
+<i class="no-highlight">620</i>&nbsp;    private ClientBuilder createClientBuilder(NetSuiteBaseAccount account, String action) {
+<b class="nc"><i class="no-highlight">621</i>&nbsp;        WsdlVersion wsdlVersion = account.getWsdlVersion();</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;        QName operationQName = Namespace.PLATFORM_NS.qname(wsdlVersion, action, PLATFORM_MSGS);</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;        return netsuiteUtil.createClientBuilder(operationQName, invocationService, account, null);</b>
+<i class="no-highlight">624</i>&nbsp;    }
+<i class="no-highlight">625</i>&nbsp;
+<i class="no-highlight">626</i>&nbsp;    private List&lt;CustomFieldDef&gt; getCustomRecordFieldDefs(String customRecordTypeId,
+<i class="no-highlight">627</i>&nbsp;                                                          NetSuiteBaseAccount account) {
+<b class="nc"><i class="no-highlight">628</i>&nbsp;        String cacheKey = account.getAccountId() + &#39;:&#39; + customRecordTypeId;</b>
+<i class="no-highlight">629</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">630</i>&nbsp;            return CUSTOM_RECORD_FIELDS_CACHE.get(cacheKey, () -&gt; {</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                Map&lt;String, String&gt; inputMap =</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;                        ImmutableMap.of(CUSTOMIZATION_TYPE, CUSTOM_RECORD_TYPE,</b>
+<i class="no-highlight">633</i>&nbsp;                                INTERNAL_ID, customRecordTypeId);
+<b class="nc"><i class="no-highlight">634</i>&nbsp;                List&lt;Map&lt;String, Object&gt;&gt; customFieldRecords =</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;                        callActionReturningList(GET, GET_ENVELOPE, CUSTOM_FIELD_LIST_PATH,</b>
+<i class="no-highlight">636</i>&nbsp;                                inputMap, account);
+<b class="nc"><i class="no-highlight">637</i>&nbsp;                return toCustomFieldDefs(customFieldRecords);</b>
+<i class="no-highlight">638</i>&nbsp;            });
+<b class="nc"><i class="no-highlight">639</i>&nbsp;        } catch (java.util.concurrent.ExecutionException e) {</b>
+<i class="no-highlight">640</i>&nbsp;            // this should be unreachable since the Callable doesn&#39;t throw a checked exception
+<b class="nc"><i class="no-highlight">641</i>&nbsp;            throw new AssertionError(&quot;shouldn&#39;t be able to get here&quot;, e);</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;        } catch (UncheckedExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;            throw (RuntimeException) e.getCause();</b>
+<i class="no-highlight">644</i>&nbsp;        }
+<i class="no-highlight">645</i>&nbsp;    }
+<i class="no-highlight">646</i>&nbsp;
+<i class="no-highlight">647</i>&nbsp;    /**
+<i class="no-highlight">648</i>&nbsp;     * Returns suggestions for the Custom Record property in relevant NetSuite snaps.
+<i class="no-highlight">649</i>&nbsp;     * @param account
+<i class="no-highlight">650</i>&nbsp;     * @return
+<i class="no-highlight">651</i>&nbsp;     */
+<i class="no-highlight">652</i>&nbsp;    List&lt;String&gt; getCustomRecordTypeSuggestions(NetSuiteBaseAccount account) {
+<b class="nc"><i class="no-highlight">653</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; customizationRefList =</b>
+<b class="nc"><i class="no-highlight">654</i>&nbsp;                callGetCustomizationId(CUSTOM_RECORD_TYPE, account);</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;        List&lt;String&gt; suggestions = new ArrayList&lt;&gt;(customizationRefList.size());</b>
+<b class="nc"><i class="no-highlight">656</i>&nbsp;        for (Map&lt;String, Object&gt; customizationRef : customizationRefList) {</b>
+<i class="no-highlight">657</i>&nbsp;            // {
+<i class="no-highlight">658</i>&nbsp;            //   &quot;@internalId&quot;: &quot;23&quot;,
+<i class="no-highlight">659</i>&nbsp;            //   &quot;@type&quot;: CUSTOM_RECORD_TYPE,
+<i class="no-highlight">660</i>&nbsp;            //   &quot;platformCore:name&quot;: &quot;Some Custom Record Type&quot;
+<i class="no-highlight">661</i>&nbsp;            // },
+<b class="nc"><i class="no-highlight">662</i>&nbsp;            String name = (String) customizationRef.get(RESP_CUSTOM_RECORD_NAME);</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;            String internalId = (String) customizationRef.get(RESP_INTERNAL_ID);</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;            String label = formatCustomRecordTypeLabel(name, internalId);</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;            suggestions.add(label);</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;        return suggestions;</b>
+<i class="no-highlight">668</i>&nbsp;    }
+<i class="no-highlight">669</i>&nbsp;
+<i class="no-highlight">670</i>&nbsp;    /**
+<i class="no-highlight">671</i>&nbsp;     * Returns suggestions for the Custom Field column in the Custom Fields table.
+<i class="no-highlight">672</i>&nbsp;     * @param objectName Name of the record type.
+<i class="no-highlight">673</i>&nbsp;     * @param customRecordTypeId ID of the custom record type, or null if standard record type.
+<i class="no-highlight">674</i>&nbsp;     * @param account
+<i class="no-highlight">675</i>&nbsp;     * @param operationType
+<i class="no-highlight">676</i>&nbsp;     * @return
+<i class="no-highlight">677</i>&nbsp;     */
+<i class="no-highlight">678</i>&nbsp;    List&lt;Map&lt;String, Object&gt;&gt; getCustomFieldSuggestions(String objectName,
+<i class="no-highlight">679</i>&nbsp;                                                        String customRecordTypeId,
+<i class="no-highlight">680</i>&nbsp;                                                        NetSuiteBaseAccount account,
+<i class="no-highlight">681</i>&nbsp;                                                        OperationType operationType) {
+<i class="no-highlight">682</i>&nbsp;
+<b class="nc"><i class="no-highlight">683</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; suggestions = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">684</i>&nbsp;        List&lt;CustomFieldGroup&gt; groups =</b>
+<b class="nc"><i class="no-highlight">685</i>&nbsp;                getCustomFields(objectName, customRecordTypeId, account, operationType);</b>
+<b class="nc"><i class="no-highlight">686</i>&nbsp;        for (CustomFieldGroup group : groups) {</b>
+<b class="nc"><i class="no-highlight">687</i>&nbsp;            suggestions.addAll(toSuggestions(group.getCustomFieldDefs(), operationType,</b>
+<b class="nc"><i class="no-highlight">688</i>&nbsp;                    group.getSublistContainer(), group.getSublistArray()));</b>
+<b class="nc"><i class="no-highlight">689</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">690</i>&nbsp;        return suggestions;</b>
+<i class="no-highlight">691</i>&nbsp;    }
+<i class="no-highlight">692</i>&nbsp;
+<i class="no-highlight">693</i>&nbsp;    String getSublistNameToExtraPath(String sublistName) {
+<b class="nc"><i class="no-highlight">694</i>&nbsp;        return SUBLIST_NAME_TO_EXTRA_PATH.get(sublistName);</b>
+<i class="no-highlight">695</i>&nbsp;    }
+<i class="no-highlight">696</i>&nbsp;
+<i class="no-highlight">697</i>&nbsp;    String getValueType(CustomFieldDef customFieldDef, OperationType operationType) {
+<b class="nc"><i class="no-highlight">698</i>&nbsp;        String type = customFieldDef.getType();</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;        String valueType = operationType == OperationType.SEARCH ?</b>
+<b class="nc"><i class="no-highlight">700</i>&nbsp;                CUSTOM_SEARCH_FIELD_TYPE_MAP.get(type) :</b>
+<b class="nc"><i class="no-highlight">701</i>&nbsp;                CUSTOM_FIELD_TYPE_MAP.get(type);</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;        if (valueType == null) {</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;            LOGGER.warn(&quot;no value type mapped to {}&quot;, type);</b>
+<i class="no-highlight">704</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">705</i>&nbsp;        return valueType;</b>
+<i class="no-highlight">706</i>&nbsp;    }
+<i class="no-highlight">707</i>&nbsp;
+<i class="no-highlight">708</i>&nbsp;    private String getFilterFlag(Type objectType) {
+<b class="nc"><i class="no-highlight">709</i>&nbsp;        String result = TYPE_TO_CUSTOM_FIELD_FILTER_FLAG.get(objectType);</b>
+<b class="nc"><i class="no-highlight">710</i>&nbsp;        if (result == null) {</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;            result = FILTER_ALL;</b>
+<i class="no-highlight">712</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">713</i>&nbsp;        return result;</b>
+<i class="no-highlight">714</i>&nbsp;    }
+<i class="no-highlight">715</i>&nbsp;
+<i class="no-highlight">716</i>&nbsp;    private Map&lt;String, Object&gt; findNamedCustomizationRef(List&lt;Map&lt;String, Object&gt;&gt; customizationRefs,
+<i class="no-highlight">717</i>&nbsp;                                                          String name) {
+<b class="nc"><i class="no-highlight">718</i>&nbsp;        for (Map&lt;String, Object&gt; customizationRef : customizationRefs) {</b>
+<b class="nc"><i class="no-highlight">719</i>&nbsp;            String refName = (String) customizationRef.get(RESP_CUSTOM_RECORD_NAME);</b>
+<b class="nc"><i class="no-highlight">720</i>&nbsp;            if (name.equals(refName)) {</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;                return customizationRef;</b>
+<i class="no-highlight">722</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">723</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;        throw new SnapDataException(CF_NOT_FOUND_MSG).formatWith(name)</b>
+<b class="nc"><i class="no-highlight">725</i>&nbsp;                .withReason(CF_NOT_FOUND_RSN)</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;                .withResolution(CF_NOT_FOUND_RES);</b>
+<i class="no-highlight">727</i>&nbsp;    }
+<i class="no-highlight">728</i>&nbsp;
+<i class="no-highlight">729</i>&nbsp;    private CustomFieldDef findNamedCustomFieldDef(List&lt;CustomFieldDef&gt; customFieldDefs,
+<i class="no-highlight">730</i>&nbsp;                                                   String name) {
+<b class="nc"><i class="no-highlight">731</i>&nbsp;        for (CustomFieldDef customFieldDef : customFieldDefs) {</b>
+<b class="nc"><i class="no-highlight">732</i>&nbsp;            if (name.equals(customFieldDef.getName())) {</b>
+<b class="nc"><i class="no-highlight">733</i>&nbsp;                return customFieldDef;</b>
+<i class="no-highlight">734</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">735</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;        throw new SnapDataException(CF_NOT_FOUND_MSG).formatWith(name)</b>
+<b class="nc"><i class="no-highlight">737</i>&nbsp;                .withReason(CF_NOT_FOUND_RSN)</b>
+<b class="nc"><i class="no-highlight">738</i>&nbsp;                .withResolution(CF_NOT_FOUND_RES);</b>
+<i class="no-highlight">739</i>&nbsp;    }
+<i class="no-highlight">740</i>&nbsp;
+<i class="no-highlight">741</i>&nbsp;    private List&lt;CustomFieldDef&gt; getNeededCustomFieldDefs(Set&lt;String&gt; names,
+<i class="no-highlight">742</i>&nbsp;                                                          String customFieldType,
+<i class="no-highlight">743</i>&nbsp;                                                          NetSuiteBaseAccount account) {
+<b class="nc"><i class="no-highlight">744</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; allRefs = callGetCustomizationId(customFieldType, account);</b>
+<b class="nc"><i class="no-highlight">745</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; neededRefs = new ArrayList&lt;&gt;(names.size());</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;        for (String name : names) {</b>
+<b class="nc"><i class="no-highlight">747</i>&nbsp;            neededRefs.add(findNamedCustomizationRef(allRefs, name));</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;        return toCustomFieldDefs(getCustomFieldRecords(neededRefs, customFieldType, account));</b>
+<i class="no-highlight">750</i>&nbsp;    }
+<i class="no-highlight">751</i>&nbsp;
+<i class="no-highlight">752</i>&nbsp;    private List&lt;Pair&lt;Object, CustomFieldDef&gt;&gt; pairCustomFieldDataWithDefs(Map&lt;String, Object&gt; customFieldsData,
+<i class="no-highlight">753</i>&nbsp;                                                                           List&lt;CustomFieldDef&gt; customFieldDefs) {
+<b class="nc"><i class="no-highlight">754</i>&nbsp;        List&lt;Pair&lt;Object, CustomFieldDef&gt;&gt; pairs = new ArrayList&lt;&gt;(customFieldsData.size());</b>
+<b class="nc"><i class="no-highlight">755</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; entry : customFieldsData.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">756</i>&nbsp;            String name = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">757</i>&nbsp;            Object value = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">758</i>&nbsp;            pairs.add(Pair.of(value, findNamedCustomFieldDef(customFieldDefs, name)));</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">760</i>&nbsp;        return pairs;</b>
+<i class="no-highlight">761</i>&nbsp;    }
+<i class="no-highlight">762</i>&nbsp;
+<i class="no-highlight">763</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; getCustomFieldRecords(String customFieldType,
+<i class="no-highlight">764</i>&nbsp;                                                            NetSuiteBaseAccount account) {
+<i class="no-highlight">765</i>&nbsp;        // call getCustomizationId operation
+<b class="nc"><i class="no-highlight">766</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; customizationRefList = callGetCustomizationId(customFieldType, account);</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;        if (customizationRefList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">768</i>&nbsp;            return Collections.emptyList();</b>
+<i class="no-highlight">769</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">770</i>&nbsp;        return getCustomFieldRecords(customizationRefList, customFieldType, account);</b>
+<i class="no-highlight">771</i>&nbsp;    }
+<i class="no-highlight">772</i>&nbsp;
+<i class="no-highlight">773</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; getCustomFieldRecords(List&lt;Map&lt;String, Object&gt;&gt; customizationRefList,
+<i class="no-highlight">774</i>&nbsp;                                                            String customFieldType,
+<i class="no-highlight">775</i>&nbsp;                                                            NetSuiteBaseAccount account) {
+<i class="no-highlight">776</i>&nbsp;        // process getCustomizationId response to build the list to pass for the getList operation
+<b class="nc"><i class="no-highlight">777</i>&nbsp;        final String cacheKeyPrefix = account.getAccountId() + &#39;:&#39; + customFieldType + &#39;:&#39;;</b>
+<b class="nc"><i class="no-highlight">778</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; customFieldRecords = new ArrayList&lt;&gt;(customizationRefList.size());</b>
+<b class="nc"><i class="no-highlight">779</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; internalIds = new ArrayList&lt;&gt;(customizationRefList.size());</b>
+<b class="nc"><i class="no-highlight">780</i>&nbsp;        for (Map&lt;String, Object&gt; customizationRef : customizationRefList) {</b>
+<b class="nc"><i class="no-highlight">781</i>&nbsp;            String internalId = (String) customizationRef.get(RESP_INTERNAL_ID);</b>
+<b class="nc"><i class="no-highlight">782</i>&nbsp;            String cacheKey = cacheKeyPrefix + internalId;</b>
+<b class="nc"><i class="no-highlight">783</i>&nbsp;            Map&lt;String, Object&gt; customFieldRecord =</b>
+<b class="nc"><i class="no-highlight">784</i>&nbsp;                    CUSTOM_FIELD_RECORD_CACHE.getIfPresent(cacheKey);</b>
+<b class="nc"><i class="no-highlight">785</i>&nbsp;            if (customFieldRecord != null) {</b>
+<b class="nc"><i class="no-highlight">786</i>&nbsp;                customFieldRecords.add(customFieldRecord);</b>
+<i class="no-highlight">787</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">788</i>&nbsp;                internalIds.add(ImmutableMap.of(</b>
+<i class="no-highlight">789</i>&nbsp;                        INTERNAL_ID, internalId,
+<i class="no-highlight">790</i>&nbsp;                        TYPE, customFieldType));
+<i class="no-highlight">791</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">792</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">793</i>&nbsp;        if (!internalIds.isEmpty()) {</b>
+<i class="no-highlight">794</i>&nbsp;            // call getList operation
+<b class="nc"><i class="no-highlight">795</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; readResponseList = callGetList(internalIds, account);</b>
+<i class="no-highlight">796</i>&nbsp;
+<i class="no-highlight">797</i>&nbsp;            // process getList response
+<b class="nc"><i class="no-highlight">798</i>&nbsp;            for (Map&lt;String, Object&gt; readResponse : readResponseList) {</b>
+<b class="nc"><i class="no-highlight">799</i>&nbsp;                Map&lt;String, Object&gt; customFieldRecord = (Map&lt;String, Object&gt;) readResponse.get(&quot;record&quot;);</b>
+<b class="nc"><i class="no-highlight">800</i>&nbsp;                checkNotNull(customFieldRecord, &quot;customFieldRecord&quot;);</b>
+<b class="nc"><i class="no-highlight">801</i>&nbsp;                customFieldRecords.add(customFieldRecord);</b>
+<b class="nc"><i class="no-highlight">802</i>&nbsp;                String internalId = (String) customFieldRecord.get(RESP_INTERNAL_ID);</b>
+<b class="nc"><i class="no-highlight">803</i>&nbsp;                checkNotNull(internalId, &quot;internalId&quot;);</b>
+<b class="nc"><i class="no-highlight">804</i>&nbsp;                String cacheKey = cacheKeyPrefix + internalId;</b>
+<b class="nc"><i class="no-highlight">805</i>&nbsp;                CUSTOM_FIELD_RECORD_CACHE.put(cacheKey, customFieldRecord);</b>
+<b class="nc"><i class="no-highlight">806</i>&nbsp;            }</b>
+<i class="no-highlight">807</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">808</i>&nbsp;        return customFieldRecords;</b>
+<i class="no-highlight">809</i>&nbsp;    }
+<i class="no-highlight">810</i>&nbsp;
+<i class="no-highlight">811</i>&nbsp;    private List&lt;CustomFieldDef&gt; getErrorCustomFieldDefs(StatusException e) {
+<b class="nc"><i class="no-highlight">812</i>&nbsp;        return ImmutableList.of(</b>
+<b class="nc"><i class="no-highlight">813</i>&nbsp;                new CustomFieldDef(&quot;N/A&quot;, e.getMessage(), &quot;N/A&quot;, CF_TYPE_CHECK_BOX));</b>
+<i class="no-highlight">814</i>&nbsp;    }
+<i class="no-highlight">815</i>&nbsp;
+<i class="no-highlight">816</i>&nbsp;    private List&lt;CustomFieldDef&gt; filterCustomFields(List&lt;Map&lt;String, Object&gt;&gt; customFieldRecords,
+<i class="no-highlight">817</i>&nbsp;                                                    String filterFlag) {
+<b class="nc"><i class="no-highlight">818</i>&nbsp;        String filterPath = SETUP_CUSTOM_PREFIX + checkNotNull(filterFlag);</b>
+<b class="nc"><i class="no-highlight">819</i>&nbsp;        List&lt;CustomFieldDef&gt; customFieldDefs = new ArrayList&lt;&gt;(customFieldRecords.size());</b>
+<b class="nc"><i class="no-highlight">820</i>&nbsp;        for (Map&lt;String, Object&gt; customFieldRecord : customFieldRecords) {</b>
+<i class="no-highlight">821</i>&nbsp;            boolean doAdd;
+<b class="nc"><i class="no-highlight">822</i>&nbsp;            if (FILTER_ALL.equals(filterFlag)) {</b>
+<b class="nc"><i class="no-highlight">823</i>&nbsp;                doAdd = true;</b>
+<i class="no-highlight">824</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">825</i>&nbsp;                String filterPathVal = (String) customFieldRecord.get(filterPath);</b>
+<b class="nc"><i class="no-highlight">826</i>&nbsp;                if (filterPathVal == null) {</b>
+<b class="nc"><i class="no-highlight">827</i>&nbsp;                    LOGGER.warn(&quot;result does not contain filterPath={}&quot;, filterPath);</b>
+<b class="nc"><i class="no-highlight">828</i>&nbsp;                    doAdd = false;</b>
+<i class="no-highlight">829</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">830</i>&nbsp;                    doAdd = Boolean.parseBoolean(filterPathVal);</b>
+<i class="no-highlight">831</i>&nbsp;                }
+<i class="no-highlight">832</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">833</i>&nbsp;            if (doAdd) {</b>
+<b class="nc"><i class="no-highlight">834</i>&nbsp;                customFieldDefs.add(toCustomFieldDef(customFieldRecord));</b>
+<i class="no-highlight">835</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">836</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">837</i>&nbsp;        return customFieldDefs;</b>
+<i class="no-highlight">838</i>&nbsp;    }
+<i class="no-highlight">839</i>&nbsp;
+<i class="no-highlight">840</i>&nbsp;    private List&lt;CustomFieldDef&gt; filterOtherCustomFields(List&lt;Map&lt;String, Object&gt;&gt; customFieldRecords,
+<i class="no-highlight">841</i>&nbsp;                                                         String objectName) {
+<b class="nc"><i class="no-highlight">842</i>&nbsp;        List&lt;CustomFieldDef&gt; customFieldDefs = new ArrayList&lt;&gt;(customFieldRecords.size());</b>
+<b class="nc"><i class="no-highlight">843</i>&nbsp;        for (Map&lt;String, Object&gt; customFieldRecord : customFieldRecords) {</b>
+<b class="nc"><i class="no-highlight">844</i>&nbsp;            String recTypeInternalId = REC_TYPE_INTERNAL_ID_PATH.readStatic(customFieldRecord);</b>
+<b class="nc"><i class="no-highlight">845</i>&nbsp;            String objNameInternalId = REC_TYPE_TO_INTERNAL_ID.get(objectName);</b>
+<b class="nc"><i class="no-highlight">846</i>&nbsp;            if (Objects.equals(recTypeInternalId, objNameInternalId)) {</b>
+<b class="nc"><i class="no-highlight">847</i>&nbsp;                customFieldDefs.add(toCustomFieldDef(customFieldRecord));</b>
+<i class="no-highlight">848</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">849</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">850</i>&nbsp;        return customFieldDefs;</b>
+<i class="no-highlight">851</i>&nbsp;    }
+<i class="no-highlight">852</i>&nbsp;
+<i class="no-highlight">853</i>&nbsp;    private Map&lt;String, Object&gt; toSuggestion(CustomFieldDef customFieldDef,
+<i class="no-highlight">854</i>&nbsp;                                             OperationType operationType,
+<i class="no-highlight">855</i>&nbsp;                                             String sublistName,
+<i class="no-highlight">856</i>&nbsp;                                             String sublistItemName) {
+<i class="no-highlight">857</i>&nbsp;        // needs a structure conforming to the object definition for the property
+<i class="no-highlight">858</i>&nbsp;        // {
+<i class="no-highlight">859</i>&nbsp;        //   // The &quot;label&quot; field defines the display name of the suggestion...
+<i class="no-highlight">860</i>&nbsp;        //   &quot;label&quot; : {
+<i class="no-highlight">861</i>&nbsp;        //     &quot;value&quot; : &quot;some label&quot;
+<i class="no-highlight">862</i>&nbsp;        //   },
+<i class="no-highlight">863</i>&nbsp;        //   // The remaining fields are hidden...
+<i class="no-highlight">864</i>&nbsp;        //   &quot;internalId&quot;: {
+<i class="no-highlight">865</i>&nbsp;        //     &quot;value&quot;: &quot;some id&quot;
+<i class="no-highlight">866</i>&nbsp;        //   },
+<i class="no-highlight">867</i>&nbsp;        //   &quot;fieldType&quot;: {
+<i class="no-highlight">868</i>&nbsp;        //     &quot;value&quot;: &quot;some type name&quot;
+<i class="no-highlight">869</i>&nbsp;        //   },
+<i class="no-highlight">870</i>&nbsp;        //   &quot;sublistName&quot;: { // only added if sublistName != null
+<i class="no-highlight">871</i>&nbsp;        //     &quot;value&quot;, &quot;some name&quot;
+<i class="no-highlight">872</i>&nbsp;        // }
+<i class="no-highlight">873</i>&nbsp;
+<b class="nc"><i class="no-highlight">874</i>&nbsp;        String label = customFieldDef.getScriptId();</b>
+<b class="nc"><i class="no-highlight">875</i>&nbsp;        if (sublistItemName != null) {</b>
+<b class="nc"><i class="no-highlight">876</i>&nbsp;            label = sublistItemName + &#39;.&#39; + label;</b>
+<i class="no-highlight">877</i>&nbsp;        }
+<i class="no-highlight">878</i>&nbsp;
+<b class="nc"><i class="no-highlight">879</i>&nbsp;        Map&lt;String, Object&gt; suggestion = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">880</i>&nbsp;        PATH_LABEL.writeStatic(suggestion, label);</b>
+<b class="nc"><i class="no-highlight">881</i>&nbsp;        PATH_INTERNAL_ID.writeStatic(suggestion, customFieldDef.getInternalId());</b>
+<b class="nc"><i class="no-highlight">882</i>&nbsp;        PATH_FIELD_TYPE.writeStatic(suggestion, getValueType(customFieldDef, operationType));</b>
+<b class="nc"><i class="no-highlight">883</i>&nbsp;        if (sublistName != null) {</b>
+<b class="nc"><i class="no-highlight">884</i>&nbsp;            PATH_SUBLIST_NAME.writeStatic(suggestion, sublistName);</b>
+<i class="no-highlight">885</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">886</i>&nbsp;        return suggestion;</b>
+<i class="no-highlight">887</i>&nbsp;    }
+<i class="no-highlight">888</i>&nbsp;
+<i class="no-highlight">889</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; toSuggestions(List&lt;CustomFieldDef&gt; customFieldDefs,
+<i class="no-highlight">890</i>&nbsp;                                                    OperationType operationType,
+<i class="no-highlight">891</i>&nbsp;                                                    String sublistName,
+<i class="no-highlight">892</i>&nbsp;                                                    String sublistItemName) {
+<b class="nc"><i class="no-highlight">893</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; suggestions = new ArrayList&lt;&gt;(customFieldDefs.size());</b>
+<b class="nc"><i class="no-highlight">894</i>&nbsp;        for (CustomFieldDef customFieldDef : customFieldDefs) {</b>
+<b class="nc"><i class="no-highlight">895</i>&nbsp;            suggestions.add(toSuggestion(customFieldDef, operationType, sublistName, sublistItemName));</b>
+<b class="nc"><i class="no-highlight">896</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">897</i>&nbsp;        return suggestions;</b>
+<i class="no-highlight">898</i>&nbsp;    }
+<i class="no-highlight">899</i>&nbsp;
+<i class="no-highlight">900</i>&nbsp;    /**
+<i class="no-highlight">901</i>&nbsp;     * Extracts a custom field definition&#39;s core fields from the SOAP getResponse record map
+<i class="no-highlight">902</i>&nbsp;     * and returns them as a {@link CustomFieldDef}.
+<i class="no-highlight">903</i>&nbsp;     * @param customFieldRecord a Map containing the content of the readResponse.record of a custom
+<i class="no-highlight">904</i>&nbsp;     *                          field definition in the response of a get or getList SOAP operation
+<i class="no-highlight">905</i>&nbsp;     * @return the custom field core definition
+<i class="no-highlight">906</i>&nbsp;     */
+<i class="no-highlight">907</i>&nbsp;    private CustomFieldDef toCustomFieldDef(Map&lt;String, Object&gt; customFieldRecord) {
+<b class="nc"><i class="no-highlight">908</i>&nbsp;        String scriptId = (String) customFieldRecord.get(RESP_CUSTOM_SCRIPT_ID);</b>
+<b class="nc"><i class="no-highlight">909</i>&nbsp;        String name = (String) customFieldRecord.get(RESP_CUSTOM_FIELD_LABEL);</b>
+<b class="nc"><i class="no-highlight">910</i>&nbsp;        String internalId = (String) customFieldRecord.get(RESP_INTERNAL_ID);</b>
+<b class="nc"><i class="no-highlight">911</i>&nbsp;        String type = (String) customFieldRecord.get(RESP_CUSTOM_FIELD_TYPE);</b>
+<i class="no-highlight">912</i>&nbsp;
+<b class="nc"><i class="no-highlight">913</i>&nbsp;        return new CustomFieldDef(scriptId, name, internalId, type);</b>
+<i class="no-highlight">914</i>&nbsp;    }
+<i class="no-highlight">915</i>&nbsp;
+<i class="no-highlight">916</i>&nbsp;    private List&lt;CustomFieldDef&gt; toCustomFieldDefs(List&lt;Map&lt;String, Object&gt;&gt; customFieldRecords) {
+<b class="nc"><i class="no-highlight">917</i>&nbsp;        List&lt;CustomFieldDef&gt; defs = new ArrayList&lt;&gt;(customFieldRecords.size());</b>
+<b class="nc"><i class="no-highlight">918</i>&nbsp;        for (Map&lt;String, Object&gt; customFieldRecord : customFieldRecords) {</b>
+<b class="nc"><i class="no-highlight">919</i>&nbsp;            defs.add(toCustomFieldDef(customFieldRecord));</b>
+<b class="nc"><i class="no-highlight">920</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">921</i>&nbsp;        return defs;</b>
+<i class="no-highlight">922</i>&nbsp;    }
+<i class="no-highlight">923</i>&nbsp;
+<i class="no-highlight">924</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; callActionReturningList(String action,
+<i class="no-highlight">925</i>&nbsp;                                                              String envelope,
+<i class="no-highlight">926</i>&nbsp;                                                              JsonPath listPath,
+<i class="no-highlight">927</i>&nbsp;                                                              Map&lt;String, ?&gt; inputMap,
+<i class="no-highlight">928</i>&nbsp;                                                              NetSuiteBaseAccount account) {
+<i class="no-highlight">929</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">930</i>&nbsp;            ClientBuilder clientBuilder = createClientBuilder(account, action);</b>
+<b class="nc"><i class="no-highlight">931</i>&nbsp;            account.withNamespacePrefixContext(new HashMap&lt;&gt;())</b>
+<b class="nc"><i class="no-highlight">932</i>&nbsp;                    .withClientBuilder(clientBuilder)</b>
+<b class="nc"><i class="no-highlight">933</i>&nbsp;                    .withTimeout(TIMEOUT_IN_SECONDS)</b>
+<b class="nc"><i class="no-highlight">934</i>&nbsp;                    .connect();</b>
+<b class="nc"><i class="no-highlight">935</i>&nbsp;            WsdlVersion wsdlVersion = account.getWsdlVersion();</b>
+<b class="nc"><i class="no-highlight">936</i>&nbsp;            Map&lt;String, Object&gt; input = new ImmutableMap.Builder&lt;String, Object&gt;()</b>
+<b class="nc"><i class="no-highlight">937</i>&nbsp;                    .putAll(inputMap)</b>
+<b class="nc"><i class="no-highlight">938</i>&nbsp;                    .put(YEAR, wsdlVersion.getYear())</b>
+<b class="nc"><i class="no-highlight">939</i>&nbsp;                    .put(RELEASE, wsdlVersion.getRelease())</b>
+<b class="nc"><i class="no-highlight">940</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">941</i>&nbsp;            String evaluatedTemplate = templateEvaluator.evaluate(envelope, input);</b>
+<b class="nc"><i class="no-highlight">942</i>&nbsp;            SOAPMessage response = invocationService.call(clientBuilder, evaluatedTemplate);</b>
+<b class="nc"><i class="no-highlight">943</i>&nbsp;            Object responseJson = invocationService.serialize(response);</b>
+<b class="nc"><i class="no-highlight">944</i>&nbsp;            checkStatus(action, responseJson);</b>
+<i class="no-highlight">945</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">946</i>&nbsp;                String jsonStr = new ObjectMapper()</b>
+<b class="nc"><i class="no-highlight">947</i>&nbsp;                        .registerModule(new JsonFactoryModule())</b>
+<b class="nc"><i class="no-highlight">948</i>&nbsp;                        .registerModule(new JodaModule())</b>
+<b class="nc"><i class="no-highlight">949</i>&nbsp;                        .registerModule(new JavaTimeModule())</b>
+<b class="nc"><i class="no-highlight">950</i>&nbsp;                        .writeValueAsString(responseJson);</b>
+<b class="nc"><i class="no-highlight">951</i>&nbsp;                LOGGER.trace(&quot;jsonStr={}&quot;, jsonStr);</b>
+<b class="nc"><i class="no-highlight">952</i>&nbsp;            } catch (JsonProcessingException e) {</b>
+<b class="nc"><i class="no-highlight">953</i>&nbsp;                LOGGER.error(&quot;can&#39;t write responseJson as JSON&quot;, e);</b>
+<b class="nc"><i class="no-highlight">954</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">955</i>&nbsp;            Object readResponseNode = listPath.readStatic(responseJson, null);</b>
+<b class="nc"><i class="no-highlight">956</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; readResponseList = getListFromJsonNode(readResponseNode, &quot;readResponseNode&quot;);</b>
+<b class="nc"><i class="no-highlight">957</i>&nbsp;            return readResponseList;</b>
+<b class="nc"><i class="no-highlight">958</i>&nbsp;        } catch (SOAPException | SOAPFaultException e) {</b>
+<b class="nc"><i class="no-highlight">959</i>&nbsp;            throw new ExecutionException(e, ERROR_WHILE_EXECUTING_SOAP_REQUEST)</b>
+<b class="nc"><i class="no-highlight">960</i>&nbsp;                    .withReason(Throwables.getRootCause(e).getMessage())</b>
+<b class="nc"><i class="no-highlight">961</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">962</i>&nbsp;        } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">963</i>&nbsp;            throw new ExecutionException(e, ERROR_WHILE_SERIALIZING_RESPONSE_DATA)</b>
+<b class="nc"><i class="no-highlight">964</i>&nbsp;                    .withReason(Throwables.getRootCause(e).getMessage())</b>
+<b class="nc"><i class="no-highlight">965</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">966</i>&nbsp;        }
+<i class="no-highlight">967</i>&nbsp;    }
+<i class="no-highlight">968</i>&nbsp;
+<i class="no-highlight">969</i>&nbsp;    private void checkStatus(String action, Object responseJson) {
+<b class="nc"><i class="no-highlight">970</i>&nbsp;        Map&lt;String, Object&gt; statusNode = Collections.emptyMap();</b>
+<b class="nc"><i class="no-highlight">971</i>&nbsp;        switch (action) {</b>
+<i class="no-highlight">972</i>&nbsp;            case GET:
+<b class="nc"><i class="no-highlight">973</i>&nbsp;                statusNode = STATUS_PATH_GET.readStatic(responseJson);</b>
+<b class="nc"><i class="no-highlight">974</i>&nbsp;                break;</b>
+<i class="no-highlight">975</i>&nbsp;            case GET_LIST:
+<b class="nc"><i class="no-highlight">976</i>&nbsp;                statusNode = STATUS_PATH_GET_LIST.readStatic(responseJson, null);</b>
+<b class="nc"><i class="no-highlight">977</i>&nbsp;                break;</b>
+<i class="no-highlight">978</i>&nbsp;            case GET_CUSTOMIZATION_ID:
+<b class="nc"><i class="no-highlight">979</i>&nbsp;                statusNode = STATUS_PATH_GET_CUSTOMIZATION_ID.readStatic(responseJson);</b>
+<i class="no-highlight">980</i>&nbsp;                break;
+<i class="no-highlight">981</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">982</i>&nbsp;        if (statusNode != null &amp;&amp; !Boolean.parseBoolean((String) statusNode.get(KEY_IS_SUCCESS))) {</b>
+<b class="nc"><i class="no-highlight">983</i>&nbsp;            Map&lt;String, Object&gt; statusDetailNode = (Map&lt;String, Object&gt;) statusNode.get(KEY_STATUS_DETAIL);</b>
+<b class="nc"><i class="no-highlight">984</i>&nbsp;            if (statusDetailNode != null) {</b>
+<b class="nc"><i class="no-highlight">985</i>&nbsp;                String type = (String) statusDetailNode.get(KEY_STATUS_TYPE);</b>
+<b class="nc"><i class="no-highlight">986</i>&nbsp;                String code = (String) statusDetailNode.get(KEY_STATUS_CODE);</b>
+<b class="nc"><i class="no-highlight">987</i>&nbsp;                String msg = (String) statusDetailNode.get(KEY_STATUS_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;                StatusException se = new StatusException(msg)</b>
+<b class="nc"><i class="no-highlight">989</i>&nbsp;                        .withReason(type + &quot;: &quot; + code)</b>
+<b class="nc"><i class="no-highlight">990</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">991</i>&nbsp;                LOGGER.error(ERROR_MSG, se);</b>
+<b class="nc"><i class="no-highlight">992</i>&nbsp;                RESPONSE_ERROR.report();</b>
+<b class="nc"><i class="no-highlight">993</i>&nbsp;                throw se;</b>
+<i class="no-highlight">994</i>&nbsp;            }
+<i class="no-highlight">995</i>&nbsp;        }
+<i class="no-highlight">996</i>&nbsp;    }
+<i class="no-highlight">997</i>&nbsp;
+<i class="no-highlight">998</i>&nbsp;    /**
+<i class="no-highlight">999</i>&nbsp;     * Calls the NetSuite getCustomizationId SOAP operation to retrieve the custom field
+<i class="no-highlight">1000</i>&nbsp;     * definition summary for a given custom field type.
+<i class="no-highlight">1001</i>&nbsp;     *
+<i class="no-highlight">1002</i>&nbsp;     * @param customizationType custom field type such as transactionBodyCustomField
+<i class="no-highlight">1003</i>&nbsp;     * @param account
+<i class="no-highlight">1004</i>&nbsp;     * @return List/Map structure for the customizationRefList part of getCustomizationIdResponse
+<i class="no-highlight">1005</i>&nbsp;     */
+<i class="no-highlight">1006</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; callGetCustomizationId(String customizationType,
+<i class="no-highlight">1007</i>&nbsp;                                                             NetSuiteBaseAccount account) {
+<b class="nc"><i class="no-highlight">1008</i>&nbsp;        String cacheKey = account.getAccountId() + &#39;:&#39; + customizationType;</b>
+<i class="no-highlight">1009</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1010</i>&nbsp;            return GET_CUSTOMIZATION_ID_CACHE.get(cacheKey, () -&gt; {</b>
+<b class="nc"><i class="no-highlight">1011</i>&nbsp;                Map&lt;String, String&gt; inputMap = ImmutableMap.of(CUSTOMIZATION_TYPE, customizationType);</b>
+<b class="nc"><i class="no-highlight">1012</i>&nbsp;                return callActionReturningList(GET_CUSTOMIZATION_ID, GET_CUSTOMIZATION_ID_ENVELOPE,</b>
+<i class="no-highlight">1013</i>&nbsp;                        CUSTOMIZATION_REF_PATH, inputMap, account);
+<i class="no-highlight">1014</i>&nbsp;            });
+<b class="nc"><i class="no-highlight">1015</i>&nbsp;        } catch (java.util.concurrent.ExecutionException e) {</b>
+<i class="no-highlight">1016</i>&nbsp;            // this should be unreachable since the Callable doesn&#39;t throw a checked exception
+<b class="nc"><i class="no-highlight">1017</i>&nbsp;            throw new AssertionError(&quot;shouldn&#39;t be able to get here&quot;, e);</b>
+<b class="nc"><i class="no-highlight">1018</i>&nbsp;        } catch (UncheckedExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">1019</i>&nbsp;            throw (RuntimeException) e.getCause();</b>
+<i class="no-highlight">1020</i>&nbsp;        }
+<i class="no-highlight">1021</i>&nbsp;    }
+<i class="no-highlight">1022</i>&nbsp;
+<i class="no-highlight">1023</i>&nbsp;    /**
+<i class="no-highlight">1024</i>&nbsp;     * Calls the NetSuite getList SOAP operation to retrieve the custom field definition details
+<i class="no-highlight">1025</i>&nbsp;     * for a given list of custom field identifiers.
+<i class="no-highlight">1026</i>&nbsp;     * @param internalIds list of maps specifying internalId and type of each custom field
+<i class="no-highlight">1027</i>&nbsp;     * @param account
+<i class="no-highlight">1028</i>&nbsp;     * @return List/Map structure for the readResponseList part of getListResponse
+<i class="no-highlight">1029</i>&nbsp;     */
+<i class="no-highlight">1030</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; callGetList(List&lt;Map&lt;String, Object&gt;&gt; internalIds,
+<i class="no-highlight">1031</i>&nbsp;                                                  NetSuiteBaseAccount account) {
+<b class="nc"><i class="no-highlight">1032</i>&nbsp;        Map&lt;String, List&lt;Map&lt;String, Object&gt;&gt;&gt; inputMap = ImmutableMap.of(BASE_REF, internalIds);</b>
+<b class="nc"><i class="no-highlight">1033</i>&nbsp;        return callActionReturningList(GET_LIST, GET_LIST_ENVELOPE,</b>
+<i class="no-highlight">1034</i>&nbsp;                GET_LIST_READ_RESPONSE_PATH, inputMap, account);
+<i class="no-highlight">1035</i>&nbsp;    }
+<i class="no-highlight">1036</i>&nbsp;
+<i class="no-highlight">1037</i>&nbsp;    String formatCustomRecordTypeLabel(String name, String internalId) {
+<b class="nc"><i class="no-highlight">1038</i>&nbsp;        return String.format(&quot;%s (%s)&quot;, checkNotNull(name), checkNotNull(internalId));</b>
+<i class="no-highlight">1039</i>&nbsp;    }
+<i class="no-highlight">1040</i>&nbsp;
+<i class="no-highlight">1041</i>&nbsp;    String parseIdFromCustomRecordTypeLabel(String label) {
+<b class="nc"><i class="no-highlight">1042</i>&nbsp;        checkNotNull(label);</b>
+<b class="nc"><i class="no-highlight">1043</i>&nbsp;        int iLeftParen = label.lastIndexOf(&#39;(&#39;);</b>
+<b class="nc"><i class="no-highlight">1044</i>&nbsp;        int iRightParen = label.lastIndexOf(&#39;)&#39;);</b>
+<b class="nc"><i class="no-highlight">1045</i>&nbsp;        if (!(iLeftParen &gt; 1 &amp;&amp; iRightParen == label.length() - 1)) {</b>
+<b class="nc"><i class="no-highlight">1046</i>&nbsp;            throw new IllegalArgumentException(&quot;label has unexpected format: &quot; + label);</b>
+<i class="no-highlight">1047</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1048</i>&nbsp;        String internalId = label.substring(iLeftParen + 1, iRightParen);</b>
+<b class="nc"><i class="no-highlight">1049</i>&nbsp;        return internalId;</b>
+<i class="no-highlight">1050</i>&nbsp;    }
+<i class="no-highlight">1051</i>&nbsp;
+<i class="no-highlight">1052</i>&nbsp;    private List&lt;Map&lt;String, Object&gt;&gt; getListFromJsonNode(Object node, String varName) {
+<b class="nc"><i class="no-highlight">1053</i>&nbsp;        if (node == null) {</b>
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;            return Collections.emptyList();</b>
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;        } else if (node instanceof List) {</b>
+<b class="nc"><i class="no-highlight">1056</i>&nbsp;            return (List&lt;Map&lt;String, Object&gt;&gt;) node;</b>
+<b class="nc"><i class="no-highlight">1057</i>&nbsp;        } else if (node instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">1058</i>&nbsp;            return Collections.singletonList((Map&lt;String, Object&gt;) node);</b>
+<i class="no-highlight">1059</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1060</i>&nbsp;            throw new AssertionError(varName + &quot; is not a List or Map: &quot; + node);</b>
+<i class="no-highlight">1061</i>&nbsp;        }
+<i class="no-highlight">1062</i>&nbsp;    }
+<i class="no-highlight">1063</i>&nbsp;
+<i class="no-highlight">1064</i>&nbsp;    List&lt;CustomFieldGroup&gt; getCustomFields(String objectName,
+<i class="no-highlight">1065</i>&nbsp;                                           String customRecordTypeId,
+<i class="no-highlight">1066</i>&nbsp;                                           NetSuiteBaseAccount account,
+<i class="no-highlight">1067</i>&nbsp;                                           OperationType operationType)
+<i class="no-highlight">1068</i>&nbsp;    {
+<b class="nc"><i class="no-highlight">1069</i>&nbsp;        checkNotNull(objectName, &quot;objectName&quot;);</b>
+<b class="nc"><i class="no-highlight">1070</i>&nbsp;        if (customRecordTypeId != null) {</b>
+<b class="nc"><i class="no-highlight">1071</i>&nbsp;            return CustomFieldGroup.of(getCustomRecordFieldDefs(customRecordTypeId, account));</b>
+<i class="no-highlight">1072</i>&nbsp;        }
+<i class="no-highlight">1073</i>&nbsp;        else {
+<b class="nc"><i class="no-highlight">1074</i>&nbsp;            Type objectType = Type.forName(objectName);</b>
+<i class="no-highlight">1075</i>&nbsp;
+<b class="nc"><i class="no-highlight">1076</i>&nbsp;            String customFieldType = TYPE_TO_CUSTOM_FIELD_TYPE.get(objectType);</b>
+<b class="nc"><i class="no-highlight">1077</i>&nbsp;            if (customFieldType == null) {</b>
+<b class="nc"><i class="no-highlight">1078</i>&nbsp;                return Collections.emptyList();</b>
+<i class="no-highlight">1079</i>&nbsp;            }
+<i class="no-highlight">1080</i>&nbsp;
+<i class="no-highlight">1081</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; customFieldRecords;
+<i class="no-highlight">1082</i>&nbsp;
+<i class="no-highlight">1083</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">1084</i>&nbsp;                customFieldRecords = getCustomFieldRecords(customFieldType, account);</b>
+<b class="nc"><i class="no-highlight">1085</i>&nbsp;            } catch (StatusException e) {</b>
+<b class="nc"><i class="no-highlight">1086</i>&nbsp;                return CustomFieldGroup.of(getErrorCustomFieldDefs(e));</b>
+<b class="nc"><i class="no-highlight">1087</i>&nbsp;            }</b>
+<i class="no-highlight">1088</i>&nbsp;
+<b class="nc"><i class="no-highlight">1089</i>&nbsp;            if (objectType == Type.ITEM || objectType == Type.TRANSACTION) {</b>
+<b class="nc"><i class="no-highlight">1090</i>&nbsp;                return CustomFieldGroup.of(toCustomFieldDefs(customFieldRecords));</b>
+<i class="no-highlight">1091</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1092</i>&nbsp;            else if (customFieldType.equals(OTHER_CUSTOM_FIELD)) {</b>
+<b class="nc"><i class="no-highlight">1093</i>&nbsp;                return CustomFieldGroup.of(filterOtherCustomFields(customFieldRecords, objectName));</b>
+<i class="no-highlight">1094</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">1095</i>&nbsp;                List&lt;CustomFieldGroup&gt; groups = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">1096</i>&nbsp;
+<b class="nc"><i class="no-highlight">1097</i>&nbsp;                List&lt;CustomFieldDef&gt; customFieldDefs =</b>
+<b class="nc"><i class="no-highlight">1098</i>&nbsp;                        filterCustomFields(customFieldRecords, getFilterFlag(objectType));</b>
+<b class="nc"><i class="no-highlight">1099</i>&nbsp;                groups.add(new CustomFieldGroup(customFieldDefs));</b>
+<i class="no-highlight">1100</i>&nbsp;
+<i class="no-highlight">1101</i>&nbsp;
+<i class="no-highlight">1102</i>&nbsp;                // If doing a Create/Update/Upsert, add custom fields of sublist types.
+<i class="no-highlight">1103</i>&nbsp;                // These are N/A for Search.
+<b class="nc"><i class="no-highlight">1104</i>&nbsp;                if (operationType != OperationType.SEARCH) {</b>
+<i class="no-highlight">1105</i>&nbsp;
+<i class="no-highlight">1106</i>&nbsp;                    // Add applicable Transaction Column custom fields.
+<b class="nc"><i class="no-highlight">1107</i>&nbsp;                    List&lt;Sublist&gt; tcolSublists = TYPE_TO_TCOL_SUBLISTS.get(objectType);</b>
+<i class="no-highlight">1108</i>&nbsp;                    // note that get() on a Multimap returns empty when the given key is not mapped
+<b class="nc"><i class="no-highlight">1109</i>&nbsp;                    if (!tcolSublists.isEmpty()) {</b>
+<i class="no-highlight">1110</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">1111</i>&nbsp;                            customFieldRecords = getCustomFieldRecords(TCOL_CUSTOM_FIELD, account);</b>
+<b class="nc"><i class="no-highlight">1112</i>&nbsp;                            for (Sublist sublist : tcolSublists) {</b>
+<b class="nc"><i class="no-highlight">1113</i>&nbsp;                                customFieldDefs =</b>
+<b class="nc"><i class="no-highlight">1114</i>&nbsp;                                        filterCustomFields(customFieldRecords, sublist.filterFlag);</b>
+<b class="nc"><i class="no-highlight">1115</i>&nbsp;                                groups.add(new CustomFieldGroup(customFieldDefs)</b>
+<b class="nc"><i class="no-highlight">1116</i>&nbsp;                                        .withSublistContainer(sublist.sublistName)</b>
+<b class="nc"><i class="no-highlight">1117</i>&nbsp;                                        .withSublistArray(sublist.itemName));</b>
+<b class="nc"><i class="no-highlight">1118</i>&nbsp;                            }</b>
+<b class="nc"><i class="no-highlight">1119</i>&nbsp;                        } catch (StatusException e) {</b>
+<b class="nc"><i class="no-highlight">1120</i>&nbsp;                            for (Sublist sublist : tcolSublists) {</b>
+<b class="nc"><i class="no-highlight">1121</i>&nbsp;                                groups.add(new CustomFieldGroup(getErrorCustomFieldDefs(e))</b>
+<b class="nc"><i class="no-highlight">1122</i>&nbsp;                                        .withSublistContainer(sublist.sublistName)</b>
+<b class="nc"><i class="no-highlight">1123</i>&nbsp;                                        .withSublistArray(sublist.itemName));</b>
+<b class="nc"><i class="no-highlight">1124</i>&nbsp;                            }</b>
+<b class="nc"><i class="no-highlight">1125</i>&nbsp;                        }</b>
+<i class="no-highlight">1126</i>&nbsp;                    }
+<i class="no-highlight">1127</i>&nbsp;
+<i class="no-highlight">1128</i>&nbsp;                    // Starting with WSDL version 2014.2, each address of a Contact, Customer, etc,
+<i class="no-highlight">1129</i>&nbsp;                    // can have custom fields.
+<i class="no-highlight">1130</i>&nbsp;                    // These fields are of type &quot;otherCustomField&quot; with a record type of &quot;Address&quot;.
+<i class="no-highlight">1131</i>&nbsp;                    // See &quot;Other Custom Fields&quot; in the NetSuite Help Center.
+<b class="nc"><i class="no-highlight">1132</i>&nbsp;                    WsdlVersion wsdlVersion = account.getWsdlVersion();</b>
+<b class="nc"><i class="no-highlight">1133</i>&nbsp;                    if (TYPES_WITH_ADDRESSES.contains(objectType) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">1134</i>&nbsp;                            wsdlVersion.compareTo(WsdlVersion.v2014_2) &gt;= 0) {</b>
+<i class="no-highlight">1135</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">1136</i>&nbsp;                            customFieldRecords = getCustomFieldRecords(OTHER_CUSTOM_FIELD, account);</b>
+<b class="nc"><i class="no-highlight">1137</i>&nbsp;                            customFieldDefs = filterOtherCustomFields(customFieldRecords, ADDRESS);</b>
+<b class="nc"><i class="no-highlight">1138</i>&nbsp;                            groups.add(new CustomFieldGroup(customFieldDefs)</b>
+<b class="nc"><i class="no-highlight">1139</i>&nbsp;                                    .withSublistContainer(ADDRESSBOOK_LIST)</b>
+<b class="nc"><i class="no-highlight">1140</i>&nbsp;                                    .withSublistArray(ADDRESSBOOK)</b>
+<b class="nc"><i class="no-highlight">1141</i>&nbsp;                                    .withSublistElementChild(ADDRESSBOOK_ADDRESS));</b>
+<b class="nc"><i class="no-highlight">1142</i>&nbsp;                        } catch (StatusException e) {</b>
+<b class="nc"><i class="no-highlight">1143</i>&nbsp;                            groups.add(new CustomFieldGroup(getErrorCustomFieldDefs(e))</b>
+<b class="nc"><i class="no-highlight">1144</i>&nbsp;                                    .withSublistContainer(ADDRESSBOOK_LIST)</b>
+<b class="nc"><i class="no-highlight">1145</i>&nbsp;                                    .withSublistArray(ADDRESSBOOK)</b>
+<b class="nc"><i class="no-highlight">1146</i>&nbsp;                                    .withSublistElementChild(ADDRESSBOOK_ADDRESS));</b>
+<b class="nc"><i class="no-highlight">1147</i>&nbsp;                        }</b>
+<i class="no-highlight">1148</i>&nbsp;
+<i class="no-highlight">1149</i>&nbsp;                    }
+<i class="no-highlight">1150</i>&nbsp;                }
+<i class="no-highlight">1151</i>&nbsp;
+<b class="nc"><i class="no-highlight">1152</i>&nbsp;                return groups;</b>
+<i class="no-highlight">1153</i>&nbsp;            }
+<i class="no-highlight">1154</i>&nbsp;        }
+<i class="no-highlight">1155</i>&nbsp;    }
+<i class="no-highlight">1156</i>&nbsp;
+<i class="no-highlight">1157</i>&nbsp;    private ObjectSchema resolveSublistPath(ObjectSchema baseSchema,
+<i class="no-highlight">1158</i>&nbsp;                                            CustomFieldGroup group) {
+<b class="nc"><i class="no-highlight">1159</i>&nbsp;        checkNotNull(baseSchema);</b>
+<b class="nc"><i class="no-highlight">1160</i>&nbsp;        checkNotNull(group);</b>
+<i class="no-highlight">1161</i>&nbsp;        ObjectSchema retval;
+<b class="nc"><i class="no-highlight">1162</i>&nbsp;        if (group.getSublistContainer() == null) {</b>
+<b class="nc"><i class="no-highlight">1163</i>&nbsp;            retval = baseSchema;</b>
+<i class="no-highlight">1164</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1165</i>&nbsp;            checkNotNull(group.getSublistArray());</b>
+<b class="nc"><i class="no-highlight">1166</i>&nbsp;            retval = (ObjectSchema) baseSchema.getChild(group.getSublistContainer());</b>
+<b class="nc"><i class="no-highlight">1167</i>&nbsp;            checkNotNull(retval, &quot;cannot resolve sublist container name %s in schema&quot;,</b>
+<b class="nc"><i class="no-highlight">1168</i>&nbsp;                    group.getSublistContainer());</b>
+<i class="no-highlight">1169</i>&nbsp;
+<b class="nc"><i class="no-highlight">1170</i>&nbsp;            retval = (ObjectSchema) retval.getChild(group.getSublistArray());</b>
+<b class="nc"><i class="no-highlight">1171</i>&nbsp;            checkNotNull(retval, &quot;cannot resolve sublist array name %s in schema&quot;,</b>
+<b class="nc"><i class="no-highlight">1172</i>&nbsp;                    group.getSublistArray());</b>
+<i class="no-highlight">1173</i>&nbsp;
+<i class="no-highlight">1174</i>&nbsp;            // get component type of array
+<b class="nc"><i class="no-highlight">1175</i>&nbsp;            checkArgument(retval.getType() == SnapType.TABLE);</b>
+<b class="nc"><i class="no-highlight">1176</i>&nbsp;            JsonNode items = ((ObjectSchemaNode) retval).get(&quot;items&quot;);</b>
+<b class="nc"><i class="no-highlight">1177</i>&nbsp;            checkNotNull(items);</b>
+<b class="nc"><i class="no-highlight">1178</i>&nbsp;            checkArgument(items.size() == 1);</b>
+<b class="nc"><i class="no-highlight">1179</i>&nbsp;            retval = (ObjectSchema) items.get(0);</b>
+<i class="no-highlight">1180</i>&nbsp;
+<b class="nc"><i class="no-highlight">1181</i>&nbsp;            if (group.getSublistElementChild() != null) {</b>
+<b class="nc"><i class="no-highlight">1182</i>&nbsp;                retval = (ObjectSchema) retval.getChild(group.getSublistElementChild());</b>
+<b class="nc"><i class="no-highlight">1183</i>&nbsp;                checkNotNull(retval, &quot;cannot resolve sublist element child name %s in schema&quot;,</b>
+<b class="nc"><i class="no-highlight">1184</i>&nbsp;                        group.getSublistElementChild());</b>
+<i class="no-highlight">1185</i>&nbsp;            }
+<i class="no-highlight">1186</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1187</i>&nbsp;        return retval;</b>
+<i class="no-highlight">1188</i>&nbsp;    }
+<i class="no-highlight">1189</i>&nbsp;
+<i class="no-highlight">1190</i>&nbsp;    void enhanceInputSchema(ObjectSchema baseSchema,
+<i class="no-highlight">1191</i>&nbsp;                            SchemaBuilder schemaBuilder,
+<i class="no-highlight">1192</i>&nbsp;                            List&lt;CustomFieldGroup&gt; customFieldGroups,
+<i class="no-highlight">1193</i>&nbsp;                            OperationType operationType) {
+<b class="nc"><i class="no-highlight">1194</i>&nbsp;        for (CustomFieldGroup group : customFieldGroups) {</b>
+<b class="nc"><i class="no-highlight">1195</i>&nbsp;            ObjectSchema subSchema = resolveSublistPath(baseSchema, group);</b>
+<b class="nc"><i class="no-highlight">1196</i>&nbsp;            modifySchema(subSchema, schemaBuilder, group.getCustomFieldDefs(), operationType);</b>
+<b class="nc"><i class="no-highlight">1197</i>&nbsp;        }</b>
+<i class="no-highlight">1198</i>&nbsp;    }
+<i class="no-highlight">1199</i>&nbsp;
+<i class="no-highlight">1200</i>&nbsp;    private void modifySchema(ObjectSchema schema,
+<i class="no-highlight">1201</i>&nbsp;                              SchemaBuilder schemaBuilder,
+<i class="no-highlight">1202</i>&nbsp;                              List&lt;CustomFieldDef&gt; customFieldDefs,
+<i class="no-highlight">1203</i>&nbsp;                              OperationType operationType) {
+<b class="nc"><i class="no-highlight">1204</i>&nbsp;        if (schema.getType() != SnapType.COMPOSITE) {</b>
+<b class="nc"><i class="no-highlight">1205</i>&nbsp;            LOGGER.warn(&quot;expected type COMPOSITE for schema={}&quot;, schema);</b>
+<i class="no-highlight">1206</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1207</i>&nbsp;        else if (schema.getChild(CUSTOM_FIELD_LIST) == null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">1208</i>&nbsp;                 schema.getChild(CUSTOM_FIELDS) == null) {</b>
+<b class="nc"><i class="no-highlight">1209</i>&nbsp;            LOGGER.warn(&quot;expected either {} or {} child in schema={}&quot;,</b>
+<i class="no-highlight">1210</i>&nbsp;                    CUSTOM_FIELD_LIST, CUSTOM_FIELDS, schema);
+<i class="no-highlight">1211</i>&nbsp;        }
+<i class="no-highlight">1212</i>&nbsp;        else {
+<b class="nc"><i class="no-highlight">1213</i>&nbsp;            schema.removeChild(CUSTOM_FIELD_LIST);</b>
+<i class="no-highlight">1214</i>&nbsp;            // we may be updating a cached schema that we modified before
+<b class="nc"><i class="no-highlight">1215</i>&nbsp;            schema.removeChild(CUSTOM_FIELDS);</b>
+<b class="nc"><i class="no-highlight">1216</i>&nbsp;            List&lt;ObjectSchema&gt; childSchemas = new ArrayList&lt;&gt;(customFieldDefs.size());</b>
+<b class="nc"><i class="no-highlight">1217</i>&nbsp;            for (CustomFieldDef customFieldDef : customFieldDefs) {</b>
+<b class="nc"><i class="no-highlight">1218</i>&nbsp;                ObjectSchema s = toSchema(customFieldDef, operationType, schemaBuilder);</b>
+<b class="nc"><i class="no-highlight">1219</i>&nbsp;                if (s != null) {</b>
+<b class="nc"><i class="no-highlight">1220</i>&nbsp;                    childSchemas.add(s);</b>
+<i class="no-highlight">1221</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1222</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1223</i>&nbsp;            if (childSchemas.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">1224</i>&nbsp;                childSchemas.add(schemaBuilder.name(NONE_DEFINED).type(SnapType.ANY).create());</b>
+<i class="no-highlight">1225</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1226</i>&nbsp;            schemaBuilder.name(CUSTOM_FIELDS).type(SnapType.COMPOSITE);</b>
+<b class="nc"><i class="no-highlight">1227</i>&nbsp;            for (ObjectSchema childSchema : childSchemas) {</b>
+<b class="nc"><i class="no-highlight">1228</i>&nbsp;                schemaBuilder.withChildSchema(childSchema);</b>
+<b class="nc"><i class="no-highlight">1229</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1230</i>&nbsp;            schema.addChild(schemaBuilder.create());</b>
+<i class="no-highlight">1231</i>&nbsp;        }
+<i class="no-highlight">1232</i>&nbsp;    }
+<i class="no-highlight">1233</i>&nbsp;
+<i class="no-highlight">1234</i>&nbsp;    private ObjectSchema toSchema(CustomFieldDef customFieldDef,
+<i class="no-highlight">1235</i>&nbsp;                                  OperationType operationType,
+<i class="no-highlight">1236</i>&nbsp;                                  SchemaBuilder sb) {
+<i class="no-highlight">1237</i>&nbsp;        // see platform.core.xsd
+<b class="nc"><i class="no-highlight">1238</i>&nbsp;        String valueType = getValueType(customFieldDef, operationType);</b>
+<b class="nc"><i class="no-highlight">1239</i>&nbsp;        if (valueType == null) {</b>
+<b class="nc"><i class="no-highlight">1240</i>&nbsp;            return null;</b>
+<i class="no-highlight">1241</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1242</i>&nbsp;        if (operationType == OperationType.SEARCH) {</b>
+<b class="nc"><i class="no-highlight">1243</i>&nbsp;            switch (valueType) {</b>
+<i class="no-highlight">1244</i>&nbsp;                case SEARCH_BOOLEAN_CUSTOM_FIELD: {
+<b class="nc"><i class="no-highlight">1245</i>&nbsp;                    Schema s1 = sb.name(SEARCH_VALUE).type(SnapType.BOOLEAN).create();</b>
+<b class="nc"><i class="no-highlight">1246</i>&nbsp;                    sb.withChildSchema(s1);</b>
+<b class="nc"><i class="no-highlight">1247</i>&nbsp;                    break;</b>
+<i class="no-highlight">1248</i>&nbsp;                }
+<i class="no-highlight">1249</i>&nbsp;                case SEARCH_DATE_CUSTOM_FIELD: {
+<b class="nc"><i class="no-highlight">1250</i>&nbsp;                    Set&lt;String&gt; searchValues = allowedValuesHelper.getAllowedValuesForSearchDate();</b>
+<b class="nc"><i class="no-highlight">1251</i>&nbsp;                    Schema ps = sb.name(PREDEFINED_SEARCH_VALUE).type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">1252</i>&nbsp;                            .allowedValues(searchValues).create();</b>
+<b class="nc"><i class="no-highlight">1253</i>&nbsp;                    Schema s1 = sb.name(SEARCH_VALUE).type(SnapType.DATETIME).create();</b>
+<b class="nc"><i class="no-highlight">1254</i>&nbsp;                    Schema s2 = sb.name(SEARCH_VALUE2).type(SnapType.DATETIME).create();</b>
+<b class="nc"><i class="no-highlight">1255</i>&nbsp;                    Schema op = buildOperatorSchema(sb, valueType);</b>
+<b class="nc"><i class="no-highlight">1256</i>&nbsp;                    sb.withChildSchema(ps);</b>
+<b class="nc"><i class="no-highlight">1257</i>&nbsp;                    sb.withChildSchema(s1);</b>
+<b class="nc"><i class="no-highlight">1258</i>&nbsp;                    sb.withChildSchema(s2);</b>
+<b class="nc"><i class="no-highlight">1259</i>&nbsp;                    sb.withChildSchema(op);</b>
+<b class="nc"><i class="no-highlight">1260</i>&nbsp;                    break;</b>
+<i class="no-highlight">1261</i>&nbsp;                }
+<i class="no-highlight">1262</i>&nbsp;                case SEARCH_DOUBLE_CUSTOM_FIELD: {
+<b class="nc"><i class="no-highlight">1263</i>&nbsp;                    Schema s1 = sb.name(SEARCH_VALUE).type(SnapType.NUMBER).create();</b>
+<b class="nc"><i class="no-highlight">1264</i>&nbsp;                    Schema s2 = sb.name(SEARCH_VALUE2).type(SnapType.NUMBER).create();</b>
+<b class="nc"><i class="no-highlight">1265</i>&nbsp;                    Schema op = buildOperatorSchema(sb, valueType);</b>
+<b class="nc"><i class="no-highlight">1266</i>&nbsp;                    sb.withChildSchema(s1);</b>
+<b class="nc"><i class="no-highlight">1267</i>&nbsp;                    sb.withChildSchema(s2);</b>
+<b class="nc"><i class="no-highlight">1268</i>&nbsp;                    sb.withChildSchema(op);</b>
+<b class="nc"><i class="no-highlight">1269</i>&nbsp;                    break;</b>
+<i class="no-highlight">1270</i>&nbsp;                }
+<i class="no-highlight">1271</i>&nbsp;                case SEARCH_LONG_CUSTOM_FIELD: {
+<b class="nc"><i class="no-highlight">1272</i>&nbsp;                    Schema s1 = sb.name(SEARCH_VALUE).type(SnapType.INTEGER).create();</b>
+<b class="nc"><i class="no-highlight">1273</i>&nbsp;                    Schema s2 = sb.name(SEARCH_VALUE2).type(SnapType.INTEGER).create();</b>
+<b class="nc"><i class="no-highlight">1274</i>&nbsp;                    Schema op = buildOperatorSchema(sb, valueType);</b>
+<b class="nc"><i class="no-highlight">1275</i>&nbsp;                    sb.withChildSchema(s1);</b>
+<b class="nc"><i class="no-highlight">1276</i>&nbsp;                    sb.withChildSchema(s2);</b>
+<b class="nc"><i class="no-highlight">1277</i>&nbsp;                    sb.withChildSchema(op);</b>
+<b class="nc"><i class="no-highlight">1278</i>&nbsp;                    break;</b>
+<i class="no-highlight">1279</i>&nbsp;                }
+<i class="no-highlight">1280</i>&nbsp;                case SEARCH_MULTI_SELECT_CUSTOM_FIELD: {
+<i class="no-highlight">1281</i>&nbsp;                    // searchValue is an array (TABLE) of ListOrRecordRef
+<b class="nc"><i class="no-highlight">1282</i>&nbsp;                    Schema el = buildListOrRecordRefSchema(sb).create();</b>
+<b class="nc"><i class="no-highlight">1283</i>&nbsp;                    Schema s1 = sb.name(SEARCH_VALUE).type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">1284</i>&nbsp;                            .withChildSchema(el).create();</b>
+<b class="nc"><i class="no-highlight">1285</i>&nbsp;                    Schema op = buildOperatorSchema(sb, valueType);</b>
+<b class="nc"><i class="no-highlight">1286</i>&nbsp;                    sb.withChildSchema(s1);</b>
+<b class="nc"><i class="no-highlight">1287</i>&nbsp;                    sb.withChildSchema(op);</b>
+<b class="nc"><i class="no-highlight">1288</i>&nbsp;                    break;</b>
+<i class="no-highlight">1289</i>&nbsp;                }
+<i class="no-highlight">1290</i>&nbsp;                case SEARCH_STRING_CUSTOM_FIELD: {
+<b class="nc"><i class="no-highlight">1291</i>&nbsp;                    Schema s1 = sb.name(SEARCH_VALUE).type(SnapType.STRING).create();</b>
+<b class="nc"><i class="no-highlight">1292</i>&nbsp;                    Schema op = buildOperatorSchema(sb, valueType);</b>
+<b class="nc"><i class="no-highlight">1293</i>&nbsp;                    sb.withChildSchema(s1);</b>
+<b class="nc"><i class="no-highlight">1294</i>&nbsp;                    sb.withChildSchema(op);</b>
+<b class="nc"><i class="no-highlight">1295</i>&nbsp;                    break;</b>
+<i class="no-highlight">1296</i>&nbsp;                }
+<i class="no-highlight">1297</i>&nbsp;                case SEARCH_ENUM_MULTI_SELECT_CUSTOM_FIELD: {
+<b class="nc"><i class="no-highlight">1298</i>&nbsp;                    Schema el = sb.type(SnapType.STRING).create();</b>
+<b class="nc"><i class="no-highlight">1299</i>&nbsp;                    Schema s1 = sb.name(SEARCH_VALUE).type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">1300</i>&nbsp;                            .withChildSchema(el).create();</b>
+<b class="nc"><i class="no-highlight">1301</i>&nbsp;                    Schema op = buildOperatorSchema(sb, valueType);</b>
+<b class="nc"><i class="no-highlight">1302</i>&nbsp;                    sb.withChildSchema(s1);</b>
+<b class="nc"><i class="no-highlight">1303</i>&nbsp;                    sb.withChildSchema(op);</b>
+<b class="nc"><i class="no-highlight">1304</i>&nbsp;                    break;</b>
+<i class="no-highlight">1305</i>&nbsp;                }
+<i class="no-highlight">1306</i>&nbsp;                default: {
+<b class="nc"><i class="no-highlight">1307</i>&nbsp;                    LOGGER.warn(&quot;unhandled custom field value type: {}&quot;, valueType);</b>
+<i class="no-highlight">1308</i>&nbsp;                    break;
+<i class="no-highlight">1309</i>&nbsp;                }
+<i class="no-highlight">1310</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1311</i>&nbsp;            sb.type(SnapType.COMPOSITE);</b>
+<i class="no-highlight">1312</i>&nbsp;        }
+<i class="no-highlight">1313</i>&nbsp;        else { // not SEARCH
+<b class="nc"><i class="no-highlight">1314</i>&nbsp;            switch (valueType) {</b>
+<i class="no-highlight">1315</i>&nbsp;                case BOOLEAN_CUSTOM_FIELD_REF:
+<b class="nc"><i class="no-highlight">1316</i>&nbsp;                    sb.type(SnapType.BOOLEAN);</b>
+<b class="nc"><i class="no-highlight">1317</i>&nbsp;                    break;</b>
+<i class="no-highlight">1318</i>&nbsp;                case DATE_CUSTOM_FIELD_REF:
+<b class="nc"><i class="no-highlight">1319</i>&nbsp;                    sb.type(SnapType.DATETIME);</b>
+<b class="nc"><i class="no-highlight">1320</i>&nbsp;                    break;</b>
+<i class="no-highlight">1321</i>&nbsp;                case DOUBLE_CUSTOM_FIELD_REF:
+<b class="nc"><i class="no-highlight">1322</i>&nbsp;                    sb.type(SnapType.NUMBER);</b>
+<b class="nc"><i class="no-highlight">1323</i>&nbsp;                    break;</b>
+<i class="no-highlight">1324</i>&nbsp;                case LONG_CUSTOM_FIELD_REF:
+<b class="nc"><i class="no-highlight">1325</i>&nbsp;                    sb.type(SnapType.INTEGER);</b>
+<b class="nc"><i class="no-highlight">1326</i>&nbsp;                    break;</b>
+<i class="no-highlight">1327</i>&nbsp;                case STRING_CUSTOM_FIELD_REF:
+<b class="nc"><i class="no-highlight">1328</i>&nbsp;                    sb.type(SnapType.STRING);</b>
+<b class="nc"><i class="no-highlight">1329</i>&nbsp;                    break;</b>
+<i class="no-highlight">1330</i>&nbsp;                case SELECT_CUSTOM_FIELD_REF:
+<i class="no-highlight">1331</i>&nbsp;                    // use ListOrRecordRef schema
+<b class="nc"><i class="no-highlight">1332</i>&nbsp;                    buildListOrRecordRefSchema(sb);</b>
+<b class="nc"><i class="no-highlight">1333</i>&nbsp;                    break;</b>
+<i class="no-highlight">1334</i>&nbsp;                case MULTI_SELECT_CUSTOM_FIELD_REF: {
+<i class="no-highlight">1335</i>&nbsp;                    // array (TABLE) of ListOrRecordRef
+<b class="nc"><i class="no-highlight">1336</i>&nbsp;                    Schema elemSchema = buildListOrRecordRefSchema(sb).create();</b>
+<b class="nc"><i class="no-highlight">1337</i>&nbsp;                    sb.type(SnapType.TABLE).withChildSchema(elemSchema);</b>
+<b class="nc"><i class="no-highlight">1338</i>&nbsp;                    break;</b>
+<i class="no-highlight">1339</i>&nbsp;                }
+<i class="no-highlight">1340</i>&nbsp;                default: {
+<b class="nc"><i class="no-highlight">1341</i>&nbsp;                    LOGGER.warn(&quot;unhandled custom field value type: {}&quot;, valueType);</b>
+<i class="no-highlight">1342</i>&nbsp;                    break;
+<i class="no-highlight">1343</i>&nbsp;                }
+<i class="no-highlight">1344</i>&nbsp;            }
+<i class="no-highlight">1345</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1346</i>&nbsp;        sb.name(customFieldDef.getName());</b>
+<b class="nc"><i class="no-highlight">1347</i>&nbsp;        return sb.create();</b>
+<i class="no-highlight">1348</i>&nbsp;    }
+<i class="no-highlight">1349</i>&nbsp;
+<i class="no-highlight">1350</i>&nbsp;    private SchemaBuilder buildListOrRecordRefSchema(SchemaBuilder sb) {
+<b class="nc"><i class="no-highlight">1351</i>&nbsp;        ObjectSchema name = sb.name(NAME).type(SnapType.STRING).create();</b>
+<b class="nc"><i class="no-highlight">1352</i>&nbsp;        ObjectSchema internalId = sb.name(INTERNAL_ID).type(SnapType.STRING).create();</b>
+<b class="nc"><i class="no-highlight">1353</i>&nbsp;        ObjectSchema externalId = sb.name(EXTERNAL_ID).type(SnapType.STRING).create();</b>
+<b class="nc"><i class="no-highlight">1354</i>&nbsp;        ObjectSchema typeId = sb.name(TYPE_ID).type(SnapType.STRING).create();</b>
+<b class="nc"><i class="no-highlight">1355</i>&nbsp;        return sb.type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">1356</i>&nbsp;                .withChildSchema(name)</b>
+<b class="nc"><i class="no-highlight">1357</i>&nbsp;                .withChildSchema(internalId)</b>
+<b class="nc"><i class="no-highlight">1358</i>&nbsp;                .withChildSchema(externalId)</b>
+<b class="nc"><i class="no-highlight">1359</i>&nbsp;                .withChildSchema(typeId);</b>
+<i class="no-highlight">1360</i>&nbsp;    }
+<i class="no-highlight">1361</i>&nbsp;
+<i class="no-highlight">1362</i>&nbsp;    private Schema buildOperatorSchema(SchemaBuilder sb, String valueType) {
+<b class="nc"><i class="no-highlight">1363</i>&nbsp;        return sb.name(&quot;operator&quot;)</b>
+<b class="nc"><i class="no-highlight">1364</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">1365</i>&nbsp;                .allowedValues(allowedValuesHelper.getAllowedValuesForOperator(valueType))</b>
+<b class="nc"><i class="no-highlight">1366</i>&nbsp;                .create();</b>
+<i class="no-highlight">1367</i>&nbsp;    }
+<i class="no-highlight">1368</i>&nbsp;
+<i class="no-highlight">1369</i>&nbsp;
+<i class="no-highlight">1370</i>&nbsp;
+<i class="no-highlight">1371</i>&nbsp;    void mergeCustomFieldsFromDocument(Map&lt;String, Object&gt; valuesMap,
+<i class="no-highlight">1372</i>&nbsp;                                       String objectName,
+<i class="no-highlight">1373</i>&nbsp;                                       String customRecordTypeId,
+<i class="no-highlight">1374</i>&nbsp;                                       NetSuiteBaseAccount account,
+<i class="no-highlight">1375</i>&nbsp;                                       OperationType operationType) {
+<b class="nc"><i class="no-highlight">1376</i>&nbsp;        checkNotNull(objectName, &quot;objectName&quot;);</b>
+<b class="nc"><i class="no-highlight">1377</i>&nbsp;        if (customRecordTypeId != null) {</b>
+<b class="nc"><i class="no-highlight">1378</i>&nbsp;            Map&lt;String, Object&gt; customFieldsData = getCustomFieldsDataUnderNode(valuesMap);</b>
+<b class="nc"><i class="no-highlight">1379</i>&nbsp;            if (customFieldsData != null) {</b>
+<b class="nc"><i class="no-highlight">1380</i>&nbsp;                List&lt;CustomFieldDef&gt; customFieldDefs =</b>
+<b class="nc"><i class="no-highlight">1381</i>&nbsp;                        getCustomRecordFieldDefs(customRecordTypeId, account);</b>
+<b class="nc"><i class="no-highlight">1382</i>&nbsp;                List&lt;Pair&lt;Object, CustomFieldDef&gt;&gt; pairs =</b>
+<b class="nc"><i class="no-highlight">1383</i>&nbsp;                        pairCustomFieldDataWithDefs(customFieldsData, customFieldDefs);</b>
+<b class="nc"><i class="no-highlight">1384</i>&nbsp;                mergeCustomFieldsUnderNode(valuesMap, operationType, pairs);</b>
+<i class="no-highlight">1385</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1386</i>&nbsp;        }</b>
+<i class="no-highlight">1387</i>&nbsp;        else {
+<b class="nc"><i class="no-highlight">1388</i>&nbsp;            Type objectType = Type.forName(objectName);</b>
+<i class="no-highlight">1389</i>&nbsp;
+<b class="nc"><i class="no-highlight">1390</i>&nbsp;            String customFieldType = TYPE_TO_CUSTOM_FIELD_TYPE.get(objectType);</b>
+<b class="nc"><i class="no-highlight">1391</i>&nbsp;            if (customFieldType == null) {</b>
+<i class="no-highlight">1392</i>&nbsp;                return;
+<i class="no-highlight">1393</i>&nbsp;            }
+<i class="no-highlight">1394</i>&nbsp;
+<b class="nc"><i class="no-highlight">1395</i>&nbsp;            Map&lt;String, Object&gt; customFieldsData = getCustomFieldsDataUnderNode(valuesMap);</b>
+<b class="nc"><i class="no-highlight">1396</i>&nbsp;            if (customFieldsData != null) {</b>
+<b class="nc"><i class="no-highlight">1397</i>&nbsp;                List&lt;CustomFieldDef&gt; customFieldDefs =</b>
+<b class="nc"><i class="no-highlight">1398</i>&nbsp;                        getNeededCustomFieldDefs(customFieldsData.keySet(), customFieldType, account);</b>
+<b class="nc"><i class="no-highlight">1399</i>&nbsp;                List&lt;Pair&lt;Object, CustomFieldDef&gt;&gt; pairs =</b>
+<b class="nc"><i class="no-highlight">1400</i>&nbsp;                        pairCustomFieldDataWithDefs(customFieldsData, customFieldDefs);</b>
+<b class="nc"><i class="no-highlight">1401</i>&nbsp;                mergeCustomFieldsUnderNode(valuesMap, operationType, pairs);</b>
+<i class="no-highlight">1402</i>&nbsp;            }
+<i class="no-highlight">1403</i>&nbsp;
+<i class="no-highlight">1404</i>&nbsp;            // If doing a Create/Update/Upsert, add custom fields of sublist types.
+<i class="no-highlight">1405</i>&nbsp;            // These are N/A for Search.
+<b class="nc"><i class="no-highlight">1406</i>&nbsp;            if (operationType != OperationType.SEARCH) {</b>
+<i class="no-highlight">1407</i>&nbsp;
+<i class="no-highlight">1408</i>&nbsp;                // Deal with applicable Transaction Column custom fields.
+<b class="nc"><i class="no-highlight">1409</i>&nbsp;                List&lt;Sublist&gt; tcolSublists = TYPE_TO_TCOL_SUBLISTS.get(objectType);</b>
+<i class="no-highlight">1410</i>&nbsp;                // note that get() on a Multimap returns empty when the given key is not mapped
+<b class="nc"><i class="no-highlight">1411</i>&nbsp;                for (Sublist sublist : tcolSublists) {</b>
+<b class="nc"><i class="no-highlight">1412</i>&nbsp;                    mergeCustomFieldsForSublist(valuesMap,</b>
+<i class="no-highlight">1413</i>&nbsp;                            sublist.sublistName, sublist.itemName, /*sublistElementChild*/null,
+<i class="no-highlight">1414</i>&nbsp;                            TCOL_CUSTOM_FIELD, account, operationType);
+<b class="nc"><i class="no-highlight">1415</i>&nbsp;                }</b>
+<i class="no-highlight">1416</i>&nbsp;
+<i class="no-highlight">1417</i>&nbsp;                // Starting with WSDL version 2014.2, each address of a Contact, Customer, etc,
+<i class="no-highlight">1418</i>&nbsp;                // can have custom fields.
+<i class="no-highlight">1419</i>&nbsp;                // These fields are of type &quot;otherCustomField&quot; with a record type of &quot;Address&quot;.
+<i class="no-highlight">1420</i>&nbsp;                // See &quot;Other Custom Fields&quot; in the NetSuite Help Center.
+<b class="nc"><i class="no-highlight">1421</i>&nbsp;                WsdlVersion wsdlVersion = account.getWsdlVersion();</b>
+<b class="nc"><i class="no-highlight">1422</i>&nbsp;                if (TYPES_WITH_ADDRESSES.contains(objectType) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">1423</i>&nbsp;                        wsdlVersion.compareTo(WsdlVersion.v2014_2) &gt;= 0) {</b>
+<b class="nc"><i class="no-highlight">1424</i>&nbsp;                    mergeCustomFieldsForSublist(valuesMap,</b>
+<i class="no-highlight">1425</i>&nbsp;                            ADDRESSBOOK_LIST, ADDRESSBOOK, ADDRESSBOOK_ADDRESS,
+<i class="no-highlight">1426</i>&nbsp;                            OTHER_CUSTOM_FIELD, account, operationType);
+<i class="no-highlight">1427</i>&nbsp;                }
+<i class="no-highlight">1428</i>&nbsp;            }
+<i class="no-highlight">1429</i>&nbsp;        }
+<i class="no-highlight">1430</i>&nbsp;    }
+<i class="no-highlight">1431</i>&nbsp;
+<i class="no-highlight">1432</i>&nbsp;    private void mergeCustomFieldsForSublist(Map&lt;String, Object&gt; valuesMap,
+<i class="no-highlight">1433</i>&nbsp;                                             String sublistContainer,
+<i class="no-highlight">1434</i>&nbsp;                                             String sublistArray,
+<i class="no-highlight">1435</i>&nbsp;                                             String sublistElementChild,
+<i class="no-highlight">1436</i>&nbsp;                                             String customFieldType,
+<i class="no-highlight">1437</i>&nbsp;                                             NetSuiteBaseAccount account,
+<i class="no-highlight">1438</i>&nbsp;                                             OperationType operationType) {
+<i class="no-highlight">1439</i>&nbsp;        // Loop through each element of the sublist (if present) and look for customFields to merge.
+<i class="no-highlight">1440</i>&nbsp;
+<i class="no-highlight">1441</i>&nbsp;        // sublistContainer is the name of Map containing the sublist, such as &quot;itemList&quot;
+<b class="nc"><i class="no-highlight">1442</i>&nbsp;        Object sublistContainerObj = valuesMap.get(sublistContainer);</b>
+<b class="nc"><i class="no-highlight">1443</i>&nbsp;        if (sublistContainerObj == null) {</b>
+<i class="no-highlight">1444</i>&nbsp;            // no sublist present
+<i class="no-highlight">1445</i>&nbsp;            return;
+<i class="no-highlight">1446</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1447</i>&nbsp;        if (!(sublistContainerObj instanceof Map)) {</b>
+<b class="nc"><i class="no-highlight">1448</i>&nbsp;            throw new SnapDataException(&quot;expected a sublist container Map at %s: value=%s&quot;)</b>
+<b class="nc"><i class="no-highlight">1449</i>&nbsp;                    .formatWith(sublistContainer, sublistContainerObj);</b>
+<i class="no-highlight">1450</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1451</i>&nbsp;        Map&lt;String, Object&gt; sublistContainerMap = (Map&lt;String, Object&gt;) sublistContainerObj;</b>
+<i class="no-highlight">1452</i>&nbsp;
+<i class="no-highlight">1453</i>&nbsp;        // sublistArray is the name of the array List, such as &quot;item&quot;
+<b class="nc"><i class="no-highlight">1454</i>&nbsp;        Object sublistArrayObj = sublistContainerMap.get(sublistArray);</b>
+<b class="nc"><i class="no-highlight">1455</i>&nbsp;        if (sublistArrayObj == null) {</b>
+<i class="no-highlight">1456</i>&nbsp;            // no sublist present
+<i class="no-highlight">1457</i>&nbsp;            return;
+<i class="no-highlight">1458</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1459</i>&nbsp;        if (!(sublistArrayObj instanceof List)) {</b>
+<b class="nc"><i class="no-highlight">1460</i>&nbsp;            throw new SnapDataException(&quot;expected a sublist array List at %s: value=%s&quot;)</b>
+<b class="nc"><i class="no-highlight">1461</i>&nbsp;                    .formatWith(sublistArray, sublistArrayObj);</b>
+<i class="no-highlight">1462</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1463</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; sublist = (List&lt;Map&lt;String, Object&gt;&gt;) sublistArrayObj;</b>
+<i class="no-highlight">1464</i>&nbsp;
+<b class="nc"><i class="no-highlight">1465</i>&nbsp;        for (Map&lt;String, Object&gt; sublistEl : sublist) {</b>
+<b class="nc"><i class="no-highlight">1466</i>&nbsp;            Map&lt;String, Object&gt; node = sublistEl;</b>
+<b class="nc"><i class="no-highlight">1467</i>&nbsp;            if (sublistElementChild != null) {</b>
+<i class="no-highlight">1468</i>&nbsp;                // target node is the child of sublistEl named sublistElementChild;
+<i class="no-highlight">1469</i>&nbsp;                // currently, this is only used for addresses: &quot;addressbookAddress&quot;
+<b class="nc"><i class="no-highlight">1470</i>&nbsp;                Object sublistElementChildObj = sublistEl.get(sublistElementChild);</b>
+<b class="nc"><i class="no-highlight">1471</i>&nbsp;                if (sublistElementChildObj == null) {</b>
+<b class="nc"><i class="no-highlight">1472</i>&nbsp;                    continue;</b>
+<i class="no-highlight">1473</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1474</i>&nbsp;                if (!(sublistElementChildObj instanceof Map)) {</b>
+<b class="nc"><i class="no-highlight">1475</i>&nbsp;                    throw new SnapDataException(&quot;expected a sublist element child object Map at %s: value=%s&quot;)</b>
+<b class="nc"><i class="no-highlight">1476</i>&nbsp;                            .formatWith(sublistElementChild, sublistElementChildObj);</b>
+<i class="no-highlight">1477</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1478</i>&nbsp;                node = (Map&lt;String, Object&gt;) sublistElementChildObj;</b>
+<i class="no-highlight">1479</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1480</i>&nbsp;            Map&lt;String, Object&gt; customFieldsData = getCustomFieldsDataUnderNode(node);</b>
+<b class="nc"><i class="no-highlight">1481</i>&nbsp;            if (customFieldsData != null) {</b>
+<b class="nc"><i class="no-highlight">1482</i>&nbsp;                List&lt;CustomFieldDef&gt; customFieldDefs =</b>
+<b class="nc"><i class="no-highlight">1483</i>&nbsp;                        getNeededCustomFieldDefs(customFieldsData.keySet(), customFieldType, account);</b>
+<b class="nc"><i class="no-highlight">1484</i>&nbsp;                List&lt;Pair&lt;Object, CustomFieldDef&gt;&gt; pairs =</b>
+<b class="nc"><i class="no-highlight">1485</i>&nbsp;                        pairCustomFieldDataWithDefs(customFieldsData, customFieldDefs);</b>
+<b class="nc"><i class="no-highlight">1486</i>&nbsp;                mergeCustomFieldsUnderNode(node, operationType, pairs);</b>
+<i class="no-highlight">1487</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1488</i>&nbsp;        }</b>
+<i class="no-highlight">1489</i>&nbsp;    }
+<i class="no-highlight">1490</i>&nbsp;
+<i class="no-highlight">1491</i>&nbsp;
+<i class="no-highlight">1492</i>&nbsp;
+<i class="no-highlight">1493</i>&nbsp;    private Map&lt;String, Object&gt; getCustomFieldsDataUnderNode(Map&lt;String, Object&gt; node) {
+<b class="nc"><i class="no-highlight">1494</i>&nbsp;        Map&lt;String, Object&gt; customFieldsData = (Map&lt;String, Object&gt;) node.get(CUSTOM_FIELDS);</b>
+<b class="nc"><i class="no-highlight">1495</i>&nbsp;        if (customFieldsData != null &amp;&amp; customFieldsData.size() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">1496</i>&nbsp;            return customFieldsData;</b>
+<i class="no-highlight">1497</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1498</i>&nbsp;            return null;</b>
+<i class="no-highlight">1499</i>&nbsp;        }
+<i class="no-highlight">1500</i>&nbsp;    }
+<i class="no-highlight">1501</i>&nbsp;
+<i class="no-highlight">1502</i>&nbsp;    private void mergeCustomFieldsUnderNode(Map&lt;String, Object&gt; node,
+<i class="no-highlight">1503</i>&nbsp;                                            OperationType operationType,
+<i class="no-highlight">1504</i>&nbsp;                                            List&lt;Pair&lt;Object, CustomFieldDef&gt;&gt; pairs) {
+<b class="nc"><i class="no-highlight">1505</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; customFieldList =</b>
+<b class="nc"><i class="no-highlight">1506</i>&nbsp;                jsonPathUtil.nullableRead(CUSTOM_VALUES_PATH, node);</b>
+<b class="nc"><i class="no-highlight">1507</i>&nbsp;        if (customFieldList == null) {</b>
+<b class="nc"><i class="no-highlight">1508</i>&nbsp;            customFieldList = new ArrayList&lt;&gt;(pairs.size());</b>
+<b class="nc"><i class="no-highlight">1509</i>&nbsp;            jsonPathUtil.write(node, CUSTOM_VALUES_PATH, customFieldList);</b>
+<i class="no-highlight">1510</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1511</i>&nbsp;        for (Pair&lt;Object, CustomFieldDef&gt; pair : pairs) {</b>
+<b class="nc"><i class="no-highlight">1512</i>&nbsp;            Object value = pair.getLeft();</b>
+<b class="nc"><i class="no-highlight">1513</i>&nbsp;            CustomFieldDef customFieldDef = pair.getRight();</b>
+<i class="no-highlight">1514</i>&nbsp;
+<i class="no-highlight">1515</i>&nbsp;            // detect conflicts with other data already mapped under customFieldValues
+<b class="nc"><i class="no-highlight">1516</i>&nbsp;            for (Map&lt;String, Object&gt; fieldData : customFieldList) {</b>
+<b class="nc"><i class="no-highlight">1517</i>&nbsp;                if (customFieldDef.getInternalId().equals(fieldData.get(INTERNAL_ID))) {</b>
+<b class="nc"><i class="no-highlight">1518</i>&nbsp;                    throw new SnapDataException(CUSTOM_FIELD_CONFLICT)</b>
+<b class="nc"><i class="no-highlight">1519</i>&nbsp;                            .formatWith(customFieldDef.getScriptId(), customFieldDef.getName())</b>
+<b class="nc"><i class="no-highlight">1520</i>&nbsp;                            .withReason(CUSTOM_FIELDS_TABLE_DEPRECATED)</b>
+<b class="nc"><i class="no-highlight">1521</i>&nbsp;                            .withResolution(CUSTOM_FIELDS_TABLE_RES);</b>
+<i class="no-highlight">1522</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1523</i>&nbsp;            }</b>
+<i class="no-highlight">1524</i>&nbsp;
+<i class="no-highlight">1525</i>&nbsp;            // add a new Map representing this custom field to customFieldList
+<b class="nc"><i class="no-highlight">1526</i>&nbsp;            Map&lt;String, Object&gt; fieldMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">1527</i>&nbsp;            fieldMap.put(SCRIPT_ID, customFieldDef.getScriptId());</b>
+<b class="nc"><i class="no-highlight">1528</i>&nbsp;            fieldMap.put(INTERNAL_ID, customFieldDef.getInternalId());</b>
+<b class="nc"><i class="no-highlight">1529</i>&nbsp;            fieldMap.put(TYPE, getValueType(customFieldDef, operationType));</b>
+<b class="nc"><i class="no-highlight">1530</i>&nbsp;            if (operationType != OperationType.SEARCH) {</b>
+<b class="nc"><i class="no-highlight">1531</i>&nbsp;                fieldMap.put(VALUE, value);</b>
+<i class="no-highlight">1532</i>&nbsp;            } else {
+<i class="no-highlight">1533</i>&nbsp;                // value should be a Map of the criteria under the custom field name,
+<i class="no-highlight">1534</i>&nbsp;                // with keys such as &quot;searchValue&quot;, &quot;operator&quot;, depending on field type
+<b class="nc"><i class="no-highlight">1535</i>&nbsp;                if (!(value instanceof Map)) {</b>
+<b class="nc"><i class="no-highlight">1536</i>&nbsp;                    throw new SnapDataException(INCORRECTLY_MAPPED_MSG)</b>
+<b class="nc"><i class="no-highlight">1537</i>&nbsp;                            .formatWith(customFieldDef.getName(), value)</b>
+<b class="nc"><i class="no-highlight">1538</i>&nbsp;                            .withReason(INCORRECTLY_MAPPED_RSN)</b>
+<b class="nc"><i class="no-highlight">1539</i>&nbsp;                            .withResolution(INCORRECTLY_MAPPED_RES);</b>
+<i class="no-highlight">1540</i>&nbsp;                }
+<i class="no-highlight">1541</i>&nbsp;                // merge the value map into the fieldMap
+<b class="nc"><i class="no-highlight">1542</i>&nbsp;                fieldMap.putAll((Map&lt;String, Object&gt;) value);</b>
+<i class="no-highlight">1543</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1544</i>&nbsp;            customFieldList.add(fieldMap);</b>
+<b class="nc"><i class="no-highlight">1545</i>&nbsp;        }</b>
+<i class="no-highlight">1546</i>&nbsp;    }
+<i class="no-highlight">1547</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

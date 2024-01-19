@@ -1,0 +1,274 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > TwitterQueryResultIterator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.twitter.util</a>
+</div>
+
+<h1>Coverage Summary for Class: TwitterQueryResultIterator (com.snaplogic.snaps.twitter.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TwitterQueryResultIterator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/65)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2012, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.twitter.util;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import org.springframework.social.twitter.api.SearchResults;
+<i class="no-highlight">19</i>&nbsp;import org.springframework.social.twitter.api.Tweet;
+<i class="no-highlight">20</i>&nbsp;import org.springframework.social.twitter.api.impl.SearchParameters;
+<i class="no-highlight">21</i>&nbsp;import org.springframework.social.twitter.api.impl.SearchParameters.ResultType;
+<i class="no-highlight">22</i>&nbsp;import org.springframework.social.twitter.api.impl.TwitterTemplate;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import java.util.Date;
+<i class="no-highlight">25</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">26</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">27</i>&nbsp;import java.util.List;
+<i class="no-highlight">28</i>&nbsp;import java.util.Map;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import static com.snaplogic.snaps.twitter.util.Messages.ERROR;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snaps.twitter.util.Messages.ERR_RATE_LIMIT;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.twitter.util.Messages.ERR_REMOVE;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.twitter.util.Messages.REASON_RATE_LIMIT;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.twitter.util.Messages.RESOLUTION_RATE_LIMIT;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.twitter.util.Messages.TWITTER_SEARCH_FAILED;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.twitter.util.Messages.TWITTER_SEARCH_FAILED_REASON;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.twitter.util.Messages.TWITTER_SEARCH_FAILED_RESOLUTION;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;/**
+<i class="no-highlight">40</i>&nbsp; * Iterates through twitter query results
+<i class="no-highlight">41</i>&nbsp; *
+<i class="no-highlight">42</i>&nbsp; * @author jinloes
+<i class="no-highlight">43</i>&nbsp; */
+<i class="no-highlight">44</i>&nbsp;public class TwitterQueryResultIterator implements Iterator&lt;List&lt;Tweet&gt;&gt; {
+<i class="no-highlight">45</i>&nbsp;    private static final String MSG_RATE_LIMIT = &quot;No matching constant for [429]&quot;;
+<i class="no-highlight">46</i>&nbsp;    private static final String RECENT_STRING = &quot;RECENT&quot;;
+<i class="no-highlight">47</i>&nbsp;    private static final String MIXED_STRING = &quot;MIXED&quot;;
+<i class="no-highlight">48</i>&nbsp;    private static final String POPULAR_STRING = &quot;POPULAR&quot;;
+<b class="nc"><i class="no-highlight">49</i>&nbsp;    private int tweetsPerPage = 100;</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;    private int tweetsRead = 0;</b>
+<i class="no-highlight">51</i>&nbsp;    private SearchParameters params;
+<i class="no-highlight">52</i>&nbsp;    private TwitterTemplate template;
+<i class="no-highlight">53</i>&nbsp;    private int maxNumTweets;
+<b class="nc"><i class="no-highlight">54</i>&nbsp;    private boolean lastPage = false;</b>
+<i class="no-highlight">55</i>&nbsp;    private final Document document;
+<i class="no-highlight">56</i>&nbsp;    private final DocumentUtility documentUtility;
+<i class="no-highlight">57</i>&nbsp;    private final ErrorViews errorViews;
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;    public TwitterQueryResultIterator(String queryStr, int maxNumTweets, Date untilDate,
+<i class="no-highlight">60</i>&nbsp;            TwitterTemplate template, final Document document, DocumentUtility documentUtility,
+<b class="nc"><i class="no-highlight">61</i>&nbsp;            ErrorViews errorViews, Long maxId, Long sinceId, String resultTypeStr) {</b>
+<i class="no-highlight">62</i>&nbsp;        ResultType resultType;
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        this.template = template;</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        this.maxNumTweets = maxNumTweets;</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        this.document = document;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        this.documentUtility = documentUtility;</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        this.errorViews = errorViews;</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        if (tweetsPerPage &gt; maxNumTweets) {</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;            tweetsPerPage = maxNumTweets;</b>
+<i class="no-highlight">70</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        switch (resultTypeStr) {</b>
+<i class="no-highlight">72</i>&nbsp;            case RECENT_STRING:
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                resultType = ResultType.RECENT;</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                break;</b>
+<i class="no-highlight">75</i>&nbsp;            case MIXED_STRING:
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                resultType = ResultType.MIXED;</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                break;</b>
+<i class="no-highlight">78</i>&nbsp;            case POPULAR_STRING:
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                resultType = ResultType.POPULAR;</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                break;</b>
+<i class="no-highlight">81</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                resultType = ResultType.RECENT;</b>
+<i class="no-highlight">83</i>&nbsp;                break;
+<i class="no-highlight">84</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        params = new SearchParameters(queryStr)</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                .count(tweetsPerPage)</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                .resultType(resultType)</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                .maxId(maxId)</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                .sinceId(sinceId);</b>
+<i class="no-highlight">90</i>&nbsp;
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        if (untilDate != null) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            params.until(untilDate);</b>
+<i class="no-highlight">93</i>&nbsp;        }
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    public void setMaxId(long maxId) {
+<i class="no-highlight">97</i>&nbsp;        // This is the max_id that is calculated from the tweets
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        params.maxId(maxId - 1);</b>
+<i class="no-highlight">99</i>&nbsp;    }
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;    public void setTweetsRead(int tweetsRead) {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        this.tweetsRead = tweetsRead;</b>
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    public void setTweetsPerPage(int tweetsPerPage) {
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        this.tweetsPerPage = tweetsPerPage;</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        params.count(tweetsPerPage);</b>
+<i class="no-highlight">108</i>&nbsp;    }
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    @Override
+<i class="no-highlight">111</i>&nbsp;    public boolean hasNext() {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        return !lastPage;</b>
+<i class="no-highlight">113</i>&nbsp;    }
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;    @Override
+<i class="no-highlight">116</i>&nbsp;    public List&lt;Tweet&gt; next() {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        int tweetsLeft = maxNumTweets - tweetsRead;</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        if (tweetsLeft &lt; tweetsPerPage) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            params.count(tweetsLeft);</b>
+<i class="no-highlight">120</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        SearchResults lastResults = search(params);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        if (lastResults != null) {</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;            List&lt;Tweet&gt; tweets = lastResults.getTweets();</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            if (tweetsRead &gt;= maxNumTweets || tweets.size() == 0) {</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                lastPage = true;</b>
+<i class="no-highlight">126</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            return tweets;</b>
+<i class="no-highlight">128</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;            lastPage = true;</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            return null;</b>
+<i class="no-highlight">131</i>&nbsp;        }
+<i class="no-highlight">132</i>&nbsp;    }
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    public SearchResults search(SearchParameters params) {
+<i class="no-highlight">135</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            return template.searchOperations().search(params);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        } catch (IllegalArgumentException ex) {</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            Map&lt;String, Object&gt; error = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            if (ex.getLocalizedMessage() != null</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                    &amp;&amp; ex.getLocalizedMessage().trim().equals(MSG_RATE_LIMIT)) {</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                error.put(ERROR, ERR_RATE_LIMIT);</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                SnapDataException snapEx = new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                        documentUtility.newDocumentFor(document, error),</b>
+<i class="no-highlight">144</i>&nbsp;                        REASON_RATE_LIMIT)
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                        .withReason(REASON_RATE_LIMIT)</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                        .withResolution(RESOLUTION_RATE_LIMIT);</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                errorViews.write(snapEx);</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                return null;</b>
+<i class="no-highlight">149</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                error.put(ERROR, TWITTER_SEARCH_FAILED);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                SnapDataException snapEx = new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                        documentUtility.newDocumentFor(document, error),</b>
+<i class="no-highlight">153</i>&nbsp;                        TWITTER_SEARCH_FAILED_REASON)
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                        .formatWith(params.getQuery(), ex.getMessage())</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                        .withReason(String.format(TWITTER_SEARCH_FAILED_REASON, params.getQuery(),</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                                ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                        .withResolution(TWITTER_SEARCH_FAILED_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                errorViews.write(snapEx);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                return null;</b>
+<i class="no-highlight">160</i>&nbsp;            }
+<i class="no-highlight">161</i>&nbsp;        }
+<i class="no-highlight">162</i>&nbsp;    }
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;    @Override
+<i class="no-highlight">165</i>&nbsp;    public void remove() {
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        throw new UnsupportedOperationException(String.format(ERR_REMOVE, getClass()</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                .getSimpleName()));</b>
+<i class="no-highlight">168</i>&nbsp;    }
+<i class="no-highlight">169</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

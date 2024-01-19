@@ -1,0 +1,244 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Update</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.dynamodb</a>
+</div>
+
+<h1>Coverage Summary for Class: Update (com.snaplogic.snaps.dynamodb)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Update</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015 - 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.dynamodb;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.AmazonClientException;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.Item;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.ReturnValue;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">35</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">38</i>&nbsp;import java.util.Map;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.ITEM_ATTRIBUTES_PATH;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.KEY;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.ERROR_UPDATE;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.INPUT_DATA_IS_MISSING_TO_UPDATE_ENTITY;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.RESOLUTION_VERIFY_INPUT_DATA;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.UPDATE_SNAP_PURPOSE;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.UPDATE_SNAP_TITLE;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;/**
+<i class="no-highlight">50</i>&nbsp; * This class is a write snap that updates data in AWS DynamoDB
+<i class="no-highlight">51</i>&nbsp; *
+<i class="no-highlight">52</i>&nbsp; * @author kgade
+<i class="no-highlight">53</i>&nbsp; */
+<i class="no-highlight">54</i>&nbsp;@General(title = UPDATE_SNAP_TITLE, purpose = UPDATE_SNAP_PURPOSE)
+<i class="no-highlight">55</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">56</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">57</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">58</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<b class="nc"><i class="no-highlight">59</i>&nbsp;public class Update extends DynamoDBCommon implements InputSchemaProvider {</b>
+<i class="no-highlight">60</i>&nbsp;    private Map&lt;String, Object&gt; keyMap;
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;    @Override
+<i class="no-highlight">63</i>&nbsp;    public void definePropertiesInOrder(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        defineTableNameProperty(propertyBuilder, false);</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        defineUpdateExpressionProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        defineConditionalExpressionProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        defineExpressionAttributeValuesProperty(propertyBuilder);</b>
+<i class="no-highlight">68</i>&nbsp;    }
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;    @Override
+<i class="no-highlight">71</i>&nbsp;    protected void configureAdditional(PropertyValues propertyValues)
+<i class="no-highlight">72</i>&nbsp;            throws ConfigurationException {
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        readTableNameProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        readUpdateExpressionProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        readConditionalExpressionProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        readExpressionAttributeValuesProperty(propertyValues);</b>
+<i class="no-highlight">77</i>&nbsp;    }
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;    @Override
+<i class="no-highlight">80</i>&nbsp;    public void defineInputSchema(final SchemaProvider schemaProvider) {
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        defineInputSchemaDefault(schemaProvider);</b>
+<i class="no-highlight">82</i>&nbsp;    }
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;    @Override
+<i class="no-highlight">85</i>&nbsp;    public void processDocument(Document document) {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        Map&lt;String, Object&gt; docMap = getDocumentContentAsMap(document);</b>
+<i class="no-highlight">87</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            UpdateItemSpec updateSpec = getUpdateItemSpec(docMap);</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            UpdateItemOutcome updateItemOutcome = doUpdate(updateSpec);</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            Map&lt;String, Object&gt; outputMap = formatItem(updateItemOutcome);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            outputViews.write(documentUtility.newDocument(outputMap), document);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        } catch (AmazonClientException e) {</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            SnapDataException sde = new SnapDataException(e, ERROR_UPDATE)</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;            errorViews.write(sde, document);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        } catch (IllegalArgumentException e) {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            SnapDataException sde = new SnapDataException(e, ERROR_UPDATE)</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                    .withResolution(RESOLUTION_VERIFY_INPUT_DATA);</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            errorViews.write(sde, document);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        }</b>
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    private UpdateItemOutcome doUpdate(UpdateItemSpec updateSpec) {
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        return dynamoDB.getTable(tableName).updateItem(updateSpec);</b>
+<i class="no-highlight">107</i>&nbsp;    }
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;    private Map&lt;String, Object&gt; formatItem(UpdateItemOutcome updateItemOutcome) {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        Map&lt;String, Object&gt; outputMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        Item item = updateItemOutcome.getItem();</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        ITEM_ATTRIBUTES_PATH.writeStatic(outputMap, DynamoDBConverter.toLowLevelMap(item));</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        return outputMap;</b>
+<i class="no-highlight">114</i>&nbsp;    }
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;    private UpdateItemSpec getUpdateItemSpec(Map docMap) {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        UpdateItemSpec updateItemSpec = new UpdateItemSpec();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        keyMap = (Map&lt;String, Object&gt;) docMap.get(KEY);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        if (keyMap == null) {</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            throw new IllegalArgumentException(INPUT_DATA_IS_MISSING_TO_UPDATE_ENTITY);</b>
+<i class="no-highlight">121</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        updateItemSpec.withPrimaryKey(getPrimaryKey(keyMap));</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        if (StringUtils.isNotBlank(updateExpr)) {</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            updateItemSpec.withUpdateExpression(updateExpr);</b>
+<i class="no-highlight">125</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        if (StringUtils.isNotBlank(conditionalExpr)) {</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            updateItemSpec.withConditionExpression(conditionalExpr);</b>
+<i class="no-highlight">128</i>&nbsp;        }
+<i class="no-highlight">129</i>&nbsp;        // prepare request map for ExpressionAttributeNames
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        if (MapUtils.isNotEmpty(nameMap)) {</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            updateItemSpec.withNameMap(nameMap);</b>
+<i class="no-highlight">132</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        if (MapUtils.isNotEmpty(valueMap)) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            updateItemSpec.withValueMap(valueMap);</b>
+<i class="no-highlight">135</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        updateItemSpec.withReturnValues(ReturnValue.ALL_NEW);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        return updateItemSpec;</b>
+<i class="no-highlight">138</i>&nbsp;    }
+<i class="no-highlight">139</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

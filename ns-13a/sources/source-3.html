@@ -1,0 +1,876 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkRead</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.bulk</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkRead (com.snaplogic.snaps.salesforce.bulk)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkRead</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/353)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.bulk;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.xml.XmlUtils;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.BatchInfo;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.JobInfo;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.ResultList;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options.ContentType;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options.SnapName;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options.State;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snaps.salesforce.common.SnapContext;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snaps.salesforce.request.BulkReadRequest;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snaps.salesforce.request.HttpRequestHandler;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snaps.salesforce.response.BulkReadResponse;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snaps.salesforce.response.BulkResponseIterator;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snaps.salesforce.response.PKChunkingDownload;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">40</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">41</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">42</i>&nbsp;import org.apache.http.client.methods.HttpGet;
+<i class="no-highlight">43</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">44</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">47</i>&nbsp;import java.io.StringReader;
+<i class="no-highlight">48</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">49</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">50</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">51</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">52</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">53</i>&nbsp;import java.util.List;
+<i class="no-highlight">54</i>&nbsp;import java.util.Map;
+<i class="no-highlight">55</i>&nbsp;import java.util.Set;
+<i class="no-highlight">56</i>&nbsp;import java.util.concurrent.ExecutionException;
+<i class="no-highlight">57</i>&nbsp;import java.util.concurrent.ExecutorService;
+<i class="no-highlight">58</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">59</i>&nbsp;import java.util.concurrent.Future;
+<i class="no-highlight">60</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">61</i>&nbsp;import java.util.concurrent.TimeoutException;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;import javax.xml.transform.Source;
+<i class="no-highlight">64</i>&nbsp;import javax.xml.transform.stream.StreamSource;
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.salesforce.SFReadCommon.NUMBER_OF_THREADS_IN_PK_CHUNKING;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.salesforce.SFReadCommon.ORDER_BY_ID;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.salesforce.SFReadCommon.USE_TEMP_FILES_IN_PK_CHUNKING;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceCommon.MAP_OBJECT_REF;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceCommon.OBJECT_MAPPER;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceCommon.sleep;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.salesforce.bulk.Messages.*;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.salesforce.bulk.output.Constants.ID;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.salesforce.bulk.output.Constants.STATE;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snaps.salesforce.bulk.output.Constants.STATE_MESSAGE;
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;/**
+<i class="no-highlight">78</i>&nbsp; * BulkRead is the main entry class for Salesforce Bulk API read and query snaps. Creates and
+<i class="no-highlight">79</i>&nbsp; * submits batch job, and retrieves response for Bulk API read and query operations.
+<i class="no-highlight">80</i>&nbsp; */
+<i class="no-highlight">81</i>&nbsp;public class BulkRead extends BulkReadRequest {
+<b class="nc"><i class="no-highlight">82</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(BulkRead.class);</b>
+<i class="no-highlight">83</i>&nbsp;    private static final String FORMAT_BATCH_URL = &quot;%s/%s/batch&quot;;
+<i class="no-highlight">84</i>&nbsp;    private static final String BATCHINFO = &quot;batchInfo&quot;;
+<i class="no-highlight">85</i>&nbsp;    private static final String JSON_PATH_BATCHINFO = &quot;batchInfoList.batchInfo&quot;;
+<i class="no-highlight">86</i>&nbsp;    public static final String COMPLETED = &quot;Completed&quot;;
+<i class="no-highlight">87</i>&nbsp;    public static final String FAILED = &quot;Failed&quot;;
+<i class="no-highlight">88</i>&nbsp;    public static final String IN_PROGRESS = &quot;InProgress&quot;;
+<i class="no-highlight">89</i>&nbsp;    private static final String QUEUED = &quot;Queued&quot;;
+<i class="no-highlight">90</i>&nbsp;    private static final String NOT_PROCESSED = &quot;NotProcessed&quot;;
+<i class="no-highlight">91</i>&nbsp;    private static final String NUMBER_RECORDS_PROCESSED = &quot;numberRecordsProcessed&quot;;
+<i class="no-highlight">92</i>&nbsp;    private static final int DEFAULT_MAX_THREADS = 8;
+<i class="no-highlight">93</i>&nbsp;    private static final String JOB_INFO = &quot;jobInfo&quot;;
+<i class="no-highlight">94</i>&nbsp;    private static final int EXECUTOR_SHUTDOWN_TIMEOUT = 60;
+<i class="no-highlight">95</i>&nbsp;    private String objectType;
+<i class="no-highlight">96</i>&nbsp;    private String serviceUrl;
+<i class="no-highlight">97</i>&nbsp;    private String jobId;
+<i class="no-highlight">98</i>&nbsp;    private String batchId;
+<i class="no-highlight">99</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">100</i>&nbsp;    protected ErrorViews errorViews;
+<i class="no-highlight">101</i>&nbsp;    private DocumentUtility documentUtility;
+<i class="no-highlight">102</i>&nbsp;    private BigInteger columnLimit;
+<i class="no-highlight">103</i>&nbsp;    private BigInteger columnOffset;
+<i class="no-highlight">104</i>&nbsp;    private long recordsProcessed;
+<i class="no-highlight">105</i>&nbsp;    private List&lt;Iterator&lt;Object&gt;&gt; iteratorList;
+<i class="no-highlight">106</i>&nbsp;    private List&lt;String&gt; jobIdList;
+<i class="no-highlight">107</i>&nbsp;    private ExecutorService executor;
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;    @Inject
+<i class="no-highlight">110</i>&nbsp;    public BulkRead(HttpRequestHandler httpRequestHandler) {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        super(httpRequestHandler);</b>
+<i class="no-highlight">112</i>&nbsp;    }
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    public BulkRead initialize(Options options, Login login, XmlUtils xmlUtils,
+<i class="no-highlight">115</i>&nbsp;            BigInteger columnLimit, BigInteger columnOffset) {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        super.initialize(options, login, xmlUtils);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        objectType = options.getObjectType();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        serviceUrl = options.getServiceUrl();</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        this.columnLimit = columnLimit;</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        this.columnOffset = columnOffset;</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        return this;</b>
+<i class="no-highlight">122</i>&nbsp;    }
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;    @Override
+<i class="no-highlight">125</i>&nbsp;    public Iterator&lt;Object&gt; execute() throws IOException {
+<i class="no-highlight">126</i>&nbsp;        // if it is Read snap, get all readable fields from Force.com
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        if (options.getSnapName() == SnapName.READ) {</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;            iteratorList = buildSoqlQuery();</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;            if (CollectionUtils.isNotEmpty(iteratorList)) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                return null;</b>
+<i class="no-highlight">131</i>&nbsp;            }
+<i class="no-highlight">132</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        return executeBulkRead(false);</b>
+<i class="no-highlight">134</i>&nbsp;    }
+<i class="no-highlight">135</i>&nbsp;
+<i class="no-highlight">136</i>&nbsp;    private Iterator&lt;Object&gt; executeBulkRead(boolean isVerticalSlicing) throws IOException {
+<i class="no-highlight">137</i>&nbsp;        // create batch job
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        JobInfo createJobInfo = createJob(options);</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        if (!createJobInfo.getState().equals(State.OPEN.toString())) {</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            String error = String.format(ERR_CREATE_BULK_READ_JOB, serviceUrl, objectType);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            throw new IOException(error);</b>
+<i class="no-highlight">142</i>&nbsp;        }
+<i class="no-highlight">143</i>&nbsp;        // check job status
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        jobId = createJobInfo.getId();</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        LOG.debug(&quot;SFDC Bulk API job created, job ID: {}&quot;, jobId);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        checkJobStatus(serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        if (isVerticalSlicing) {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            if (jobIdList == null) {</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                jobIdList = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">150</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            jobIdList.add(jobId);</b>
+<i class="no-highlight">152</i>&nbsp;        }
+<i class="no-highlight">153</i>&nbsp;        // add batch to the job
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        String batchUrl = String.format(FORMAT_BATCH_URL, serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        BatchInfo batchInfo = addBatch(batchUrl, options.getQuery());</b>
+<i class="no-highlight">156</i>&nbsp;        // if PK Chunking, need to get all batch ID&#39;s
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        batchId = batchInfo.getId();</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        Map&lt;String, Map&lt;String, String&gt;&gt; batchInfoMap = getBatchInfoList(batchUrl, jobId, batchId);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        List&lt;Object&gt; bulkInfoList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        for (Map.Entry&lt;String, Map&lt;String, String&gt;&gt; entry : batchInfoMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            Map&lt;String, String&gt; batchStatus = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;            if (batchStatus != null &amp;&amp; COMPLETED.equalsIgnoreCase(batchStatus.get(STATE))) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                Object value = batchStatus.get(NUMBER_RECORDS_PROCESSED);</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                recordsProcessed += value instanceof BigInteger ? ((BigInteger) value).longValue() :</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                        Long.valueOf(batchStatus.get(NUMBER_RECORDS_PROCESSED));</b>
+<i class="no-highlight">166</i>&nbsp;                // retrieve all the batch result ID list for a batch ID
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                String batchId = entry.getKey();</b>
+<i class="no-highlight">168</i>&nbsp;                List&lt;String&gt; resultIds;
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                if (ContentType.JSON == options.getContentType()) {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                    resultIds = retrieveBatchResultIdsJson(serviceUrl, jobId, batchId);</b>
+<i class="no-highlight">171</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                    ResultList resultList = retrieveBatchResultIds(serviceUrl, jobId, batchId);</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                    resultIds = resultList.getResults();</b>
+<i class="no-highlight">174</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                addBulkInfoList(bulkInfoList, jobId, batchId, resultIds);</b>
+<i class="no-highlight">176</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        return bulkResponse.getResponseIterator(bulkInfoList);</b>
+<i class="no-highlight">179</i>&nbsp;    }
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;    /**
+<i class="no-highlight">182</i>&nbsp;     * Executes Bulk API request in PK-Chunk mode.
+<i class="no-highlight">183</i>&nbsp;     *
+<i class="no-highlight">184</i>&nbsp;     * @param dateTimeFields date/time fields to be handles in each output document
+<i class="no-highlight">185</i>&nbsp;     * @param matchDataType true if data types should be matched to those output by the Salesforce
+<i class="no-highlight">186</i>&nbsp;     *                      REST API, false otherwise
+<i class="no-highlight">187</i>&nbsp;     * @param nonStringFields fields with non-string actual data types
+<i class="no-highlight">188</i>&nbsp;     *
+<i class="no-highlight">189</i>&nbsp;     * @throws IOException, InterruptedException, ExecutionException, TimeoutException
+<i class="no-highlight">190</i>&nbsp;     */
+<i class="no-highlight">191</i>&nbsp;    public void execute(Map&lt;String, String&gt; dateTimeFields, boolean matchDataType,
+<i class="no-highlight">192</i>&nbsp;                        Map&lt;String, String&gt; nonStringFields)
+<i class="no-highlight">193</i>&nbsp;            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+<i class="no-highlight">194</i>&nbsp;
+<i class="no-highlight">195</i>&nbsp;        // if it is Read snap, get all readable fields from Force.com
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        if (options.getSnapName() == SnapName.READ) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            buildSoqlQuery();</b>
+<i class="no-highlight">198</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        int batchSize = options.getBatchSize();</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        httpRequestHandler.setPKChunking(batchSize);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        LOG.debug(&quot;SFDC PK Chunking enabled, batch size: {}&quot;, batchSize);</b>
+<i class="no-highlight">202</i>&nbsp;        // content type should be CSV
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        options.withContentType(Options.ContentType.CSV);</b>
+<i class="no-highlight">204</i>&nbsp;        // create batch job
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        JobInfo createJobInfo = createJob(options);</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        if (!createJobInfo.getState().equals(State.OPEN.toString())) {</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;            String error = String.format(ERR_CREATE_BULK_READ_JOB, serviceUrl, objectType);</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;            throw new IOException(error);</b>
+<i class="no-highlight">209</i>&nbsp;        }
+<i class="no-highlight">210</i>&nbsp;        // check job status
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        jobId = createJobInfo.getId();</b>
+<i class="no-highlight">212</i>&nbsp;
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        LOG.debug(&quot;SFDC Bulk API job created, job ID: {}&quot;, jobId);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        checkJobStatus(serviceUrl, jobId);</b>
+<i class="no-highlight">215</i>&nbsp;        // add batch to the job
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        String batchUrl = String.format(FORMAT_BATCH_URL, serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;        BatchInfo batchInfo = addBatch(batchUrl, options.getQuery());</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        batchId = batchInfo.getId();</b>
+<i class="no-highlight">219</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            downloadBatchResults(batchUrl, jobId, dateTimeFields, matchDataType, nonStringFields,</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                    options.getSnapContext());</b>
+<i class="no-highlight">222</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            if (executor != null) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                executor.shutdown(); // Disable new tasks from being submitted</b>
+<i class="no-highlight">225</i>&nbsp;                try {
+<i class="no-highlight">226</i>&nbsp;                    // Wait a while for existing tasks to terminate
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                    if (!executor.awaitTermination(EXECUTOR_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS)) {</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                        executor.shutdownNow(); // Cancel currently executing tasks</b>
+<i class="no-highlight">229</i>&nbsp;                        // Wait a while for tasks to respond to being cancelled
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                        if (!executor.awaitTermination(EXECUTOR_SHUTDOWN_TIMEOUT,</b>
+<i class="no-highlight">231</i>&nbsp;                                TimeUnit.SECONDS)) {
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                            errorViews.write((SnapDataException)</b>
+<i class="no-highlight">233</i>&nbsp;                                    new SnapDataException(ERR_TIMEOUT_RETRIEVING_RESPONSE)
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                                    .withReason(String.format(ERR_PK_CHUNKING_THREADS_REASON,</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                                            jobId, false)));</b>
+<i class="no-highlight">236</i>&nbsp;                        }
+<i class="no-highlight">237</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                } catch (InterruptedException ie) {</b>
+<i class="no-highlight">239</i>&nbsp;                    // (Re-)Cancel if current thread also interrupted
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                    executor.shutdownNow();</b>
+<i class="no-highlight">241</i>&nbsp;                    // Preserve interrupt status
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                    Thread.currentThread().interrupt();</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                }</b>
+<i class="no-highlight">244</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        }</b>
+<i class="no-highlight">246</i>&nbsp;    }
+<i class="no-highlight">247</i>&nbsp;
+<i class="no-highlight">248</i>&nbsp;    private void checkForTimeout(String jobId, String batchId, long startTimeMs)
+<i class="no-highlight">249</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        if ((System.currentTimeMillis() - startTimeMs) &gt; options.getPollingTimeoutSec() * 1000) {</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;            String timeoutErrMessage = errorMessage(ERR_TIMEOUT_RETRIEVING_RESPONSE, jobId,</b>
+<i class="no-highlight">252</i>&nbsp;                    batchId);
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            String error = String.format(FORMAT_TIMEOUT, timeoutErrMessage,</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                    options.getPollingTimeoutSec());</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;            throw new IOException(error);</b>
+<i class="no-highlight">256</i>&nbsp;        }
+<i class="no-highlight">257</i>&nbsp;    }
+<i class="no-highlight">258</i>&nbsp;
+<i class="no-highlight">259</i>&nbsp;    /**
+<i class="no-highlight">260</i>&nbsp;     * Generates Bulk options list
+<i class="no-highlight">261</i>&nbsp;     *
+<i class="no-highlight">262</i>&nbsp;     * @param batchId    - batch ID
+<i class="no-highlight">263</i>&nbsp;     * @param resultList - result IDs
+<i class="no-highlight">264</i>&nbsp;     *
+<i class="no-highlight">265</i>&nbsp;     * @return Bulk options
+<i class="no-highlight">266</i>&nbsp;     */
+<i class="no-highlight">267</i>&nbsp;    public List&lt;Object&gt; generateBulkOptions(String batchId, List&lt;String&gt; resultList) {
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        List&lt;Object&gt; bulkList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        for (String resultId : resultList) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            String resultUrl = String.format(FORMAT_BATCH_RESULT_ID, serviceUrl, jobId, batchId,</b>
+<i class="no-highlight">271</i>&nbsp;                    resultId);
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            BulkOption bulkInfo = new BulkOption(jobId, batchId, resultId);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            bulkInfo.withServiceUrl(resultUrl);</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;            bulkList.add(bulkInfo);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        return bulkList;</b>
+<i class="no-highlight">277</i>&nbsp;    }
+<i class="no-highlight">278</i>&nbsp;
+<i class="no-highlight">279</i>&nbsp;    private void addBulkInfoList(List&lt;Object&gt; bulkList, String jobId, String batchId,
+<i class="no-highlight">280</i>&nbsp;            List&lt;String&gt; resultList) {
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        for (String resultId : resultList) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;            String resultUrl = String.format(FORMAT_BATCH_RESULT_ID, serviceUrl, jobId, batchId,</b>
+<i class="no-highlight">283</i>&nbsp;                    resultId);
+<b class="nc"><i class="no-highlight">284</i>&nbsp;            BulkOption bulkInfo = new BulkOption(jobId, batchId, resultId);</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            bulkInfo.withServiceUrl(resultUrl);</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            bulkInfo.withContentType(options.getContentType());</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            bulkList.add(bulkInfo);</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        }</b>
+<i class="no-highlight">289</i>&nbsp;    }
+<i class="no-highlight">290</i>&nbsp;
+<i class="no-highlight">291</i>&nbsp;    // Immediately after the bulk query request is submitted,
+<i class="no-highlight">292</i>&nbsp;    // the response for the job status can be a Map class object if SFDC has not finished
+<i class="no-highlight">293</i>&nbsp;    // creating a set of batches. When the response becomes a List class object,
+<i class="no-highlight">294</i>&nbsp;    // it may not contain a complete set of batches. If the queried table is small compared to
+<i class="no-highlight">295</i>&nbsp;    // the chunk size, SFDC may send response with one Map object or one List object with two Map
+<i class="no-highlight">296</i>&nbsp;    // objects in it. When it contains two Map objects, one of them is not processed and will
+<i class="no-highlight">297</i>&nbsp;    // never become completed. This method covers all cases.
+<i class="no-highlight">298</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">299</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">300</i>&nbsp;    protected Map&lt;String, Map&lt;String, String&gt;&gt; getBatchInfoList(String url, String jobId,
+<i class="no-highlight">301</i>&nbsp;            String firstBatchId) {
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; batchInfoList = null;</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        long startTimeMs = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        boolean allBatchesCompleted = false;</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; failedBatches = Lists.newArrayList();</b>
+<i class="no-highlight">306</i>&nbsp;        do {
+<i class="no-highlight">307</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                checkForTimeout(jobId, StringUtils.EMPTY, startTimeMs);</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                TimeUnit.SECONDS.sleep(options.getPollingIntervalSec());</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                String result = getBulkResponse(url, null, HttpGet.METHOD_NAME);</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                Object object = null;</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                if (contentType == ContentType.JSON) {</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                    Map&lt;String, Object&gt; data = OBJECT_MAPPER.readValue(result, MAP_OBJECT_REF);</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                    object = data.get(BATCHINFO);</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                    Source source = new StreamSource(new StringReader(result));</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                    Map&lt;String, Object&gt; data = (Map&lt;String, Object&gt;) xmlUtils</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                            .convertToJson(xmlInputFactory, jsonOutputFactory, source);</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                    JsonPath path = JsonPathImpl.compile(JSON_PATH_BATCHINFO);</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                    object = path.read(data);</b>
+<i class="no-highlight">321</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                if (object instanceof List) {</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                    batchInfoList = (List&lt;Map&lt;String, String&gt;&gt;) object;</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                    allBatchesCompleted = true;</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                    for (Map&lt;String, String&gt; batchInfo : batchInfoList) {</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                        String state = batchInfo.get(STATE);</b>
+<i class="no-highlight">327</i>&nbsp;                        // There are two separate cases where we decide that the Bulk API
+<i class="no-highlight">328</i>&nbsp;                        // job has not been completed and break out of the for loop.
+<i class="no-highlight">329</i>&nbsp;                        // The first case is when State is not &#39;Completed&#39; nor &#39;Failed&#39; and the
+<i class="no-highlight">330</i>&nbsp;                        // batch is the original batch before SFDC splits the job into multiple
+<i class="no-highlight">331</i>&nbsp;                        // batches. This original batch is not processed and should be ignored.
+<i class="no-highlight">332</i>&nbsp;                        // In this first case, all batches should be either &#39;Completed&#39; or &#39;Failed&#39;
+<i class="no-highlight">333</i>&nbsp;                        // state except the first batch when the entire Bulk API job is completed.
+<i class="no-highlight">334</i>&nbsp;                        // The second case is when the Bulk API job is for JSON content type
+<i class="no-highlight">335</i>&nbsp;                        // and a large query, SFDC returns the batch info as a map object
+<i class="no-highlight">336</i>&nbsp;                        // wrapped in a list instead of just one map data. In this second case,
+<i class="no-highlight">337</i>&nbsp;                        // the State would be &#39;InProgress&#39; when it is not completed.
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                        if (!COMPLETED.equalsIgnoreCase(state) &amp;&amp; !FAILED.equalsIgnoreCase(state) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                                !firstBatchId.equalsIgnoreCase(batchInfo.get(ID)) ||</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                                IN_PROGRESS.equalsIgnoreCase(state) ||</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                                QUEUED.equalsIgnoreCase(state)) {</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                            allBatchesCompleted = false;</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                            break;</b>
+<i class="no-highlight">344</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                } else if (object instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                    Map&lt;String, String&gt; batchInfo = (Map&lt;String, String&gt;) object;</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                    String state = batchInfo.get(STATE);</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                    if (COMPLETED.equalsIgnoreCase(state) || FAILED.equalsIgnoreCase(state)) {</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                        allBatchesCompleted = true;</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                        batchInfoList = Lists.newArrayListWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                        batchInfoList.add(batchInfo);</b>
+<i class="no-highlight">353</i>&nbsp;                    }
+<i class="no-highlight">354</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">355</i>&nbsp;            } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                throw new SnapDataException(e, ERR_BATCH_INFO).formatWith(jobId, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        } while (!allBatchesCompleted);</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        Map&lt;String, Map&lt;String, String&gt;&gt; batchInfoMap = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        for (Map&lt;String, String&gt; batchInfo : batchInfoList) {</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;            String state = batchInfo.get(STATE);</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;            if (FAILED.equalsIgnoreCase(state)) {</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                failedBatches.add(batchInfo);</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            } else if (COMPLETED.equalsIgnoreCase(state)) {</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                batchInfoMap.put(batchInfo.get(ID), batchInfo);</b>
+<i class="no-highlight">366</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        if (!failedBatches.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            for (Map&lt;String, String&gt; batchInfo : failedBatches) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                errorViews.write((SnapDataException) new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                        documentUtility.newDocument(batchInfo), ERR_BATCH_JOB)</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                        .withReason(String.format(REASON_BATCH_JOB,</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                                batchInfo.get(STATE_MESSAGE)))</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE),</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                        options.getSnapContext().getOriginal());</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;            }</b>
+<i class="no-highlight">377</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        return batchInfoMap;</b>
+<i class="no-highlight">379</i>&nbsp;    }
+<i class="no-highlight">380</i>&nbsp;
+<i class="no-highlight">381</i>&nbsp;    /**
+<i class="no-highlight">382</i>&nbsp;     * This method is used in PK Chunking to get the status of bulk query job.
+<i class="no-highlight">383</i>&nbsp;     * It launches a separate thread to download records for each completed batch.
+<i class="no-highlight">384</i>&nbsp;     *
+<i class="no-highlight">385</i>&nbsp;     * @param url             - Salesforce batch result URL
+<i class="no-highlight">386</i>&nbsp;     * @param jobId           - Job ID
+<i class="no-highlight">387</i>&nbsp;     * @param dateTimeFields  - date/time fields to be handled in each output document
+<i class="no-highlight">388</i>&nbsp;     * @param matchDataType   - true if data types should be matched to those output by the Salesforce
+<i class="no-highlight">389</i>&nbsp;     *                          REST API, false otherwise
+<i class="no-highlight">390</i>&nbsp;     * @param nonStringFields - fields with non-string actual data types
+<i class="no-highlight">391</i>&nbsp;     *
+<i class="no-highlight">392</i>&nbsp;     * @throws IOException, InterruptedException, ExecutionException, TimeoutException
+<i class="no-highlight">393</i>&nbsp;     */
+<i class="no-highlight">394</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">395</i>&nbsp;    private void downloadBatchResults(String url, String jobId,
+<i class="no-highlight">396</i>&nbsp;            Map&lt;String, String&gt; dateTimeFields, boolean matchDataType,
+<i class="no-highlight">397</i>&nbsp;            Map&lt;String, String&gt; nonStringFields, SnapContext snapContext)
+<i class="no-highlight">398</i>&nbsp;            throws IOException, InterruptedException, ExecutionException, TimeoutException {
+<i class="no-highlight">399</i>&nbsp;
+<i class="no-highlight">400</i>&nbsp;        //start the timer to keep track of the timeout period
+<b class="nc"><i class="no-highlight">401</i>&nbsp;        long startTimeMs = System.currentTimeMillis();</b>
+<i class="no-highlight">402</i>&nbsp;
+<i class="no-highlight">403</i>&nbsp;        // get advanced properties
+<b class="nc"><i class="no-highlight">404</i>&nbsp;        Map&lt;String, Object&gt; advancedProperties = options.getAdvancedProperties();</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;        boolean useTempFiles = false;</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        int maxThreads = DEFAULT_MAX_THREADS;</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;        if (MapUtils.isNotEmpty(advancedProperties)) {</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;            Object value = advancedProperties.get(NUMBER_OF_THREADS_IN_PK_CHUNKING);</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;            if (value != null) {</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                maxThreads = (Integer) value;</b>
+<i class="no-highlight">411</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">412</i>&nbsp;            value = advancedProperties.get(USE_TEMP_FILES_IN_PK_CHUNKING);</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;            if (value != null) {</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                useTempFiles = (Boolean) value;</b>
+<i class="no-highlight">415</i>&nbsp;            }
+<i class="no-highlight">416</i>&nbsp;        }
+<i class="no-highlight">417</i>&nbsp;
+<i class="no-highlight">418</i>&nbsp;        //Monitor the job progress. When each job in the batch is ready to be downloaded,
+<i class="no-highlight">419</i>&nbsp;        //a thread is started to download and process the records in the batch.
+<i class="no-highlight">420</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; batchInfoList;
+<i class="no-highlight">421</i>&nbsp;        boolean allBatchesCompleted;
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        Set&lt;String&gt; completedBatches = new HashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        Map&lt;String, Map&lt;String, String&gt;&gt; failedBatches = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        if (executor == null) {</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;            executor = Executors.newFixedThreadPool(maxThreads);</b>
+<i class="no-highlight">426</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">427</i>&nbsp;        Map&lt;String, Future&lt;Integer&gt;&gt; threads = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;        Set&lt;String&gt; completedThreads = new HashSet&lt;&gt;();</b>
+<i class="no-highlight">429</i>&nbsp;        do {
+<i class="no-highlight">430</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                checkForTimeout(jobId, StringUtils.EMPTY, startTimeMs);</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                LOG.debug(&quot;PK Chunking download download batch wait/count time: {}/{} : #{}#&quot;,</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                        options.getPollingIntervalSec(), threads.size(), threads.keySet());</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                TimeUnit.SECONDS.sleep(options.getPollingIntervalSec());</b>
+<i class="no-highlight">435</i>&nbsp;                // check for completed download threads
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                for (Map.Entry&lt;String, Future&lt;Integer&gt;&gt; entry : threads.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;                    Future&lt;Integer&gt; thread = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;                    String batchId = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                    if (thread.isDone()) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                        LOG.debug(&quot;PK Chunking download thread completed for batch ID: {}&quot;,</b>
+<i class="no-highlight">441</i>&nbsp;                                batchId);
+<i class="no-highlight">442</i>&nbsp;                        //Since get() is called after checking that the thread is done,
+<i class="no-highlight">443</i>&nbsp;                        //the call should not take long. The get() timeout overload is used
+<i class="no-highlight">444</i>&nbsp;                        //just to be safe and avoid a situation where this hangs forever.
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                        int count = thread.get(options.getPollingIntervalSec(), TimeUnit.SECONDS);</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                        completedThreads.add(batchId);</b>
+<i class="no-highlight">447</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                }</b>
+<i class="no-highlight">449</i>&nbsp;                // remove completed threads from the thread list
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                for (String batchId : completedThreads) {</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                    threads.remove(batchId);</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;                completedThreads.clear();</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                if (threads.size() &gt;= maxThreads) {</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                    allBatchesCompleted = false;</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                    continue;</b>
+<i class="no-highlight">457</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                String result = getBulkResponse(url, null, HttpGet.METHOD_NAME);</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                Map&lt;String, Object&gt; data = (Map&lt;String, Object&gt;) parseXml(result);</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                JsonPath path = JsonPathImpl.compile(JSON_PATH_BATCHINFO);</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                Object object = path.read(data);</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                allBatchesCompleted = true;</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                if (object instanceof List) {</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                    batchInfoList = (List&lt;Map&lt;String, String&gt;&gt;) object;</b>
+<i class="no-highlight">465</i>&nbsp;
+<i class="no-highlight">466</i>&nbsp;                    //Check each batch to see if it is completed.
+<i class="no-highlight">467</i>&nbsp;                    //If so, start a thread to download the results.
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                    for (Map&lt;String, String&gt; batchInfo : batchInfoList) {</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                        String batchId = batchInfo.get(ID);</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                        switch (batchInfo.get(STATE)) {</b>
+<i class="no-highlight">471</i>&nbsp;                            case COMPLETED:
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                                if (!completedBatches.contains(batchId) &amp;&amp; Integer.valueOf(</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                                        batchInfo.get(NUMBER_RECORDS_PROCESSED)) &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                                    if (threads.size() &lt; maxThreads) {</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                                        Future&lt;Integer&gt; thread = executor.submit(</b>
+<i class="no-highlight">476</i>&nbsp;                                                new PKChunkingDownload(batchInfo,
+<i class="no-highlight">477</i>&nbsp;                                                (BulkReadResponse) bulkResponse, this, useTempFiles,
+<i class="no-highlight">478</i>&nbsp;                                                dateTimeFields, matchDataType, nonStringFields,
+<i class="no-highlight">479</i>&nbsp;                                                        options));
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                                        threads.put(batchId, thread);</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                                        completedBatches.add(batchId);</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;                                        LOG.debug(&quot;PK Chunking download thread started for batch &quot; +</b>
+<i class="no-highlight">483</i>&nbsp;                                                &quot;ID: {}&quot;, batchId);
+<b class="nc"><i class="no-highlight">484</i>&nbsp;                                    } else {</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;                                        allBatchesCompleted = false;</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                                        LOG.debug(&quot;PK Chunking download allBatchesCompleted for &quot; +</b>
+<i class="no-highlight">487</i>&nbsp;                                                &quot;batch ID: {}. Waiting for available thread to &quot; +
+<i class="no-highlight">488</i>&nbsp;                                                &quot;download results.&quot;, batchId);
+<i class="no-highlight">489</i>&nbsp;                                    }
+<i class="no-highlight">490</i>&nbsp;                                }
+<i class="no-highlight">491</i>&nbsp;                                break;
+<i class="no-highlight">492</i>&nbsp;                            case FAILED:
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                                LOG.debug(&quot;PK Chunking download failed batch ID: {}&quot;, batchId);</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                                failedBatches.put(batchId, batchInfo);</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                                break;</b>
+<i class="no-highlight">496</i>&nbsp;                            case NOT_PROCESSED:
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                                LOG.debug(&quot;PK Chunking download not processed batch ID: {}&quot;,</b>
+<i class="no-highlight">498</i>&nbsp;                                        batchId);
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                                break;</b>
+<i class="no-highlight">500</i>&nbsp;                            default:
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                                LOG.debug(&quot;PK Chunking download default batch ID: {}&quot;, batchId);</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;                                allBatchesCompleted = false;</b>
+<i class="no-highlight">503</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">504</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;                } else if (object instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                    Map&lt;String, String&gt; batchInfo = (Map&lt;String, String&gt;) object;</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                    String batchId = batchInfo.get(ID);</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;                    switch (batchInfo.get(STATE)) {</b>
+<i class="no-highlight">509</i>&nbsp;                        case COMPLETED:
+<b class="nc"><i class="no-highlight">510</i>&nbsp;                            Integer numRecsProcessed = Integer.valueOf(</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                                    batchInfo.get(NUMBER_RECORDS_PROCESSED));</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                            LOG.debug(String.format(&quot;PK Chunking Map download numRecsProcessed %d&quot;,</b>
+<i class="no-highlight">513</i>&nbsp;                                    numRecsProcessed));
+<b class="nc"><i class="no-highlight">514</i>&nbsp;                            Future&lt;Integer&gt; thread = executor.submit(new PKChunkingDownload(</b>
+<i class="no-highlight">515</i>&nbsp;                                    batchInfo, (BulkReadResponse) bulkResponse, this, useTempFiles,
+<i class="no-highlight">516</i>&nbsp;                                    dateTimeFields, matchDataType, nonStringFields, options));
+<b class="nc"><i class="no-highlight">517</i>&nbsp;                            threads.put(batchId, thread);</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;                            LOG.debug(&quot;PK Chunking Map download default batch ID: {}&quot;, batchId);</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;                            break;</b>
+<i class="no-highlight">520</i>&nbsp;                        case FAILED:
+<b class="nc"><i class="no-highlight">521</i>&nbsp;                            LOG.debug(&quot;PK Chunking Map download failed batch ID: {}&quot;, batchId);</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                            failedBatches.put(batchId, batchInfo);</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                            break;</b>
+<i class="no-highlight">524</i>&nbsp;                        default:
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                            LOG.debug(&quot;PK Chunking Map download default batch ID: {}&quot;, batchId);</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                            allBatchesCompleted = false;</b>
+<i class="no-highlight">527</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                    LOG.debug(&quot;PK Chunking, JSONPath to batchinfo response neither list or map&quot;);</b>
+<i class="no-highlight">530</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">531</i>&nbsp;            } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                throw e;</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;            } catch (Throwable e) {</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;                throw new SnapDataException(e, ERR_BATCH_INFO).formatWith(jobId, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;        } while (!allBatchesCompleted);</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;        if (!failedBatches.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;            for (Map&lt;String, String&gt; batchInfo : failedBatches.values()) {</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                errorViews.write((SnapDataException) new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;                        documentUtility.newDocument(batchInfo), ERR_FAILED_BATCHES)</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;                        .withReason(String.format(REASON_FAILED_BATCHES,</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;                                batchInfo.get(STATE_MESSAGE)))</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE));</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;            }</b>
+<i class="no-highlight">545</i>&nbsp;        }
+<i class="no-highlight">546</i>&nbsp;        // get the total number of records preocessed in the job
+<i class="no-highlight">547</i>&nbsp;        int totalRecordsProcessed;
+<i class="no-highlight">548</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">549</i>&nbsp;            Map&lt;String, String&gt; jobInfoMap = getJobInfoMap(serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;            String recordCount = jobInfoMap.get(NUMBER_RECORDS_PROCESSED);</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;            if (StringUtils.isNotBlank(recordCount)) {</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;                totalRecordsProcessed = Integer.valueOf(recordCount);</b>
+<i class="no-highlight">553</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">554</i>&nbsp;                throw new IOException(String.format(ERR_TOTAL_NUMBER_RECORDS_PROCESSED, jobId));</b>
+<i class="no-highlight">555</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">556</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;            throw new IOException(String.format(ERR_TOTAL_NUMBER_RECORDS_PROCESSED, jobId));</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">559</i>&nbsp;        LOG.debug(&quot;PK Chunking download threads have been invoked and being monitored for their&quot; +</b>
+<i class="no-highlight">560</i>&nbsp;                &quot; completion.&quot;);
+<i class="no-highlight">561</i>&nbsp;        // monitor all threads with timeout
+<b class="nc"><i class="no-highlight">562</i>&nbsp;        Map&lt;String, Future&lt;Integer&gt;&gt; threadInProgress = waitForCompletion(threads);</b>
+<i class="no-highlight">563</i>&nbsp;        //If there are any batches of records that have not been processed, cancel them.
+<i class="no-highlight">564</i>&nbsp;        //This is considered a timeout for the threads.
+<b class="nc"><i class="no-highlight">565</i>&nbsp;        if (threadInProgress != null &amp;&amp; threadInProgress.size() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;            cancelDownloadThreads(threadInProgress, executor);</b>
+<i class="no-highlight">567</i>&nbsp;        }
+<i class="no-highlight">568</i>&nbsp;    }
+<i class="no-highlight">569</i>&nbsp;
+<i class="no-highlight">570</i>&nbsp;    /**
+<i class="no-highlight">571</i>&nbsp;     * Cancels the threads downloading the PK Chunking batches.
+<i class="no-highlight">572</i>&nbsp;     * This is called when the threads have not completed in the expected timeout period.
+<i class="no-highlight">573</i>&nbsp;     *
+<i class="no-highlight">574</i>&nbsp;     * @param threadInProgress The threads that have not completed downloading and processing the
+<i class="no-highlight">575</i>&nbsp;     *                         batch of records.
+<i class="no-highlight">576</i>&nbsp;     * @param executor         The executor that the threads are associated with.
+<i class="no-highlight">577</i>&nbsp;     *
+<i class="no-highlight">578</i>&nbsp;     * @throws InterruptedException
+<i class="no-highlight">579</i>&nbsp;     */
+<i class="no-highlight">580</i>&nbsp;    private void cancelDownloadThreads(
+<i class="no-highlight">581</i>&nbsp;            Map&lt;String, Future&lt;Integer&gt;&gt; threadInProgress,
+<i class="no-highlight">582</i>&nbsp;            ExecutorService executor) throws InterruptedException {
+<i class="no-highlight">583</i>&nbsp;        // cancel any thread still in progress
+<b class="nc"><i class="no-highlight">584</i>&nbsp;        for (Map.Entry&lt;String, Future&lt;Integer&gt;&gt; entry: threadInProgress.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;            Future&lt;Integer&gt; eachThread = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;            if (eachThread != null) {</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                eachThread.cancel(true);</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;                LOG.info(&quot;Canceled thread for batch ID: {}&quot;, entry.getKey());</b>
+<i class="no-highlight">589</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">590</i>&nbsp;        }</b>
+<i class="no-highlight">591</i>&nbsp;    }
+<i class="no-highlight">592</i>&nbsp;
+<i class="no-highlight">593</i>&nbsp;    private Map&lt;String, Future&lt;Integer&gt;&gt; waitForCompletion(Map&lt;String, Future&lt;Integer&gt;&gt; threads)
+<i class="no-highlight">594</i>&nbsp;            throws InterruptedException, ExecutionException, TimeoutException, IOException {
+<b class="nc"><i class="no-highlight">595</i>&nbsp;        int threadsSize = threads.size();</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;        List&lt;String&gt; doneOrCanceled = new ArrayList&lt;&gt;(threadsSize);</b>
+<i class="no-highlight">597</i>&nbsp;        boolean inProgress;
+<b class="nc"><i class="no-highlight">598</i>&nbsp;        Map&lt;String, Future&lt;Integer&gt;&gt; threadsInProgress = new HashMap&lt;&gt;(threadsSize);</b>
+<i class="no-highlight">599</i>&nbsp;        //start the timer to keep track of the timeout period
+<b class="nc"><i class="no-highlight">600</i>&nbsp;        long startTimeMs = System.currentTimeMillis();</b>
+<i class="no-highlight">601</i>&nbsp;        // monitor the states of threads with timeout
+<i class="no-highlight">602</i>&nbsp;        do {
+<b class="nc"><i class="no-highlight">603</i>&nbsp;            inProgress = false;</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;            sleep(options.getPollingIntervalSec(), TimeUnit.SECONDS);</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;            for (Map.Entry&lt;String, Future&lt;Integer&gt;&gt; entry : threads.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;                Future&lt;Integer&gt; thread = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;                String batchId = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">608</i>&nbsp;                LOG.debug(&quot;PK Chunking download thread waiting for batch &quot; +</b>
+<i class="no-highlight">609</i>&nbsp;                        &quot;ID: {}&quot;, batchId);
+<b class="nc"><i class="no-highlight">610</i>&nbsp;                if (!doneOrCanceled.contains(batchId)) {</b>
+<b class="nc"><i class="no-highlight">611</i>&nbsp;                    if (thread.isCancelled() || thread.isDone()) {</b>
+<i class="no-highlight">612</i>&nbsp;                        //This get() call is required to bring any exceptions
+<i class="no-highlight">613</i>&nbsp;                        //thrown in the callable thread back to the main snap execution thread.
+<i class="no-highlight">614</i>&nbsp;                        //The most common use case is ExecutionExceptions thrown when writing
+<i class="no-highlight">615</i>&nbsp;                        //to the error views. The error views object throws an ExecutionException
+<i class="no-highlight">616</i>&nbsp;                        //when the snap is configured to stop execution if an error is encountered.
+<i class="no-highlight">617</i>&nbsp;                        //
+<i class="no-highlight">618</i>&nbsp;                        //Since get() is called after checking that the thread is done or cancelled,
+<i class="no-highlight">619</i>&nbsp;                        //the call should not take long. The get() timeout overload is used
+<i class="no-highlight">620</i>&nbsp;                        //just to be safe and avoid a situation where this hangs forever.
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                        thread.get(options.getPollingIntervalSec(), TimeUnit.SECONDS);</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                        doneOrCanceled.add(batchId);</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;                        threadsInProgress.remove(batchId);</b>
+<i class="no-highlight">624</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">625</i>&nbsp;                        inProgress = true;</b>
+<b class="nc"><i class="no-highlight">626</i>&nbsp;                        threadsInProgress.put(batchId, entry.getValue());</b>
+<i class="no-highlight">627</i>&nbsp;
+<i class="no-highlight">628</i>&nbsp;                    }
+<i class="no-highlight">629</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">630</i>&nbsp;            }</b>
+<i class="no-highlight">631</i>&nbsp;        }
+<i class="no-highlight">632</i>&nbsp;        //we don&#39;t use checkForTimeout() because there could be a scenario where the download
+<i class="no-highlight">633</i>&nbsp;        // would have completed and sleep(options.getPollingIntervalSec(), TimeUnit.SECONDS),
+<i class="no-highlight">634</i>&nbsp;        // causing it go over the timeout interval and this would throw an exception in the
+<i class="no-highlight">635</i>&nbsp;        // checkForTimeout()
+<b class="nc"><i class="no-highlight">636</i>&nbsp;        while (inProgress &amp;&amp; (System.currentTimeMillis() - startTimeMs) &lt; options</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;                .getPollingTimeoutSec() * 1000);</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;        return threadsInProgress;</b>
+<i class="no-highlight">639</i>&nbsp;    }
+<i class="no-highlight">640</i>&nbsp;
+<i class="no-highlight">641</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">642</i>&nbsp;    private Map&lt;String, String&gt; getJobInfoMap(String serviceUrl, String jobId) throws Exception {
+<b class="nc"><i class="no-highlight">643</i>&nbsp;        String checkJobUrl = String.format(FORMAT_APPEND_WITH_SLASH, serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;        String bulkResult = getBulkResponse(checkJobUrl, StringUtils.EMPTY, HttpGet.METHOD_NAME);</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;        Map&lt;String, Object&gt; map = (Map&lt;String, Object&gt;) parseXml(bulkResult);</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;        return (Map&lt;String, String&gt;) map.get(JOB_INFO);</b>
+<i class="no-highlight">647</i>&nbsp;    }
+<i class="no-highlight">648</i>&nbsp;
+<i class="no-highlight">649</i>&nbsp;    private Object parseXml(String xml) throws Exception {
+<b class="nc"><i class="no-highlight">650</i>&nbsp;        Source source = new StreamSource(new StringReader(xml));</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;        return xmlUtils.convertToJson(xmlInputFactory, jsonOutputFactory, source);</b>
+<i class="no-highlight">652</i>&nbsp;    }
+<i class="no-highlight">653</i>&nbsp;
+<i class="no-highlight">654</i>&nbsp;    @Override
+<i class="no-highlight">655</i>&nbsp;    public void close() {
+<i class="no-highlight">656</i>&nbsp;        try {
+<i class="no-highlight">657</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">658</i>&nbsp;                if (CollectionUtils.isNotEmpty(jobIdList)) {</b>
+<b class="nc"><i class="no-highlight">659</i>&nbsp;                    for (String jobId : jobIdList) {</b>
+<b class="nc"><i class="no-highlight">660</i>&nbsp;                        closeJob(serviceUrl, jobId);</b>
+<b class="nc"><i class="no-highlight">661</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">662</i>&nbsp;                    jobIdList.clear();</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;                } else if (StringUtils.isNotBlank(serviceUrl) &amp;&amp; StringUtils.isNotBlank(jobId)) {</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;                    closeJob(serviceUrl, jobId);</b>
+<i class="no-highlight">665</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">666</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;                LOG.debug(&quot;SFDC &quot; + String.format(ERR_CLOSING_JOB, jobId, e.getMessage()));</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">669</i>&nbsp;            if (CollectionUtils.isNotEmpty(iteratorList)) {</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;                for (Iterator&lt;Object&gt; iterator : iteratorList) {</b>
+<b class="nc"><i class="no-highlight">671</i>&nbsp;                    if (iterator instanceof BulkResponseIterator) {</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;                        ((BulkResponseIterator) iterator).close();</b>
+<i class="no-highlight">673</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">674</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                iteratorList.clear();</b>
+<i class="no-highlight">676</i>&nbsp;            }
+<i class="no-highlight">677</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">678</i>&nbsp;            super.close();</b>
+<b class="nc"><i class="no-highlight">679</i>&nbsp;        }</b>
+<i class="no-highlight">680</i>&nbsp;    }
+<i class="no-highlight">681</i>&nbsp;
+<i class="no-highlight">682</i>&nbsp;    /**
+<i class="no-highlight">683</i>&nbsp;     * Builds the SOQL query for Read Snap.
+<i class="no-highlight">684</i>&nbsp;     * If output fields are defined, then they are used.
+<i class="no-highlight">685</i>&nbsp;     * If no output fields are defined, then SFDC is queried to get all fields.
+<i class="no-highlight">686</i>&nbsp;     * A subset of the return fields will be used based on the field offset and limit values.
+<i class="no-highlight">687</i>&nbsp;     * If the field offset and limit values are not specified and the SELECT query with all fields
+<i class="no-highlight">688</i>&nbsp;     * exceeds the maximum query length limit, process the vertical slicing automatically.
+<i class="no-highlight">689</i>&nbsp;     *
+<i class="no-highlight">690</i>&nbsp;     * @return list of iterators if it perfomed a vertical slicing, or null otherwise
+<i class="no-highlight">691</i>&nbsp;     *
+<i class="no-highlight">692</i>&nbsp;     * @throws IOException
+<i class="no-highlight">693</i>&nbsp;     */
+<i class="no-highlight">694</i>&nbsp;    private List&lt;Iterator&lt;Object&gt;&gt; buildSoqlQuery() throws IOException {
+<b class="nc"><i class="no-highlight">695</i>&nbsp;        String fields = options.getOutputFields();</b>
+<i class="no-highlight">696</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">697</i>&nbsp;            if (StringUtils.isBlank(fields)) {</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                List&lt;String&gt; fieldList = salesforceFields.getFieldNames(bulkResponse, options,</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;                        loginInfo, columnLimit.intValue(), columnOffset.intValue());</b>
+<b class="nc"><i class="no-highlight">700</i>&nbsp;                if (fieldList.size() == 1) {</b>
+<b class="nc"><i class="no-highlight">701</i>&nbsp;                    fields = fieldList.get(0);</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;                } else if (fieldList.size() &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;                    return processVerticalSlicing(fieldList);</b>
+<i class="no-highlight">704</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">705</i>&nbsp;                    throw new SnapDataException(ERR_INTERNAL_ERROR)</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;                            .withReason(REASON_EMPTY_FIELD)</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;                            .withResolutionAsDefect();</b>
+<i class="no-highlight">708</i>&nbsp;                }
+<i class="no-highlight">709</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">710</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;            String error = String.format(ERR_FIELDS, objectType, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">712</i>&nbsp;            throw new IOException(error);</b>
+<b class="nc"><i class="no-highlight">713</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;        options.withQuery(options.toSOQL(fields));</b>
+<b class="nc"><i class="no-highlight">715</i>&nbsp;        return null;</b>
+<i class="no-highlight">716</i>&nbsp;    }
+<i class="no-highlight">717</i>&nbsp;
+<i class="no-highlight">718</i>&nbsp;    /**
+<i class="no-highlight">719</i>&nbsp;     * Retrieves result ID for a batch
+<i class="no-highlight">720</i>&nbsp;     *
+<i class="no-highlight">721</i>&nbsp;     * @param batchId - batch ID
+<i class="no-highlight">722</i>&nbsp;     *
+<i class="no-highlight">723</i>&nbsp;     * @return result ID
+<i class="no-highlight">724</i>&nbsp;     */
+<i class="no-highlight">725</i>&nbsp;    public ResultList retrieveBatchResultIds(String batchId) {
+<i class="no-highlight">726</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">727</i>&nbsp;            return retrieveBatchResultIds(serviceUrl, jobId, batchId);</b>
+<b class="nc"><i class="no-highlight">728</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">729</i>&nbsp;            throw new SnapDataException(ERR_RETRIEVE_RESULT).formatWith(jobId, batchId);</b>
+<i class="no-highlight">730</i>&nbsp;        }
+<i class="no-highlight">731</i>&nbsp;    }
+<i class="no-highlight">732</i>&nbsp;
+<i class="no-highlight">733</i>&nbsp;    public void setErrorViews(ErrorViews errorViews, DocumentUtility documentUtility) {
+<b class="nc"><i class="no-highlight">734</i>&nbsp;        this.errorViews = errorViews;</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;        this.documentUtility = documentUtility;</b>
+<i class="no-highlight">736</i>&nbsp;    }
+<i class="no-highlight">737</i>&nbsp;
+<i class="no-highlight">738</i>&nbsp;    public long getRecordsProcessed() {
+<b class="nc"><i class="no-highlight">739</i>&nbsp;        return recordsProcessed;</b>
+<i class="no-highlight">740</i>&nbsp;    }
+<i class="no-highlight">741</i>&nbsp;
+<i class="no-highlight">742</i>&nbsp;    public String getJobId() {
+<b class="nc"><i class="no-highlight">743</i>&nbsp;        return jobId;</b>
+<i class="no-highlight">744</i>&nbsp;    }
+<i class="no-highlight">745</i>&nbsp;
+<i class="no-highlight">746</i>&nbsp;    private List&lt;Iterator&lt;Object&gt;&gt; processVerticalSlicing(List&lt;String&gt; fieldList)
+<i class="no-highlight">747</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">748</i>&nbsp;        List&lt;Iterator&lt;Object&gt;&gt; iteratorList = new ArrayList&lt;&gt;(fieldList.size());</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;        long lastRecordsProcessed = 0;</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;        for (String fields : fieldList) {</b>
+<b class="nc"><i class="no-highlight">751</i>&nbsp;            String soql = options.toSOQL(fields, ORDER_BY_ID);</b>
+<b class="nc"><i class="no-highlight">752</i>&nbsp;            options.withQuery(soql);</b>
+<b class="nc"><i class="no-highlight">753</i>&nbsp;            iteratorList.add(executeBulkRead(true));</b>
+<b class="nc"><i class="no-highlight">754</i>&nbsp;            if (lastRecordsProcessed == 0) {</b>
+<b class="nc"><i class="no-highlight">755</i>&nbsp;                lastRecordsProcessed = recordsProcessed;</b>
+<b class="nc"><i class="no-highlight">756</i>&nbsp;            } else if (lastRecordsProcessed != recordsProcessed) {</b>
+<b class="nc"><i class="no-highlight">757</i>&nbsp;                throw new SnapDataException(ERR_RECORDS_PROCESSED)</b>
+<b class="nc"><i class="no-highlight">758</i>&nbsp;                        .formatWith(lastRecordsProcessed, recordsProcessed)</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;                        .withReason(ERR_INTERNAL_ERROR)</b>
+<b class="nc"><i class="no-highlight">760</i>&nbsp;                        .withResolutionAsDefect();</b>
+<i class="no-highlight">761</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">762</i>&nbsp;            recordsProcessed = 0;</b>
+<b class="nc"><i class="no-highlight">763</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">764</i>&nbsp;        this.iteratorList = iteratorList;</b>
+<b class="nc"><i class="no-highlight">765</i>&nbsp;        return iteratorList;</b>
+<i class="no-highlight">766</i>&nbsp;    }
+<i class="no-highlight">767</i>&nbsp;
+<i class="no-highlight">768</i>&nbsp;    public List&lt;Iterator&lt;Object&gt;&gt; getIteratorList() {
+<b class="nc"><i class="no-highlight">769</i>&nbsp;        return iteratorList;</b>
+<i class="no-highlight">770</i>&nbsp;    }
+<i class="no-highlight">771</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

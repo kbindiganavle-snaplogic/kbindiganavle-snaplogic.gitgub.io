@@ -1,0 +1,354 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Upload</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.birst</a>
+</div>
+
+<h1>Coverage Summary for Class: Upload (com.snaplogic.snaps.birst)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Upload</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/109)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2012 - 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.birst;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.transform.Document2CSVConverter;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">38</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">41</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">42</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">43</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">44</i>&nbsp;import java.nio.channels.Pipe;
+<i class="no-highlight">45</i>&nbsp;import java.util.List;
+<i class="no-highlight">46</i>&nbsp;import java.util.Map;
+<i class="no-highlight">47</i>&nbsp;import java.util.concurrent.ExecutorService;
+<i class="no-highlight">48</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">49</i>&nbsp;import java.util.concurrent.Future;
+<i class="no-highlight">50</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.birst.Messages.*;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;/**
+<i class="no-highlight">55</i>&nbsp; * &lt;p&gt;Snap that takes a document data input stream in the format String[] then uploads the data to
+<i class="no-highlight">56</i>&nbsp; * birst. The snap writes to temp file, which is deleted when file upload to birst is completed.
+<i class="no-highlight">57</i>&nbsp; * &lt;p&gt;The component accepts the following properties:
+<i class="no-highlight">58</i>&nbsp; * &lt;ul&gt;&lt;li&gt;Remote file name - The name of the data set once it is uploaded to burst. If the
+<i class="no-highlight">59</i>&nbsp; * file/data
+<i class="no-highlight">60</i>&nbsp; * set already exists on birst, then the existing file/data set is appended.&lt;/li&gt;
+<i class="no-highlight">61</i>&nbsp; * &lt;li&gt;Space id - Birst space id to upload data to. The space id is found under the modify
+<i class="no-highlight">62</i>&nbsp; * properties tab when managing a space on birst.&lt;/li&gt;
+<i class="no-highlight">63</i>&nbsp; * &lt;li&gt;Publish - Publish the data on birst after it is uploaded.&lt;/li&gt;
+<i class="no-highlight">64</i>&nbsp; * &lt;li&gt;Load group - Required to be ACORN or SFORCE by according to Birst documentation.&lt;/li&gt;
+<i class="no-highlight">65</i>&nbsp; * &lt;li&gt;Sub groups - List of sub groups on birst.&lt;/li&gt;
+<i class="no-highlight">66</i>&nbsp; * &lt;li&gt;Contains names - A flag to tell birst whether or not the incoming data&#39;s first line contains
+<i class="no-highlight">67</i>&nbsp; * a header row.&lt;/li&gt;&lt;/ul&gt;
+<i class="no-highlight">68</i>&nbsp; *
+<i class="no-highlight">69</i>&nbsp; * @author jinloes
+<i class="no-highlight">70</i>&nbsp; */
+<i class="no-highlight">71</i>&nbsp;@General(title = UPLOAD_SNAP_TITLE, purpose = UPLOAD_SNAP_PURPOSE,
+<i class="no-highlight">72</i>&nbsp;        docLink = BIRST_UPLOAD_DOC_LINK)
+<i class="no-highlight">73</i>&nbsp;@Version(snap = 2)
+<i class="no-highlight">74</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">75</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">76</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<b class="nc"><i class="no-highlight">77</i>&nbsp;@Accounts(provides = BirstBasicAuthAccount.class)</b>
+<i class="no-highlight">78</i>&nbsp;public class Upload extends SimpleSnap {
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;    private static final String STATUS = &quot;status&quot;;
+<i class="no-highlight">81</i>&nbsp;    private static final String REMOTE_FILENAME_PROP = &quot;remoteFilename&quot;;
+<i class="no-highlight">82</i>&nbsp;    private static final String SPACE_ID_PROP = &quot;spaceId&quot;;
+<b class="nc"><i class="no-highlight">83</i>&nbsp;    private static final String PUBLISH_PROP = &quot;publish&quot;;</b>
+<i class="no-highlight">84</i>&nbsp;    private static final boolean PUBLISH_DEFAULT = Boolean.FALSE;
+<i class="no-highlight">85</i>&nbsp;    private static final String LOAD_GROUP_PROP = &quot;loadGroup&quot;;
+<i class="no-highlight">86</i>&nbsp;    private static final String LOAD_GROUP_DEFAULT = &quot;ACORN&quot;;
+<i class="no-highlight">87</i>&nbsp;    private static final String SUBGROUPS_COL_PROP = &quot;subGroupsCol&quot;;
+<i class="no-highlight">88</i>&nbsp;    private static final String SUBGROUPS_PROP = &quot;subGroups&quot;;
+<b class="nc"><i class="no-highlight">89</i>&nbsp;    private static final String CONTAINS_NAMES_PROP = &quot;containsNames&quot;;</b>
+<i class="no-highlight">90</i>&nbsp;    private static final boolean CONTAINS_NAMES_DEFAULT = Boolean.TRUE;
+<b class="nc"><i class="no-highlight">91</i>&nbsp;    private static final String UPLOAD_TIMEOUT_PROP = &quot;uploadTimeout&quot;;</b>
+<i class="no-highlight">92</i>&nbsp;    private static final long UPLOAD_TIMEOUT_DEFAULT_SEC = TimeUnit.SECONDS.toSeconds(40);
+<b class="nc"><i class="no-highlight">93</i>&nbsp;    private static final String PUBLISH_TIMEOUT_PROP = &quot;publishTimeout&quot;;</b>
+<i class="no-highlight">94</i>&nbsp;    private static final long PUBLISH_TIMEOUT_DEFAULT_SEC = TimeUnit.SECONDS.toSeconds(40);
+<b class="nc"><i class="no-highlight">95</i>&nbsp;    private static final String GROUPS_PATH = new JsonPathBuilder(SUBGROUPS_PROP)</b>
+<i class="no-highlight">96</i>&nbsp;            .appendValueElement().appendAllListElements().append(SUBGROUPS_COL_PROP).build();
+<b class="nc"><i class="no-highlight">97</i>&nbsp;</b>
+<i class="no-highlight">98</i>&nbsp;    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    private Document2CSVConverter document2CSVConverter;
+<b class="nc"><i class="no-highlight">101</i>&nbsp;    private boolean hasInput;</b>
+<i class="no-highlight">102</i>&nbsp;    private Future&lt;String&gt; handle = null;
+<i class="no-highlight">103</i>&nbsp;    @Inject
+<i class="no-highlight">104</i>&nbsp;    private BirstBasicAuthAccount account;
+<i class="no-highlight">105</i>&nbsp;    public AuthenticationInfo authenticationInfo;
+<i class="no-highlight">106</i>&nbsp;
+<i class="no-highlight">107</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">108</i>&nbsp;    public void defineProperties(PropertyBuilder builder) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        builder.describe(REMOTE_FILENAME_PROP, REMOTE_FILENAME_LABEL, REMOTE_FILENAME_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        builder.describe(SPACE_ID_PROP, SPACE_ID_LABEL, SPACE_ID_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        builder.describe(PUBLISH_PROP, PUBLISH_LABEL, PUBLISH_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                .defaultValue(PUBLISH_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                .add();</b>
+<i class="no-highlight">120</i>&nbsp;        builder.describe(LOAD_GROUP_PROP, LOAD_GROUP_LABEL, LOAD_GROUP_DESCRIPTION)
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                // load group must be set to ACORN or SFORCE</b>
+<i class="no-highlight">122</i>&nbsp;                .defaultValue(LOAD_GROUP_DEFAULT)
+<i class="no-highlight">123</i>&nbsp;                // SWAT-1379: The property is hidden because the Load group is no longer
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                // supported by Birst API</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                .hide()</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        builder.describe(CONTAINS_NAMES_PROP, CONTAINS_NAMES_LABEL, CONTAINS_NAMES_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .defaultValue(CONTAINS_NAMES_DEFAULT)</b>
+<i class="no-highlight">130</i>&nbsp;                .add();
+<b class="nc"><i class="no-highlight">131</i>&nbsp;</b>
+<i class="no-highlight">132</i>&nbsp;        SnapProperty groupColumn = builder.describe(SUBGROUPS_COL_PROP, SUBGROUPS_COL_LABEL,
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                SUBGROUPS_COL_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        builder.describe(SUBGROUPS_PROP, SUBGROUPS_LABEL, SUBGROUPS_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                .withEntry(groupColumn)</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        builder.describe(UPLOAD_TIMEOUT_PROP, UPLOAD_TIMEOUT_LABEL, UPLOAD_TIMEOUT_DESCRIPTION)</b>
+<i class="no-highlight">142</i>&nbsp;                .type(SnapType.INTEGER)
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                        // not implemented</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                .hide()</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                .defaultValue(UPLOAD_TIMEOUT_DEFAULT_SEC)</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        builder.describe(PUBLISH_TIMEOUT_PROP, PUBLISH_TIMEOUT_LABEL, PUBLISH_TIMEOUT_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                .defaultValue(PUBLISH_TIMEOUT_DEFAULT_SEC)</b>
+<i class="no-highlight">150</i>&nbsp;                .add();
+<i class="no-highlight">151</i>&nbsp;    }
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">154</i>&nbsp;    public void configure(final PropertyValues propertyValues) throws ConfigurationException {</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        if (account == null) {</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            throw new ConfigurationException(ERR_ACCOUNT_NOT_SPECIFIED)</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                    .withReason(REASON_ACCOUNT_NOT_SPECIFIED)</b>
+<i class="no-highlight">158</i>&nbsp;                    .withResolution(RESOLUTION_ACCOUNT_NOT_SPECIFIED);
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        String filename = propertyValues.getAsExpression(REMOTE_FILENAME_PROP).eval(null);</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        boolean containsNames = propertyValues.getBoolean(CONTAINS_NAMES_PROP, false);</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        authenticationInfo = account.connect();</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        String loginToken = authenticationInfo.getLoginToken();</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        configureAccountOptions(account, authenticationInfo);</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        boolean publish = propertyValues.get(PUBLISH_PROP);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        String spaceId = propertyValues.getAsExpression(SPACE_ID_PROP).eval(null);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        String loadGroup = propertyValues.get(LOAD_GROUP_PROP);</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        List&lt;String&gt; subGroupList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; subGroupExprs = propertyValues.get(SUBGROUPS_PROP);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        if (CollectionUtils.isNotEmpty(subGroupExprs)) {</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            subGroupExprs.forEach(subGroupExprMap -&gt; {</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                String subGroupName = propertyValues.getExpressionPropertyFor(subGroupExprMap,</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                        SUBGROUPS_COL_PROP).eval(null);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                if (StringUtils.isNotEmpty(subGroupName)) {</b>
+<i class="no-highlight">175</i>&nbsp;                    subGroupList.add(subGroupName);
+<i class="no-highlight">176</i>&nbsp;                }
+<i class="no-highlight">177</i>&nbsp;            });
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        }</b>
+<i class="no-highlight">179</i>&nbsp;        BigInteger timeOutIntervalSec = propertyValues.get(PUBLISH_TIMEOUT_PROP);
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;            Pipe pipe = Pipe.open();</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            InputStream inputStream = Channels.newInputStream(pipe.source());</b>
+<i class="no-highlight">183</i>&nbsp;            document2CSVConverter = new Document2CSVConverter(pipe.sink(),
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                    containsNames);</b>
+<i class="no-highlight">185</i>&nbsp;            BirstDataUploader dataUploader = new BirstDataUploader(loginToken, spaceId, filename,
+<i class="no-highlight">186</i>&nbsp;                    account, containsNames, publish, timeOutIntervalSec, inputStream, loadGroup,
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                    subGroupList, errorViews);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;            handle = executor.submit(dataUploader);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;            SnapDataException sde = new SnapDataException(e, INVALID_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                    .withResolution(PLEASE_ADDRESS_REPORTED_ISSUE);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            errorViews.write(sde);</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            SnapDataException sde = new SnapDataException(e, BIRST_UPLOAD_FAILED)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                    .withResolution(PLEASE_ADDRESS_REPORTED_ISSUE);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            errorViews.write(sde);</b>
+<i class="no-highlight">199</i>&nbsp;        }
+<i class="no-highlight">200</i>&nbsp;    }
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;    public void configureAccountOptions(BirstBasicAuthAccount authAccount, AuthenticationInfo
+<b class="nc"><i class="no-highlight">203</i>&nbsp;            authenticationInfo) {</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        BirstConfigureCommon birstConfigureCommon = new BirstConfigureCommon();</b>
+<i class="no-highlight">205</i>&nbsp;        birstConfigureCommon.configureAccountOptions(account, authenticationInfo);
+<i class="no-highlight">206</i>&nbsp;    }
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">209</i>&nbsp;    protected void process(final Document document, final String inputViewName) {</b>
+<i class="no-highlight">210</i>&nbsp;        hasInput = true;
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;            document2CSVConverter.write(document);</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            errorViews.write(e, document);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;            SnapDataException sde = new SnapDataException(e, BIRST_UPLOAD_FAILED)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                    .withResolution(PLEASE_ADDRESS_REPORTED_ISSUE);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            errorViews.write(sde);</b>
+<i class="no-highlight">220</i>&nbsp;        }
+<i class="no-highlight">221</i>&nbsp;    }
+<i class="no-highlight">222</i>&nbsp;
+<i class="no-highlight">223</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">224</i>&nbsp;    public void cleanup() throws ExecutionException {</b>
+<i class="no-highlight">225</i>&nbsp;        if (!hasInput) {
+<i class="no-highlight">226</i>&nbsp;            return;
+<i class="no-highlight">227</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        try {</b>
+<i class="no-highlight">229</i>&nbsp;            document2CSVConverter.close();
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            // wait until upload has completed</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            if (handle != null) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                String uploadStatus = handle.get();</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                if (StringUtils.isNotBlank(uploadStatus)) {</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                    Map&lt;String, Object&gt; out = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                    out.put(STATUS, uploadStatus);</b>
+<i class="no-highlight">236</i>&nbsp;                    outputViews.write(documentUtility.newDocument(out));
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                }</b>
+<i class="no-highlight">238</i>&nbsp;                executor.shutdown();
+<b class="nc"><i class="no-highlight">239</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        } catch (InterruptedException | java.util.concurrent.ExecutionException | IOException e) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            SnapDataException sde = new SnapDataException(e, BIRST_UPLOAD_FAILED)</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                    .withResolution(PLEASE_ADDRESS_REPORTED_ISSUE);</b>
+<i class="no-highlight">244</i>&nbsp;            errorViews.write(sde);
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        } finally {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            account.disconnect();</b>
+<i class="no-highlight">247</i>&nbsp;        }
+<i class="no-highlight">248</i>&nbsp;    }
+<i class="no-highlight">249</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

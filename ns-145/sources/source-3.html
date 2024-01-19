@@ -1,0 +1,617 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Execute</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.sap</a>
+</div>
+
+<h1>Coverage Summary for Class: Execute (com.snaplogic.snaps.sap)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Execute</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/240)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Execute$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/248)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.sap;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">19</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">20</i>&nbsp;import com.google.common.collect.Ordering;
+<i class="no-highlight">21</i>&nbsp;import com.google.common.collect.Sets;
+<i class="no-highlight">22</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">23</i>&nbsp;import com.sap.conn.jco.JCo;
+<i class="no-highlight">24</i>&nbsp;import com.sap.conn.jco.JCoDestination;
+<i class="no-highlight">25</i>&nbsp;import com.sap.conn.jco.JCoException;
+<i class="no-highlight">26</i>&nbsp;import com.sap.conn.jco.JCoFunction;
+<i class="no-highlight">27</i>&nbsp;import com.sap.conn.jco.JCoFunctionTemplate;
+<i class="no-highlight">28</i>&nbsp;import com.sap.conn.jco.JCoListMetaData;
+<i class="no-highlight">29</i>&nbsp;import com.sap.conn.jco.JCoMetaData;
+<i class="no-highlight">30</i>&nbsp;import com.sap.conn.jco.JCoParameterList;
+<i class="no-highlight">31</i>&nbsp;import com.sap.conn.jco.JCoRecord;
+<i class="no-highlight">32</i>&nbsp;import com.sap.conn.jco.JCoRepository;
+<i class="no-highlight">33</i>&nbsp;import com.sap.conn.jco.JCoTable;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.api.ViewProvider;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.common.Constants;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.common.properties.Suggestions;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.common.properties.builders.ViewBuilder;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snap.api.ViewCategory;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">54</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">55</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">56</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">57</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">58</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">59</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">60</i>&nbsp;import com.snaplogic.util.ExpressionUtils;
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">63</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">64</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">65</i>&nbsp;import org.joda.time.format.DateTimeFormatter;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">68</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">69</i>&nbsp;import java.util.List;
+<i class="no-highlight">70</i>&nbsp;import java.util.Map;
+<i class="no-highlight">71</i>&nbsp;import java.util.Set;
+<i class="no-highlight">72</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.sap.Messages.*;
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;/**
+<i class="no-highlight">77</i>&nbsp; * Execute
+<i class="no-highlight">78</i>&nbsp; *
+<i class="no-highlight">79</i>&nbsp; * &lt;p&gt;Execute sap BAPI or RFC request using information from available input document and write
+<i class="no-highlight">80</i>&nbsp; * response to document.
+<i class="no-highlight">81</i>&nbsp; *
+<i class="no-highlight">82</i>&nbsp; * @author jim, mklumpp
+<i class="no-highlight">83</i>&nbsp; */
+<i class="no-highlight">84</i>&nbsp;@General(title = SNAP_TITLE, purpose = SNAP_PURPOSE)
+<i class="no-highlight">85</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">86</i>&nbsp;@Inputs(min = 0, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">87</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">88</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<b class="nc"><i class="no-highlight">89</i>&nbsp;public class Execute extends SapCommon implements InputSchemaProvider, ViewProvider {</b>
+<i class="no-highlight">90</i>&nbsp;    private static final String COMMIT = &quot;commit&quot;;
+<i class="no-highlight">91</i>&nbsp;    private static final String ERROR_HANDLING = &quot;error_handling&quot;;
+<i class="no-highlight">92</i>&nbsp;    private static final String ERROR_VALUE = &quot;error_value&quot;;
+<i class="no-highlight">93</i>&nbsp;    private static final String ERROR_PATH = &quot;error_path&quot;;
+<b class="nc"><i class="no-highlight">94</i>&nbsp;    private static final Set&lt;String&gt; BAPI_MONITOR_IMPORT_KEYS = new ImmutableSet.Builder&lt;String&gt;()</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;            .add(&quot;OBJECTTYPE&quot;)</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;            .add(&quot;SHOW_RELEASE&quot;)</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;            .add(&quot;BAPIS_POTENTIAL&quot;)</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            .add(&quot;BAPIS_NEW&quot;)</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            .add(&quot;BAPIS_OLD&quot;)</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            .add(&quot;RELEASED_BAPI&quot;)</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            .add(&quot;RELEASED_FUNC&quot;)</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;    private static final Map&lt;Object, Object&gt; ERROR_PATH_ROW_ENTRY1 = ImmutableMap.builder()</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;            .put(Constants.SNAP_PROPERTY_VALUE, &quot;$RETURN[*].TYPE&quot;)</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;    private static final Map&lt;Object, Object&gt; ERRORVALUE_ROW_ENTRY1 = ImmutableMap.builder()</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            .put(Constants.SNAP_PROPERTY_VALUE, &quot;E&quot;)</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;    private static final Map&lt;Object, Object&gt; ROW1 = ImmutableMap.builder()</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            .put(ERROR_PATH, ERROR_PATH_ROW_ENTRY1)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            .put(ERROR_VALUE, ERRORVALUE_ROW_ENTRY1)</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;    private static final List&lt;Object&gt; DEFAULT_ERROR_HANDLING_VALUES = ImmutableList.builder()</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            .add(ROW1)</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            .build();</b>
+<i class="no-highlight">116</i>&nbsp;    private static final String BAPI_CONFIG = &quot;bapi_config&quot;;
+<i class="no-highlight">117</i>&nbsp;    private static final String BAPI_CONFIG_KEY = &quot;bapi_config_key&quot;;
+<b class="nc"><i class="no-highlight">118</i>&nbsp;    private static final JsonPath BAPI_CONFIG_KEY_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">119</i>&nbsp;            &quot;$&quot; + BAPI_CONFIG_KEY + &quot;.value&quot;);
+<i class="no-highlight">120</i>&nbsp;    private static final String BAPI_CONFIG_VALUE = &quot;bapi_config_value&quot;;
+<b class="nc"><i class="no-highlight">121</i>&nbsp;    private static final JsonPath BAPI_CONFIG_VALUE_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">122</i>&nbsp;            &quot;$&quot; + BAPI_CONFIG_VALUE + &quot;.value&quot;);
+<i class="no-highlight">123</i>&nbsp;    private static final String SAP_EMPTY_VALUE = &quot; &quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String DEFAULT_INPUT_VIEW_0 = &quot;input0&quot;;
+<i class="no-highlight">125</i>&nbsp;    private static final String DATE_CONVERSION = &quot;dateConversion&quot;;
+<i class="no-highlight">126</i>&nbsp;    private static final String OUTPUT_DATE_TIME_AS_TEXT = &quot;outputDateTimeAsText&quot;;
+<i class="no-highlight">127</i>&nbsp;    private static final String YYYY_MM_DD = &quot;yyyyMMdd&quot;;
+<i class="no-highlight">128</i>&nbsp;    private static final String START_CALL_SEQUENCE_PROP = &quot;startCallSequence&quot;;
+<i class="no-highlight">129</i>&nbsp;    private static final String COMMIT_TIMEOUT_PROP = &quot;commitTimeout&quot;;
+<i class="no-highlight">130</i>&nbsp;    private static final String SESSION_ID_PROP = &quot;sessionId&quot;;
+<i class="no-highlight">131</i>&nbsp;    private static final String RELOAD_BAPI_METADATA = &quot;reloadFunctionMetadata&quot;;
+<i class="no-highlight">132</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">133</i>&nbsp;    protected static final String ABAP_FIELDNAME = &quot;ABAPNAME&quot;;
+<i class="no-highlight">134</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">135</i>&nbsp;    protected static final String BAPI_MONITOR_GETLIST = &quot;BAPI_MONITOR_GETLIST&quot;;
+<i class="no-highlight">136</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">137</i>&nbsp;    protected static final String BAPI = &quot;bapi&quot;;
+<i class="no-highlight">138</i>&nbsp;    private static final String PIPE_RUUID_EXPRESSION = &quot;pipe.ruuid&quot;;
+<i class="no-highlight">139</i>&nbsp;    private static final String ENABLE_IF_PROP_EQ_TRUE = &quot;$.settings.%s.value == true&quot;;
+<i class="no-highlight">140</i>&nbsp;    private static final int DEFAULT_SEQUENCE_TIMEOUT = 300;
+<i class="no-highlight">141</i>&nbsp;    private ExpressionProperty dateConversionExpr;
+<i class="no-highlight">142</i>&nbsp;    private boolean isOutputDateTimeAsText;
+<i class="no-highlight">143</i>&nbsp;    private boolean isTransaction;
+<i class="no-highlight">144</i>&nbsp;    private List&lt;Pair&lt;ExpressionProperty, ExpressionProperty&gt;&gt; errorHandlings;
+<i class="no-highlight">145</i>&nbsp;    @Inject
+<i class="no-highlight">146</i>&nbsp;    private SAPBAPISchemaUtil sapSchemaUtil;
+<i class="no-highlight">147</i>&nbsp;    @Inject
+<i class="no-highlight">148</i>&nbsp;    private ExpressionUtils expressionUtils;
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;    private boolean startCallSequence;
+<i class="no-highlight">151</i>&nbsp;    private String sessionID;
+<i class="no-highlight">152</i>&nbsp;    private BigInteger commitTimeout;
+<i class="no-highlight">153</i>&nbsp;    private boolean reloadFunctionMetadata;
+<i class="no-highlight">154</i>&nbsp;
+<i class="no-highlight">155</i>&nbsp;    @Override
+<i class="no-highlight">156</i>&nbsp;    public void defineViews(final ViewBuilder viewBuilder) {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        viewBuilder.describe(DEFAULT_INPUT_VIEW_0)</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .type(ViewType.DOCUMENT)</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                .add(ViewCategory.INPUT);</b>
+<i class="no-highlight">160</i>&nbsp;    }
+<i class="no-highlight">161</i>&nbsp;
+<i class="no-highlight">162</i>&nbsp;    @Override
+<i class="no-highlight">163</i>&nbsp;    public void defineInputSchema(final SchemaProvider provider) {
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        for (String inputViewName : provider.getRegisteredViewNames()) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;            if (context != null) {</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                sapSchemaUtil.buildInputSchema(provider, inputViewName, context);</b>
+<i class="no-highlight">167</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                log.warn(&quot;Unable to suggest the input schema because the Context object is NULL&quot;);</b>
+<i class="no-highlight">169</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        }</b>
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    @Override
+<i class="no-highlight">174</i>&nbsp;    @SuppressWarnings(&quot;ToArrayCallWithZeroLengthArrayArgument&quot;)
+<i class="no-highlight">175</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        SnapProperty bapiConfigKey = propertyBuilder.describe(BAPI_CONFIG_KEY,</b>
+<i class="no-highlight">177</i>&nbsp;                BAPI_LIST_CONFIG_KEY_LBL, BAPI_LIST_CONFIG_KEY_DESC)
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .withAllowedValues(BAPI_MONITOR_IMPORT_KEYS)</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        SnapProperty bapiConfigValue = propertyBuilder.describe(BAPI_CONFIG_VALUE,</b>
+<i class="no-highlight">181</i>&nbsp;                BAPI_LIST_CONFIG_VALUE_LBL, BAPI_LIST_CONFIG_VALUE_DESC)
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        propertyBuilder.describe(BAPI_CONFIG, BAPI_LIST_CONFIGURATION_LBL,</b>
+<i class="no-highlight">184</i>&nbsp;                BAPI_LIST_CONFIGURATION_DESC)
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .withEntry(bapiConfigKey)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .withEntry(bapiConfigValue)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .add();</b>
+<i class="no-highlight">189</i>&nbsp;
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        propertyBuilder.describe(BAPI, BAPI_LABEL, BAPI_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                .withSuggestions(</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                        new Suggestions() {</b>
+<i class="no-highlight">195</i>&nbsp;                            @Override
+<i class="no-highlight">196</i>&nbsp;                            public void suggest(SuggestionBuilder suggestionBuilder,
+<i class="no-highlight">197</i>&nbsp;                                                PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                                Set&lt;String&gt; bapiNames = getBAPISuggestions(propertyValues);</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                                if (!bapiNames.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                                    suggestionBuilder.node(BAPI)</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                                            .suggestions(Ordering.natural().sortedCopy(bapiNames)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                                                    .toArray(new String[0]));</b>
+<i class="no-highlight">203</i>&nbsp;                                } else {
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                                    suggestionBuilder.node(BAPI)</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                                            .suggestions(NO_BAPI_S_FOUND);</b>
+<i class="no-highlight">206</i>&nbsp;                                }
+<i class="no-highlight">207</i>&nbsp;                            }
+<i class="no-highlight">208</i>&nbsp;                        })
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .add();</b>
+<i class="no-highlight">210</i>&nbsp;
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        propertyBuilder.describe(START_CALL_SEQUENCE_PROP, START_CALL_SEQUENCE_LABEL,</b>
+<i class="no-highlight">212</i>&nbsp;                START_CALL_SEQUENCE_DESC)
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        propertyBuilder.describe(COMMIT_TIMEOUT_PROP, COMMIT_TIMEOUT_SEC_LABEL,</b>
+<i class="no-highlight">217</i>&nbsp;                COMMIT_TIMEOUT_SEC_DESC)
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                .defaultValue(DEFAULT_SEQUENCE_TIMEOUT)</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                .enableIf(String.format(ENABLE_IF_PROP_EQ_TRUE, START_CALL_SEQUENCE_PROP))</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        propertyBuilder.describe(COMMIT, COMMIT_AFTER_BAPI_EXECUTE, COMMIT_AFTER_BAPI_EXECUTE_DESC)</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        propertyBuilder.describe(SESSION_ID_PROP, SESSION_ID_LABEL, SESSION_ID_DESC)</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        propertyBuilder.describe(DATE_CONVERSION, DATE_CONVERSION_FORMAT, DATE_CONVERSION_INFO)</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                .defaultValue(YYYY_MM_DD)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                .add();</b>
+<i class="no-highlight">235</i>&nbsp;
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        propertyBuilder.describe(OUTPUT_DATE_TIME_AS_TEXT, OUTPUT_DATE_TIME_AS_TEXT_LABEL,</b>
+<i class="no-highlight">237</i>&nbsp;                OUTPUT_DATE_TIME_AS_TEXT_DESC)
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                .add();</b>
+<i class="no-highlight">241</i>&nbsp;
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        SnapProperty errorPathProperty = propertyBuilder.describe(ERROR_PATH, ERROR_PATH_LABEL,</b>
+<i class="no-highlight">243</i>&nbsp;                ERROR_PATH_DESC)
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                .build();</b>
+<i class="no-highlight">246</i>&nbsp;
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        SnapProperty errorValueProperty = propertyBuilder.describe(ERROR_VALUE, ERROR_VALUE_LABEL,</b>
+<i class="no-highlight">248</i>&nbsp;                ERROR_VALUE_DESC)
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                .type(SnapType.ANY)</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                .build();</b>
+<i class="no-highlight">252</i>&nbsp;
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        propertyBuilder.describe(ERROR_HANDLING, ERROR_PATHS_LABEL, ERROR_PATHS_DESC)</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                .withEntry(errorPathProperty)</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                .withEntry(errorValueProperty)</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                .defaultValue(DEFAULT_ERROR_HANDLING_VALUES)</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        defineRetryProperties(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        defineRouteErrorProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        propertyBuilder.describe(RELOAD_BAPI_METADATA, RELOAD_BAPI_METADATA_LABEL,</b>
+<i class="no-highlight">262</i>&nbsp;                RELOAD_BAPI_METADATA_DESC)
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                .add();</b>
+<i class="no-highlight">265</i>&nbsp;    }
+<i class="no-highlight">266</i>&nbsp;
+<i class="no-highlight">267</i>&nbsp;    @Override
+<i class="no-highlight">268</i>&nbsp;    public void configure(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        executor = Executors.newSingleThreadExecutor();</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        bapiExpr = propertyValues.getAsExpression(BAPI);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        isTransaction = Boolean.TRUE.equals(propertyValues.get(COMMIT));</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        isOutputDateTimeAsText = Boolean.TRUE.equals(propertyValues.get(OUTPUT_DATE_TIME_AS_TEXT));</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        dateConversionExpr = propertyValues.getAsExpression(DATE_CONVERSION);</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; errorHandling = propertyValues.get(ERROR_HANDLING);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        if (CollectionUtils.isNotEmpty(errorHandling)) {</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            errorHandlings = Lists.newArrayListWithExpectedSize(errorHandling.size());</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            for (Map&lt;String, String&gt; errorHandlingRow : errorHandling) {</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                ExpressionProperty errorPathProperty = propertyValues.getExpressionPropertyFor(</b>
+<i class="no-highlight">279</i>&nbsp;                        errorHandlingRow, ERROR_PATH);
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                ExpressionProperty errorValueProperty = propertyValues.getExpressionPropertyFor(</b>
+<i class="no-highlight">281</i>&nbsp;                        errorHandlingRow, ERROR_VALUE);
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                errorHandlings.add(Pair.of(errorPathProperty, errorValueProperty));</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            }</b>
+<i class="no-highlight">284</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        configureRetryProperties(propertyValues);</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        configureRouteErrorProperty(propertyValues);</b>
+<i class="no-highlight">287</i>&nbsp;        // setup the pipeline runtimeID to the account instance, so that a dedicated session could
+<i class="no-highlight">288</i>&nbsp;        // be assigned to the execution.
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        ExpressionProperty pipRuuidExpr = expressionUtils.createExpressionProperty(propertyValues</b>
+<i class="no-highlight">290</i>&nbsp;                , true, PIPE_RUUID_EXPRESSION);
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        runtimeID = pipRuuidExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        log.debug(&quot;Get RuntimeID = {}&quot;, runtimeID);</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        jCoAccount.setRuntimeID(runtimeID);</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        sessionID = propertyValues.getAsExpression(SESSION_ID_PROP).eval(null);</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        jCoDestination = getJCoDestination(sessionID);</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        commitTimeout = propertyValues.getAsExpression(COMMIT_TIMEOUT_PROP).eval(null);</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        if (commitTimeout == null) {</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            commitTimeout = BigInteger.valueOf(DEFAULT_SEQUENCE_TIMEOUT);</b>
+<i class="no-highlight">299</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        startCallSequence = Boolean.TRUE.equals(propertyValues.get(START_CALL_SEQUENCE_PROP));</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        reloadFunctionMetadata = Boolean.TRUE.equals(propertyValues.get(RELOAD_BAPI_METADATA));</b>
+<i class="no-highlight">302</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">303</i>&nbsp;            bapiName = bapiExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;            log.debug(e.getMessage());</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        if (bapiName != null) {</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;            context = createContextFor(bapiName, jCoDestination,</b>
+<i class="no-highlight">309</i>&nbsp;                    isTransaction, startCallSequence, reloadFunctionMetadata);
+<i class="no-highlight">310</i>&nbsp;        }
+<i class="no-highlight">311</i>&nbsp;    }
+<i class="no-highlight">312</i>&nbsp;
+<i class="no-highlight">313</i>&nbsp;    @Override
+<i class="no-highlight">314</i>&nbsp;    protected void process(Document document, String inputViewName) {
+<i class="no-highlight">315</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">316</i>&nbsp;            DateTimeFormatter dateTimeFormatter =</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                    getDateTimeFormatter(dateConversionExpr.eval(document));</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            if (StringUtils.isNotBlank(bapiName) &amp;&amp; context == null) {</b>
+<i class="no-highlight">319</i>&nbsp;                return;
+<i class="no-highlight">320</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">321</i>&nbsp;            if (!isConnected) {</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                throw new SnapDataException(String.format(CONNECTION_FAILED, jCoDestination</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                                .getDestinationName()))</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                                .withReason(String.format(CONNECTION_FAIL_REASON,</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                                        JCoException.JCO_ERROR_COMMUNICATION))</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                                .withResolution(CONNECTION_FAIL_RESOLUTION);</b>
+<i class="no-highlight">327</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">328</i>&nbsp;            if ((super.getDocumentContentAsMap(document) == null &amp;&amp; inputViewName != null)</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                    || !checkSAPContext(document, isTransaction, startCallSequence)) {</b>
+<i class="no-highlight">330</i>&nbsp;                // if not a map: will write to error view if enabled otherwise throw exception
+<i class="no-highlight">331</i>&nbsp;                return;
+<i class="no-highlight">332</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">333</i>&nbsp;            SAPDocumentWrapper documentWrapper = new SAPDocumentWrapper(document);</b>
+<i class="no-highlight">334</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                if (startCallSequence) {</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                    AbstractJCoAccount.localSessionRef.get()</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                            .awaitTransactionStart(commitTimeout.intValue());</b>
+<i class="no-highlight">338</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                sapExecutor.process(documentWrapper, context,</b>
+<i class="no-highlight">340</i>&nbsp;                        dateTimeFormatter, isOutputDateTimeAsText);
+<b class="nc"><i class="no-highlight">341</i>&nbsp;            } catch (ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                JCoException jCoException = null;</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                if (e.getCause() instanceof JCoException) {</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                    jCoException = (JCoException) e.getCause();</b>
+<i class="no-highlight">345</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                if (jCoException != null &amp;&amp; isAConnectionError(jCoException)) {</b>
+<i class="no-highlight">347</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                        checkSAPConnection(executor, jCoDestination);</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                    } catch (JCoException jcoe) {</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                        isConnected = false;</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                        throw new SnapDataException(jcoe, String.format(CONNECTION_FAILED,</b>
+<i class="no-highlight">352</i>&nbsp;                                jCoDestination))
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                                .withResolution(CONNECTION_FAIL_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                    }</b>
+<i class="no-highlight">355</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                throw new SnapDataException(e.getCause(), EXCEPTION_OCCURRED)</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                        .withResolution(PLEASE_VERIFY_CONFIGURATION_AND_INPUT_DOCUMENT);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;            if (documentWrapper.hasErrors()) {</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                throw documentWrapper.createException(documentUtility);</b>
+<i class="no-highlight">361</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                Map&lt;String, Object&gt; outputDocumentMap = documentWrapper.getDocumentMap();</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                if (CollectionUtils.isNotEmpty(errorHandlings)) {</b>
+<i class="no-highlight">364</i>&nbsp;                    for (Pair&lt;ExpressionProperty, ExpressionProperty&gt; errorHandlingRow :
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                            errorHandlings) {</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                        Object path = errorHandlingRow.getLeft().eval(document);</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                        if (!(path instanceof String)) {</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                            throw new SnapDataException(INVALID_ERROR_PATH)</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                                    .withReason(INVALID_ERROR_PATH)</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                                    .withResolution(INVALID_ERROR_PATH_RESOLUTION);</b>
+<i class="no-highlight">371</i>&nbsp;                        }
+<i class="no-highlight">372</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                            JsonPath jsonPath = JsonPathImpl.compile((String) path);</b>
+<i class="no-highlight">374</i>&nbsp;                            // a null value seems valid for error condition
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                            Object value = errorHandlingRow.getRight().eval(document);</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                            Object documentValue = jsonPath.readStatic(outputDocumentMap, null);</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                            boolean foundError = false;</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                            if (documentValue instanceof Collection) {</b>
+<i class="no-highlight">379</i>&nbsp;                                // check if any of the values returned by the path match the error
+<i class="no-highlight">380</i>&nbsp;                                // value, if it does, we route it to the error view.
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                                for (Object entry : (Collection) documentValue) {</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                                    foundError = entry.equals(value);</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                                    if (foundError) {</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                                        break;</b>
+<i class="no-highlight">385</i>&nbsp;                                    }
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                                }</b>
+<i class="no-highlight">387</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                            if (value.equals(documentValue) || foundError) {</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                                throw new SnapDataException(FOUND_ERROR)</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                                        .withReason(FOUND_ERROR)</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                                        .withResolution(String.format(FOUND_ERROR_RESOLUTION, value,</b>
+<i class="no-highlight">392</i>&nbsp;                                                path));
+<i class="no-highlight">393</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                        } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                            throw new SnapDataException(INVALID_ERROR_JSON_PATH)</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                                    .withReason(INVALID_ERROR_JSON_PATH)</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                                    .withResolution(INVALID_ERROR_JSON_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;                    }</b>
+<i class="no-highlight">400</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                Document documentCreated = documentWrapper.createOutputDocument(documentUtility);</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;                outputViews.write(documentCreated,document);</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;                Document original = documentWrapper.getInputDocument();</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                if (original != null) {</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                    original.acknowledge();</b>
+<i class="no-highlight">406</i>&nbsp;                }
+<i class="no-highlight">407</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">408</i>&nbsp;        } catch (SnapDataException sde) {</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;            errorViews.write(sde, document);</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        }</b>
+<i class="no-highlight">411</i>&nbsp;    }
+<i class="no-highlight">412</i>&nbsp;
+<i class="no-highlight">413</i>&nbsp;    private Set&lt;String&gt; getBAPISuggestions(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">414</i>&nbsp;        Set&lt;String&gt; bapiNames = Sets.newHashSet();</b>
+<i class="no-highlight">415</i>&nbsp;        JCoRepository jCoRepositorySuggest;
+<i class="no-highlight">416</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">417</i>&nbsp;            JCoDestination jCoSuggestDestination = jCoAccount.connect();</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            JCo.setProperty(Messages.JCO_AUTO_COMMIT_OPTION, Messages.JCO_AUTO_COMMIT_OPTION_TRUE);</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            jCoRepositorySuggest = jCoSuggestDestination.getRepository();</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;            JCoFunctionTemplate jCoFunctionTemplateBapiGetList = jCoRepositorySuggest</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                    .getFunctionTemplate(BAPI_MONITOR_GETLIST);</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;            JCoFunction jCoFunctionBapiGetList = null;</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;            if (jCoFunctionTemplateBapiGetList != null) {</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                jCoFunctionBapiGetList = jCoFunctionTemplateBapiGetList.getFunction();</b>
+<i class="no-highlight">425</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">426</i>&nbsp;            if (jCoFunctionBapiGetList != null) {</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                JCoParameterList exportParamList = jCoFunctionBapiGetList.getImportParameterList();</b>
+<i class="no-highlight">428</i>&nbsp;                // configure BAPI List call
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                List&lt;Map&lt;String, String&gt;&gt; config = propertyValues.get(BAPI_CONFIG);</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                if (CollectionUtils.isNotEmpty(config)) {</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                    for (Map&lt;String, String&gt; configRow : config) {</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                        String configKey = BAPI_CONFIG_KEY_PATH.read(configRow);</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                        if (configKey == null) {</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                            continue;</b>
+<i class="no-highlight">435</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                        String configValue = BAPI_CONFIG_VALUE_PATH.read(configRow);</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;                        if (configValue == null) {</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;                            configValue = SAP_EMPTY_VALUE;</b>
+<i class="no-highlight">439</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                        exportParamList.setValue(configKey, configValue);</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                    }</b>
+<i class="no-highlight">442</i>&nbsp;                }
+<i class="no-highlight">443</i>&nbsp;                // return all BAPI&#39;s
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                jCoFunctionBapiGetList.execute(jCoSuggestDestination);</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                JCoParameterList bapis = jCoFunctionBapiGetList.getTableParameterList();</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                addBAPIs(bapis, bapiNames);</b>
+<i class="no-highlight">447</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">448</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;            bapiNames.clear();</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;            bapiNames.add(Throwables.getRootCause(e).getMessage());</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;        return bapiNames;</b>
+<i class="no-highlight">453</i>&nbsp;    }
+<i class="no-highlight">454</i>&nbsp;
+<i class="no-highlight">455</i>&nbsp;    private void addBAPIs(JCoParameterList bapis, Set&lt;String&gt; bapiNames) {
+<b class="nc"><i class="no-highlight">456</i>&nbsp;        if (bapis != null) {</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;            JCoListMetaData jCoListMetaData = bapis.getListMetaData();</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;            int fieldCount = jCoListMetaData.getFieldCount();</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;            for (int i = 0; i &lt; fieldCount; ++i) {</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                String name = jCoListMetaData.getName(i);</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                int type = jCoListMetaData.getType(i);</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                if (type == JCoMetaData.TYPE_TABLE) {</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                    JCoRecord record = bapis.getTable(name);</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                    JCoTable tableRecord = (JCoTable) record;</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                    tableRecord.firstRow();</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                    int numRows = tableRecord.getNumRows();</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                    for (int j = 0; j &lt; numRows; ++j, tableRecord.nextRow()) {</b>
+<i class="no-highlight">468</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                            String abapName = tableRecord.getValue(ABAP_FIELDNAME).toString();</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                            if (StringUtils.isNotEmpty(abapName)) {</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;                                bapiNames.add(abapName);</b>
+<i class="no-highlight">472</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                        } catch (Throwable e) {</b>
+<i class="no-highlight">474</i>&nbsp;                            // ignore
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                        }</b>
+<i class="no-highlight">476</i>&nbsp;                    }
+<i class="no-highlight">477</i>&nbsp;                }
+<i class="no-highlight">478</i>&nbsp;            }
+<i class="no-highlight">479</i>&nbsp;        }
+<i class="no-highlight">480</i>&nbsp;    }
+<i class="no-highlight">481</i>&nbsp;
+<i class="no-highlight">482</i>&nbsp;    @Override
+<i class="no-highlight">483</i>&nbsp;    public void cleanup() throws ExecutionException {
+<b class="nc"><i class="no-highlight">484</i>&nbsp;        super.cleanup();</b>
+<i class="no-highlight">485</i>&nbsp;    }
+<i class="no-highlight">486</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

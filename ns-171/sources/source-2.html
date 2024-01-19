@@ -1,0 +1,413 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AbstractJoinOperator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform.join</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractJoinOperator (com.snaplogic.snaps.transform.join)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractJoinOperator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/106)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AbstractJoinOperator$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/107)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.transform.join;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snaps.transform.SnapInternals;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snaps.transform.SortOrder;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import org.mapdb.Fun;
+<i class="no-highlight">23</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">24</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">27</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">28</i>&nbsp;import java.util.Map;
+<i class="no-highlight">29</i>&nbsp;import java.util.NavigableSet;
+<i class="no-highlight">30</i>&nbsp;import java.util.Set;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.transform.join.Messages.DATA_DOES_NOT_CONFORM_TO_SORT_ORDER;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.transform.join.Messages.DATA_MAP_DOES_NOT_CONTAIN_COMPARABLE;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.transform.join.Messages.ENSURE_SORT_ORDER;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.transform.join.Messages.RESOLUTION_REPORT_ISSUE;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;/**
+<i class="no-highlight">38</i>&nbsp; * AbstractJoinOperator is the base class for the join operator implementations.
+<i class="no-highlight">39</i>&nbsp; *
+<i class="no-highlight">40</i>&nbsp; * @author ksubramanian
+<i class="no-highlight">41</i>&nbsp; * @since 2013
+<i class="no-highlight">42</i>&nbsp; */
+<i class="no-highlight">43</i>&nbsp;public abstract class AbstractJoinOperator implements JoinOperator {
+<b class="nc"><i class="no-highlight">44</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(AbstractJoinOperator.class);</b>
+<i class="no-highlight">45</i>&nbsp;    private static final String COMMA = &quot;, &quot;;
+<i class="no-highlight">46</i>&nbsp;    protected final Set&lt;String&gt; columnsLeftSide;
+<i class="no-highlight">47</i>&nbsp;    protected final Set&lt;String&gt; columnsRightSide;
+<i class="no-highlight">48</i>&nbsp;    protected final SortOrder sortOrder;
+<i class="no-highlight">49</i>&nbsp;    protected final JoinType joinType;
+<i class="no-highlight">50</i>&nbsp;    protected final ExecContext execContext;
+<i class="no-highlight">51</i>&nbsp;    protected final SnapInternals snapInternals;
+<b class="nc"><i class="no-highlight">52</i>&nbsp;    protected boolean leftEnd = false, rightEnd = false;</b>
+<i class="no-highlight">53</i>&nbsp;    protected ComparableList leftEntries, rightEntries;
+<i class="no-highlight">54</i>&nbsp;    protected DocumentUtility documentUtility;
+<b class="nc"><i class="no-highlight">55</i>&nbsp;    protected boolean completed = false;</b>
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;    // Use this multimap to cache the data holder for each comparable value.
+<i class="no-highlight">58</i>&nbsp;    // Key is comparable and values are multiple join data holders
+<i class="no-highlight">59</i>&nbsp;    // These variables are default scoped so that unit tests can access them to verify the
+<i class="no-highlight">60</i>&nbsp;    // internal state.
+<i class="no-highlight">61</i>&nbsp;    final NavigableSet&lt;Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt;&gt; rightCache, leftCache;
+<i class="no-highlight">62</i>&nbsp;    final NavigableSet&lt;JoinDataHolder&gt; rightNullCache, leftNullCache;
+<i class="no-highlight">63</i>&nbsp;
+<b class="nc"><i class="no-highlight">64</i>&nbsp;    public AbstractJoinOperator(final ExecContext execContext, final JoinType joinType) {</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        this.execContext = execContext;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        this.snapInternals = execContext.getSnapInternals();</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        this.documentUtility = snapInternals.getDocumentUtility();</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        this.sortOrder = execContext.getSortOrder();</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        this.joinType = joinType;</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        rightCache = this.execContext.rightContext().getCache();</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        rightNullCache = this.execContext.rightContext().getNullCache();</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;        leftCache = this.execContext.leftContext().getCache();</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        leftNullCache = this.execContext.leftContext().getNullCache();</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        columnsLeftSide = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        columnsRightSide = new LinkedHashSet&lt;&gt;();</b>
+<i class="no-highlight">76</i>&nbsp;    }
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;    @Override
+<i class="no-highlight">79</i>&nbsp;    public void cleanUp() {
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        execContext.cleanUp();</b>
+<i class="no-highlight">81</i>&nbsp;    }
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;    //---------------------------------- Protected methods ----------------------------------//
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;    protected void collectColumns(Set&lt;String&gt; columnsCollector, Map&lt;String, Object&gt; data) {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        if (columnsCollector.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            columnsCollector.addAll(data.keySet());</b>
+<i class="no-highlight">88</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            Set&lt;String&gt; keys = new LinkedHashSet&lt;&gt;(data.keySet());</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            Set&lt;String&gt; interSection = new LinkedHashSet&lt;&gt;(keys);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            if (interSection.retainAll(columnsCollector)) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                keys.removeAll(interSection);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                columnsCollector.addAll(keys);</b>
+<i class="no-highlight">94</i>&nbsp;            }
+<i class="no-highlight">95</i>&nbsp;        }
+<i class="no-highlight">96</i>&nbsp;    }
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;    protected void handleNullPredicate(JoinDataHolder dataHolder,
+<i class="no-highlight">99</i>&nbsp;            NavigableSet&lt;Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt;&gt; inputCache) {
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        if (inputCache == leftCache) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            leftNullCache.add(dataHolder);</b>
+<i class="no-highlight">102</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            rightNullCache.add(dataHolder);</b>
+<i class="no-highlight">104</i>&nbsp;        }
+<i class="no-highlight">105</i>&nbsp;    }
+<i class="no-highlight">106</i>&nbsp;
+<i class="no-highlight">107</i>&nbsp;    protected void validateSortOrder(ComparableList previousEntries,
+<i class="no-highlight">108</i>&nbsp;            ComparableList nextEntries) {
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        if (previousEntries != null) {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            switch (sortOrder) {</b>
+<i class="no-highlight">111</i>&nbsp;                case ASCENDING:
+<i class="no-highlight">112</i>&nbsp;                    // In case of ASCENDING sorted data, previous entry should always be lower
+<i class="no-highlight">113</i>&nbsp;                    // than next entry.
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                    if (previousEntries.compareTo(nextEntries) &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                        throw new ExecutionException(DATA_DOES_NOT_CONFORM_TO_SORT_ORDER)</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                                .formatWith(sortOrder.getType())</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                                .withReason(String.format(DATA_DOES_NOT_CONFORM_TO_SORT_ORDER,</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                                        sortOrder.getType()))</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                                .withResolution(String.format(ENSURE_SORT_ORDER,</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                                        sortOrder.getType()));</b>
+<i class="no-highlight">121</i>&nbsp;                    }
+<i class="no-highlight">122</i>&nbsp;                    break;
+<i class="no-highlight">123</i>&nbsp;                case DESCENDING:
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                    if (previousEntries.compareTo(nextEntries) &lt; 0) {</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                        throw new ExecutionException(DATA_DOES_NOT_CONFORM_TO_SORT_ORDER)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                                .formatWith(sortOrder.getType())</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                                .withReason(String.format(DATA_DOES_NOT_CONFORM_TO_SORT_ORDER,</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                                        sortOrder.getType()))</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                                .withResolution(String.format(ENSURE_SORT_ORDER,</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                                        sortOrder.getType()));</b>
+<i class="no-highlight">131</i>&nbsp;                    }
+<i class="no-highlight">132</i>&nbsp;                    break;
+<i class="no-highlight">133</i>&nbsp;                case UNSORTED:
+<i class="no-highlight">134</i>&nbsp;                    // Nothing to validate
+<i class="no-highlight">135</i>&nbsp;            }
+<i class="no-highlight">136</i>&nbsp;        }
+<i class="no-highlight">137</i>&nbsp;    }
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;    protected int processMatch(Document inputDoc,
+<i class="no-highlight">140</i>&nbsp;            NavigableSet&lt;Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt;&gt; dataCache,
+<i class="no-highlight">141</i>&nbsp;            ComparableList inputPredicateValues) {
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        int count = 0;</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        boolean isLeftCache = dataCache == leftCache;</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        for (JoinDataHolder dataHolder : Fun.filter(dataCache, inputPredicateValues)) {</b>
+<i class="no-highlight">145</i>&nbsp;            Document leftDoc, rightDoc;
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            if (isLeftCache) {</b>
+<i class="no-highlight">147</i>&nbsp;                // If we are processing the right side data, compare right side against left side.
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                leftDoc = dataHolder.getDocument();</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                rightDoc = inputDoc;</b>
+<i class="no-highlight">150</i>&nbsp;            } else {
+<i class="no-highlight">151</i>&nbsp;                // Left side is provided as input
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                leftDoc = inputDoc;</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                rightDoc = dataHolder.getDocument();</b>
+<i class="no-highlight">154</i>&nbsp;            }
+<i class="no-highlight">155</i>&nbsp;
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            Document joinedDoc = joinType.match(documentUtility,execContext.getViews(),</b>
+<i class="no-highlight">157</i>&nbsp;                    leftDoc, rightDoc);
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            if (joinedDoc != null &amp;&amp; joinedDoc.get() != null) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                count++;</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                dataHolder.setAsProcessed();</b>
+<i class="no-highlight">161</i>&nbsp;                // Valid join dataHolder returned. Write it out.
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                snapInternals.getOutputViews().write(joinedDoc);</b>
+<i class="no-highlight">163</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        return count;</b>
+<i class="no-highlight">166</i>&nbsp;    }
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;    protected void purgeAll() {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        purge(leftCache);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        purgeNullsFrom(leftNullCache);</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        purge(rightCache);</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        purgeNullsFrom(rightNullCache);</b>
+<i class="no-highlight">173</i>&nbsp;    }
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;    protected void purge(final NavigableSet&lt;Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt;&gt; cache) {
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        Iterator&lt;Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt;&gt; iterator = cache.iterator();</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        while (iterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt; entry = iterator.next();</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;            removeEntry(cache, entry);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        }</b>
+<i class="no-highlight">181</i>&nbsp;    }
+<i class="no-highlight">182</i>&nbsp;
+<i class="no-highlight">183</i>&nbsp;    protected void removeEntry(NavigableSet&lt;Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt;&gt; cache,
+<i class="no-highlight">184</i>&nbsp;            Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt; entry) {
+<i class="no-highlight">185</i>&nbsp;        // If there is an untouched entry in the cache, based on the join type further processing
+<i class="no-highlight">186</i>&nbsp;        // might be required. For Eg., in case of outer join, untouched entry should be written
+<i class="no-highlight">187</i>&nbsp;        // out.
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        if (!entry.b.isProcessed()) {</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            processUntouched(cache, entry);</b>
+<i class="no-highlight">190</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        cache.remove(entry);</b>
+<i class="no-highlight">192</i>&nbsp;    }
+<i class="no-highlight">193</i>&nbsp;
+<i class="no-highlight">194</i>&nbsp;    /**
+<i class="no-highlight">195</i>&nbsp;     * Process the untouched entry in the cache.
+<i class="no-highlight">196</i>&nbsp;     *
+<i class="no-highlight">197</i>&nbsp;     * @param dataCache - data cache
+<i class="no-highlight">198</i>&nbsp;     * @param entry     - entry
+<i class="no-highlight">199</i>&nbsp;     */
+<i class="no-highlight">200</i>&nbsp;    protected void processUntouched(NavigableSet&lt;Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt;&gt;
+<i class="no-highlight">201</i>&nbsp;            dataCache, Fun.Tuple2&lt;ComparableList, JoinDataHolder&gt; entry) {
+<i class="no-highlight">202</i>&nbsp;        Document result;
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        if (dataCache == leftCache) {</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;            result = joinType.unmatchedLeft(documentUtility, execContext.getViews(),</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                    entry.b.getDocument(), columnsRightSide);</b>
+<i class="no-highlight">206</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">207</i>&nbsp;            result = joinType.unmatchedRight(documentUtility, execContext.getViews(),</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                    entry.b.getDocument(), columnsLeftSide);</b>
+<i class="no-highlight">209</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        if (result != null &amp;&amp; result.get() != null) {</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;            snapInternals.getOutputViews().write(result);</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        } else if (entry.b.getDocument() != null) {</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            error(entry.b.getDocument());</b>
+<i class="no-highlight">214</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        entry.b.setAsProcessed();</b>
+<i class="no-highlight">216</i>&nbsp;    }
+<i class="no-highlight">217</i>&nbsp;
+<i class="no-highlight">218</i>&nbsp;    protected void purgeNullsFrom(final NavigableSet&lt;JoinDataHolder&gt; nullCache) {
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        Iterator&lt;JoinDataHolder&gt; iterator = nullCache.iterator();</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        while (iterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;            JoinDataHolder joinDataHolder = iterator.next();</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;            if (!joinDataHolder.isProcessed()) {</b>
+<i class="no-highlight">223</i>&nbsp;                Document result;
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                if (nullCache == leftNullCache) {</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                    result = joinType.unmatchedLeft(documentUtility, execContext.getViews(),</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                            joinDataHolder.getDocument(), columnsRightSide);</b>
+<i class="no-highlight">227</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    result = joinType.unmatchedRight(documentUtility, execContext.getViews(),</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                            joinDataHolder.getDocument(), columnsLeftSide);</b>
+<i class="no-highlight">230</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                if (result != null &amp;&amp; result.get() != null) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                    snapInternals.getOutputViews().write(result);</b>
+<i class="no-highlight">233</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                    error(joinDataHolder.getDocument());</b>
+<i class="no-highlight">235</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                joinDataHolder.setAsProcessed();</b>
+<i class="no-highlight">237</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        }</b>
+<i class="no-highlight">239</i>&nbsp;    }
+<i class="no-highlight">240</i>&nbsp;
+<i class="no-highlight">241</i>&nbsp;    protected String getPredicatePathString(InputContext inputContext) {
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        StringBuilder builder = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        for (ExpressionProperty prop : inputContext.getPredicatePath()) {</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            builder.append(prop.getExpression());</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            builder.append(COMMA);</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        return builder.toString();</b>
+<i class="no-highlight">248</i>&nbsp;    }
+<i class="no-highlight">249</i>&nbsp;
+<i class="no-highlight">250</i>&nbsp;    protected void error(final Document document, Map&lt;String, Object&gt; data,
+<i class="no-highlight">251</i>&nbsp;            RuntimeException ex, String path) {
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        SnapDataException snapDataException = new SnapDataException(getDocument(data), ex,</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                getComparableErrorMsg(path))</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                .withReason(ex.getMessage());</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        snapInternals.getErrorViews().write(snapDataException, document);</b>
+<i class="no-highlight">256</i>&nbsp;    }
+<i class="no-highlight">257</i>&nbsp;
+<i class="no-highlight">258</i>&nbsp;    /**
+<i class="no-highlight">259</i>&nbsp;     * Writes the given document to the error view.
+<i class="no-highlight">260</i>&nbsp;     *
+<i class="no-highlight">261</i>&nbsp;     * @param document
+<i class="no-highlight">262</i>&nbsp;     */
+<i class="no-highlight">263</i>&nbsp;    protected void error(final Document document) {
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        snapInternals.getErrorViews().write(document);</b>
+<i class="no-highlight">265</i>&nbsp;    }
+<i class="no-highlight">266</i>&nbsp;
+<i class="no-highlight">267</i>&nbsp;    /**
+<i class="no-highlight">268</i>&nbsp;     * Returns a document for the given data.
+<i class="no-highlight">269</i>&nbsp;     *
+<i class="no-highlight">270</i>&nbsp;     * @param inputData
+<i class="no-highlight">271</i>&nbsp;     * @return document
+<i class="no-highlight">272</i>&nbsp;     */
+<i class="no-highlight">273</i>&nbsp;    protected Document getDocument(final Map&lt;String, Object&gt; inputData) {
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        return snapInternals.getDocumentUtility().newDocument(inputData);</b>
+<i class="no-highlight">275</i>&nbsp;    }
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;    //------------------------------------- Private methods ------------------------------------//
+<i class="no-highlight">278</i>&nbsp;
+<i class="no-highlight">279</i>&nbsp;    private String getComparableErrorMsg(String path) {
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        return String.format(DATA_MAP_DOES_NOT_CONTAIN_COMPARABLE, path);</b>
+<i class="no-highlight">281</i>&nbsp;    }
+<i class="no-highlight">282</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

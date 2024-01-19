@@ -1,0 +1,174 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SignatureGenerator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.netsuite.tba</a>
+</div>
+
+<h1>Coverage Summary for Class: SignatureGenerator (com.snaplogic.snaps.netsuite.tba)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SignatureGenerator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">7</i>&nbsp; *
+<i class="no-highlight">8</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">9</i>&nbsp; */
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.netsuite.tba;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.base.Charsets;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import org.apache.commons.codec.binary.Base64;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import java.security.InvalidKeyException;
+<i class="no-highlight">18</i>&nbsp;import java.security.NoSuchAlgorithmException;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import javax.crypto.Mac;
+<i class="no-highlight">21</i>&nbsp;import javax.crypto.spec.SecretKeySpec;
+<i class="no-highlight">22</i>&nbsp;import javax.inject.Singleton;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;/**
+<i class="no-highlight">25</i>&nbsp; * Generates an HMAC-SHA256 signature for NetSuite Token-Based Authentication, both SOAP and REST.
+<i class="no-highlight">26</i>&nbsp; */
+<i class="no-highlight">27</i>&nbsp;@Singleton
+<b class="nc"><i class="no-highlight">28</i>&nbsp;class SignatureGenerator {</b>
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;    // standard name of the recommended signature algorithm
+<i class="no-highlight">31</i>&nbsp;    private static final String ALGORITHM = &quot;HMAC-SHA256&quot;;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;    // Java Cryptography Extension name of the recommended signature algorithm
+<i class="no-highlight">34</i>&nbsp;    private static final String ALGORITHM_JCE = &quot;HmacSHA256&quot;;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;    /**
+<i class="no-highlight">37</i>&nbsp;     * Returns the standard name of the recommended signature algorithm.
+<i class="no-highlight">38</i>&nbsp;     * The signatureAlgorithm field of the TokenPassport is set to this value.
+<i class="no-highlight">39</i>&nbsp;     *
+<i class="no-highlight">40</i>&nbsp;     * @return The algorithm name.
+<i class="no-highlight">41</i>&nbsp;     */
+<i class="no-highlight">42</i>&nbsp;    String getAlgorithm() {
+<b class="nc"><i class="no-highlight">43</i>&nbsp;        return ALGORITHM;</b>
+<i class="no-highlight">44</i>&nbsp;    }
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;    /**
+<i class="no-highlight">47</i>&nbsp;     * Creates an RFC 2014-compliant signature for the given baseString using a key based on the
+<i class="no-highlight">48</i>&nbsp;     * secret fields.
+<i class="no-highlight">49</i>&nbsp;     *
+<i class="no-highlight">50</i>&nbsp;     * @param baseString the base string, built from the non-secret fields
+<i class="no-highlight">51</i>&nbsp;     * @param key the key, built from Consumer Secret and Token Secret
+<i class="no-highlight">52</i>&nbsp;     * @return the Base64-encoded signature string
+<i class="no-highlight">53</i>&nbsp;     */
+<i class="no-highlight">54</i>&nbsp;    String createSignature(String baseString, String key) {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;        byte[] baseStringBytes = baseString.getBytes(Charsets.UTF_8);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;        byte[] keyBytes = key.getBytes(Charsets.UTF_8);</b>
+<i class="no-highlight">57</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">58</i>&nbsp;            Mac mac = Mac.getInstance(ALGORITHM_JCE);</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;            mac.init(new SecretKeySpec(keyBytes, ALGORITHM_JCE));</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;            byte[] sigBytes = mac.doFinal(baseStringBytes);</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;            String sigString = Base64.encodeBase64String(sigBytes);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;            return sigString;</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        } catch (NoSuchAlgorithmException e) {</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;            throw new AssertionError(&quot;Java expected to provide algorithm &quot; + ALGORITHM_JCE, e);</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        } catch (InvalidKeyException e) {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;            throw new RuntimeException(e);</b>
+<i class="no-highlight">67</i>&nbsp;        }
+<i class="no-highlight">68</i>&nbsp;    }
+<i class="no-highlight">69</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

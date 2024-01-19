@@ -1,0 +1,199 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > PostgresCustomTypeConverter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.converters</a>
+</div>
+
+<h1>Coverage Summary for Class: PostgresCustomTypeConverter (com.snaplogic.snap.api.sql.converters)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PostgresCustomTypeConverter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snap.api.sql.converters;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.core.JsonProcessingException;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseAccount;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;import java.sql.Array;
+<i class="no-highlight">24</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">25</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">26</i>&nbsp;import java.sql.Struct;
+<i class="no-highlight">27</i>&nbsp;import java.util.List;
+<i class="no-highlight">28</i>&nbsp;import java.util.Map;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import static com.snaplogic.snap.api.sql.converters.Messages.ERROR_RESOLUTION;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snap.api.sql.converters.Messages.ERR_WHILE_PREPARING_JSON_OBJECT;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snap.api.sql.converters.Messages.METHOD_NOT_IMPLEMENTED;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snap.api.sql.converters.Messages.TYPE_CONVERSION_ERROR_MSG;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snap.api.sql.converters.Messages.TYPE_CONVERSION_ERROR_REASON;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snap.api.sql.converters.Messages.TYPE_CONVERSION_ERROR_RESOLUTION;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;/**
+<i class="no-highlight">38</i>&nbsp; * PostgresCustomTypeConverter does conversion between custom PostgreSQL database object types and
+<i class="no-highlight">39</i>&nbsp; * domain types.
+<i class="no-highlight">40</i>&nbsp; *
+<i class="no-highlight">41</i>&nbsp; * @author yzhang@snaplogic.com
+<i class="no-highlight">42</i>&nbsp; */
+<b class="nc"><i class="no-highlight">43</i>&nbsp;public class PostgresCustomTypeConverter extends CustomTypeConverter {</b>
+<i class="no-highlight">44</i>&nbsp;    @Inject
+<i class="no-highlight">45</i>&nbsp;    private DatabaseAccount account;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;    @Override
+<i class="no-highlight">48</i>&nbsp;    public Array toArray(final List &lt;Object&gt; list, final String typeName,
+<i class="no-highlight">49</i>&nbsp;            final JdbcOperations jdbcOperations) throws SnapDataException {
+<b class="nc"><i class="no-highlight">50</i>&nbsp;        if (CollectionUtils.isEmpty(list)) {</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;            return null;</b>
+<i class="no-highlight">52</i>&nbsp;        }
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;            Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;            return conn.createArrayOf(typeName, ((List) list).toArray());</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;            throw new SnapDataException(e, TYPE_CONVERSION_ERROR_MSG)</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;                    .withReason(String.format(TYPE_CONVERSION_ERROR_REASON, typeName))</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;                    .withResolution(TYPE_CONVERSION_ERROR_RESOLUTION);</b>
+<i class="no-highlight">61</i>&nbsp;        }
+<i class="no-highlight">62</i>&nbsp;    }
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;    @Override
+<i class="no-highlight">65</i>&nbsp;    public Struct toStruct(final Map&lt;String, Object&gt; map, final String typeName, final
+<i class="no-highlight">66</i>&nbsp;    JdbcOperations jdbcOperations)
+<i class="no-highlight">67</i>&nbsp;            throws SnapDataException {
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        throw new UnsupportedOperationException(METHOD_NOT_IMPLEMENTED);</b>
+<i class="no-highlight">69</i>&nbsp;    }
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    @Override
+<i class="no-highlight">72</i>&nbsp;    public FieldNameProvider createFieldNameProvider(JdbcOperations jdbcOperations) {
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        throw new UnsupportedOperationException(METHOD_NOT_IMPLEMENTED);</b>
+<i class="no-highlight">74</i>&nbsp;    }
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    @Override
+<i class="no-highlight">77</i>&nbsp;    public String handleArrayType(final List&lt;Object&gt; list) throws SnapDataException {
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        String strValue = list.toString();</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        String finalValue = strValue.substring(1, strValue.length() - 1);</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        return &quot;{&quot; + finalValue + &quot;}&quot;;</b>
+<i class="no-highlight">81</i>&nbsp;    }
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;    @Override
+<i class="no-highlight">84</i>&nbsp;    public String insertJSONArrayType(final List&lt;Object&gt; list) throws SnapDataException {
+<i class="no-highlight">85</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;            return snapObjectMapper.writeValueAsString(list);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        } catch (JsonProcessingException e) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            Throwable t = Throwables.getRootCause(e);</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            throw new SnapDataException(t, ERR_WHILE_PREPARING_JSON_OBJECT)</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                    .withResolution(ERROR_RESOLUTION);</b>
+<i class="no-highlight">92</i>&nbsp;        }
+<i class="no-highlight">93</i>&nbsp;    }
+<i class="no-highlight">94</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

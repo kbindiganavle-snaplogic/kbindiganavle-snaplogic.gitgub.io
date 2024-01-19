@@ -1,0 +1,939 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EltJoin</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt</a>
+</div>
+
+<h1>Coverage Summary for Class: EltJoin (com.snaplogic.snaps.elt)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EltJoin</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/297)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020-2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Sets;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.SuggestExecutionProvider;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.ViewProvider;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.common.properties.builders.ViewBuilder;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.ViewCategory;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.Field;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.ctx.PushdownContext;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.parts.FromPart;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.parts.WherePart;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snaps.elt.utils.EltUtils;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">44</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">47</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">48</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">49</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">50</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">51</i>&nbsp;import java.util.List;
+<i class="no-highlight">52</i>&nbsp;import java.util.Map;
+<i class="no-highlight">53</i>&nbsp;import java.util.Set;
+<i class="no-highlight">54</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.*;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.*;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.extractBindingValues;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.extractQueryFromInputDocument;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.validateInputViewsForBinaryOperatorSnap;
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;/**
+<i class="no-highlight">63</i>&nbsp; * Performs ELT SQL JOIN operation.
+<i class="no-highlight">64</i>&nbsp; * It can perform INNER, LEFT OUTER, RIGHT OUTER and FULL OUTER JOIN
+<i class="no-highlight">65</i>&nbsp; * operations in the input SQL arriving on its inputs.
+<i class="no-highlight">66</i>&nbsp; *
+<i class="no-highlight">67</i>&nbsp; * Conceptually it does the following:
+<i class="no-highlight">68</i>&nbsp; * SELECT &lt;expr1&gt;, &lt;expr2&gt;...
+<i class="no-highlight">69</i>&nbsp; * FROM &lt;inputSql1&gt; [INNER|OUTER|RIGHT|LEFT] JOIN &lt;inputSql2&gt;
+<i class="no-highlight">70</i>&nbsp; * ON &lt;join condition&gt;
+<i class="no-highlight">71</i>&nbsp; *
+<i class="no-highlight">72</i>&nbsp; * @author Pradeep Sathyanarayan
+<i class="no-highlight">73</i>&nbsp; */
+<i class="no-highlight">74</i>&nbsp;@General(title = ELT_JOIN_TITLE, purpose = ELT_JOIN_PURPOSE,
+<i class="no-highlight">75</i>&nbsp;         docLink = ELT_JOIN_DOC_LINK)
+<i class="no-highlight">76</i>&nbsp;@Inputs(min = 2, max = 2, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">77</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">78</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">79</i>&nbsp;@Category(snap = SnapCategory.TRANSFORM)
+<i class="no-highlight">80</i>&nbsp;@Accounts(provides = { EltDatabaseAccount.class})
+<b class="nc"><i class="no-highlight">81</i>&nbsp;public class EltJoin extends BaseElt implements ViewProvider, SuggestExecutionProvider,</b>
+<i class="no-highlight">82</i>&nbsp;        InputSchemaProvider {
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;    private static final String JOIN_TYPE_PROP = &quot;joinType&quot;;
+<i class="no-highlight">85</i>&nbsp;    private static final String JOIN_TYPE_INNER = &quot;Inner&quot;;
+<i class="no-highlight">86</i>&nbsp;    private static final String JOIN_TYPE_LEFT_OUTER = &quot;Left outer&quot;;
+<i class="no-highlight">87</i>&nbsp;    private static final String JOIN_TYPE_RIGHT_OUTER = &quot;Right outer&quot;;
+<i class="no-highlight">88</i>&nbsp;    private static final String JOIN_TYPE_FULL_OUTER = &quot;Full outer&quot;;
+<i class="no-highlight">89</i>&nbsp;    private static final String JOIN_TYPE_NATURAL_FULL_OUTER = &quot;Natural Full outer&quot;;
+<i class="no-highlight">90</i>&nbsp;    private static final String JOIN_TYPE_NATURAL_LEFT_OUTER = &quot;Natural Left outer&quot;;
+<i class="no-highlight">91</i>&nbsp;    private static final String JOIN_TYPE_NATURAL_RIGHT_OUTER = &quot;Natural Right outer&quot;;
+<i class="no-highlight">92</i>&nbsp;    private static final String JOIN_TYPE_NATURAL_INNER = &quot;Natural Inner&quot;;
+<i class="no-highlight">93</i>&nbsp;    private static final String JOIN_TYPE_CROSS = &quot;Cross&quot;;
+<i class="no-highlight">94</i>&nbsp;    private static final String JOIN_TYPE_LEFT_SEMI =
+<i class="no-highlight">95</i>&nbsp;            &quot;Left semi&quot;; // valid only for Detabricks Lakehouse
+<i class="no-highlight">96</i>&nbsp;    private static final String JOIN_TYPE_LEFT_ANTI =
+<i class="no-highlight">97</i>&nbsp;            &quot;Left anti&quot;; // valid only for Detabricks Lakehouse
+<b class="nc"><i class="no-highlight">98</i>&nbsp;    private static final Set&lt;String&gt; ALLOWED_JOINS = ImmutableSet.of(JOIN_TYPE_INNER,</b>
+<i class="no-highlight">99</i>&nbsp;            JOIN_TYPE_LEFT_OUTER, JOIN_TYPE_FULL_OUTER, JOIN_TYPE_RIGHT_OUTER,
+<i class="no-highlight">100</i>&nbsp;            JOIN_TYPE_NATURAL_FULL_OUTER, JOIN_TYPE_NATURAL_LEFT_OUTER,
+<i class="no-highlight">101</i>&nbsp;            JOIN_TYPE_NATURAL_RIGHT_OUTER, JOIN_TYPE_NATURAL_INNER,
+<i class="no-highlight">102</i>&nbsp;            JOIN_TYPE_CROSS, JOIN_TYPE_LEFT_SEMI, JOIN_TYPE_LEFT_ANTI);
+<b class="nc"><i class="no-highlight">103</i>&nbsp;    private static final List&lt;String&gt; NATURAL_JOINS = Arrays.asList(</b>
+<i class="no-highlight">104</i>&nbsp;            JOIN_TYPE_NATURAL_FULL_OUTER,
+<i class="no-highlight">105</i>&nbsp;            JOIN_TYPE_NATURAL_LEFT_OUTER,
+<i class="no-highlight">106</i>&nbsp;            JOIN_TYPE_NATURAL_RIGHT_OUTER,
+<i class="no-highlight">107</i>&nbsp;            JOIN_TYPE_NATURAL_INNER);
+<i class="no-highlight">108</i>&nbsp;    private static final int TIMEOUT_MILLISECONDS = 10;
+<i class="no-highlight">109</i>&nbsp;    // Each poll failure adds 50 ms increment to the poll wait time
+<i class="no-highlight">110</i>&nbsp;    private static final int INCREMENTS = 50;
+<i class="no-highlight">111</i>&nbsp;    // If we don&#39;t receive any data for a prolonged period of time, then all the subsequent poll
+<i class="no-highlight">112</i>&nbsp;    // will happen with 20 second poll wait time
+<i class="no-highlight">113</i>&nbsp;    private static final int MAX_POLL_TIME = 20000;
+<i class="no-highlight">114</i>&nbsp;    private static final String PREFIX_ALL_COLUMN_NAMES = &quot;All Columns&quot;;
+<i class="no-highlight">115</i>&nbsp;    private static final String PREFIX_ONLY_DUPLICATE_COLUMN_NAMES = &quot;Only Duplicate Columns&quot;;
+<b class="nc"><i class="no-highlight">116</i>&nbsp;    private static final Set&lt;String&gt; ALLOWED_RESULTANT_COLUMN_NAMES_PREFIX_TYPES = ImmutableSet.of(</b>
+<i class="no-highlight">117</i>&nbsp;            NONE, PREFIX_ALL_COLUMN_NAMES, PREFIX_ONLY_DUPLICATE_COLUMN_NAMES);
+<i class="no-highlight">118</i>&nbsp;    private static final String RESULTANT_COLUMN_NAMES_PREFIX_TYPE_PROP =
+<i class="no-highlight">119</i>&nbsp;            &quot;resultantColumnsNamesPrefixType&quot;;
+<i class="no-highlight">120</i>&nbsp;    private static final String ESCAPED_DOT_CHAR = &quot;\\.&quot;;
+<i class="no-highlight">121</i>&nbsp;    private static final String CASED_SELECT_COLUMN =
+<i class="no-highlight">122</i>&nbsp;            &quot;CASE WHEN %s.%s is NOT NULL THEN %s.%s ELSE %s.%s END&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String REWRITE_NATURAL_JOIN_CONDITION = &quot;%s.%s = %s.%s&quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String PREFIXED_COLUMN_NAME = &quot;%s.%s %s_%s&quot;; // i.e &quot;L.dept L_dept&quot;
+<i class="no-highlight">125</i>&nbsp;    private static final String RESULTANT_COLUMN_NAMES =
+<i class="no-highlight">126</i>&nbsp;            &quot;%s,%s&quot;; // &quot;leftTableColNames,rightTableColNames&quot;
+<i class="no-highlight">127</i>&nbsp;    private static final String RESULTANT_COLUMN_NAMES_PREFIX_TYPE_COND_FORMAT =
+<i class="no-highlight">128</i>&nbsp;            &quot;! ($.settings.%s.value == &#39;%s&#39; || &quot; +
+<i class="no-highlight">129</i>&nbsp;                    &quot;$.settings.%s.value == &#39;%s&#39; || &quot; +
+<i class="no-highlight">130</i>&nbsp;                    &quot;$.settings.%s.value == &#39;%s&#39; || &quot; +
+<i class="no-highlight">131</i>&nbsp;                    &quot;$.settings.%s.value == &#39;%s&#39; || &quot; +
+<i class="no-highlight">132</i>&nbsp;                    &quot;$.settings.%s.value == &#39;%s&#39; || &quot; +
+<i class="no-highlight">133</i>&nbsp;                    &quot;$.settings.%s.value == &#39;%s&#39;)&quot;;
+<b class="nc"><i class="no-highlight">134</i>&nbsp;    private static final String RESULTANT_COLUMN_NAMES_PREFIX_TYPE_COND = String.format(</b>
+<i class="no-highlight">135</i>&nbsp;            RESULTANT_COLUMN_NAMES_PREFIX_TYPE_COND_FORMAT,
+<i class="no-highlight">136</i>&nbsp;            JOIN_TYPE_PROP,
+<i class="no-highlight">137</i>&nbsp;            JOIN_TYPE_NATURAL_FULL_OUTER,
+<i class="no-highlight">138</i>&nbsp;            JOIN_TYPE_PROP,
+<i class="no-highlight">139</i>&nbsp;            JOIN_TYPE_NATURAL_LEFT_OUTER,
+<i class="no-highlight">140</i>&nbsp;            JOIN_TYPE_PROP,
+<i class="no-highlight">141</i>&nbsp;            JOIN_TYPE_NATURAL_RIGHT_OUTER,
+<i class="no-highlight">142</i>&nbsp;            JOIN_TYPE_PROP,
+<i class="no-highlight">143</i>&nbsp;            JOIN_TYPE_NATURAL_INNER,
+<i class="no-highlight">144</i>&nbsp;            JOIN_TYPE_PROP,
+<i class="no-highlight">145</i>&nbsp;            JOIN_TYPE_LEFT_SEMI,
+<i class="no-highlight">146</i>&nbsp;            JOIN_TYPE_PROP,
+<i class="no-highlight">147</i>&nbsp;            JOIN_TYPE_LEFT_ANTI);
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;    private String joinType;
+<i class="no-highlight">150</i>&nbsp;    private String joinCondition;
+<i class="no-highlight">151</i>&nbsp;    private String leftSideInputViewName;
+<i class="no-highlight">152</i>&nbsp;    private String rightSideInputViewName;
+<i class="no-highlight">153</i>&nbsp;    private String leftInputSqlString;
+<i class="no-highlight">154</i>&nbsp;    private String rightInputSqlString;
+<i class="no-highlight">155</i>&nbsp;    private String leftTableAliasName;
+<i class="no-highlight">156</i>&nbsp;    private String rightTableAliasName;
+<i class="no-highlight">157</i>&nbsp;    private String resultantColumnsNamesPrefixType;
+<i class="no-highlight">158</i>&nbsp;
+<b class="nc"><i class="no-highlight">159</i>&nbsp;    private boolean naturalJoinRewriteEnabled = false;</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;    private boolean leftSemiOrleftAntiJoinRewriteEnabled = false;</b>
+<i class="no-highlight">161</i>&nbsp;
+<i class="no-highlight">162</i>&nbsp;    @Override
+<i class="no-highlight">163</i>&nbsp;    public void defineViews(final ViewBuilder viewBuilder) {
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        viewBuilder.describe(LEFT_SIDE_VIEW_NAME, LEFT_SIDE_VIEW_LABEL, LEFT_SIDE_VIEW_DESC)</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                .type(ViewType.DOCUMENT)</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .add(ViewCategory.INPUT);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        viewBuilder.describe(RIGHT_SIDE_VIEW_NAME, RIGHT_SIDE_VIEW_LABEL,</b>
+<i class="no-highlight">168</i>&nbsp;                RIGHT_SIDE_VIEW_DESC)
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                .type(ViewType.DOCUMENT)</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                .add(ViewCategory.INPUT);</b>
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    @Override
+<i class="no-highlight">174</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        builder.describe(JOIN_TYPE_PROP, JOIN_TYPE_LABEL, JOIN_TYPE_DESC)</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .withAllowedValues(ALLOWED_JOINS)</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .defaultValue(JOIN_TYPE_INNER)</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        builder.describe(LEFT_SIDE_PROP, LEFT_SIDE_LABEL, LEFT_SIDE_DESC)</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .hide()</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                .defaultValue(LEFT_SIDE_VIEW_NAME)</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        builder.describe(RIGHT_SIDE_PROP, RIGHT_SIDE_LABEL, RIGHT_SIDE_DESC)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                .hide()</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                .defaultValue(RIGHT_SIDE_VIEW_NAME)</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        builder.describe(JOIN_COND_PROP, JOIN_COND_LABEL, JOIN_COND_DESC)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        builder.describe(LEFT_TABLE_ALIAS_PROP, LEFT_TABLE_ALIAS_LABEL, LEFT_TABLE_ALIAS_DESC)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        builder.describe(RIGHT_TABLE_ALIAS_PROP, RIGHT_TABLE_ALIAS_LABEL, RIGHT_TABLE_ALIAS_DESC)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        builder.describe(</b>
+<i class="no-highlight">206</i>&nbsp;                RESULTANT_COLUMN_NAMES_PREFIX_TYPE_PROP, RESULTANT_COLUMN_NAMES_PREFIX_TYPE_LABEL,
+<i class="no-highlight">207</i>&nbsp;                RESULTANT_COLUMN_NAMES_PREFIX_TYPE_DESC)
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .enableIf(RESULTANT_COLUMN_NAMES_PREFIX_TYPE_COND)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .withAllowedValues(ALLOWED_RESULTANT_COLUMN_NAMES_PREFIX_TYPES)</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .defaultValue(NONE)</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                .add();</b>
+<i class="no-highlight">212</i>&nbsp;    }
+<i class="no-highlight">213</i>&nbsp;
+<i class="no-highlight">214</i>&nbsp;    @Override
+<i class="no-highlight">215</i>&nbsp;    protected void configureSnap(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        setSnapLevelSubQueryPushDownParam(DISABLE_JOIN_SUBQUERY_PUSHDOWN);</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;        validateInputViewsForBinaryOperatorSnap(inputViews);</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        EltUtils.checkSnapPlacement(inputViews, ELT_JOIN_TITLE);</b>
+<i class="no-highlight">220</i>&nbsp;
+<i class="no-highlight">221</i>&nbsp;        ExpressionProperty joinConditionExpr;
+<i class="no-highlight">222</i>&nbsp;        ExpressionProperty leftTableAliasNameExpr;
+<i class="no-highlight">223</i>&nbsp;        ExpressionProperty rightTableAliasNameExpr;
+<i class="no-highlight">224</i>&nbsp;
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        joinType = propertyValues.get(JOIN_TYPE_PROP);</b>
+<i class="no-highlight">226</i>&nbsp;
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        joinConditionExpr = propertyValues.getAsExpression(JOIN_COND_PROP);</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        joinCondition = joinConditionExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        joinCondition = transformSql(propertyValues, joinCondition);</b>
+<i class="no-highlight">230</i>&nbsp;
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        leftSideInputViewName = propertyValues.get(LEFT_SIDE_PROP);</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        rightSideInputViewName = propertyValues.get(RIGHT_SIDE_PROP);</b>
+<i class="no-highlight">233</i>&nbsp;
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        leftTableAliasNameExpr = propertyValues.getAsExpression(LEFT_TABLE_ALIAS_PROP);</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        rightTableAliasNameExpr = propertyValues.getAsExpression(RIGHT_TABLE_ALIAS_PROP);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        leftTableAliasName = leftTableAliasNameExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        rightTableAliasName = rightTableAliasNameExpr.eval(null);</b>
+<i class="no-highlight">238</i>&nbsp;
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        resultantColumnsNamesPrefixType = propertyValues.get(</b>
+<i class="no-highlight">240</i>&nbsp;                RESULTANT_COLUMN_NAMES_PREFIX_TYPE_PROP);
+<i class="no-highlight">241</i>&nbsp;
+<i class="no-highlight">242</i>&nbsp;        // Reset resultantColumnNamesPrefixType value to None for natural joins, left semi
+<i class="no-highlight">243</i>&nbsp;        // and left anti
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        if (NATURAL_JOINS.contains(joinType) ||</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                joinType.equals(JOIN_TYPE_LEFT_SEMI) ||</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                joinType.equals(JOIN_TYPE_LEFT_ANTI)) {</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;            resultantColumnsNamesPrefixType = NONE;</b>
+<i class="no-highlight">248</i>&nbsp;        }
+<i class="no-highlight">249</i>&nbsp;
+<i class="no-highlight">250</i>&nbsp;        // All natural join types, left semi join type or left anti join type are compatabile with
+<i class="no-highlight">251</i>&nbsp;        // only &#39;None&#39; value of Resultant Columns Names Prefix Type field.
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        if ((NATURAL_JOINS.contains(joinType) ||</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                joinType.equals(JOIN_TYPE_LEFT_SEMI) ||</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                joinType.equals(JOIN_TYPE_LEFT_ANTI)) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                !resultantColumnsNamesPrefixType.equals(NONE)) {</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;            throw new ConfigurationException(ERR_MSG_INVALID_JOIN_SNAP_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                    .withReason(ERR_REASON_INVALID_JOIN_SNAP_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                    .withResolution(ERR_RES_INVALID_JOIN_SNAP_CONFIGURATION);</b>
+<i class="no-highlight">259</i>&nbsp;        }
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;        // mark the naturalJoinRewrite flag as enabled if target DW is Synapse
+<i class="no-highlight">262</i>&nbsp;        // or Google Big Query
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        if (isAzureSynapseDb() || isBigQueryDb()) {</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            naturalJoinRewriteEnabled = true;</b>
+<i class="no-highlight">265</i>&nbsp;        }
+<i class="no-highlight">266</i>&nbsp;
+<i class="no-highlight">267</i>&nbsp;        // mark the leftSemiOrleftAntiJoinRewriteEnabled flag as enabled if target DW is Snowflake
+<i class="no-highlight">268</i>&nbsp;        // or Redshift or Azure Synapse or Google Big Query
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        if (isSnowflakeDb() || isRedshiftDb() || isAzureSynapseDb() || isBigQueryDb()) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            leftSemiOrleftAntiJoinRewriteEnabled = true;</b>
+<i class="no-highlight">271</i>&nbsp;        }
+<i class="no-highlight">272</i>&nbsp;    }
+<i class="no-highlight">273</i>&nbsp;
+<i class="no-highlight">274</i>&nbsp;
+<i class="no-highlight">275</i>&nbsp;    @Override
+<i class="no-highlight">276</i>&nbsp;    public void execute() {
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        Set&lt;String&gt; pendingViews = Sets.newHashSet(inputViews.names());</b>
+<i class="no-highlight">278</i>&nbsp;        // Keep reading till we complete all the input views.
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        Map&lt;String, Document&gt; selectedDocuments =</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                inputViews.select(pendingViews, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);</b>
+<i class="no-highlight">281</i>&nbsp;        // Keep reading till we complete all the input views.
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        int pollTime = TIMEOUT_MILLISECONDS;</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        List&lt;Object&gt; leftDocBindValues = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        List&lt;Object&gt; rightDocBindValues = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">285</i>&nbsp;
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        Set&lt;String&gt; leftInputSqlRenamedColumns = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        leftInputSqlRenamedColumns.add(&quot;*&quot;);</b>
+<i class="no-highlight">288</i>&nbsp;
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        Set&lt;String&gt; rightInputSqlRenamedColumns = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        rightInputSqlRenamedColumns.add(&quot;*&quot;);</b>
+<i class="no-highlight">291</i>&nbsp;
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        Document leftInputDoc = null;</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        Document rightInputDoc = null;</b>
+<i class="no-highlight">294</i>&nbsp;
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        while (!pendingViews.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;            if (!selectedDocuments.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                for (Map.Entry&lt;String, Document&gt; documentEntry : selectedDocuments.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                    String docInputViewName = documentEntry.getKey();</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                    if (docInputViewName.equals(leftSideInputViewName)) {</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                        Document doc = documentEntry.getValue();</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                        if (doc == null) {</b>
+<i class="no-highlight">302</i>&nbsp;                            // null value is used to mark a view that has completed
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                            pendingViews.remove(documentEntry.getKey());</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                            continue;</b>
+<i class="no-highlight">305</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                            String inputSqlString = extractQueryFromInputDocument(doc);</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                            if (inputSqlString != null) {</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                                if (validationInProgress) {</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                                    schemaSupportService.defineInputSchema(schemaProvider,</b>
+<i class="no-highlight">310</i>&nbsp;                                            inputSqlString, docInputViewName);
+<i class="no-highlight">311</i>&nbsp;                                }
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                                leftInputDoc = doc;</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                                leftInputSqlString = inputSqlString;</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                                leftDocBindValues = extractBindingValues(leftInputDoc);</b>
+<i class="no-highlight">315</i>&nbsp;                            }
+<i class="no-highlight">316</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                    } else if (docInputViewName.equals(rightSideInputViewName)) {</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                        Document doc = documentEntry.getValue();</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                        if (doc == null) {</b>
+<i class="no-highlight">320</i>&nbsp;                            // null value is used to mark a view that has completed
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                            pendingViews.remove(documentEntry.getKey());</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                            continue;</b>
+<i class="no-highlight">323</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                            String inputSqlString = extractQueryFromInputDocument(doc);</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                            if (inputSqlString != null) {</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                                if (validationInProgress) {</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;                                    schemaSupportService.defineInputSchema(schemaProvider,</b>
+<i class="no-highlight">328</i>&nbsp;                                            inputSqlString, docInputViewName);
+<i class="no-highlight">329</i>&nbsp;                                }
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                                rightInputDoc = doc;</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                                rightInputSqlString = inputSqlString;</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                                rightDocBindValues = extractBindingValues(rightInputDoc);</b>
+<i class="no-highlight">333</i>&nbsp;                            }
+<i class="no-highlight">334</i>&nbsp;                        }
+<i class="no-highlight">335</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                pollTime = TIMEOUT_MILLISECONDS;</b>
+<i class="no-highlight">338</i>&nbsp;            } else {
+<i class="no-highlight">339</i>&nbsp;                // We are not receiving any data. Lets increment poll time.
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                pollTime += INCREMENTS;</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                if (pollTime &gt; MAX_POLL_TIME) {</b>
+<i class="no-highlight">342</i>&nbsp;                    // If the poll time exceeds the max allowed poll time,
+<i class="no-highlight">343</i>&nbsp;                    // lets fix the poll time as the max allowed poll time.
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                    pollTime = MAX_POLL_TIME;</b>
+<i class="no-highlight">345</i>&nbsp;                }
+<i class="no-highlight">346</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">347</i>&nbsp;            selectedDocuments = inputViews.select(pendingViews, pollTime, TimeUnit.MILLISECONDS);</b>
+<i class="no-highlight">348</i>&nbsp;        }
+<i class="no-highlight">349</i>&nbsp;
+<b class="nc"><i class="no-highlight">350</i>&nbsp;        String dtName1 = &quot;Join1_&quot; + getDerivedTableName();</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;        String dtName2 = &quot;Join2_&quot; + getDerivedTableName();</b>
+<i class="no-highlight">352</i>&nbsp;
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        if (StringUtils.isNotBlank(leftTableAliasName)) {</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;            dtName1 = leftTableAliasName;</b>
+<i class="no-highlight">355</i>&nbsp;        }
+<i class="no-highlight">356</i>&nbsp;
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        if (StringUtils.isNotBlank(rightTableAliasName)) {</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;            dtName2 = rightTableAliasName;</b>
+<i class="no-highlight">359</i>&nbsp;        }
+<i class="no-highlight">360</i>&nbsp;
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        String checkTableColumnQuery = buildFetchColumnsSqlString(leftInputSqlString);</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        Set&lt;String&gt; leftInputSqlColumns = findTableColumns(leftInputDoc, checkTableColumnQuery);</b>
+<i class="no-highlight">363</i>&nbsp;
+<b class="nc"><i class="no-highlight">364</i>&nbsp;        checkTableColumnQuery = buildFetchColumnsSqlString(rightInputSqlString);</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        Set&lt;String&gt; rightInputSqlColumns = findTableColumns(rightInputDoc, checkTableColumnQuery);</b>
+<i class="no-highlight">366</i>&nbsp;
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        PushdownContext ctx = new PushdownContext();</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        if (! resultantColumnsNamesPrefixType.equals(NONE)) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            List&lt;Field&gt; fields = prefixInputTableColumnNames(leftInputSqlColumns,</b>
+<i class="no-highlight">370</i>&nbsp;                    leftInputSqlRenamedColumns, rightInputSqlColumns,
+<i class="no-highlight">371</i>&nbsp;                    rightInputSqlRenamedColumns, dtName1, dtName2);
+<b class="nc"><i class="no-highlight">372</i>&nbsp;            ctx.getSelectPart().setExpressions(fields);</b>
+<i class="no-highlight">373</i>&nbsp;        }
+<i class="no-highlight">374</i>&nbsp;
+<i class="no-highlight">375</i>&nbsp;        // build resultant column names string
+<b class="nc"><i class="no-highlight">376</i>&nbsp;        String resultantColumnNames = EMPTY_STRING;</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        if (resultantColumnsNamesPrefixType.equals(NONE)) {</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            resultantColumnNames = ASTERISK;</b>
+<i class="no-highlight">379</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            resultantColumnNames = String.format(RESULTANT_COLUMN_NAMES,</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                    StringUtils.join(leftInputSqlRenamedColumns, COMMA),</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                    StringUtils.join(rightInputSqlRenamedColumns, COMMA));</b>
+<i class="no-highlight">383</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">384</i>&nbsp;        ctx.setFromPart(new FromPart());</b>
+<i class="no-highlight">385</i>&nbsp;
+<i class="no-highlight">386</i>&nbsp;        // Construct sqlJoin statement depending on join type and DB type
+<b class="nc"><i class="no-highlight">387</i>&nbsp;        String sqlJoin = EMPTY_STRING;</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        switch (joinType) {</b>
+<i class="no-highlight">389</i>&nbsp;            case JOIN_TYPE_INNER:
+<i class="no-highlight">390</i>&nbsp;            case JOIN_TYPE_LEFT_OUTER:
+<i class="no-highlight">391</i>&nbsp;            case JOIN_TYPE_RIGHT_OUTER:
+<i class="no-highlight">392</i>&nbsp;            case JOIN_TYPE_FULL_OUTER:
+<i class="no-highlight">393</i>&nbsp;                // use native regular joins (INNER, LEFT/RIGHT/FULL OUTER)
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                sqlJoin = String.format(JOIN_SQL, resultantColumnNames,</b>
+<i class="no-highlight">395</i>&nbsp;                        leftInputSqlString, dtName1, joinType,
+<i class="no-highlight">396</i>&nbsp;                        rightInputSqlString, dtName2, joinCondition);
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                ctx.getFromPart().setTable(String.format(&quot;( %s ) %s %s JOIN ( %s ) %s ON %s&quot;,</b>
+<i class="no-highlight">398</i>&nbsp;                        leftInputSqlString, dtName1, joinType,
+<i class="no-highlight">399</i>&nbsp;                        rightInputSqlString, dtName2, joinCondition));
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                break;</b>
+<i class="no-highlight">401</i>&nbsp;            case JOIN_TYPE_NATURAL_INNER:
+<i class="no-highlight">402</i>&nbsp;            case JOIN_TYPE_NATURAL_LEFT_OUTER:
+<i class="no-highlight">403</i>&nbsp;            case JOIN_TYPE_NATURAL_RIGHT_OUTER:
+<i class="no-highlight">404</i>&nbsp;            case JOIN_TYPE_NATURAL_FULL_OUTER:
+<i class="no-highlight">405</i>&nbsp;            case JOIN_TYPE_CROSS:
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                if (NATURAL_JOINS.contains(joinType) &amp;&amp; naturalJoinRewriteEnabled) {</b>
+<i class="no-highlight">407</i>&nbsp;                    // use rewritten natural joins
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                    sqlJoin = naturalJoinRewrite(leftInputSqlColumns, rightInputSqlColumns,</b>
+<i class="no-highlight">409</i>&nbsp;                            dtName1, dtName2, ctx);
+<i class="no-highlight">410</i>&nbsp;                } else {
+<i class="no-highlight">411</i>&nbsp;                    // use native natural or cross joins
+<i class="no-highlight">412</i>&nbsp;                    // (NATURAL INNER, NATURAL LEFT/RIGHT/FULL OUTER, CROSS)
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                    sqlJoin = String.format(NATURAL_OR_CROSS_JOIN_SQL, resultantColumnNames,</b>
+<i class="no-highlight">414</i>&nbsp;                            leftInputSqlString, dtName1, joinType,
+<i class="no-highlight">415</i>&nbsp;                            rightInputSqlString, dtName2);
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                    ctx.getFromPart().setTable(String.format(&quot;( %s ) %s %s JOIN ( %s ) %s&quot;,</b>
+<i class="no-highlight">417</i>&nbsp;                            leftInputSqlString, dtName1, joinType,
+<i class="no-highlight">418</i>&nbsp;                            rightInputSqlString, dtName2));
+<i class="no-highlight">419</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                break;</b>
+<i class="no-highlight">421</i>&nbsp;            case JOIN_TYPE_LEFT_SEMI:
+<i class="no-highlight">422</i>&nbsp;            case JOIN_TYPE_LEFT_ANTI:
+<b class="nc"><i class="no-highlight">423</i>&nbsp;                if (leftSemiOrleftAntiJoinRewriteEnabled) {</b>
+<i class="no-highlight">424</i>&nbsp;                    // use rewritten left semi or left anto joins
+<b class="nc"><i class="no-highlight">425</i>&nbsp;                    sqlJoin = leftSemiOrleftAntiJoinRewrite(leftInputSqlColumns,</b>
+<i class="no-highlight">426</i>&nbsp;                            rightInputSqlColumns, dtName1, dtName2, ctx);
+<i class="no-highlight">427</i>&nbsp;                } else {
+<i class="no-highlight">428</i>&nbsp;                    // use native left semi and left anti joins
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                    sqlJoin = String.format(JOIN_SQL, resultantColumnNames,</b>
+<i class="no-highlight">430</i>&nbsp;                            leftInputSqlString, dtName1, joinType,
+<i class="no-highlight">431</i>&nbsp;                            rightInputSqlString, dtName2, joinCondition);
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                    ctx.getFromPart().setTable(String.format(&quot;( %s ) %s %s JOIN ( %s ) %s ON %s&quot;,</b>
+<i class="no-highlight">433</i>&nbsp;                            leftInputSqlString, dtName1, joinType,
+<i class="no-highlight">434</i>&nbsp;                            rightInputSqlString, dtName2, joinCondition));
+<i class="no-highlight">435</i>&nbsp;                }
+<i class="no-highlight">436</i>&nbsp;                break;
+<i class="no-highlight">437</i>&nbsp;        }
+<i class="no-highlight">438</i>&nbsp;
+<b class="nc"><i class="no-highlight">439</i>&nbsp;        List&lt;Object&gt; bindingValues = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;        bindingValues.addAll(leftDocBindValues);</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;        bindingValues.addAll(rightDocBindValues);</b>
+<i class="no-highlight">442</i>&nbsp;
+<b class="nc"><i class="no-highlight">443</i>&nbsp;        sqlJoin = addUniqueQueryID(sqlJoin);</b>
+<i class="no-highlight">444</i>&nbsp;
+<b class="nc"><i class="no-highlight">445</i>&nbsp;        Map&lt;String, Object&gt; output = getOutputViewMap(sqlJoin, bindingValues,</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                Collections.singletonList(ELT_JOIN_TITLE), ctx);</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;        if (handlePreview(documentUtility.newDocument(output), null, account,</b>
+<i class="no-highlight">448</i>&nbsp;                validationInProgress, previewRowCount, executionMode, executeSqlInPreview)) {
+<i class="no-highlight">449</i>&nbsp;            return;
+<i class="no-highlight">450</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">451</i>&nbsp;        outputViews.write(documentUtility.newDocument(output));</b>
+<i class="no-highlight">452</i>&nbsp;    }
+<i class="no-highlight">453</i>&nbsp;
+<i class="no-highlight">454</i>&nbsp;    private String naturalJoinRewrite(Set&lt;String&gt; leftInputSqlColumns,
+<i class="no-highlight">455</i>&nbsp;                                      Set&lt;String&gt; rightInputSqlColumns,
+<i class="no-highlight">456</i>&nbsp;                                      String dtName1, String dtName2,
+<i class="no-highlight">457</i>&nbsp;                                      PushdownContext ctx) {
+<i class="no-highlight">458</i>&nbsp;        // join type specified is NATURAL type and database type is Synapse
+<i class="no-highlight">459</i>&nbsp;        // Note : Azure Synapse DB does not support NATURAL JOIN type(s).
+<i class="no-highlight">460</i>&nbsp;        // So these NATURAL JOIN types (NATURAL INNER, NATURAL LEFT/RIGHT/FULL OUTER) can be
+<i class="no-highlight">461</i>&nbsp;        // implemented by rewriting SQL query using regular INNER and OUTER JOIN type(s)
+<i class="no-highlight">462</i>&nbsp;        // which is anyway supported by Azure Synapse DB.
+<i class="no-highlight">463</i>&nbsp;
+<i class="no-highlight">464</i>&nbsp;        // Sample of SQL queries simulating above, and based on which generalized cases have been
+<i class="no-highlight">465</i>&nbsp;        // implemented below. Lets say we have two tables as following :
+<i class="no-highlight">466</i>&nbsp;        // CREATE TABLE orders (
+<i class="no-highlight">467</i>&nbsp;        //  ord_id int,
+<i class="no-highlight">468</i>&nbsp;        //  cust_id int,
+<i class="no-highlight">469</i>&nbsp;        //  amount int);
+<i class="no-highlight">470</i>&nbsp;
+<i class="no-highlight">471</i>&nbsp;        // CREATE TABLE customers (
+<i class="no-highlight">472</i>&nbsp;        //  cust_id int,
+<i class="no-highlight">473</i>&nbsp;        //  cust_name varchar(100));
+<i class="no-highlight">474</i>&nbsp;
+<i class="no-highlight">475</i>&nbsp;        // Natural Inner Join (implement natural join by rewriting SQL INNER JOIN Query)
+<i class="no-highlight">476</i>&nbsp;        // SELECT L.ord_id, L.cust_id, L.amount, R.cust_name
+<i class="no-highlight">477</i>&nbsp;        //    FROM orders L INNER JOIN customers R
+<i class="no-highlight">478</i>&nbsp;        //        ON L.cust_id = R.cust_id;
+<i class="no-highlight">479</i>&nbsp;
+<i class="no-highlight">480</i>&nbsp;        // Natural Left Outer Join (
+<i class="no-highlight">481</i>&nbsp;        // implement natural left outer join by rewriting SQL LEFT OUTER JOIN Query)
+<i class="no-highlight">482</i>&nbsp;        // SELECT L.ord_id, L.cust_id, L.amount, R.cust_name
+<i class="no-highlight">483</i>&nbsp;        //    FROM orders L LEFT OUTER JOIN customers R
+<i class="no-highlight">484</i>&nbsp;        //        ON L.cust_id = R.cust_id;
+<i class="no-highlight">485</i>&nbsp;
+<i class="no-highlight">486</i>&nbsp;        // Natural Right Outer Join (
+<i class="no-highlight">487</i>&nbsp;        // implement natural right outer join by rewriting SQL RIGHT OUTER JOIN Query)
+<i class="no-highlight">488</i>&nbsp;        // SELECT L.ord_id, R.cust_id, L.amount, R.cust_name
+<i class="no-highlight">489</i>&nbsp;        //    FROM orders L RIGHT OUTER JOIN customers R
+<i class="no-highlight">490</i>&nbsp;        //        ON L.cust_id = R.cust_id;
+<i class="no-highlight">491</i>&nbsp;
+<i class="no-highlight">492</i>&nbsp;        // Natural Full Outer Join (
+<i class="no-highlight">493</i>&nbsp;        // implement natural full outer join by rewriting SQL FULL OUTER JOIN Query)
+<i class="no-highlight">494</i>&nbsp;        // SELECT L.ord_id,
+<i class="no-highlight">495</i>&nbsp;        //        CASE
+<i class="no-highlight">496</i>&nbsp;        //            WHEN L.cust_id is NOT NULL THEN L.cust_id
+<i class="no-highlight">497</i>&nbsp;        //            ELSE R.cust_id
+<i class="no-highlight">498</i>&nbsp;        //        END AS cust_id,
+<i class="no-highlight">499</i>&nbsp;        //        L.amount,
+<i class="no-highlight">500</i>&nbsp;        //        R.cust_name
+<i class="no-highlight">501</i>&nbsp;        //    FROM orders L FULL OUTER JOIN customers R
+<i class="no-highlight">502</i>&nbsp;        //        ON L.cust_id = R.cust_id;
+<i class="no-highlight">503</i>&nbsp;
+<i class="no-highlight">504</i>&nbsp;        // NATURAL join implicitly joins 2 tables on columns with same names (equi join
+<i class="no-highlight">505</i>&nbsp;        // on same column names i.e. L.ID = R.ID)
+<i class="no-highlight">506</i>&nbsp;        // find join column names
+<b class="nc"><i class="no-highlight">507</i>&nbsp;        Set&lt;String&gt; joinColumnNames = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;        for (String column : leftInputSqlColumns) {</b>
+<i class="no-highlight">509</i>&nbsp;            // check if column name in left table exists also in right table (duplicate column name)
+<b class="nc"><i class="no-highlight">510</i>&nbsp;            if (rightInputSqlColumns.contains(column)) {</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                joinColumnNames.add(column);</b>
+<i class="no-highlight">512</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">513</i>&nbsp;        }</b>
+<i class="no-highlight">514</i>&nbsp;
+<i class="no-highlight">515</i>&nbsp;        // build equi join condition from join columns and table alias names for
+<i class="no-highlight">516</i>&nbsp;        // rewritten natural join query
+<b class="nc"><i class="no-highlight">517</i>&nbsp;        StringBuffer naturalJoinCondition = new StringBuffer();</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;        boolean firstElement = true;</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;        for (String column : joinColumnNames) {</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;            if (firstElement) {</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;                naturalJoinCondition.append(</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                        String.format(</b>
+<i class="no-highlight">523</i>&nbsp;                                REWRITE_NATURAL_JOIN_CONDITION, dtName1, column, dtName2, column));
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                firstElement = false;</b>
+<i class="no-highlight">525</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                naturalJoinCondition.append(&quot; AND &quot;).</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                        append(String.format(</b>
+<i class="no-highlight">528</i>&nbsp;                                REWRITE_NATURAL_JOIN_CONDITION, dtName1, column, dtName2, column));
+<i class="no-highlight">529</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">530</i>&nbsp;        }</b>
+<i class="no-highlight">531</i>&nbsp;
+<b class="nc"><i class="no-highlight">532</i>&nbsp;        String sqlJoin = EMPTY_STRING;</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;        Set&lt;String&gt; selectColumnNames = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;        List&lt;Field&gt; fields = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;        switch(joinType) {</b>
+<i class="no-highlight">536</i>&nbsp;            case JOIN_TYPE_NATURAL_INNER:
+<i class="no-highlight">537</i>&nbsp;                // selectColumnNames = dtName1 + &quot;.ord_id, &quot; +
+<i class="no-highlight">538</i>&nbsp;                //                     dtName1 + &quot;.cust_id, &quot; +
+<i class="no-highlight">539</i>&nbsp;                //                     dtName1 + &quot;.amount, &quot; +
+<i class="no-highlight">540</i>&nbsp;                //                     dtName2 + &quot;.cust_name&quot;;
+<i class="no-highlight">541</i>&nbsp;
+<b class="nc"><i class="no-highlight">542</i>&nbsp;                for (String column : leftInputSqlColumns) {</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                    String columnFinalName = dtName1 + &quot;.&quot; + column;</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;                    selectColumnNames.add(columnFinalName);</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                    fields.add(new Field(columnFinalName));</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                }</b>
+<i class="no-highlight">547</i>&nbsp;
+<b class="nc"><i class="no-highlight">548</i>&nbsp;                for (String column : rightInputSqlColumns) {</b>
+<i class="no-highlight">549</i>&nbsp;                    // ignore the right side input columns which are duplicates
+<b class="nc"><i class="no-highlight">550</i>&nbsp;                    if (!joinColumnNames.contains(column)) {</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;                        String columnFinalName = dtName2 + &quot;.&quot; + column;</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;                        selectColumnNames.add(columnFinalName);</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;                        fields.add(new Field(columnFinalName));</b>
+<i class="no-highlight">554</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">555</i>&nbsp;                }</b>
+<i class="no-highlight">556</i>&nbsp;
+<b class="nc"><i class="no-highlight">557</i>&nbsp;                sqlJoin = buildNaturalJoinRewriteSql(selectColumnNames, leftInputSqlString, dtName1,</b>
+<i class="no-highlight">558</i>&nbsp;                        &quot;INNER &quot;, rightInputSqlString, dtName2, naturalJoinCondition, ctx);
+<b class="nc"><i class="no-highlight">559</i>&nbsp;                break;</b>
+<i class="no-highlight">560</i>&nbsp;            case JOIN_TYPE_NATURAL_LEFT_OUTER:
+<i class="no-highlight">561</i>&nbsp;                // selectColumnNames = dtName1 + &quot;.ord_id, &quot; +
+<i class="no-highlight">562</i>&nbsp;                //                     dtName1 + &quot;.cust_id, &quot; +
+<i class="no-highlight">563</i>&nbsp;                //                     dtName1 + &quot;.amount, &quot; +
+<i class="no-highlight">564</i>&nbsp;                //                     dtName2 + &quot;.cust_name&quot;;
+<i class="no-highlight">565</i>&nbsp;
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                for (String column : leftInputSqlColumns) {</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;                    String columnFinalName = dtName1 + &quot;.&quot; + column;</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                    selectColumnNames.add(columnFinalName);</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                    fields.add(new Field(columnFinalName));</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;                }</b>
+<i class="no-highlight">571</i>&nbsp;
+<b class="nc"><i class="no-highlight">572</i>&nbsp;                for (String column : rightInputSqlColumns) {</b>
+<i class="no-highlight">573</i>&nbsp;                    // ignore the right side input columns which are duplicates
+<b class="nc"><i class="no-highlight">574</i>&nbsp;                    if (!joinColumnNames.contains(column)) {</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;                        String columnFinalName = dtName2 + &quot;.&quot; + column;</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;                        selectColumnNames.add(columnFinalName);</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                        fields.add(new Field(columnFinalName));</b>
+<i class="no-highlight">578</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                }</b>
+<i class="no-highlight">580</i>&nbsp;
+<b class="nc"><i class="no-highlight">581</i>&nbsp;                sqlJoin = buildNaturalJoinRewriteSql(selectColumnNames, leftInputSqlString, dtName1,</b>
+<i class="no-highlight">582</i>&nbsp;                        &quot;LEFT OUTER &quot;, rightInputSqlString, dtName2, naturalJoinCondition,
+<i class="no-highlight">583</i>&nbsp;                        ctx);
+<b class="nc"><i class="no-highlight">584</i>&nbsp;                break;</b>
+<i class="no-highlight">585</i>&nbsp;            case JOIN_TYPE_NATURAL_RIGHT_OUTER:
+<i class="no-highlight">586</i>&nbsp;                // selectColumnNames = dtName1 + &quot;.ord_id, &quot; +
+<i class="no-highlight">587</i>&nbsp;                //                     dtName2 + &quot;.cust_id, &quot; +
+<i class="no-highlight">588</i>&nbsp;                //                     dtName1 + &quot;.amount, &quot; +
+<i class="no-highlight">589</i>&nbsp;                //                     dtName2 + &quot;.cust_name&quot;;
+<i class="no-highlight">590</i>&nbsp;
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                for (String column : leftInputSqlColumns) {</b>
+<i class="no-highlight">592</i>&nbsp;                    // ignore the left side input columns which are duplicates
+<b class="nc"><i class="no-highlight">593</i>&nbsp;                    if (!joinColumnNames.contains(column)) {</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                        String columnFinalName = dtName1 + &quot;.&quot; + column;</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;                        selectColumnNames.add(columnFinalName);</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;                        fields.add(new Field(columnFinalName));</b>
+<i class="no-highlight">597</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                }</b>
+<i class="no-highlight">599</i>&nbsp;
+<b class="nc"><i class="no-highlight">600</i>&nbsp;                for (String column : rightInputSqlColumns) {</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;                    String columnFinalName = dtName2 + &quot;.&quot; + column;</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;                    selectColumnNames.add(columnFinalName);</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;                    fields.add(new Field(columnFinalName));</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;                }</b>
+<i class="no-highlight">605</i>&nbsp;
+<b class="nc"><i class="no-highlight">606</i>&nbsp;                sqlJoin = buildNaturalJoinRewriteSql(selectColumnNames, leftInputSqlString, dtName1,</b>
+<i class="no-highlight">607</i>&nbsp;                        &quot;RIGHT OUTER &quot;, rightInputSqlString, dtName2, naturalJoinCondition,
+<i class="no-highlight">608</i>&nbsp;                        ctx);
+<b class="nc"><i class="no-highlight">609</i>&nbsp;                break;</b>
+<i class="no-highlight">610</i>&nbsp;            case JOIN_TYPE_NATURAL_FULL_OUTER:
+<i class="no-highlight">611</i>&nbsp;                // selectColumnNames = dtName1 + &quot;.ord_id, &quot; +
+<i class="no-highlight">612</i>&nbsp;                //                     &quot;CASE WHEN &quot; + dtName1 +
+<i class="no-highlight">613</i>&nbsp;                //                     &quot;.cust_id is NOT NULL THEN &quot; + dtName1 + &quot;.cust_id ELSE &quot;
+<i class="no-highlight">614</i>&nbsp;                //                                  + dtName2 + &quot;.cust_id
+<i class="no-highlight">615</i>&nbsp;                //                      END AS cust_id, &quot; +
+<i class="no-highlight">616</i>&nbsp;                //                     dtName1 + &quot;.amount, &quot; +
+<i class="no-highlight">617</i>&nbsp;                //                     dtName2 + &quot;.cust_name&quot;;
+<i class="no-highlight">618</i>&nbsp;
+<b class="nc"><i class="no-highlight">619</i>&nbsp;                for (String column : leftInputSqlColumns) {</b>
+<i class="no-highlight">620</i>&nbsp;                    // ignore the left side input columns which are duplicates
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                    if (!joinColumnNames.contains(column)) {</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                        String columnFinalName = dtName1 + &quot;.&quot; + column;</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;                        selectColumnNames.add(columnFinalName);</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;                        fields.add(new Field(columnFinalName));</b>
+<i class="no-highlight">625</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">626</i>&nbsp;                }</b>
+<i class="no-highlight">627</i>&nbsp;
+<b class="nc"><i class="no-highlight">628</i>&nbsp;                for (String column : rightInputSqlColumns) {</b>
+<i class="no-highlight">629</i>&nbsp;                    // ignore the right side input columns which are duplicates
+<b class="nc"><i class="no-highlight">630</i>&nbsp;                    if (!joinColumnNames.contains(column)) {</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                        String columnFinalName = dtName2 + &quot;.&quot; + column;</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;                        selectColumnNames.add(columnFinalName);</b>
+<b class="nc"><i class="no-highlight">633</i>&nbsp;                        fields.add(new Field(columnFinalName));</b>
+<i class="no-highlight">634</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">635</i>&nbsp;                }</b>
+<i class="no-highlight">636</i>&nbsp;
+<b class="nc"><i class="no-highlight">637</i>&nbsp;                if (joinColumnNames.size() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;                    String joinColumn = (String) CollectionUtils.get(joinColumnNames, 0);</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;                    String columnFinalName = String.format(CASED_SELECT_COLUMN, dtName1, joinColumn,</b>
+<i class="no-highlight">640</i>&nbsp;                            dtName1, joinColumn, dtName2, joinColumn);
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                    selectColumnNames.add(String.format(&quot;%s AS %s&quot;, columnFinalName, joinColumn));</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;                    fields.add(new Field(columnFinalName, joinColumn, true));</b>
+<i class="no-highlight">643</i>&nbsp;                }
+<i class="no-highlight">644</i>&nbsp;
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                sqlJoin = buildNaturalJoinRewriteSql(selectColumnNames, leftInputSqlString, dtName1,</b>
+<i class="no-highlight">646</i>&nbsp;                        &quot;FULL OUTER &quot;, rightInputSqlString, dtName2, naturalJoinCondition,
+<i class="no-highlight">647</i>&nbsp;                        ctx);
+<i class="no-highlight">648</i>&nbsp;                break;
+<i class="no-highlight">649</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">650</i>&nbsp;        ctx.getSelectPart().setExpressions(fields);</b>
+<i class="no-highlight">651</i>&nbsp;
+<b class="nc"><i class="no-highlight">652</i>&nbsp;        return sqlJoin;</b>
+<i class="no-highlight">653</i>&nbsp;    }
+<i class="no-highlight">654</i>&nbsp;
+<i class="no-highlight">655</i>&nbsp;    private String leftSemiOrleftAntiJoinRewrite(Set&lt;String&gt; leftInputSqlColumns,
+<i class="no-highlight">656</i>&nbsp;                                                 Set&lt;String&gt; rightInputSqlColumns,
+<i class="no-highlight">657</i>&nbsp;                                                 String dtName1, String dtName2,
+<i class="no-highlight">658</i>&nbsp;                                                 PushdownContext ctx) {
+<i class="no-highlight">659</i>&nbsp;        // join type specified is LEFT SEMI or LEFT ANTI type and database type is
+<i class="no-highlight">660</i>&nbsp;        // Snowflake/Redshift/Synapse
+<i class="no-highlight">661</i>&nbsp;        // Note : Snowflake/Redshift/Azure Synapse DB do not support LEFT SEMI/ANTI JOIN type(s).
+<i class="no-highlight">662</i>&nbsp;        // So these LEFT SEMI/ANTI can be implemented by rewriting SQL query using regular
+<i class="no-highlight">663</i>&nbsp;        // JOIN types
+<i class="no-highlight">664</i>&nbsp;        // supported by any DB. Just ensure to project the columns from left side table only in the
+<i class="no-highlight">665</i>&nbsp;        // resultant columns
+<i class="no-highlight">666</i>&nbsp;
+<i class="no-highlight">667</i>&nbsp;        // Sample of SQL queries simulating above, and based on which generalized cases have been
+<i class="no-highlight">668</i>&nbsp;        // implemented below. Lets say we have two tables as following :
+<i class="no-highlight">669</i>&nbsp;        // CREATE TABLE orders (
+<i class="no-highlight">670</i>&nbsp;        //  ord_id int,
+<i class="no-highlight">671</i>&nbsp;        //  cust_id int,
+<i class="no-highlight">672</i>&nbsp;        //  amount int);
+<i class="no-highlight">673</i>&nbsp;
+<i class="no-highlight">674</i>&nbsp;        // CREATE TABLE customers (
+<i class="no-highlight">675</i>&nbsp;        //  cust_id int,
+<i class="no-highlight">676</i>&nbsp;        //  cust_name varchar(100));
+<i class="no-highlight">677</i>&nbsp;
+<i class="no-highlight">678</i>&nbsp;        // LEFT SEMI Join (implement by rewriting SQL INNER JOIN Query and projecting left table
+<i class="no-highlight">679</i>&nbsp;        // columns only)
+<i class="no-highlight">680</i>&nbsp;        // Native query:
+<i class="no-highlight">681</i>&nbsp;        // SELECT * FROM orders L LEFT SEMI JOIN customers ON L.cust_id &lt; R.cust_id;
+<i class="no-highlight">682</i>&nbsp;        //
+<i class="no-highlight">683</i>&nbsp;        // Rewritten query:
+<i class="no-highlight">684</i>&nbsp;        // SELECT * FROM orders L
+<i class="no-highlight">685</i>&nbsp;        //  INNER JOIN customers R
+<i class="no-highlight">686</i>&nbsp;        //       ON L.cust_id &lt; R.cust_id);
+<i class="no-highlight">687</i>&nbsp;
+<i class="no-highlight">688</i>&nbsp;        // LEFT ANTI Join (implement by rewriting SQL OUTER LEFT JOIN Query and filtered
+<i class="no-highlight">689</i>&nbsp;        // on rows with
+<i class="no-highlight">690</i>&nbsp;        // right table key as NULL. And project left table columns only)
+<i class="no-highlight">691</i>&nbsp;        // Native query:
+<i class="no-highlight">692</i>&nbsp;        // SELECT * FROM orders L LEFT ANTI JOIN customers ON L.cust_id &lt; R.cust_id;
+<i class="no-highlight">693</i>&nbsp;        //
+<i class="no-highlight">694</i>&nbsp;        // Rewritten query:
+<i class="no-highlight">695</i>&nbsp;        // SELECT * FROM orders L
+<i class="no-highlight">696</i>&nbsp;        // LEFT OUTER JOIN (SELECT &#39;NON_NULL&#39; AS NON_NULL_COLUMN, * FROM customers) R
+<i class="no-highlight">697</i>&nbsp;        //       ON L.cust_id &lt; R.cust_id)
+<i class="no-highlight">698</i>&nbsp;        // WHERE R.NON_NULL_COLUMN IS NULL;
+<i class="no-highlight">699</i>&nbsp;
+<b class="nc"><i class="no-highlight">700</i>&nbsp;        String sqlJoin = EMPTY_STRING;</b>
+<b class="nc"><i class="no-highlight">701</i>&nbsp;        switch (joinType) {</b>
+<i class="no-highlight">702</i>&nbsp;            case JOIN_TYPE_LEFT_SEMI:
+<b class="nc"><i class="no-highlight">703</i>&nbsp;                sqlJoin = String.format(REWRITE_LEFT_SEMI_JOIN_SQL,</b>
+<i class="no-highlight">704</i>&nbsp;                        dtName1, leftInputSqlString, dtName1, rightInputSqlString, dtName2,
+<i class="no-highlight">705</i>&nbsp;                        joinCondition);
+<b class="nc"><i class="no-highlight">706</i>&nbsp;                ctx.getFromPart().setTable(String.format(&quot;( %s ) %s INNER JOIN ( %s ) %s ON %s&quot;,</b>
+<i class="no-highlight">707</i>&nbsp;                        leftInputSqlString, dtName1, rightInputSqlString, dtName2,
+<i class="no-highlight">708</i>&nbsp;                        joinCondition));
+<b class="nc"><i class="no-highlight">709</i>&nbsp;                ctx.getSelectPart().setExpressions(</b>
+<b class="nc"><i class="no-highlight">710</i>&nbsp;                        Collections.singletonList(new Field(String.format(&quot;%s.*&quot;, dtName1))));</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;                break;</b>
+<i class="no-highlight">712</i>&nbsp;            case JOIN_TYPE_LEFT_ANTI:
+<b class="nc"><i class="no-highlight">713</i>&nbsp;                sqlJoin = String.format(REWRITE_LEFT_ANTI_JOIN_SQL,</b>
+<i class="no-highlight">714</i>&nbsp;                        dtName1, leftInputSqlString, dtName1, rightInputSqlString, dtName2,
+<i class="no-highlight">715</i>&nbsp;                        dtName2, joinCondition, dtName2);
+<b class="nc"><i class="no-highlight">716</i>&nbsp;                ctx.getSelectPart().setExpressions(</b>
+<b class="nc"><i class="no-highlight">717</i>&nbsp;                        Collections.singletonList(new Field(String.format(&quot;%s.*&quot;, dtName1))));</b>
+<b class="nc"><i class="no-highlight">718</i>&nbsp;                ctx.getFromPart().setTable(String.format(&quot;( %s ) %s LEFT OUTER JOIN &quot; +</b>
+<i class="no-highlight">719</i>&nbsp;                        &quot;(SELECT &#39;NON_NULL&#39; AS NON_NULL_COLUMN, * FROM ( %s ) %s) %s ON %s&quot;,
+<i class="no-highlight">720</i>&nbsp;                        leftInputSqlString, dtName1, rightInputSqlString, dtName2,
+<i class="no-highlight">721</i>&nbsp;                        dtName2, joinCondition));
+<b class="nc"><i class="no-highlight">722</i>&nbsp;                ctx.setWherePart(new WherePart());</b>
+<b class="nc"><i class="no-highlight">723</i>&nbsp;                ctx.getWherePart()</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;                        .addCondition(String.format(&quot;%s.NON_NULL_COLUMN IS NULL&quot;, dtName2));</b>
+<i class="no-highlight">725</i>&nbsp;                break;
+<i class="no-highlight">726</i>&nbsp;        }
+<i class="no-highlight">727</i>&nbsp;
+<b class="nc"><i class="no-highlight">728</i>&nbsp;        return sqlJoin;</b>
+<i class="no-highlight">729</i>&nbsp;    }
+<i class="no-highlight">730</i>&nbsp;
+<i class="no-highlight">731</i>&nbsp;    private List&lt;Field&gt; prefixInputTableColumnNames(Set&lt;String&gt; leftInputSqlColumns,
+<i class="no-highlight">732</i>&nbsp;                                                         Set&lt;String&gt; leftInputSqlRenamedColumns,
+<i class="no-highlight">733</i>&nbsp;                                                         Set&lt;String&gt; rightInputSqlColumns,
+<i class="no-highlight">734</i>&nbsp;                                                         Set&lt;String&gt; rightInputSqlRenamedColumns,
+<i class="no-highlight">735</i>&nbsp;                                                         String leftTableAliasName,
+<i class="no-highlight">736</i>&nbsp;                                                         String rightTableAliasName) {
+<b class="nc"><i class="no-highlight">737</i>&nbsp;        List&lt;Field&gt; fields = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">738</i>&nbsp;        leftInputSqlRenamedColumns.clear();</b>
+<b class="nc"><i class="no-highlight">739</i>&nbsp;        rightInputSqlRenamedColumns.clear();</b>
+<i class="no-highlight">740</i>&nbsp;
+<b class="nc"><i class="no-highlight">741</i>&nbsp;        for (String column : leftInputSqlColumns) {</b>
+<i class="no-highlight">742</i>&nbsp;            // check if column name in left table exists also in right table (duplicate column name)
+<b class="nc"><i class="no-highlight">743</i>&nbsp;            boolean isColumnNameDuplicate = rightInputSqlColumns.contains(column);</b>
+<b class="nc"><i class="no-highlight">744</i>&nbsp;            if ( resultantColumnsNamesPrefixType.equals(PREFIX_ALL_COLUMN_NAMES) ||</b>
+<i class="no-highlight">745</i>&nbsp;                    (isColumnNameDuplicate &amp;&amp;
+<i class="no-highlight">746</i>&nbsp;                            resultantColumnsNamesPrefixType
+<b class="nc"><i class="no-highlight">747</i>&nbsp;                                    .equals(PREFIX_ONLY_DUPLICATE_COLUMN_NAMES)) )  {</b>
+<i class="no-highlight">748</i>&nbsp;                // column name in left table found in right table,
+<i class="no-highlight">749</i>&nbsp;                // so prefix it (i.e dept -&gt; L.dept L_dept)
+<b class="nc"><i class="no-highlight">750</i>&nbsp;                leftInputSqlRenamedColumns.add(String.format(PREFIXED_COLUMN_NAME,</b>
+<i class="no-highlight">751</i>&nbsp;                        leftTableAliasName, column, leftTableAliasName, column));
+<b class="nc"><i class="no-highlight">752</i>&nbsp;                fields.add(new Field(String.format(&quot;%s.%s&quot;, leftTableAliasName, column),</b>
+<b class="nc"><i class="no-highlight">753</i>&nbsp;                        String.format(&quot;%s_%s&quot;, leftTableAliasName, column)));</b>
+<i class="no-highlight">754</i>&nbsp;            } else {
+<i class="no-highlight">755</i>&nbsp;                // don&#39;t prefix, but add column name to the renamed set
+<b class="nc"><i class="no-highlight">756</i>&nbsp;                fields.add(new Field(column));</b>
+<b class="nc"><i class="no-highlight">757</i>&nbsp;                leftInputSqlRenamedColumns.add(column);</b>
+<i class="no-highlight">758</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">759</i>&nbsp;        }</b>
+<i class="no-highlight">760</i>&nbsp;
+<b class="nc"><i class="no-highlight">761</i>&nbsp;        for (String column : rightInputSqlColumns) {</b>
+<i class="no-highlight">762</i>&nbsp;            // check if column name in right table exists also in left table (duplicate column name)
+<b class="nc"><i class="no-highlight">763</i>&nbsp;            boolean isColumnNameDuplicate = leftInputSqlColumns.contains(column);</b>
+<b class="nc"><i class="no-highlight">764</i>&nbsp;            if ( resultantColumnsNamesPrefixType.equals(PREFIX_ALL_COLUMN_NAMES) ||</b>
+<i class="no-highlight">765</i>&nbsp;                    (isColumnNameDuplicate &amp;&amp;
+<b class="nc"><i class="no-highlight">766</i>&nbsp;                            resultantColumnsNamesPrefixType.equals(</b>
+<i class="no-highlight">767</i>&nbsp;                                    PREFIX_ONLY_DUPLICATE_COLUMN_NAMES)) )  {
+<i class="no-highlight">768</i>&nbsp;                // column name in right table found in left table,
+<i class="no-highlight">769</i>&nbsp;                // so prefix it (i.e dept -&gt; R.dept R_dept)
+<b class="nc"><i class="no-highlight">770</i>&nbsp;                rightInputSqlRenamedColumns.add(String.format(PREFIXED_COLUMN_NAME,</b>
+<i class="no-highlight">771</i>&nbsp;                        rightTableAliasName, column, rightTableAliasName, column));
+<b class="nc"><i class="no-highlight">772</i>&nbsp;                fields.add(new Field(String.format(&quot;%s.%s&quot;, rightTableAliasName, column),</b>
+<b class="nc"><i class="no-highlight">773</i>&nbsp;                        String.format(&quot;%s_%s&quot;, rightTableAliasName, column)));</b>
+<i class="no-highlight">774</i>&nbsp;            } else {
+<i class="no-highlight">775</i>&nbsp;                // don&#39;t prefix, but add column name to the renamed set
+<b class="nc"><i class="no-highlight">776</i>&nbsp;                fields.add(new Field(column));</b>
+<b class="nc"><i class="no-highlight">777</i>&nbsp;                rightInputSqlRenamedColumns.add(column);</b>
+<i class="no-highlight">778</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">779</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">780</i>&nbsp;        return fields;</b>
+<i class="no-highlight">781</i>&nbsp;    }
+<i class="no-highlight">782</i>&nbsp;
+<i class="no-highlight">783</i>&nbsp;    private String buildNaturalJoinRewriteSql(
+<i class="no-highlight">784</i>&nbsp;            Set&lt;String&gt; selectColumnNames, String leftInputSqlString,
+<i class="no-highlight">785</i>&nbsp;            String leftAlias, String joinType, String rightInputSqlString,
+<i class="no-highlight">786</i>&nbsp;            String rightAlias, StringBuffer naturalJoinCondition, PushdownContext ctx) {
+<i class="no-highlight">787</i>&nbsp;        String sqlJoin;
+<i class="no-highlight">788</i>&nbsp;
+<i class="no-highlight">789</i>&nbsp;        // append natural join condition to sqlJoin (only when identically named columns are found
+<i class="no-highlight">790</i>&nbsp;        // in left and right tables)
+<i class="no-highlight">791</i>&nbsp;        // Note : If a NATURAL join is specified but no identically named pairs of columns exist
+<i class="no-highlight">792</i>&nbsp;        // in the tables to be joined, the query defaults to a cross-join.
+<b class="nc"><i class="no-highlight">793</i>&nbsp;        if (naturalJoinCondition.length() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;            sqlJoin = String.format(REWRITE_NATURAL_JOIN_SQL,</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;                            StringUtils.join(selectColumnNames, &quot;,&quot;), leftInputSqlString,</b>
+<i class="no-highlight">796</i>&nbsp;                            leftAlias, joinType, rightInputSqlString, rightAlias);
+<b class="nc"><i class="no-highlight">797</i>&nbsp;            sqlJoin += &quot; ON &quot; + naturalJoinCondition;</b>
+<b class="nc"><i class="no-highlight">798</i>&nbsp;            ctx.getFromPart().setTable(String.format(&quot;( %s ) %s %s JOIN ( %s ) %s ON %s&quot;,</b>
+<i class="no-highlight">799</i>&nbsp;                    leftInputSqlString, leftAlias, joinType,
+<i class="no-highlight">800</i>&nbsp;                    rightInputSqlString, rightAlias, naturalJoinCondition));
+<i class="no-highlight">801</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">802</i>&nbsp;            sqlJoin = String.format(REWRITE_NATURAL_JOIN_SQL,</b>
+<b class="nc"><i class="no-highlight">803</i>&nbsp;                            StringUtils.join(selectColumnNames, &quot;,&quot;), leftInputSqlString,</b>
+<i class="no-highlight">804</i>&nbsp;                            leftAlias, &quot;CROSS &quot;, rightInputSqlString, rightAlias);
+<b class="nc"><i class="no-highlight">805</i>&nbsp;            ctx.getFromPart().setTable(String.format(&quot;( %s ) %s %s JOIN ( %s ) %s&quot;,</b>
+<i class="no-highlight">806</i>&nbsp;                    leftInputSqlString, leftAlias, &quot;CROSS &quot;,
+<i class="no-highlight">807</i>&nbsp;                    rightInputSqlString, rightAlias));
+<i class="no-highlight">808</i>&nbsp;        }
+<i class="no-highlight">809</i>&nbsp;
+<b class="nc"><i class="no-highlight">810</i>&nbsp;        return sqlJoin;</b>
+<i class="no-highlight">811</i>&nbsp;    }
+<i class="no-highlight">812</i>&nbsp;
+<i class="no-highlight">813</i>&nbsp;    @Override
+<i class="no-highlight">814</i>&nbsp;    protected void processDocument(final Document document, final String inputViewName) {
+<i class="no-highlight">815</i>&nbsp;        //no-op
+<i class="no-highlight">816</i>&nbsp;    }
+<i class="no-highlight">817</i>&nbsp;
+<i class="no-highlight">818</i>&nbsp;    @Override
+<i class="no-highlight">819</i>&nbsp;    public void configureForSuggest(final PropertyValues propertyValues,
+<i class="no-highlight">820</i>&nbsp;                                    final BigInteger maxSuggestValue) {
+<b class="nc"><i class="no-highlight">821</i>&nbsp;        configurePreviewProps(maxSuggestValue);</b>
+<b class="nc"><i class="no-highlight">822</i>&nbsp;        configure(propertyValues);</b>
+<i class="no-highlight">823</i>&nbsp;    }
+<i class="no-highlight">824</i>&nbsp;
+<i class="no-highlight">825</i>&nbsp;    @Override
+<i class="no-highlight">826</i>&nbsp;    public void executeForSuggest() {
+<b class="nc"><i class="no-highlight">827</i>&nbsp;        execute();</b>
+<i class="no-highlight">828</i>&nbsp;    }
+<i class="no-highlight">829</i>&nbsp;
+<i class="no-highlight">830</i>&nbsp;    @Override
+<i class="no-highlight">831</i>&nbsp;    public void defineInputSchema(final SchemaProvider schemaProvider) {
+<b class="nc"><i class="no-highlight">832</i>&nbsp;        this.schemaProvider = schemaProvider;</b>
+<i class="no-highlight">833</i>&nbsp;    }
+<i class="no-highlight">834</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

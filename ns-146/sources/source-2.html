@@ -1,0 +1,240 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OutputDocumentCollector</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.sap.pipeexec</a>
+</div>
+
+<h1>Coverage Summary for Class: OutputDocumentCollector (com.snaplogic.snaps.sap.pipeexec)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OutputDocumentCollector</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">OutputDocumentCollector$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/35)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.sap.pipeexec;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.common.services.PipelineRun;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.BinaryInput;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.InputViews;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.view.InputView;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import org.apache.commons.compress.utils.Lists;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">25</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">26</i>&nbsp;import java.util.List;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.expression.synth.ExpressionSynthesizer.LOG;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;/**
+<i class="no-highlight">31</i>&nbsp; * A thread to collect output documents. The collected documents would be stored in the
+<i class="no-highlight">32</i>&nbsp; * run-time&#39;s completionHandler
+<i class="no-highlight">33</i>&nbsp; */
+<i class="no-highlight">34</i>&nbsp;public class OutputDocumentCollector implements Runnable {
+<i class="no-highlight">35</i>&nbsp;    private final PipelineRun pipelineRun;
+<i class="no-highlight">36</i>&nbsp;    private final PipeCompletionHandler completionHandler;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;    public OutputDocumentCollector(final PipelineRun pipelineRun,
+<b class="nc"><i class="no-highlight">39</i>&nbsp;                                   PipeCompletionHandler completionHandler) {</b>
+<b class="nc"><i class="no-highlight">40</i>&nbsp;        this.pipelineRun = pipelineRun;</b>
+<b class="nc"><i class="no-highlight">41</i>&nbsp;        this.completionHandler = completionHandler;</b>
+<i class="no-highlight">42</i>&nbsp;    }
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;    @Override
+<i class="no-highlight">45</i>&nbsp;    public void run() {
+<b class="nc"><i class="no-highlight">46</i>&nbsp;        try (InputViews childOutputs = pipelineRun.getPipelineOutputs()) {</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;            if (childOutputs.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;                throw new ExecutionException(&quot;Child does not have any output views, prepare &quot; +</b>
+<i class="no-highlight">49</i>&nbsp;                        &quot;probably failed&quot;);
+<i class="no-highlight">50</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">51</i>&nbsp;            InputView childView = childOutputs.get();</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;            List&lt;Document&gt; outputs = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;            switch (childView.getType()) {</b>
+<i class="no-highlight">54</i>&nbsp;                case DOCUMENT:
+<b class="nc"><i class="no-highlight">55</i>&nbsp;                    Iterator&lt;Document&gt; documentIter = childOutputs.getDocumentsFrom(childView);</b>
+<i class="no-highlight">56</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;                        while (documentIter.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;                            completionHandler.receivedDocument(documentIter.next());</b>
+<i class="no-highlight">59</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">60</i>&nbsp;                    } catch (RuntimeException e) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;                        handleIteratorException(e);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;                    break;</b>
+<i class="no-highlight">64</i>&nbsp;                // No need for binary here
+<i class="no-highlight">65</i>&nbsp;                case BINARY: {
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                    LOG.warn(&quot;The snap currently not support child pipeline with binary output. &quot; +</b>
+<i class="no-highlight">67</i>&nbsp;                            &quot;polling and ignoring the output&quot;);
+<b class="nc"><i class="no-highlight">68</i>&nbsp;                    Iterator&lt;BinaryInput&gt; binaryIter = childOutputs.getBinaryInputsFrom(childView);</b>
+<i class="no-highlight">69</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                        while (binaryIter.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                            binaryIter.next();</b>
+<i class="no-highlight">72</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                    } catch (RuntimeException e) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                        handleIteratorException(e);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                    }</b>
+<i class="no-highlight">76</i>&nbsp;                }
+<i class="no-highlight">77</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;            throw new ExecutionException(e, &quot;Error happened when poling output documents&quot;);</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        }</b>
+<i class="no-highlight">81</i>&nbsp;    }
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;    private void handleIteratorException(RuntimeException e) {
+<i class="no-highlight">84</i>&nbsp;        // If the view is aborted, the child has died, so the error is going to
+<i class="no-highlight">85</i>&nbsp;        // be reported through the child&#39;s completion handler.  So, we don&#39;t need
+<i class="no-highlight">86</i>&nbsp;        // to raise an error back to the main thread here.
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;        // XXX The AbortException that is thrown when a view is aborted (in this
+<i class="no-highlight">89</i>&nbsp;        // case because the child pipeline failed) is not in the SDK right now, so
+<i class="no-highlight">90</i>&nbsp;        // I&#39;m just catching a generic exception here.
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;        // If there is an I/O error while getting data from the child, we need to
+<i class="no-highlight">93</i>&nbsp;        // stop the child to make sure the executions don&#39;t just hang.
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        LOG.warn(&quot;Received an exception while waiting for documents&quot;, e);</b>
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;        SnapException snapException;
+<i class="no-highlight">97</i>&nbsp;
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        if (e instanceof SnapException) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            snapException = (SnapException) e;</b>
+<i class="no-highlight">100</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            snapException = new SnapDataException(e, &quot;Unable to send output to parent&quot;);</b>
+<i class="no-highlight">102</i>&nbsp;        }
+<i class="no-highlight">103</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;            pipelineRun.stop(snapException);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        } catch (Throwable th) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;            LOG.warn(&quot;Unable to stop pipeline: {}&quot;, pipelineRun.getId(), th);</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        }</b>
+<i class="no-highlight">108</i>&nbsp;    }
+<i class="no-highlight">109</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

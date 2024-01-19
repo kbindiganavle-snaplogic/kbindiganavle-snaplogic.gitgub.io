@@ -1,0 +1,1347 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Utilities</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.openair</a>
+</div>
+
+<h1>Coverage Summary for Class: Utilities (com.snaplogic.snaps.openair)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Utilities</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/586)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014 - 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.openair;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">14</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Singleton;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.xml.SnapDocumentBuilderFactory;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.xml.XmlUtils;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import de.odysseus.staxon.json.JsonXMLConfig;
+<i class="no-highlight">29</i>&nbsp;import de.odysseus.staxon.json.JsonXMLOutputFactory;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">32</i>&nbsp;import org.apache.commons.lang3.StringEscapeUtils;
+<i class="no-highlight">33</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">34</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">35</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">36</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">37</i>&nbsp;import org.apache.http.entity.StringEntity;
+<i class="no-highlight">38</i>&nbsp;import org.joda.time.DateTime;
+<i class="no-highlight">39</i>&nbsp;import org.joda.time.DateTimeZone;
+<i class="no-highlight">40</i>&nbsp;import org.joda.time.LocalDate;
+<i class="no-highlight">41</i>&nbsp;import org.joda.time.LocalDateTime;
+<i class="no-highlight">42</i>&nbsp;import org.joda.time.LocalTime;
+<i class="no-highlight">43</i>&nbsp;import org.joda.time.format.DateTimeFormat;
+<i class="no-highlight">44</i>&nbsp;import org.joda.time.format.DateTimeFormatter;
+<i class="no-highlight">45</i>&nbsp;import org.joda.time.format.DateTimeFormatterBuilder;
+<i class="no-highlight">46</i>&nbsp;import org.joda.time.format.DateTimeParser;
+<i class="no-highlight">47</i>&nbsp;import org.joda.time.format.ISODateTimeFormat;
+<i class="no-highlight">48</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">49</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">50</i>&nbsp;import org.w3c.dom.Element;
+<i class="no-highlight">51</i>&nbsp;import org.w3c.dom.Node;
+<i class="no-highlight">52</i>&nbsp;import org.w3c.dom.NodeList;
+<i class="no-highlight">53</i>&nbsp;import org.xml.sax.InputSource;
+<i class="no-highlight">54</i>&nbsp;import org.xml.sax.SAXException;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;import java.io.DataOutputStream;
+<i class="no-highlight">57</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">58</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">59</i>&nbsp;import java.io.StringReader;
+<i class="no-highlight">60</i>&nbsp;import java.net.HttpURLConnection;
+<i class="no-highlight">61</i>&nbsp;import java.net.URI;
+<i class="no-highlight">62</i>&nbsp;import java.net.URISyntaxException;
+<i class="no-highlight">63</i>&nbsp;import java.net.URL;
+<i class="no-highlight">64</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">65</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">66</i>&nbsp;import java.util.List;
+<i class="no-highlight">67</i>&nbsp;import java.util.Map;
+<i class="no-highlight">68</i>&nbsp;import java.util.Set;
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;import javax.xml.parsers.DocumentBuilder;
+<i class="no-highlight">71</i>&nbsp;import javax.xml.parsers.DocumentBuilderFactory;
+<i class="no-highlight">72</i>&nbsp;import javax.xml.parsers.ParserConfigurationException;
+<i class="no-highlight">73</i>&nbsp;import javax.xml.stream.XMLInputFactory;
+<i class="no-highlight">74</i>&nbsp;import javax.xml.stream.XMLStreamException;
+<i class="no-highlight">75</i>&nbsp;import javax.xml.transform.dom.DOMSource;
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;import static com.snaplogic.snaps.openair.Constants.*;
+<i class="no-highlight">78</i>&nbsp;import static com.snaplogic.snaps.openair.Messages.*;
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;/**
+<i class="no-highlight">81</i>&nbsp; * The utilities class has several methods like to read single record from openair , read
+<i class="no-highlight">82</i>&nbsp; * multiplexml_files/xml_data_1.xml
+<i class="no-highlight">83</i>&nbsp; * records from openair, etc.
+<i class="no-highlight">84</i>&nbsp; *
+<i class="no-highlight">85</i>&nbsp; * @author sprasad, smudassir
+<i class="no-highlight">86</i>&nbsp; */
+<i class="no-highlight">87</i>&nbsp;@Singleton
+<b class="nc"><i class="no-highlight">88</i>&nbsp;public class Utilities {</b>
+<i class="no-highlight">89</i>&nbsp;    private static final String STAGE_ID = &quot;id&quot;;
+<i class="no-highlight">90</i>&nbsp;    private static final String STAGE_NAME = &quot;name&quot;;
+<b class="nc"><i class="no-highlight">91</i>&nbsp;    private static final Logger LOGGER = LoggerFactory</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            .getLogger(Utilities.class);</b>
+<i class="no-highlight">93</i>&nbsp;    @Inject
+<i class="no-highlight">94</i>&nbsp;    private OpenAirHttpClient openAirHttpClient;
+<i class="no-highlight">95</i>&nbsp;    @Inject
+<i class="no-highlight">96</i>&nbsp;    protected XmlUtils xmlUtils;
+<b class="nc"><i class="no-highlight">97</i>&nbsp;    private static final DateTimeParser[] DATETIME_PARSERS = {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            DateTimeFormat.forPattern(DATE_TIME_FORMAT).getParser(),</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            DateTimeFormat.forPattern(DATE_FORMAT).getParser()</b>
+<i class="no-highlight">100</i>&nbsp;    };
+<b class="nc"><i class="no-highlight">101</i>&nbsp;    private static final DateTimeFormatter DATETIME_FORMATTER = new DateTimeFormatterBuilder()</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            .append(null, DATETIME_PARSERS)</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            .toFormatter();</b>
+<i class="no-highlight">104</i>&nbsp;    private static final String ID = &quot;id&quot;;
+<i class="no-highlight">105</i>&nbsp;    private static final String UNKNOWN = &quot;unknown&quot;;
+<i class="no-highlight">106</i>&nbsp;    private static final String DATE_KEY = &quot;Date&quot;;
+<i class="no-highlight">107</i>&nbsp;    private static final String YEAR_KEY = &quot;year&quot;;
+<i class="no-highlight">108</i>&nbsp;    private static final String MONTH_KEY = &quot;month&quot;;
+<i class="no-highlight">109</i>&nbsp;    private static final String DAY_KEY = &quot;day&quot;;
+<i class="no-highlight">110</i>&nbsp;    private static final String HOUR_KEY = &quot;hour&quot;;
+<i class="no-highlight">111</i>&nbsp;    private static final String MINUTE_KEY = &quot;minute&quot;;
+<i class="no-highlight">112</i>&nbsp;    private static final String SECOND_KEY = &quot;second&quot;;
+<i class="no-highlight">113</i>&nbsp;    private static final String TIMEZONE_KEY = &quot;timezone&quot;;
+<b class="nc"><i class="no-highlight">114</i>&nbsp;    private static final Set&lt;String&gt; DATE_ELEMENTS = ImmutableSet.of(</b>
+<i class="no-highlight">115</i>&nbsp;            YEAR_KEY, MONTH_KEY, DAY_KEY, HOUR_KEY, MINUTE_KEY, SECOND_KEY, TIMEZONE_KEY
+<i class="no-highlight">116</i>&nbsp;    );
+<b class="nc"><i class="no-highlight">117</i>&nbsp;    private static final JsonPath DATE_PATH = JsonPathImpl.compileStatic(&quot;$Date&quot;);</b>
+<i class="no-highlight">118</i>&nbsp;    static final String PROJECT_STAGE_ID = &quot;project_stageid&quot;;
+<i class="no-highlight">119</i>&nbsp;    static final String PROJECT_STAGE_NAME = &quot;project_stagename&quot;;
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;    /**
+<i class="no-highlight">122</i>&nbsp;     * This method returns HttpURLConnection.
+<i class="no-highlight">123</i>&nbsp;     *
+<i class="no-highlight">124</i>&nbsp;     * @param isSandbox Indicates whether the data need to be read from openair sandbox or not.
+<i class="no-highlight">125</i>&nbsp;     *
+<i class="no-highlight">126</i>&nbsp;     * @return HttpURLConnection connection
+<i class="no-highlight">127</i>&nbsp;     * @throws IOException
+<i class="no-highlight">128</i>&nbsp;     */
+<i class="no-highlight">129</i>&nbsp;    public HttpURLConnection getHttpURLConnection(boolean isSandbox)
+<i class="no-highlight">130</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        URL url = new URL(isSandbox ? Constants.SANDBOX_SERVER_URL</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                : Constants.PRODUCTION_SERVER_URL);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        HttpURLConnection connection = (HttpURLConnection) url.openConnection();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        connection.setDoOutput(true);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        connection.setDoInput(true);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        connection.setRequestMethod(REQUEST_METHOD);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        return connection;</b>
+<i class="no-highlight">138</i>&nbsp;    }
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    /**
+<i class="no-highlight">141</i>&nbsp;     * This method returns DataOutputStream.
+<i class="no-highlight">142</i>&nbsp;     *
+<i class="no-highlight">143</i>&nbsp;     * @param connection DataOutputStream
+<i class="no-highlight">144</i>&nbsp;     *
+<i class="no-highlight">145</i>&nbsp;     * @return DataOutputStream
+<i class="no-highlight">146</i>&nbsp;     * @throws IOException
+<i class="no-highlight">147</i>&nbsp;     */
+<i class="no-highlight">148</i>&nbsp;    public DataOutputStream getOpenAirOutputStream(HttpURLConnection connection)
+<i class="no-highlight">149</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        return new DataOutputStream(connection.getOutputStream());</b>
+<i class="no-highlight">151</i>&nbsp;    }
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    /**
+<i class="no-highlight">154</i>&nbsp;     * Returns ending xml tags for a given tag.
+<i class="no-highlight">155</i>&nbsp;     *
+<i class="no-highlight">156</i>&nbsp;     * @param tagName openair tag name
+<i class="no-highlight">157</i>&nbsp;     *
+<i class="no-highlight">158</i>&nbsp;     * @return String
+<i class="no-highlight">159</i>&nbsp;     */
+<i class="no-highlight">160</i>&nbsp;    private String getEndXMLTag(String tagName) {
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        return StringUtils.join(END_TAG_PREFIX, tagName, TAG_SUFFIX);</b>
+<i class="no-highlight">162</i>&nbsp;    }
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;    /**
+<i class="no-highlight">165</i>&nbsp;     * Returns opening xml tags for a given tag.
+<i class="no-highlight">166</i>&nbsp;     *
+<i class="no-highlight">167</i>&nbsp;     * @param tagName openair tag name
+<i class="no-highlight">168</i>&nbsp;     *
+<i class="no-highlight">169</i>&nbsp;     * @return String
+<i class="no-highlight">170</i>&nbsp;     */
+<i class="no-highlight">171</i>&nbsp;    private String getOpenXMLTag(String tagName) {
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        return StringUtils.join(OPEN_TAG_PREFIX, tagName, TAG_SUFFIX);</b>
+<i class="no-highlight">173</i>&nbsp;    }
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;    /**
+<i class="no-highlight">176</i>&nbsp;     * Returns openair xml request header with auth information for the given user details.
+<i class="no-highlight">177</i>&nbsp;     *
+<i class="no-highlight">178</i>&nbsp;     * @param userCredentials Contains the user details
+<i class="no-highlight">179</i>&nbsp;     *
+<i class="no-highlight">180</i>&nbsp;     * @return String
+<i class="no-highlight">181</i>&nbsp;     */
+<i class="no-highlight">182</i>&nbsp;    public String getOpenAirRequestHeader(UserCredentials userCredentials) {
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        return String.format(OPENAIR_XML_REQUEST_HEADER,</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                userCredentials.getNameSpace(), userCredentials.getApiKey(),</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                userCredentials.getCompanyId(), userCredentials.getUserName(),</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                userCredentials.getPassword());</b>
+<i class="no-highlight">187</i>&nbsp;    }
+<i class="no-highlight">188</i>&nbsp;
+<i class="no-highlight">189</i>&nbsp;    /**
+<i class="no-highlight">190</i>&nbsp;     * Sets filters, search conditions etc. into the query and calls the method
+<i class="no-highlight">191</i>&nbsp;     * readBatchDataFromOpenAir to read data from openair.
+<i class="no-highlight">192</i>&nbsp;     *
+<i class="no-highlight">193</i>&nbsp;     * @param inputDoc             A record from the input view
+<i class="no-highlight">194</i>&nbsp;     * @param filterValues         Contains the filter values
+<i class="no-highlight">195</i>&nbsp;     * @param documentUtility      DocumentUtility
+<i class="no-highlight">196</i>&nbsp;     * @param outputViews          OutputViews
+<i class="no-highlight">197</i>&nbsp;     * @param objectType           OpenAir table name
+<i class="no-highlight">198</i>&nbsp;     * @param isGenericUser        Indicates whether table is generic user or not
+<i class="no-highlight">199</i>&nbsp;     * @param queryBuilderPart1    String containing the request header
+<i class="no-highlight">200</i>&nbsp;     * @param userCredentials      Contains the user details
+<i class="no-highlight">201</i>&nbsp;     * @param retainNullDateValues tells if date objects with zero values to be treated as null
+<i class="no-highlight">202</i>&nbsp;     */
+<i class="no-highlight">203</i>&nbsp;    public void setQueryFiltersAndRead(Document inputDoc,
+<i class="no-highlight">204</i>&nbsp;            OpenAirFilterValues filterValues,
+<i class="no-highlight">205</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews,
+<i class="no-highlight">206</i>&nbsp;            String objectType, boolean isGenericUser, String queryBuilderPart1,
+<i class="no-highlight">207</i>&nbsp;            UserCredentials userCredentials, ErrorViews errorViews,
+<i class="no-highlight">208</i>&nbsp;            XMLInputFactory xmlInputFactory,
+<i class="no-highlight">209</i>&nbsp;            JsonXMLConfig config, JsonXMLOutputFactory jsonOutputFactory, int apiCallDelay,
+<i class="no-highlight">210</i>&nbsp;            boolean retainNullDateValues) {
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        StringBuffer queryBuilderPart2 = new StringBuffer();</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        StringBuffer queryBuilderPart3 = new StringBuffer();</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        if (performSearchFieldCheck(filterValues)) {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            if (objectType.equals(CUSTOM_FIELD_TYPE)) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                queryBuilderPart2.append(String.format(READ_TAG,</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                        filterValues.getCustomReadType(), CUSTOM_EQUAL_TO_TAG));</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                queryBuilderPart3.append(setSearchFieldValueFromProperties(</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                        filterValues.getCustomReadType(),</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                        filterValues.getSearchFieldName(),</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                        filterValues.getSearchFieldValue()));</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                readBatchDataFromOpenAir(inputDoc, documentUtility, outputViews,</b>
+<i class="no-highlight">222</i>&nbsp;                        CUSTOM_FIELD_TYPE, queryBuilderPart1, queryBuilderPart2,
+<i class="no-highlight">223</i>&nbsp;                        queryBuilderPart3, filterValues, userCredentials,
+<i class="no-highlight">224</i>&nbsp;                        errorViews, xmlInputFactory, config,
+<i class="no-highlight">225</i>&nbsp;                        jsonOutputFactory, apiCallDelay, retainNullDateValues);
+<i class="no-highlight">226</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                if (isGenericUser) {</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    queryBuilderPart2.append(String.format(</b>
+<i class="no-highlight">229</i>&nbsp;                            READ_GENERIC_USER_TAG, objectType, EQUAL_TO_TAG));
+<i class="no-highlight">230</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    queryBuilderPart2.append(String.format(READ_TAG,</b>
+<i class="no-highlight">232</i>&nbsp;                            objectType, EQUAL_TO_TAG));
+<i class="no-highlight">233</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                queryBuilderPart3.append(setSearchFieldValueFromProperties(</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                        objectType, filterValues.getSearchFieldName(),</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                        filterValues.getSearchFieldValue()));</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                readBatchDataFromOpenAir(inputDoc, documentUtility, outputViews,</b>
+<i class="no-highlight">238</i>&nbsp;                        objectType, queryBuilderPart1, queryBuilderPart2,
+<i class="no-highlight">239</i>&nbsp;                        queryBuilderPart3, filterValues, userCredentials,
+<i class="no-highlight">240</i>&nbsp;                        errorViews, xmlInputFactory, config,
+<i class="no-highlight">241</i>&nbsp;                        jsonOutputFactory, apiCallDelay, retainNullDateValues);
+<i class="no-highlight">242</i>&nbsp;            }
+<i class="no-highlight">243</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            if (isGenericUser) {</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                queryBuilderPart2.append(String.format(READ_GENERIC_USER_TAG,</b>
+<i class="no-highlight">246</i>&nbsp;                        objectType, ALL_TAG));
+<i class="no-highlight">247</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                queryBuilderPart2.append(String.format(READ_TAG, objectType,</b>
+<i class="no-highlight">249</i>&nbsp;                        ALL_TAG));
+<i class="no-highlight">250</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">251</i>&nbsp;            readBatchDataFromOpenAir(inputDoc, documentUtility, outputViews, objectType,</b>
+<i class="no-highlight">252</i>&nbsp;                    queryBuilderPart1, queryBuilderPart2, queryBuilderPart3,
+<i class="no-highlight">253</i>&nbsp;                    filterValues, userCredentials, errorViews,
+<i class="no-highlight">254</i>&nbsp;                    xmlInputFactory, config, jsonOutputFactory, apiCallDelay,
+<i class="no-highlight">255</i>&nbsp;                    retainNullDateValues);
+<i class="no-highlight">256</i>&nbsp;        }
+<i class="no-highlight">257</i>&nbsp;    }
+<i class="no-highlight">258</i>&nbsp;
+<i class="no-highlight">259</i>&nbsp;    /**
+<i class="no-highlight">260</i>&nbsp;     * Reads batch data i.e., 1000 records at a time from openair database and will continue until
+<i class="no-highlight">261</i>&nbsp;     * the data exists. And applies filter&#39;s(date,search,delete) if any provided by the user.
+<i class="no-highlight">262</i>&nbsp;     *
+<i class="no-highlight">263</i>&nbsp;     * @param inputDoc             The input record
+<i class="no-highlight">264</i>&nbsp;     * @param documentUtility      DocumentUtility
+<i class="no-highlight">265</i>&nbsp;     * @param outputViews          OutputViews
+<i class="no-highlight">266</i>&nbsp;     * @param objectType           OpenAir table name
+<i class="no-highlight">267</i>&nbsp;     * @param queryBuilderPart1    String containing the request header
+<i class="no-highlight">268</i>&nbsp;     * @param queryBuilderPart2    String containing the read tag with read type , method type,etc.
+<i class="no-highlight">269</i>&nbsp;     * @param queryBuilderPart3    String containing the search values
+<i class="no-highlight">270</i>&nbsp;     * @param filterValues         Contains the filter values .
+<i class="no-highlight">271</i>&nbsp;     * @param userCredentials      Contains the user details
+<i class="no-highlight">272</i>&nbsp;     * @param retainNullDateValues tells if date objects with zero values to be treated as null
+<i class="no-highlight">273</i>&nbsp;     */
+<i class="no-highlight">274</i>&nbsp;    public void readBatchDataFromOpenAir(Document inputDoc,
+<i class="no-highlight">275</i>&nbsp;            DocumentUtility documentUtility,
+<i class="no-highlight">276</i>&nbsp;            OutputViews outputViews, String objectType,
+<i class="no-highlight">277</i>&nbsp;            String queryBuilderPart1, StringBuffer queryBuilderPart2,
+<i class="no-highlight">278</i>&nbsp;            StringBuffer queryBuilderPart3, OpenAirFilterValues filterValues,
+<i class="no-highlight">279</i>&nbsp;            UserCredentials userCredentials, ErrorViews errorViews,
+<i class="no-highlight">280</i>&nbsp;            XMLInputFactory xmlInputFactory,
+<i class="no-highlight">281</i>&nbsp;            JsonXMLConfig config, JsonXMLOutputFactory jsonOutputFactory, int apiCallDelay,
+<i class="no-highlight">282</i>&nbsp;            boolean retainNullDateValues) {
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        if (StringUtils.isNotBlank(filterValues.getWriterQueryDateFilter())) {</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;            queryBuilderPart2.append(filterValues.getWriterQueryDateFilter());</b>
+<i class="no-highlight">285</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        if (StringUtils.isNotBlank(filterValues.getWriterQueryFilterName())) {</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            queryBuilderPart2.append(filterValues.getWriterQueryFilterName());</b>
+<i class="no-highlight">288</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        if (StringUtils.isNotBlank(filterValues.getWriterQueryDateParams())) {</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;            queryBuilderPart3</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                    .insert(0, filterValues.getWriterQueryDateParams());</b>
+<i class="no-highlight">292</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        LOGGER.debug(String.format(DEBUG_MESSAGE, queryBuilderPart2.toString(),</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                queryBuilderPart3.toString()));</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        int index = 0;</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        StringBuffer queryBuffer = new StringBuffer();</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        queryBuffer.append(String.format(LIMIT_TAG, 0, OPENAIR_READ_LIMIT));</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        InputStream inputStream = null;</b>
+<i class="no-highlight">299</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">300</i>&nbsp;            inputStream = executeOpenAirReadRequest(userCredentials, queryBuilderPart1,</b>
+<i class="no-highlight">301</i>&nbsp;                    queryBuilderPart2, queryBuilderPart3, queryBuffer);
+<b class="nc"><i class="no-highlight">302</i>&nbsp;            DocumentBuilder dBuilder = null;</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;            if (inputStream != null) {</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                DocumentBuilderFactory dbFactory = SnapDocumentBuilderFactory.newInstance();</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                dBuilder = dbFactory.newDocumentBuilder();</b>
+<i class="no-highlight">306</i>&nbsp;            }
+<i class="no-highlight">307</i>&nbsp;            // Multiple inputStreams may be available
+<b class="nc"><i class="no-highlight">308</i>&nbsp;            while (inputStream != null) {</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                String responseData = IOUtils.toString(inputStream);</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                if (checkReadErrors(responseData, errorViews, documentUtility)) {</b>
+<i class="no-highlight">311</i>&nbsp;                    return;
+<i class="no-highlight">312</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                int recordCount = writeOutput(inputDoc, responseData, documentUtility,</b>
+<i class="no-highlight">314</i>&nbsp;                        outputViews, errorViews, xmlInputFactory, config,
+<i class="no-highlight">315</i>&nbsp;                        jsonOutputFactory, dBuilder, retainNullDateValues);
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                if (recordCount &lt; OPENAIR_READ_LIMIT) {</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                    break;</b>
+<i class="no-highlight">318</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                if (apiCallDelay &gt; 0) {</b>
+<i class="no-highlight">320</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                        Thread.sleep(apiCallDelay);</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                    } catch (InterruptedException ex) {</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                        throw new ExecutionException(ex, ERROR_WAIT_INTERRUPTED)</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                                .withReason(ERROR_WAIT_INTERRUPTED_REASON)</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                                .withResolution(ERROR_WAIT_INTERRUPTED_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                    }</b>
+<i class="no-highlight">327</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                IOUtils.closeQuietly(inputStream);</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                index += OPENAIR_READ_LIMIT;</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                queryBuffer = new StringBuffer();</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                queryBuffer.append(String.format(LIMIT_TAG, index,</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                        OPENAIR_READ_LIMIT));</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                inputStream = executeOpenAirReadRequest(userCredentials, queryBuilderPart1,</b>
+<i class="no-highlight">334</i>&nbsp;                        queryBuilderPart2, queryBuilderPart3, queryBuffer);
+<b class="nc"><i class="no-highlight">335</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;            String reason = String.format(IO_EXCEPTION_REASON, ex.getMessage());</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;            throw new ExecutionException(ex, IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                    .withResolution(IO_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        } catch (ParserConfigurationException ex) {</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;            throw new ExecutionException(ex, PARSING_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                    .withReason(String.format(PARSING_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">345</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">346</i>&nbsp;            IOUtils.closeQuietly(inputStream);</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;        }</b>
+<i class="no-highlight">348</i>&nbsp;    }
+<i class="no-highlight">349</i>&nbsp;
+<i class="no-highlight">350</i>&nbsp;    protected InputStream executeOpenAirReadRequest(UserCredentials userCredentials,
+<i class="no-highlight">351</i>&nbsp;            String queryBuilderPart1, StringBuffer queryBuilderPart2,
+<i class="no-highlight">352</i>&nbsp;            StringBuffer queryBuilderPart3, StringBuffer queryBuffer) {
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        HttpPost uriRequest = null;</b>
+<i class="no-highlight">354</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">355</i>&nbsp;            URI uri = new URI(userCredentials.isSandBoxSystem() ? Constants.SANDBOX_SERVER_URL</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                    : Constants.PRODUCTION_SERVER_URL);</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;            uriRequest = new HttpPost(uri);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;            StringBuilder query = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;            query.append(queryBuilderPart1)</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                    .append(queryBuilderPart2)</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                    .append(queryBuffer)</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                    .append(queryBuilderPart3)</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                    .append(getEndXMLTag(READ_ATTRIBUTE))</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                    .append(getEndXMLTag(REQUEST_ATTRIBUTE));</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;            uriRequest.setEntity(new StringEntity(query.toString()));</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;            HttpResponse response = openAirHttpClient.execute(uriRequest);</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;            HttpEntity entity = response.getEntity();</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            return entity.getContent();</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;            uriRequest.abort();</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;            String reason = String.format(IO_EXCEPTION_REASON, ex.getMessage());</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;            throw new ExecutionException(ex, IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                    .withResolution(IO_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        } catch (URISyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;            throw new ExecutionException(e, ERROR_WHILE_CREATING_URI)</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">379</i>&nbsp;        }
+<i class="no-highlight">380</i>&nbsp;    }
+<i class="no-highlight">381</i>&nbsp;
+<i class="no-highlight">382</i>&nbsp;    public Map&lt;String, String&gt; loadProjectstages(UserCredentials userCredentials, String queryPart1,
+<i class="no-highlight">383</i>&nbsp;            StringBuffer queryPart2, StringBuffer queryPart3, StringBuffer queryBuffer,
+<i class="no-highlight">384</i>&nbsp;            XMLInputFactory xmlInputFactory, JsonXMLOutputFactory jsonOutputFactory,
+<i class="no-highlight">385</i>&nbsp;            DocumentUtility documentUtility, ErrorViews errorViews) {
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        InputStream inputStream = executeOpenAirReadRequest(userCredentials, queryPart1, queryPart2,</b>
+<i class="no-highlight">387</i>&nbsp;                queryPart3, queryBuffer);
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        DocumentBuilder dBuilder = null;</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;        org.w3c.dom.Document doc = null;</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        Map&lt;String, String&gt; mapProjectStages = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">391</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            if (inputStream != null) {</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                DocumentBuilderFactory dbFactory = SnapDocumentBuilderFactory.newInstance();</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                dBuilder = dbFactory.newDocumentBuilder();</b>
+<i class="no-highlight">395</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">396</i>&nbsp;            String responseData = IOUtils.toString(inputStream);</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;            doc = dBuilder.parse(new InputSource(new StringReader(responseData)));</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;        } catch (SAXException | ParserConfigurationException ex) {</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;            throw new ExecutionException(ex, PARSING_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                    .withReason(String.format(PARSING_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                    .withResolution(ERR_INVALID_REQUEST_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;            throw new ExecutionException(ex, IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                    .withReason(String.format(IO_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                    .withResolution(IO_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;        int recordNo = 0;</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;        NodeList nodeList = doc.getChildNodes();</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;        if (nodeList != null &amp;&amp; nodeList.getLength() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;            Node parentNode = nodeList.item(0);</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            NodeList childNodesList = parentNode.getChildNodes();</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;            if (childNodesList != null &amp;&amp; childNodesList.getLength() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                NodeList readNodesList = childNodesList.item(1).getChildNodes();</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                for (; recordNo &lt; readNodesList.getLength(); recordNo++) {</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                    Object data = null;</b>
+<i class="no-highlight">416</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                        data = xmlUtils.convertToJson(xmlInputFactory,</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                                jsonOutputFactory, new DOMSource(readNodesList.item(recordNo)));</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                        if (data instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                            Map dataMap = (Map) ((Map) data)</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                                    .get(OPENAIR_RESOURCE_TYPE_PROJECTSTAGE);</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                            String name = (String) dataMap.get(STAGE_NAME);</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;                            String id = (String) dataMap.get(STAGE_ID);</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                            if (StringUtils.isNotBlank(name) &amp;&amp; StringUtils.isNotBlank(id)) {</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;                                mapProjectStages.put(name.toLowerCase(), id);</b>
+<i class="no-highlight">426</i>&nbsp;                            }
+<i class="no-highlight">427</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                    } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                        SnapException snapEx = new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                                documentUtility.newDocument(e), e.getMessage())</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                                .withReason(XML_SERIALIZATION_FAILED)</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                                .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                        errorViews.write((SnapDataException) snapEx);</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                    }</b>
+<i class="no-highlight">435</i>&nbsp;                }
+<i class="no-highlight">436</i>&nbsp;            }
+<i class="no-highlight">437</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">438</i>&nbsp;        return mapProjectStages;</b>
+<i class="no-highlight">439</i>&nbsp;    }
+<i class="no-highlight">440</i>&nbsp;
+<i class="no-highlight">441</i>&nbsp;    /**
+<i class="no-highlight">442</i>&nbsp;     * To get one record from openair.
+<i class="no-highlight">443</i>&nbsp;     *
+<i class="no-highlight">444</i>&nbsp;     * @param userCredentials Contains the user details
+<i class="no-highlight">445</i>&nbsp;     * @param openAirType     OpenAir table name
+<i class="no-highlight">446</i>&nbsp;     *
+<i class="no-highlight">447</i>&nbsp;     * @return String
+<i class="no-highlight">448</i>&nbsp;     */
+<i class="no-highlight">449</i>&nbsp;    public String getOpenAirRecordData(UserCredentials userCredentials,
+<i class="no-highlight">450</i>&nbsp;            String openAirType) {
+<b class="nc"><i class="no-highlight">451</i>&nbsp;        HttpPost uriRequest = null;</b>
+<i class="no-highlight">452</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">453</i>&nbsp;            URI uri = new URI(userCredentials.isSandBoxSystem() ? Constants.SANDBOX_SERVER_URL</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                    : Constants.PRODUCTION_SERVER_URL);</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;            uriRequest = new HttpPost(uri);</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;            StringBuilder query = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;            query.append(getOpenAirRequestHeader(userCredentials))</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                    .append(String.format(READ_ONE_RECORD_TAG, openAirType))</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                    .append(getEndXMLTag(READ_ATTRIBUTE))</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                    .append(getEndXMLTag(REQUEST_ATTRIBUTE));</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;            uriRequest.setEntity(new StringEntity(query.toString()));</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;            HttpResponse response = openAirHttpClient.execute(uriRequest);</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;            HttpEntity entity = response.getEntity();</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;            return (entity != null) ? IOUtils.toString(entity.getContent()) : null;</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;            uriRequest.abort();</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;            String reason = String.format(IO_EXCEPTION_REASON, ex.getMessage());</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;            throw new ExecutionException(ex, IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                    .withResolution(IO_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        } catch (URISyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;            throw new ExecutionException(e, ERROR_WHILE_CREATING_URI)</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">475</i>&nbsp;        }
+<i class="no-highlight">476</i>&nbsp;    }
+<i class="no-highlight">477</i>&nbsp;
+<i class="no-highlight">478</i>&nbsp;    /**
+<i class="no-highlight">479</i>&nbsp;     * Gets the field names for an entity/table from given xml string and returns them in list.
+<i class="no-highlight">480</i>&nbsp;     *
+<i class="no-highlight">481</i>&nbsp;     * @param xmlString Contains the xml string.
+<i class="no-highlight">482</i>&nbsp;     *
+<i class="no-highlight">483</i>&nbsp;     * @return List&lt;String&gt;
+<i class="no-highlight">484</i>&nbsp;     */
+<i class="no-highlight">485</i>&nbsp;    public List&lt;String&gt; getFieldNames(String xmlString) {
+<b class="nc"><i class="no-highlight">486</i>&nbsp;        List&lt;String&gt; fieldNamesList = new ArrayList&lt;String&gt;();</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;        DocumentBuilderFactory factory = SnapDocumentBuilderFactory.newInstance();</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;        DocumentBuilder builder = null;</b>
+<i class="no-highlight">489</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            builder = factory.newDocumentBuilder();</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;        } catch (ParserConfigurationException ex) {</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;            throw new ExecutionException(ex, PARSING_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                    .withReason(String.format(PARSING_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;        org.w3c.dom.Document doc = null;</b>
+<i class="no-highlight">497</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">498</i>&nbsp;            doc = builder.parse(new InputSource(new StringReader(xmlString)));</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;        } catch (SAXException ex) {</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;            throw new ExecutionException(ex, PARSING_EXCEPTION).</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                    withReason(String.format(PARSING_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;            throw new ExecutionException(ex, IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;                    .withReason(String.format(IO_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                    .withResolution(IO_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;        NodeList list = doc.getElementsByTagName(&quot;*&quot;);</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;        for (int i = DIGIT_FOUR; i &lt; list.getLength(); i++) {</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;            Element element = (Element) list.item(i);</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;            if (!DATE_LIST.contains(element.getNodeName())) {</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                fieldNamesList.add(element.getNodeName());</b>
+<i class="no-highlight">513</i>&nbsp;            }
+<i class="no-highlight">514</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">515</i>&nbsp;        return fieldNamesList;</b>
+<i class="no-highlight">516</i>&nbsp;    }
+<i class="no-highlight">517</i>&nbsp;
+<i class="no-highlight">518</i>&nbsp;    /**
+<i class="no-highlight">519</i>&nbsp;     * Reads one record from openair and returns the field names list.
+<i class="no-highlight">520</i>&nbsp;     *
+<i class="no-highlight">521</i>&nbsp;     * @param userCredentials   Contains the user details
+<i class="no-highlight">522</i>&nbsp;     * @param openAirEntityName OpenAir table name
+<i class="no-highlight">523</i>&nbsp;     *
+<i class="no-highlight">524</i>&nbsp;     * @return
+<i class="no-highlight">525</i>&nbsp;     */
+<i class="no-highlight">526</i>&nbsp;    public List&lt;String&gt; readXMLDataOnSuggest(UserCredentials userCredentials,
+<i class="no-highlight">527</i>&nbsp;            String openAirEntityName) {
+<b class="nc"><i class="no-highlight">528</i>&nbsp;        String responseData = getOpenAirRecordData(userCredentials, openAirEntityName);</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;        return (responseData != null) ? getFieldNames(responseData) : null;</b>
+<i class="no-highlight">530</i>&nbsp;    }
+<i class="no-highlight">531</i>&nbsp;
+<i class="no-highlight">532</i>&nbsp;    /**
+<i class="no-highlight">533</i>&nbsp;     * Reads search field name and search field value from properties and returns them into a
+<i class="no-highlight">534</i>&nbsp;     * string.
+<i class="no-highlight">535</i>&nbsp;     *
+<i class="no-highlight">536</i>&nbsp;     * @param objectType       OpenAir table name
+<i class="no-highlight">537</i>&nbsp;     * @param searchFieldName  Search field name
+<i class="no-highlight">538</i>&nbsp;     * @param searchFieldValue Search field value
+<i class="no-highlight">539</i>&nbsp;     *
+<i class="no-highlight">540</i>&nbsp;     * @return String
+<i class="no-highlight">541</i>&nbsp;     */
+<i class="no-highlight">542</i>&nbsp;    public String setSearchFieldValueFromProperties(String objectType,
+<i class="no-highlight">543</i>&nbsp;            String searchFieldName, String searchFieldValue) {
+<b class="nc"><i class="no-highlight">544</i>&nbsp;        return new StringBuilder(getOpenXMLTag(objectType))</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                .append(getOpenXMLTag(searchFieldName))</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                .append(searchFieldValue).append(getEndXMLTag(searchFieldName))</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;                .append(getEndXMLTag(objectType)).toString();</b>
+<i class="no-highlight">548</i>&nbsp;    }
+<i class="no-highlight">549</i>&nbsp;
+<i class="no-highlight">550</i>&nbsp;    /**
+<i class="no-highlight">551</i>&nbsp;     * Sets the from and to dates as DateTime objects into filterValues.
+<i class="no-highlight">552</i>&nbsp;     *
+<i class="no-highlight">553</i>&nbsp;     * @param filterValues
+<i class="no-highlight">554</i>&nbsp;     *
+<i class="no-highlight">555</i>&nbsp;     * @return
+<i class="no-highlight">556</i>&nbsp;     */
+<i class="no-highlight">557</i>&nbsp;    public OpenAirFilterValues getDateFilterQuery(
+<i class="no-highlight">558</i>&nbsp;            OpenAirFilterValues filterValues) {
+<b class="nc"><i class="no-highlight">559</i>&nbsp;        StringBuffer writerQueryDateFilter = new StringBuffer();</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;        if (filterValues.getDateFilterType().equalsIgnoreCase(</b>
+<i class="no-highlight">561</i>&nbsp;                BETWEEN_DATE_VALUE)
+<b class="nc"><i class="no-highlight">562</i>&nbsp;                &amp;&amp; !filterValues.getDateFilterFieldName().contains(</b>
+<i class="no-highlight">563</i>&nbsp;                COMMA_SEPARATOR)) {
+<b class="nc"><i class="no-highlight">564</i>&nbsp;            writerQueryDateFilter.append(String.format(DATE_FILTER_FIELD_TAG,</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;                    filterValues.getDateFilterType(), StringUtils.join(</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                            filterValues.getDateFilterFieldName(),</b>
+<i class="no-highlight">567</i>&nbsp;                            COMMA_SEPARATOR,
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                            filterValues.getDateFilterFieldName())));</b>
+<i class="no-highlight">569</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">570</i>&nbsp;            writerQueryDateFilter.append(String.format(DATE_FILTER_FIELD_TAG,</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;                    filterValues.getDateFilterType(),</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;                    filterValues.getDateFilterFieldName()));</b>
+<i class="no-highlight">573</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">574</i>&nbsp;        filterValues.setWriterQueryDateFilter(writerQueryDateFilter.toString());</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;        StringBuffer writerQueryDateParams = new StringBuffer();</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;        DateTime fromDate = filterValues.getDateFilterFrom();</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;        if (fromDate != null) {</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;            writerQueryDateParams.append(prepareDateParams(fromDate));</b>
+<i class="no-highlight">579</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">580</i>&nbsp;        DateTime toDate = filterValues.getDateFilterTo();</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;        if (toDate != null) {</b>
+<b class="nc"><i class="no-highlight">582</i>&nbsp;            writerQueryDateParams.append(prepareDateParams(toDate));</b>
+<i class="no-highlight">583</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">584</i>&nbsp;        filterValues.setWriterQueryDateParams(writerQueryDateParams.toString());</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;        return filterValues;</b>
+<i class="no-highlight">586</i>&nbsp;    }
+<i class="no-highlight">587</i>&nbsp;
+<i class="no-highlight">588</i>&nbsp;    /**
+<i class="no-highlight">589</i>&nbsp;     * This method is used to write the date param for the give date.
+<i class="no-highlight">590</i>&nbsp;     *
+<i class="no-highlight">591</i>&nbsp;     * @param date Date contains with or without time
+<i class="no-highlight">592</i>&nbsp;     *
+<i class="no-highlight">593</i>&nbsp;     * @return String
+<i class="no-highlight">594</i>&nbsp;     */
+<i class="no-highlight">595</i>&nbsp;    public String prepareDateParams(DateTime date) {
+<b class="nc"><i class="no-highlight">596</i>&nbsp;        return String.format(</b>
+<i class="no-highlight">597</i>&nbsp;                WRITER_QUERY_DATE_PARAMS,
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                date.getYear(),</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;                (date.getMonthOfYear() &lt; 10 ? &quot;0&quot; + date.getMonthOfYear()</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;                        : date.getMonthOfYear()),</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;                (date.getDayOfMonth() &lt; 10 ? &quot;0&quot; + date.getDayOfMonth() : date</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;                        .getDayOfMonth()), date.getHourOfDay(), date</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;                        .getMinuteOfHour(), date.getSecondOfMinute());</b>
+<i class="no-highlight">604</i>&nbsp;    }
+<i class="no-highlight">605</i>&nbsp;
+<i class="no-highlight">606</i>&nbsp;    /**
+<i class="no-highlight">607</i>&nbsp;     * This method is used to write the response as documents into the output.
+<i class="no-highlight">608</i>&nbsp;     *
+<i class="no-highlight">609</i>&nbsp;     * @param inputDoc             The input record
+<i class="no-highlight">610</i>&nbsp;     * @param responseData         contains the xml string
+<i class="no-highlight">611</i>&nbsp;     * @param documentUtility      DocumentUtility
+<i class="no-highlight">612</i>&nbsp;     * @param outputViews          OutputViews
+<i class="no-highlight">613</i>&nbsp;     * @param retainNullDateValues tells if date objects with zero values to be treated as null
+<i class="no-highlight">614</i>&nbsp;     */
+<i class="no-highlight">615</i>&nbsp;    public int writeOutput(Document inputDoc, String responseData,
+<i class="no-highlight">616</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews,
+<i class="no-highlight">617</i>&nbsp;            ErrorViews errorViews,
+<i class="no-highlight">618</i>&nbsp;            XMLInputFactory xmlInputFactory, JsonXMLConfig config,
+<i class="no-highlight">619</i>&nbsp;            JsonXMLOutputFactory jsonOutputFactory, DocumentBuilder dBuilder,
+<i class="no-highlight">620</i>&nbsp;            boolean retainNullDateValues) {
+<b class="nc"><i class="no-highlight">621</i>&nbsp;        org.w3c.dom.Document doc = null;</b>
+<i class="no-highlight">622</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">623</i>&nbsp;            doc = dBuilder.parse(new InputSource(new StringReader(responseData)));</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;        } catch (SAXException ex) {</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;            throw new ExecutionException(ex, PARSING_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">626</i>&nbsp;                    .withReason(String.format(PARSING_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">627</i>&nbsp;                    .withResolution(ERR_INVALID_REQUEST_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;            throw new ExecutionException(ex, IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;                    .withReason(String.format(IO_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                    .withResolution(IO_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">633</i>&nbsp;        int recordNo = 0;</b>
+<b class="nc"><i class="no-highlight">634</i>&nbsp;        NodeList nodeList = doc.getChildNodes();</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;        if (nodeList != null &amp;&amp; nodeList.getLength() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;            Node parentNode = nodeList.item(0);</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;            NodeList childNodesList = parentNode.getChildNodes();</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;            if (childNodesList != null &amp;&amp; childNodesList.getLength() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;                NodeList readNodesList = childNodesList.item(1).getChildNodes();</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;                for (; recordNo &lt; readNodesList.getLength(); recordNo++) {</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                    Object data = null;</b>
+<i class="no-highlight">642</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">643</i>&nbsp;                        data = xmlUtils.convertToJson(xmlInputFactory,</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;                                jsonOutputFactory, new DOMSource(readNodesList.item(recordNo)));</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                    } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;                        SnapException snapEx = new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                                documentUtility.newDocumentFor(inputDoc, e), e.getMessage())</b>
+<b class="nc"><i class="no-highlight">648</i>&nbsp;                                .withReason(XML_SERIALIZATION_FAILED)</b>
+<b class="nc"><i class="no-highlight">649</i>&nbsp;                                .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">650</i>&nbsp;                        errorViews.write((SnapDataException) snapEx);</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">652</i>&nbsp;                    if (data instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">653</i>&nbsp;                        processDateObjects(data, retainNullDateValues);</b>
+<i class="no-highlight">654</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">655</i>&nbsp;                    outputViews.write(documentUtility.newDocumentFor(inputDoc, data), inputDoc);</b>
+<i class="no-highlight">656</i>&nbsp;                }
+<i class="no-highlight">657</i>&nbsp;            }
+<i class="no-highlight">658</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">659</i>&nbsp;        return recordNo;</b>
+<i class="no-highlight">660</i>&nbsp;    }
+<i class="no-highlight">661</i>&nbsp;
+<i class="no-highlight">662</i>&nbsp;    /**
+<i class="no-highlight">663</i>&nbsp;     * This method converts complex Date elements into appropriate DateTime objects.
+<i class="no-highlight">664</i>&nbsp;     *
+<i class="no-highlight">665</i>&nbsp;     * @param data                 Contains the xml data in the form of maps
+<i class="no-highlight">666</i>&nbsp;     * @param retainNullDateValues tells if date objects with zero values to be treated as null
+<i class="no-highlight">667</i>&nbsp;     */
+<i class="no-highlight">668</i>&nbsp;    private void processDateObjects(Object data, boolean retainNullDateValues) {
+<b class="nc"><i class="no-highlight">669</i>&nbsp;        Set&lt;Map.Entry&lt;String, Object&gt;&gt; entrySet = ((Map&lt;String, Object&gt;) data).entrySet();</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; entry : entrySet) {</b>
+<b class="nc"><i class="no-highlight">671</i>&nbsp;            Object object = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;            if (object instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;                if (isDate((Map&lt;String, Object&gt;) object)) {</b>
+<i class="no-highlight">674</i>&nbsp;                    // if Date then process the object and stop
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                    Object date = getDateTimeObject((Map&lt;String, Object&gt;) (((Map&lt;String, Object&gt;)</b>
+<b class="nc"><i class="no-highlight">676</i>&nbsp;                            object).get(DATE_KEY)), retainNullDateValues);</b>
+<b class="nc"><i class="no-highlight">677</i>&nbsp;                    ((Map&lt;String, Object&gt;) data).put(entry.getKey(), date);</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;                } else {</b>
+<i class="no-highlight">679</i>&nbsp;                    // if not Date then introspect the object further
+<b class="nc"><i class="no-highlight">680</i>&nbsp;                    processDateObjects(object, retainNullDateValues);</b>
+<i class="no-highlight">681</i>&nbsp;                }
+<i class="no-highlight">682</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">683</i>&nbsp;        }</b>
+<i class="no-highlight">684</i>&nbsp;    }
+<i class="no-highlight">685</i>&nbsp;
+<i class="no-highlight">686</i>&nbsp;    /**
+<i class="no-highlight">687</i>&nbsp;     * This method checks if the given object is of type OpenAir Date.
+<i class="no-highlight">688</i>&nbsp;     *
+<i class="no-highlight">689</i>&nbsp;     * @param object The OpenAir object
+<i class="no-highlight">690</i>&nbsp;     *
+<i class="no-highlight">691</i>&nbsp;     * @return true if the object is of Date type; false otherwise
+<i class="no-highlight">692</i>&nbsp;     */
+<i class="no-highlight">693</i>&nbsp;    private boolean isDate(Map&lt;String, Object&gt; object) {
+<b class="nc"><i class="no-highlight">694</i>&nbsp;        if (object.size() == 1) {</b>
+<b class="nc"><i class="no-highlight">695</i>&nbsp;            Object date = DATE_PATH.readStatic(object, null);</b>
+<b class="nc"><i class="no-highlight">696</i>&nbsp;            if ((date != null) &amp;&amp; (date instanceof Map) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">697</i>&nbsp;                    (((Map&lt;String, Object&gt;) date).keySet().equals(DATE_ELEMENTS))) {</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                return true;</b>
+<i class="no-highlight">699</i>&nbsp;            }
+<i class="no-highlight">700</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">701</i>&nbsp;        return false;</b>
+<i class="no-highlight">702</i>&nbsp;    }
+<i class="no-highlight">703</i>&nbsp;
+<i class="no-highlight">704</i>&nbsp;    /**
+<i class="no-highlight">705</i>&nbsp;     * This method converts the OpenAir Date object into appropriate Joda DateTime object.
+<i class="no-highlight">706</i>&nbsp;     *
+<i class="no-highlight">707</i>&nbsp;     * @param openAirDate
+<i class="no-highlight">708</i>&nbsp;     * @param retainNullDateValues tells if date objects with zero values to be treated as null
+<i class="no-highlight">709</i>&nbsp;     * @return Joda DateTime object
+<i class="no-highlight">710</i>&nbsp;     */
+<i class="no-highlight">711</i>&nbsp;    private Object getDateTimeObject(Map&lt;String, Object&gt; openAirDate, boolean retainNullDateValues) {
+<b class="nc"><i class="no-highlight">712</i>&nbsp;        boolean isTimeNotAvailable = false;</b>
+<b class="nc"><i class="no-highlight">713</i>&nbsp;        boolean isDateNotAvailable = false;</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;        boolean isTimeZoneNotAvailable = false;</b>
+<i class="no-highlight">715</i>&nbsp;        String hour, minute, second, timezone;
+<i class="no-highlight">716</i>&nbsp;        int year, day, month;
+<i class="no-highlight">717</i>&nbsp;
+<i class="no-highlight">718</i>&nbsp;        // read date and time values
+<i class="no-highlight">719</i>&nbsp;        //// if hour, minute, second and timezone are not available then they are null
+<b class="nc"><i class="no-highlight">720</i>&nbsp;        hour = (String) (openAirDate.get(HOUR_KEY));</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;        minute = (String) (openAirDate.get(MINUTE_KEY));</b>
+<b class="nc"><i class="no-highlight">722</i>&nbsp;        second = (String) (openAirDate.get(SECOND_KEY));</b>
+<b class="nc"><i class="no-highlight">723</i>&nbsp;        timezone = (String) (openAirDate.get(TIMEZONE_KEY));</b>
+<i class="no-highlight">724</i>&nbsp;        //// if year, month and day are not available then they are &quot;00&quot;
+<b class="nc"><i class="no-highlight">725</i>&nbsp;        Object yearObj = openAirDate.get(YEAR_KEY);</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;        Object monthObj = openAirDate.get(MONTH_KEY);</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;        Object dayObj = openAirDate.get(DAY_KEY);</b>
+<b class="nc"><i class="no-highlight">728</i>&nbsp;        year = yearObj != null ? Integer.parseInt(yearObj.toString()) : 0;</b>
+<b class="nc"><i class="no-highlight">729</i>&nbsp;        month = monthObj != null ? Integer.parseInt(monthObj.toString()) : 0;</b>
+<b class="nc"><i class="no-highlight">730</i>&nbsp;        day = dayObj != null ? Integer.parseInt(dayObj.toString()) : 0;</b>
+<i class="no-highlight">731</i>&nbsp;
+<i class="no-highlight">732</i>&nbsp;        // perform checks for non-availability of date, time, and timezone
+<b class="nc"><i class="no-highlight">733</i>&nbsp;        if (hour == null || minute == null || second == null) {</b>
+<b class="nc"><i class="no-highlight">734</i>&nbsp;            isTimeNotAvailable = true;</b>
+<i class="no-highlight">735</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">736</i>&nbsp;        if (timezone == null) {</b>
+<b class="nc"><i class="no-highlight">737</i>&nbsp;            isTimeZoneNotAvailable = true;</b>
+<i class="no-highlight">738</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">739</i>&nbsp;        if (year == 0 || month == 0 || day == 0) {</b>
+<b class="nc"><i class="no-highlight">740</i>&nbsp;            isDateNotAvailable = true;</b>
+<i class="no-highlight">741</i>&nbsp;        }
+<i class="no-highlight">742</i>&nbsp;
+<i class="no-highlight">743</i>&nbsp;        // based on above checks, create respective DateTime object
+<b class="nc"><i class="no-highlight">744</i>&nbsp;        if (isDateNotAvailable) {</b>
+<i class="no-highlight">745</i>&nbsp;            // Date is not present
+<b class="nc"><i class="no-highlight">746</i>&nbsp;            if (isTimeNotAvailable) {</b>
+<i class="no-highlight">747</i>&nbsp;                // Time is not present -&gt; create LocalDateTime object
+<b class="nc"><i class="no-highlight">748</i>&nbsp;                if (retainNullDateValues) {</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;                    return null;</b>
+<i class="no-highlight">750</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">751</i>&nbsp;                    return new LocalDateTime();</b>
+<i class="no-highlight">752</i>&nbsp;                }
+<i class="no-highlight">753</i>&nbsp;            } else {
+<i class="no-highlight">754</i>&nbsp;                // Time is present -&gt; create LocalTime object
+<b class="nc"><i class="no-highlight">755</i>&nbsp;                return new LocalTime(Integer.parseInt(hour),</b>
+<b class="nc"><i class="no-highlight">756</i>&nbsp;                        Integer.parseInt(minute),</b>
+<b class="nc"><i class="no-highlight">757</i>&nbsp;                        Integer.parseInt(second));</b>
+<i class="no-highlight">758</i>&nbsp;            }
+<i class="no-highlight">759</i>&nbsp;        } else {
+<i class="no-highlight">760</i>&nbsp;            // Date is present
+<b class="nc"><i class="no-highlight">761</i>&nbsp;            if (isTimeNotAvailable) {</b>
+<i class="no-highlight">762</i>&nbsp;                // Time is not present -&gt; create LocalDate object
+<b class="nc"><i class="no-highlight">763</i>&nbsp;                return new LocalDate(year, month, day);</b>
+<i class="no-highlight">764</i>&nbsp;            } else {
+<i class="no-highlight">765</i>&nbsp;                // Time is present
+<b class="nc"><i class="no-highlight">766</i>&nbsp;                if (isTimeZoneNotAvailable) {</b>
+<i class="no-highlight">767</i>&nbsp;                    // TimeZone is not present -&gt; create DateTime object without TimeZone
+<b class="nc"><i class="no-highlight">768</i>&nbsp;                    return new DateTime(year, month, day, Integer.parseInt(hour),</b>
+<b class="nc"><i class="no-highlight">769</i>&nbsp;                            Integer.parseInt(minute),</b>
+<b class="nc"><i class="no-highlight">770</i>&nbsp;                            Integer.parseInt(second));</b>
+<i class="no-highlight">771</i>&nbsp;                } else {
+<i class="no-highlight">772</i>&nbsp;                    // TimeZone is present -&gt; create DateTime object with TimeZone
+<b class="nc"><i class="no-highlight">773</i>&nbsp;                    return new DateTime(year, month, day, Integer.parseInt(hour),</b>
+<b class="nc"><i class="no-highlight">774</i>&nbsp;                            Integer.parseInt(minute),</b>
+<b class="nc"><i class="no-highlight">775</i>&nbsp;                            Integer.parseInt(second), DateTimeZone.forID(timezone));</b>
+<i class="no-highlight">776</i>&nbsp;                }
+<i class="no-highlight">777</i>&nbsp;            }
+<i class="no-highlight">778</i>&nbsp;        }
+<i class="no-highlight">779</i>&nbsp;    }
+<i class="no-highlight">780</i>&nbsp;
+<i class="no-highlight">781</i>&nbsp;    /**
+<i class="no-highlight">782</i>&nbsp;     * This method is used to handle open air api errors for read operation.
+<i class="no-highlight">783</i>&nbsp;     *
+<i class="no-highlight">784</i>&nbsp;     * @param responseData Contains the xml string
+<i class="no-highlight">785</i>&nbsp;     */
+<i class="no-highlight">786</i>&nbsp;    private boolean checkReadErrors(String responseData, ErrorViews errorViews,
+<i class="no-highlight">787</i>&nbsp;            DocumentUtility documentUtility) {
+<b class="nc"><i class="no-highlight">788</i>&nbsp;        Map&lt;String, Object&gt; error = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">789</i>&nbsp;        if (responseData.contains(ERROR_2001) || responseData.contains(ERROR_NOT_WELL_FORMED)) {</b>
+<b class="nc"><i class="no-highlight">790</i>&nbsp;            error.put(ERROR, ERROR_2001_REASON);</b>
+<b class="nc"><i class="no-highlight">791</i>&nbsp;            SnapDataException snapEx = new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">792</i>&nbsp;                    documentUtility.newDocument(error),</b>
+<i class="no-highlight">793</i>&nbsp;                    ERROR_2001_REASON)
+<b class="nc"><i class="no-highlight">794</i>&nbsp;                    .withReason(ERROR_2001_REASON)</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;                    .withResolution(ERROR_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;            errorViews.write(snapEx);</b>
+<b class="nc"><i class="no-highlight">797</i>&nbsp;            return true;</b>
+<b class="nc"><i class="no-highlight">798</i>&nbsp;        } else if (responseData.contains(ERROR_601)) {</b>
+<b class="nc"><i class="no-highlight">799</i>&nbsp;            return true;</b>
+<i class="no-highlight">800</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">801</i>&nbsp;        return false;</b>
+<i class="no-highlight">802</i>&nbsp;    }
+<i class="no-highlight">803</i>&nbsp;
+<i class="no-highlight">804</i>&nbsp;    /**
+<i class="no-highlight">805</i>&nbsp;     * This method converts object value into string.
+<i class="no-highlight">806</i>&nbsp;     *
+<i class="no-highlight">807</i>&nbsp;     * @param value Object value
+<i class="no-highlight">808</i>&nbsp;     *
+<i class="no-highlight">809</i>&nbsp;     * @return String value
+<i class="no-highlight">810</i>&nbsp;     */
+<i class="no-highlight">811</i>&nbsp;    public String castAsString(Object value) {
+<b class="nc"><i class="no-highlight">812</i>&nbsp;        return value == null ? StringUtils.EMPTY : String.valueOf(value);</b>
+<i class="no-highlight">813</i>&nbsp;    }
+<i class="no-highlight">814</i>&nbsp;
+<i class="no-highlight">815</i>&nbsp;    /**
+<i class="no-highlight">816</i>&nbsp;     * Checks whether the given string is date and in the format of YYYY-MM-dd or yyyy-MM-dd
+<i class="no-highlight">817</i>&nbsp;     * HH:mm:ss.
+<i class="no-highlight">818</i>&nbsp;     *
+<i class="no-highlight">819</i>&nbsp;     * @param dateStr   Date in the form of String
+<i class="no-highlight">820</i>&nbsp;     * @param fieldName Date field name
+<i class="no-highlight">821</i>&nbsp;     *
+<i class="no-highlight">822</i>&nbsp;     * @return DateTime date
+<i class="no-highlight">823</i>&nbsp;     */
+<i class="no-highlight">824</i>&nbsp;    public DateTime getDateValue(String dateStr, String fieldName,
+<i class="no-highlight">825</i>&nbsp;            ErrorViews errorViews, DocumentUtility documentUtility) {
+<b class="nc"><i class="no-highlight">826</i>&nbsp;        DateTime date = null;</b>
+<b class="nc"><i class="no-highlight">827</i>&nbsp;        Map&lt;String, Object&gt; error = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">828</i>&nbsp;        if (StringUtils.isBlank(dateStr)) {</b>
+<b class="nc"><i class="no-highlight">829</i>&nbsp;            error.put(ERROR, DATE_MISSING);</b>
+<b class="nc"><i class="no-highlight">830</i>&nbsp;            SnapDataException snapEx = new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">831</i>&nbsp;                    documentUtility.newDocument(error),</b>
+<i class="no-highlight">832</i>&nbsp;                    DATE_MISSING_REASON)
+<b class="nc"><i class="no-highlight">833</i>&nbsp;                    .formatWith(fieldName)</b>
+<b class="nc"><i class="no-highlight">834</i>&nbsp;                    .withReason(String.format(DATE_MISSING_REASON, fieldName))</b>
+<b class="nc"><i class="no-highlight">835</i>&nbsp;                    .withResolution(</b>
+<b class="nc"><i class="no-highlight">836</i>&nbsp;                            String.format(DATE_MISSING_RESOLUTION, fieldName));</b>
+<b class="nc"><i class="no-highlight">837</i>&nbsp;            errorViews.write(snapEx);</b>
+<b class="nc"><i class="no-highlight">838</i>&nbsp;        } else {</b>
+<i class="no-highlight">839</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">840</i>&nbsp;                date = DATETIME_FORMATTER.parseDateTime(dateStr);</b>
+<b class="nc"><i class="no-highlight">841</i>&nbsp;            } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">842</i>&nbsp;                error.put(ERROR, PARSE_DATE_FAILED);</b>
+<b class="nc"><i class="no-highlight">843</i>&nbsp;                SnapDataException snapEx = new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">844</i>&nbsp;                        documentUtility.newDocument(error),</b>
+<i class="no-highlight">845</i>&nbsp;                        PARSE_DATE_FAILED_REASON)
+<b class="nc"><i class="no-highlight">846</i>&nbsp;                        .formatWith(fieldName, dateStr)</b>
+<b class="nc"><i class="no-highlight">847</i>&nbsp;                        .withReason(</b>
+<b class="nc"><i class="no-highlight">848</i>&nbsp;                                String.format(PARSE_DATE_FAILED_REASON, fieldName,</b>
+<i class="no-highlight">849</i>&nbsp;                                        dateStr))
+<b class="nc"><i class="no-highlight">850</i>&nbsp;                        .withResolution(String.format(PARSE_DATE_RES, fieldName));</b>
+<b class="nc"><i class="no-highlight">851</i>&nbsp;                errorViews.write(snapEx);</b>
+<b class="nc"><i class="no-highlight">852</i>&nbsp;            }</b>
+<i class="no-highlight">853</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">854</i>&nbsp;        return date;</b>
+<i class="no-highlight">855</i>&nbsp;    }
+<i class="no-highlight">856</i>&nbsp;
+<i class="no-highlight">857</i>&nbsp;    /**
+<i class="no-highlight">858</i>&nbsp;     * Either deletes records from openair or adds/updates records into the openair basing on the
+<i class="no-highlight">859</i>&nbsp;     * action.
+<i class="no-highlight">860</i>&nbsp;     *
+<i class="no-highlight">861</i>&nbsp;     * @param request         Contains the xml tag for the given action
+<i class="no-highlight">862</i>&nbsp;     * @param userCredentials Contains the user details
+<i class="no-highlight">863</i>&nbsp;     * @param documentUtility DocumentUtility
+<i class="no-highlight">864</i>&nbsp;     * @param outputViews     OutputViews
+<i class="no-highlight">865</i>&nbsp;     * @param errorViews      ErrorViews
+<i class="no-highlight">866</i>&nbsp;     * @param action          Contains the action name like delete or write.
+<i class="no-highlight">867</i>&nbsp;     */
+<i class="no-highlight">868</i>&nbsp;    public void executeOpenAirRequest(String request,
+<i class="no-highlight">869</i>&nbsp;            UserCredentials userCredentials, DocumentUtility documentUtility,
+<i class="no-highlight">870</i>&nbsp;            OutputViews outputViews, ErrorViews errorViews, String action) {
+<b class="nc"><i class="no-highlight">871</i>&nbsp;        HttpPost uriRequest = null;</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;        InputStream inputStream = null;</b>
+<i class="no-highlight">873</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">874</i>&nbsp;            URI uri = new URI(userCredentials.isSandBoxSystem() ? Constants.SANDBOX_SERVER_URL</b>
+<b class="nc"><i class="no-highlight">875</i>&nbsp;                    : Constants.PRODUCTION_SERVER_URL);</b>
+<b class="nc"><i class="no-highlight">876</i>&nbsp;            uriRequest = new HttpPost(uri);</b>
+<b class="nc"><i class="no-highlight">877</i>&nbsp;            StringBuilder query = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">878</i>&nbsp;            query.append(getOpenAirRequestHeader(userCredentials))</b>
+<b class="nc"><i class="no-highlight">879</i>&nbsp;                    .append(request)</b>
+<b class="nc"><i class="no-highlight">880</i>&nbsp;                    .append(getEndXMLTag(REQUEST_ATTRIBUTE));</b>
+<b class="nc"><i class="no-highlight">881</i>&nbsp;            uriRequest.setEntity(new StringEntity(query.toString()));</b>
+<b class="nc"><i class="no-highlight">882</i>&nbsp;            HttpResponse response = openAirHttpClient.execute(uriRequest);</b>
+<b class="nc"><i class="no-highlight">883</i>&nbsp;            HttpEntity entity = response.getEntity();</b>
+<b class="nc"><i class="no-highlight">884</i>&nbsp;            inputStream = entity.getContent();</b>
+<b class="nc"><i class="no-highlight">885</i>&nbsp;            if (inputStream != null) {</b>
+<b class="nc"><i class="no-highlight">886</i>&nbsp;                DocumentBuilder dBuilder = null;</b>
+<b class="nc"><i class="no-highlight">887</i>&nbsp;                DocumentBuilderFactory dbFactory = SnapDocumentBuilderFactory.newInstance();</b>
+<b class="nc"><i class="no-highlight">888</i>&nbsp;                dBuilder = dbFactory.newDocumentBuilder();</b>
+<b class="nc"><i class="no-highlight">889</i>&nbsp;                readEachRecordStatus(IOUtils.toString(inputStream), documentUtility, outputViews,</b>
+<i class="no-highlight">890</i>&nbsp;                        errorViews, dBuilder, action);
+<i class="no-highlight">891</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">892</i>&nbsp;        } catch (ParserConfigurationException ex) {</b>
+<b class="nc"><i class="no-highlight">893</i>&nbsp;            uriRequest.abort();</b>
+<b class="nc"><i class="no-highlight">894</i>&nbsp;            throw new ExecutionException(ex, PARSING_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">895</i>&nbsp;                    .withReason(String.format(PARSING_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">896</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">897</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">898</i>&nbsp;            uriRequest.abort();</b>
+<b class="nc"><i class="no-highlight">899</i>&nbsp;            String reason = String.format(IO_EXCEPTION_REASON, ex.getMessage());</b>
+<b class="nc"><i class="no-highlight">900</i>&nbsp;            throw new ExecutionException(ex, IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">901</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">902</i>&nbsp;                    .withResolution(IO_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">903</i>&nbsp;        } catch (URISyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">904</i>&nbsp;            throw new ExecutionException(e, ERROR_WHILE_CREATING_URI)</b>
+<b class="nc"><i class="no-highlight">905</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">906</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">907</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">908</i>&nbsp;            IOUtils.closeQuietly(inputStream);</b>
+<b class="nc"><i class="no-highlight">909</i>&nbsp;        }</b>
+<i class="no-highlight">910</i>&nbsp;    }
+<i class="no-highlight">911</i>&nbsp;
+<i class="no-highlight">912</i>&nbsp;    /**
+<i class="no-highlight">913</i>&nbsp;     * Reads each record status
+<i class="no-highlight">914</i>&nbsp;     *
+<i class="no-highlight">915</i>&nbsp;     * @param responseData    Contains the response string after the operation executed.
+<i class="no-highlight">916</i>&nbsp;     * @param documentUtility DocumentUtility
+<i class="no-highlight">917</i>&nbsp;     * @param outputViews     OutputViews
+<i class="no-highlight">918</i>&nbsp;     * @param errorViews      errorViews
+<i class="no-highlight">919</i>&nbsp;     * @param dBuilder        DocumentBuilder
+<i class="no-highlight">920</i>&nbsp;     * @param action          Contains the action name like delete or write.
+<i class="no-highlight">921</i>&nbsp;     */
+<i class="no-highlight">922</i>&nbsp;    private void readEachRecordStatus(String responseData,
+<i class="no-highlight">923</i>&nbsp;            DocumentUtility documentUtility, OutputViews outputViews, ErrorViews errorViews,
+<i class="no-highlight">924</i>&nbsp;            DocumentBuilder dBuilder, String action) {
+<b class="nc"><i class="no-highlight">925</i>&nbsp;        org.w3c.dom.Document doc = null;</b>
+<i class="no-highlight">926</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">927</i>&nbsp;            doc = dBuilder.parse(new InputSource(new StringReader(responseData)));</b>
+<b class="nc"><i class="no-highlight">928</i>&nbsp;        } catch (SAXException ex) {</b>
+<b class="nc"><i class="no-highlight">929</i>&nbsp;            throw new ExecutionException(ex, PARSING_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">930</i>&nbsp;                    .withReason(String.format(PARSING_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">931</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">932</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">933</i>&nbsp;            throw new ExecutionException(ex, IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">934</i>&nbsp;                    .withReason(String.format(IO_EXCEPTION_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">935</i>&nbsp;                    .withResolution(IO_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">936</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">937</i>&nbsp;        NodeList nodeList = doc.getChildNodes();</b>
+<b class="nc"><i class="no-highlight">938</i>&nbsp;        if (nodeList != null &amp;&amp; nodeList.getLength() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">939</i>&nbsp;            Node node = nodeList.item(0);</b>
+<b class="nc"><i class="no-highlight">940</i>&nbsp;            if (node != null) {</b>
+<b class="nc"><i class="no-highlight">941</i>&nbsp;                NodeList childNodes = node.getChildNodes();</b>
+<b class="nc"><i class="no-highlight">942</i>&nbsp;                int childNodesLength = childNodes.getLength();</b>
+<b class="nc"><i class="no-highlight">943</i>&nbsp;                if (childNodesLength == 1) {</b>
+<b class="nc"><i class="no-highlight">944</i>&nbsp;                    throw new ExecutionException(ERROR_2001_REASON)</b>
+<b class="nc"><i class="no-highlight">945</i>&nbsp;                            .withReason(ERROR_2001_REASON)</b>
+<b class="nc"><i class="no-highlight">946</i>&nbsp;                            .withResolution(ERROR_2001_RESOLUTION);</b>
+<i class="no-highlight">947</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">948</i>&nbsp;                for (int recordNo = 1; recordNo &lt; childNodesLength; recordNo++) {</b>
+<b class="nc"><i class="no-highlight">949</i>&nbsp;                    Node childNode = childNodes.item(recordNo);</b>
+<b class="nc"><i class="no-highlight">950</i>&nbsp;                    String response = childNode.getAttributes().item(0).toString();</b>
+<b class="nc"><i class="no-highlight">951</i>&nbsp;                    Node recordID = getRecordId(childNode);</b>
+<i class="no-highlight">952</i>&nbsp;                    String recordIdString =
+<b class="nc"><i class="no-highlight">953</i>&nbsp;                            ((recordID != null &amp;&amp; recordID.getFirstChild() != null) ?</b>
+<b class="nc"><i class="no-highlight">954</i>&nbsp;                                    recordID.getFirstChild().getNodeValue() : UNKNOWN);</b>
+<b class="nc"><i class="no-highlight">955</i>&nbsp;                    List dependencyIdsList = null;</b>
+<b class="nc"><i class="no-highlight">956</i>&nbsp;                    if (response.equals(DELETE_ERROR_STATUS_701)) {</b>
+<b class="nc"><i class="no-highlight">957</i>&nbsp;                        NodeList subChildNodes = childNode.getChildNodes();</b>
+<b class="nc"><i class="no-highlight">958</i>&nbsp;                        dependencyIdsList = new ArrayList();</b>
+<b class="nc"><i class="no-highlight">959</i>&nbsp;                        for (int i = 0; i &lt; subChildNodes.getLength(); i++) {</b>
+<b class="nc"><i class="no-highlight">960</i>&nbsp;                            dependencyIdsList.add(subChildNodes.item(i).getTextContent());</b>
+<i class="no-highlight">961</i>&nbsp;                        }
+<i class="no-highlight">962</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">963</i>&nbsp;                    switch (action) {</b>
+<i class="no-highlight">964</i>&nbsp;                        case DELETE_TYPE:
+<b class="nc"><i class="no-highlight">965</i>&nbsp;                            addDeleteStatus(response, recordNo, documentUtility, errorViews,</b>
+<i class="no-highlight">966</i>&nbsp;                                    outputViews, dependencyIdsList);
+<b class="nc"><i class="no-highlight">967</i>&nbsp;                            break;</b>
+<i class="no-highlight">968</i>&nbsp;                        case WRITE_TYPE:
+<b class="nc"><i class="no-highlight">969</i>&nbsp;                            addWriteUpdateStatus(response, recordNo, documentUtility, errorViews,</b>
+<i class="no-highlight">970</i>&nbsp;                                    outputViews, recordIdString);
+<i class="no-highlight">971</i>&nbsp;                            break;
+<i class="no-highlight">972</i>&nbsp;                    }
+<i class="no-highlight">973</i>&nbsp;                }
+<i class="no-highlight">974</i>&nbsp;            }
+<i class="no-highlight">975</i>&nbsp;        }
+<i class="no-highlight">976</i>&nbsp;    }
+<i class="no-highlight">977</i>&nbsp;
+<i class="no-highlight">978</i>&nbsp;    /**
+<i class="no-highlight">979</i>&nbsp;     * This method returns the node corresponding to record ID.
+<i class="no-highlight">980</i>&nbsp;     *
+<i class="no-highlight">981</i>&nbsp;     * @param parentNode
+<i class="no-highlight">982</i>&nbsp;     *
+<i class="no-highlight">983</i>&nbsp;     * @return ID node if present; null otherwise
+<i class="no-highlight">984</i>&nbsp;     */
+<i class="no-highlight">985</i>&nbsp;    private Node getRecordId(Node parentNode) {
+<i class="no-highlight">986</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">987</i>&nbsp;            NodeList children = parentNode.getFirstChild().getChildNodes();</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;            int count = children.getLength();</b>
+<b class="nc"><i class="no-highlight">989</i>&nbsp;            int index = 0;</b>
+<b class="nc"><i class="no-highlight">990</i>&nbsp;            while (index &lt; count) {</b>
+<b class="nc"><i class="no-highlight">991</i>&nbsp;                Node node = children.item(index);</b>
+<b class="nc"><i class="no-highlight">992</i>&nbsp;                if (node.getNodeName().equals(ID)) {</b>
+<b class="nc"><i class="no-highlight">993</i>&nbsp;                    return node;</b>
+<i class="no-highlight">994</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">995</i>&nbsp;                ++index;</b>
+<b class="nc"><i class="no-highlight">996</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">997</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">998</i>&nbsp;        } catch (NullPointerException e1) {</b>
+<b class="nc"><i class="no-highlight">999</i>&nbsp;            return null;</b>
+<i class="no-highlight">1000</i>&nbsp;        }
+<i class="no-highlight">1001</i>&nbsp;    }
+<i class="no-highlight">1002</i>&nbsp;
+<i class="no-highlight">1003</i>&nbsp;    /**
+<i class="no-highlight">1004</i>&nbsp;     * Writes the deleted record status to the ouput views .
+<i class="no-highlight">1005</i>&nbsp;     *
+<i class="no-highlight">1006</i>&nbsp;     * @param deleteStatus    Contains the deleted status
+<i class="no-highlight">1007</i>&nbsp;     * @param recNo           record number
+<i class="no-highlight">1008</i>&nbsp;     * @param documentUtility documentUtility
+<i class="no-highlight">1009</i>&nbsp;     * @param errorViews      errorViews
+<i class="no-highlight">1010</i>&nbsp;     * @param outputViews     OutputViews
+<i class="no-highlight">1011</i>&nbsp;     */
+<i class="no-highlight">1012</i>&nbsp;    private void addDeleteStatus(String deleteStatus, int recNo, DocumentUtility documentUtility,
+<i class="no-highlight">1013</i>&nbsp;            ErrorViews errorViews, OutputViews outputViews, List dependencyIdsList) {
+<b class="nc"><i class="no-highlight">1014</i>&nbsp;        Map recordMap = new HashMap();</b>
+<b class="nc"><i class="no-highlight">1015</i>&nbsp;        recordMap.put(RECORD_NUMBER, recNo);</b>
+<b class="nc"><i class="no-highlight">1016</i>&nbsp;        switch (deleteStatus) {</b>
+<i class="no-highlight">1017</i>&nbsp;            case DELETE_UPDATE_ERROR_STATUS_601:
+<b class="nc"><i class="no-highlight">1018</i>&nbsp;                recordMap.put(RECORD_ERROR_CODE, DELETE_UPDATE_STATUS_601);</b>
+<b class="nc"><i class="no-highlight">1019</i>&nbsp;                recordMap.put(RECORD_ERROR_TYPE, DELETE_UPDATE_ERROR_TYPE_601);</b>
+<b class="nc"><i class="no-highlight">1020</i>&nbsp;                recordMap.put(RECORD_ERROR_MESSAGE, DELETE_UPDATE_ERROR_MESSAGE_601);</b>
+<b class="nc"><i class="no-highlight">1021</i>&nbsp;                errorViews.write(documentUtility.newDocument(recordMap));</b>
+<b class="nc"><i class="no-highlight">1022</i>&nbsp;                break;</b>
+<i class="no-highlight">1023</i>&nbsp;            case DELETE_ERROR_STATUS_701:
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;                recordMap.put(RECORD_ERROR_CODE, DELETE_STATUS_701);</b>
+<b class="nc"><i class="no-highlight">1025</i>&nbsp;                recordMap.put(RECORD_ERROR_TYPE, DELETE_ERROR_TYPE_701);</b>
+<b class="nc"><i class="no-highlight">1026</i>&nbsp;                recordMap.put(RECORD_ERROR_MESSAGE,</b>
+<b class="nc"><i class="no-highlight">1027</i>&nbsp;                        String.format(DELETE_ERROR_MESSAGE_701, dependencyIdsList.toString()));</b>
+<b class="nc"><i class="no-highlight">1028</i>&nbsp;                errorViews.write(documentUtility.newDocument(recordMap));</b>
+<b class="nc"><i class="no-highlight">1029</i>&nbsp;                break;</b>
+<i class="no-highlight">1030</i>&nbsp;            case DELETE_ERROR_STATUS_702:
+<b class="nc"><i class="no-highlight">1031</i>&nbsp;                recordMap.put(RECORD_ERROR_CODE, DELETE_STATUS_702);</b>
+<b class="nc"><i class="no-highlight">1032</i>&nbsp;                recordMap.put(RECORD_ERROR_TYPE, DELETE_ERROR_TYPE_702);</b>
+<b class="nc"><i class="no-highlight">1033</i>&nbsp;                recordMap.put(RECORD_ERROR_MESSAGE, DELETE_ERROR_MESSAGE_702);</b>
+<b class="nc"><i class="no-highlight">1034</i>&nbsp;                errorViews.write(documentUtility.newDocument(recordMap));</b>
+<b class="nc"><i class="no-highlight">1035</i>&nbsp;                break;</b>
+<i class="no-highlight">1036</i>&nbsp;            case DELETE_UPDATE_SUCCESS_STATUS_0:
+<b class="nc"><i class="no-highlight">1037</i>&nbsp;                outputViews.write(documentUtility.newDocument(recordMap));</b>
+<i class="no-highlight">1038</i>&nbsp;                break;
+<i class="no-highlight">1039</i>&nbsp;        }
+<i class="no-highlight">1040</i>&nbsp;    }
+<i class="no-highlight">1041</i>&nbsp;
+<i class="no-highlight">1042</i>&nbsp;    // write snap
+<i class="no-highlight">1043</i>&nbsp;
+<i class="no-highlight">1044</i>&nbsp;    /**
+<i class="no-highlight">1045</i>&nbsp;     * This method sets the field values into the XML format
+<i class="no-highlight">1046</i>&nbsp;     *
+<i class="no-highlight">1047</i>&nbsp;     * @param objectType Openair table name
+<i class="no-highlight">1048</i>&nbsp;     * @param inRec      Input record contains field names and values
+<i class="no-highlight">1049</i>&nbsp;     * @param mapProjectstages contains project stage names and stage ids mapped
+<i class="no-highlight">1050</i>&nbsp;     *
+<i class="no-highlight">1051</i>&nbsp;     * @return field values in the XML format for one input record
+<i class="no-highlight">1052</i>&nbsp;     */
+<i class="no-highlight">1053</i>&nbsp;    public String setFieldValues(String objectType, Map&lt;String, String&gt; inRec,
+<i class="no-highlight">1054</i>&nbsp;            Map&lt;String, String&gt; mapProjectstages) {
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;        StringBuilder dataString = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">1056</i>&nbsp;        dataString.append(getOpenXMLTag(objectType));</b>
+<b class="nc"><i class="no-highlight">1057</i>&nbsp;        for (String tmpInputFieldName : inRec.keySet()) {</b>
+<b class="nc"><i class="no-highlight">1058</i>&nbsp;            String tmpFldValue = inRec.get(tmpInputFieldName);</b>
+<b class="nc"><i class="no-highlight">1059</i>&nbsp;            if (tmpInputFieldName.equalsIgnoreCase(Utilities.PROJECT_STAGE_NAME)</b>
+<i class="no-highlight">1060</i>&nbsp;                    &amp;&amp; mapProjectstages != null) {
+<b class="nc"><i class="no-highlight">1061</i>&nbsp;                tmpInputFieldName = PROJECT_STAGE_ID;</b>
+<b class="nc"><i class="no-highlight">1062</i>&nbsp;                if (StringUtils.isNotBlank(tmpFldValue)) {</b>
+<b class="nc"><i class="no-highlight">1063</i>&nbsp;                        if (StringUtils.isBlank(mapProjectstages.get(tmpFldValue.toLowerCase()))) {</b>
+<b class="nc"><i class="no-highlight">1064</i>&nbsp;                            throw new ExecutionException(WRITE_UPDATE_INVALID_DATA)</b>
+<b class="nc"><i class="no-highlight">1065</i>&nbsp;                                    .withReason(String.format(INVALID_STAGE_NAME_REASON,</b>
+<i class="no-highlight">1066</i>&nbsp;                                            tmpFldValue))
+<b class="nc"><i class="no-highlight">1067</i>&nbsp;                                    .withResolution(INVALID_STAGE_NAME_RESOLUTION);</b>
+<i class="no-highlight">1068</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">1069</i>&nbsp;                            tmpFldValue = mapProjectstages.get(tmpFldValue.toLowerCase());</b>
+<i class="no-highlight">1070</i>&nbsp;                        }
+<i class="no-highlight">1071</i>&nbsp;                }
+<i class="no-highlight">1072</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1073</i>&nbsp;            if (tmpFldValue != null &amp;&amp; !tmpFldValue.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">1074</i>&nbsp;                dataString.append(getOpenXMLTag(tmpInputFieldName));</b>
+<b class="nc"><i class="no-highlight">1075</i>&nbsp;                dataString.append(checkFieldValue(tmpFldValue, tmpInputFieldName));</b>
+<b class="nc"><i class="no-highlight">1076</i>&nbsp;                dataString.append(getEndXMLTag(tmpInputFieldName));</b>
+<i class="no-highlight">1077</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1078</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1079</i>&nbsp;        dataString.append(getEndXMLTag(objectType));</b>
+<b class="nc"><i class="no-highlight">1080</i>&nbsp;        return dataString.toString();</b>
+<i class="no-highlight">1081</i>&nbsp;    }
+<i class="no-highlight">1082</i>&nbsp;
+<i class="no-highlight">1083</i>&nbsp;    /**
+<i class="no-highlight">1084</i>&nbsp;     * This method checks whether the field value is date or not. If date found, that should be
+<i class="no-highlight">1085</i>&nbsp;     * returned as a string in the xml format. Otherwise, it will return the same fieldValue.
+<i class="no-highlight">1086</i>&nbsp;     *
+<i class="no-highlight">1087</i>&nbsp;     * @param fieldValue Can be a value or a date
+<i class="no-highlight">1088</i>&nbsp;     * @param fieldName  Field name
+<i class="no-highlight">1089</i>&nbsp;     *
+<i class="no-highlight">1090</i>&nbsp;     * @return Date or the field value
+<i class="no-highlight">1091</i>&nbsp;     */
+<i class="no-highlight">1092</i>&nbsp;    public String checkFieldValue(String fieldValue, String fieldName) {
+<b class="nc"><i class="no-highlight">1093</i>&nbsp;        DateTime date = null;</b>
+<b class="nc"><i class="no-highlight">1094</i>&nbsp;        if (StringUtils.isNotBlank(fieldValue)) {</b>
+<i class="no-highlight">1095</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">1096</i>&nbsp;                date = ISODateTimeFormat.yearMonthDay().parseDateTime(fieldValue).toDateTime();</b>
+<b class="nc"><i class="no-highlight">1097</i>&nbsp;            } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">1098</i>&nbsp;                return StringEscapeUtils.escapeHtml4(fieldValue);</b>
+<b class="nc"><i class="no-highlight">1099</i>&nbsp;            }</b>
+<i class="no-highlight">1100</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1101</i>&nbsp;        return prepareDateParams(date);</b>
+<i class="no-highlight">1102</i>&nbsp;    }
+<i class="no-highlight">1103</i>&nbsp;
+<i class="no-highlight">1104</i>&nbsp;    /**
+<i class="no-highlight">1105</i>&nbsp;     * Writes the add/updated record status to the ouput views .
+<i class="no-highlight">1106</i>&nbsp;     *
+<i class="no-highlight">1107</i>&nbsp;     * @param writeStatus     Contains the deleted status
+<i class="no-highlight">1108</i>&nbsp;     * @param recNo           record number
+<i class="no-highlight">1109</i>&nbsp;     * @param documentUtility documentUtility
+<i class="no-highlight">1110</i>&nbsp;     * @param errorViews      errorViews
+<i class="no-highlight">1111</i>&nbsp;     * @param outputViews     OutputViews
+<i class="no-highlight">1112</i>&nbsp;     * @param recordID        ID of the record created
+<i class="no-highlight">1113</i>&nbsp;     */
+<i class="no-highlight">1114</i>&nbsp;    private void addWriteUpdateStatus(String writeStatus, int recNo,
+<i class="no-highlight">1115</i>&nbsp;            DocumentUtility documentUtility, ErrorViews errorViews, OutputViews outputViews,
+<i class="no-highlight">1116</i>&nbsp;            String recordID) {
+<b class="nc"><i class="no-highlight">1117</i>&nbsp;        Map recordMap = new HashMap();</b>
+<b class="nc"><i class="no-highlight">1118</i>&nbsp;        recordMap.put(RECORD_NUMBER, recNo);</b>
+<b class="nc"><i class="no-highlight">1119</i>&nbsp;        recordMap.put(RECORD_ID, recordID);</b>
+<b class="nc"><i class="no-highlight">1120</i>&nbsp;        switch (writeStatus) {</b>
+<i class="no-highlight">1121</i>&nbsp;            case DELETE_UPDATE_ERROR_STATUS_601:
+<b class="nc"><i class="no-highlight">1122</i>&nbsp;                SnapDataException snapDataException = new SnapDataException(documentUtility</b>
+<b class="nc"><i class="no-highlight">1123</i>&nbsp;                        .newDocument(recordMap), DELETE_UPDATE_ERROR_MESSAGE_601);</b>
+<b class="nc"><i class="no-highlight">1124</i>&nbsp;                recordMap.put(RECORD_ERROR_CODE, DELETE_UPDATE_STATUS_601);</b>
+<b class="nc"><i class="no-highlight">1125</i>&nbsp;                recordMap.put(RECORD_ERROR_TYPE, DELETE_UPDATE_ERROR_TYPE_601);</b>
+<b class="nc"><i class="no-highlight">1126</i>&nbsp;                recordMap.put(RECORD_ERROR_MESSAGE, DELETE_UPDATE_ERROR_MESSAGE_601);</b>
+<b class="nc"><i class="no-highlight">1127</i>&nbsp;                errorViews.write(snapDataException);</b>
+<b class="nc"><i class="no-highlight">1128</i>&nbsp;                break;</b>
+<i class="no-highlight">1129</i>&nbsp;            case DELETE_UPDATE_SUCCESS_STATUS_0:
+<b class="nc"><i class="no-highlight">1130</i>&nbsp;                outputViews.write(documentUtility.newDocument(recordMap));</b>
+<b class="nc"><i class="no-highlight">1131</i>&nbsp;                break;</b>
+<i class="no-highlight">1132</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">1133</i>&nbsp;                SnapDataException snapDataException1 = new SnapDataException(documentUtility</b>
+<b class="nc"><i class="no-highlight">1134</i>&nbsp;                        .newDocument(recordMap), WRITE_UPDATE_ERROR_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">1135</i>&nbsp;                recordMap.put(RECORD_ERROR_CODE, writeStatus.replaceAll(&quot;\&quot;&quot;, &quot;&quot;));</b>
+<b class="nc"><i class="no-highlight">1136</i>&nbsp;                recordMap.put(RECORD_ERROR_MESSAGE, WRITE_UPDATE_ERROR_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">1137</i>&nbsp;                errorViews.write(snapDataException1);</b>
+<i class="no-highlight">1138</i>&nbsp;                break;
+<i class="no-highlight">1139</i>&nbsp;        }
+<i class="no-highlight">1140</i>&nbsp;    }
+<i class="no-highlight">1141</i>&nbsp;
+<i class="no-highlight">1142</i>&nbsp;    /**
+<i class="no-highlight">1143</i>&nbsp;     * This method is used to handle open air api login errors.
+<i class="no-highlight">1144</i>&nbsp;     *
+<i class="no-highlight">1145</i>&nbsp;     * @param responseData Contains the xml string
+<i class="no-highlight">1146</i>&nbsp;     */
+<i class="no-highlight">1147</i>&nbsp;    private void checkAuthErrors(String responseData) {
+<b class="nc"><i class="no-highlight">1148</i>&nbsp;        if (responseData.contains(ERROR_503)) {</b>
+<b class="nc"><i class="no-highlight">1149</i>&nbsp;            throw new ExecutionException(ERROR_503_REASON)</b>
+<b class="nc"><i class="no-highlight">1150</i>&nbsp;                    .withReason(ERROR_503_REASON)</b>
+<b class="nc"><i class="no-highlight">1151</i>&nbsp;                    .withResolution(ERROR_503_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1152</i>&nbsp;        } else if (responseData.contains(ERROR_504)) {</b>
+<b class="nc"><i class="no-highlight">1153</i>&nbsp;            throw new ExecutionException(ERROR_504_REASON)</b>
+<b class="nc"><i class="no-highlight">1154</i>&nbsp;                    .withReason(ERROR_504_REASON)</b>
+<b class="nc"><i class="no-highlight">1155</i>&nbsp;                    .withResolution(ERROR_504_REASON);</b>
+<b class="nc"><i class="no-highlight">1156</i>&nbsp;        } else if (responseData.contains(ERROR_505)) {</b>
+<b class="nc"><i class="no-highlight">1157</i>&nbsp;            throw new ExecutionException(ERROR_505_REASON)</b>
+<b class="nc"><i class="no-highlight">1158</i>&nbsp;                    .withReason(ERROR_505_REASON)</b>
+<b class="nc"><i class="no-highlight">1159</i>&nbsp;                    .withResolution(ERROR_505_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1160</i>&nbsp;        } else if (responseData.contains(ERROR_NOT_WELL_FORMED)</b>
+<b class="nc"><i class="no-highlight">1161</i>&nbsp;                || responseData.contains(ERROR_2001_REASON)) {</b>
+<b class="nc"><i class="no-highlight">1162</i>&nbsp;            throw new ExecutionException(ERROR_2001_REASON)</b>
+<b class="nc"><i class="no-highlight">1163</i>&nbsp;                    .withReason(ERROR_2001_REASON)</b>
+<b class="nc"><i class="no-highlight">1164</i>&nbsp;                    .withResolution(ERROR_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1165</i>&nbsp;        } else if (responseData.contains(ERROR_401)) {</b>
+<b class="nc"><i class="no-highlight">1166</i>&nbsp;            throw new ExecutionException(ERROR_401_REASON)</b>
+<b class="nc"><i class="no-highlight">1167</i>&nbsp;                    .withReason(ERROR_401_REASON)</b>
+<b class="nc"><i class="no-highlight">1168</i>&nbsp;                    .withResolution(ERROR_401_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1169</i>&nbsp;        } else if (responseData.contains(ERROR_408)) {</b>
+<b class="nc"><i class="no-highlight">1170</i>&nbsp;            throw new ExecutionException(ERROR_408_REASON)</b>
+<b class="nc"><i class="no-highlight">1171</i>&nbsp;                    .withReason(ERROR_408_REASON)</b>
+<b class="nc"><i class="no-highlight">1172</i>&nbsp;                    .withResolution(ERROR_408_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1173</i>&nbsp;        } else if (responseData.contains(ERROR_409)) {</b>
+<b class="nc"><i class="no-highlight">1174</i>&nbsp;            throw new ExecutionException(ERROR_COMMON_MSG)</b>
+<b class="nc"><i class="no-highlight">1175</i>&nbsp;                    .withReason(ERROR_409_REASON)</b>
+<b class="nc"><i class="no-highlight">1176</i>&nbsp;                    .withResolution(ERROR_COMMON_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1177</i>&nbsp;        } else if (responseData.contains(ERROR_410)) {</b>
+<b class="nc"><i class="no-highlight">1178</i>&nbsp;            throw new ExecutionException(ERROR_COMMON_MSG)</b>
+<b class="nc"><i class="no-highlight">1179</i>&nbsp;                    .withReason(ERROR_410_REASON)</b>
+<b class="nc"><i class="no-highlight">1180</i>&nbsp;                    .withResolution(ERROR_COMMON_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1181</i>&nbsp;        } else if (responseData.contains(ERROR_416)) {</b>
+<b class="nc"><i class="no-highlight">1182</i>&nbsp;            throw new ExecutionException(ERROR_COMMON_MSG)</b>
+<b class="nc"><i class="no-highlight">1183</i>&nbsp;                    .withReason(ERROR_416_REASON)</b>
+<b class="nc"><i class="no-highlight">1184</i>&nbsp;                    .withResolution(ERROR_COMMON_RESOLUTION);</b>
+<i class="no-highlight">1185</i>&nbsp;        }
+<i class="no-highlight">1186</i>&nbsp;    }
+<i class="no-highlight">1187</i>&nbsp;
+<i class="no-highlight">1188</i>&nbsp;    /**
+<i class="no-highlight">1189</i>&nbsp;     * This method is used to validate the account.
+<i class="no-highlight">1190</i>&nbsp;     *
+<i class="no-highlight">1191</i>&nbsp;     * @param userCredentials Contains the user details
+<i class="no-highlight">1192</i>&nbsp;     */
+<i class="no-highlight">1193</i>&nbsp;    public void validateAccount(UserCredentials userCredentials) {
+<b class="nc"><i class="no-highlight">1194</i>&nbsp;        HttpPost uriRequest = null;</b>
+<b class="nc"><i class="no-highlight">1195</i>&nbsp;        InputStream inputStream = null;</b>
+<i class="no-highlight">1196</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1197</i>&nbsp;            URI uri = new URI(userCredentials.isSandBoxSystem() ? Constants.SANDBOX_SERVER_URL</b>
+<b class="nc"><i class="no-highlight">1198</i>&nbsp;                    : Constants.PRODUCTION_SERVER_URL);</b>
+<b class="nc"><i class="no-highlight">1199</i>&nbsp;            uriRequest = new HttpPost(uri);</b>
+<b class="nc"><i class="no-highlight">1200</i>&nbsp;            StringBuilder query = new StringBuilder(getOpenAirRequestHeader(userCredentials));</b>
+<b class="nc"><i class="no-highlight">1201</i>&nbsp;            query.append(getEndXMLTag(REQUEST_ATTRIBUTE));</b>
+<b class="nc"><i class="no-highlight">1202</i>&nbsp;            uriRequest.setEntity(new StringEntity(query.toString()));</b>
+<b class="nc"><i class="no-highlight">1203</i>&nbsp;            HttpResponse response = openAirHttpClient.execute(uriRequest);</b>
+<b class="nc"><i class="no-highlight">1204</i>&nbsp;            HttpEntity entity = response.getEntity();</b>
+<b class="nc"><i class="no-highlight">1205</i>&nbsp;            inputStream = entity.getContent();</b>
+<b class="nc"><i class="no-highlight">1206</i>&nbsp;            if (inputStream != null) {</b>
+<b class="nc"><i class="no-highlight">1207</i>&nbsp;                String responseData = IOUtils.toString(inputStream);</b>
+<b class="nc"><i class="no-highlight">1208</i>&nbsp;                checkAuthErrors(responseData);</b>
+<i class="no-highlight">1209</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1210</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">1211</i>&nbsp;            uriRequest.abort();</b>
+<b class="nc"><i class="no-highlight">1212</i>&nbsp;            String reason = String.format(IO_EXCEPTION_REASON, ex.getMessage());</b>
+<b class="nc"><i class="no-highlight">1213</i>&nbsp;            throw new ExecutionException(ex, IO_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">1214</i>&nbsp;                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">1215</i>&nbsp;                    .withResolution(IO_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1216</i>&nbsp;        } catch (URISyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">1217</i>&nbsp;            throw new ExecutionException(e, ERROR_WHILE_CREATING_URI)</b>
+<b class="nc"><i class="no-highlight">1218</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">1219</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">1220</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">1221</i>&nbsp;            IOUtils.closeQuietly(inputStream);</b>
+<b class="nc"><i class="no-highlight">1222</i>&nbsp;        }</b>
+<i class="no-highlight">1223</i>&nbsp;    }
+<i class="no-highlight">1224</i>&nbsp;
+<i class="no-highlight">1225</i>&nbsp;    /**
+<i class="no-highlight">1226</i>&nbsp;     * Performs check on availability of search field name and value.
+<i class="no-highlight">1227</i>&nbsp;     *
+<i class="no-highlight">1228</i>&nbsp;     * @param filterValues
+<i class="no-highlight">1229</i>&nbsp;     * @return
+<i class="no-highlight">1230</i>&nbsp;     */
+<i class="no-highlight">1231</i>&nbsp;    public boolean performSearchFieldCheck(OpenAirFilterValues filterValues) {
+<b class="nc"><i class="no-highlight">1232</i>&nbsp;        if (filterValues.getDeprecated()) {</b>
+<i class="no-highlight">1233</i>&nbsp;            // for deprecated snap
+<b class="nc"><i class="no-highlight">1234</i>&nbsp;            return (StringUtils.isNotBlank(filterValues.getSearchFieldName())</b>
+<b class="nc"><i class="no-highlight">1235</i>&nbsp;                    &amp;&amp; StringUtils.isNotBlank(filterValues.getSearchFieldValue()));</b>
+<i class="no-highlight">1236</i>&nbsp;        } else {
+<i class="no-highlight">1237</i>&nbsp;            // for extended snap
+<b class="nc"><i class="no-highlight">1238</i>&nbsp;            return (filterValues.getSearchFieldNameAvailable() ||</b>
+<b class="nc"><i class="no-highlight">1239</i>&nbsp;                    filterValues.getSearchFieldValueAvailable());</b>
+<i class="no-highlight">1240</i>&nbsp;        }
+<i class="no-highlight">1241</i>&nbsp;    }
+<i class="no-highlight">1242</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

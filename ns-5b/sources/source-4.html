@@ -1,0 +1,184 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BigQueryOperations</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.operations</a>
+</div>
+
+<h1>Coverage Summary for Class: BigQueryOperations (com.snaplogic.snap.api.sql.operations)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BigQueryOperations</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql.operations;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.inject.name.Named;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.sql.BigQueryDatabaseCursor;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.sql.ConverterRegistryImpl;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseAccount;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseCursor;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseUtils;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.sql.MetadataProvider;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.sql.TableMetaData;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.sql.TypeMappingHandler;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.sql.converters.CustomTypeConverter;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.sql.query.MySqlSuggestQueryProvider;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.QuotationHandler;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import org.jooq.Cursor;
+<i class="no-highlight">31</i>&nbsp;import org.jooq.Record;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import java.sql.BatchUpdateException;
+<i class="no-highlight">34</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">35</i>&nbsp;import java.util.List;
+<i class="no-highlight">36</i>&nbsp;import java.util.Map;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import javax.inject.Inject;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snap.api.sql.operations.Messages.MERGE_NOT_SUPPORTED;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;/**
+<i class="no-highlight">43</i>&nbsp; * BigQuery Jdbc Sql Operations
+<i class="no-highlight">44</i>&nbsp; */
+<i class="no-highlight">45</i>&nbsp;public class BigQueryOperations extends JdbcOperationsImpl {
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;    @Inject
+<i class="no-highlight">48</i>&nbsp;    public BigQueryOperations(
+<i class="no-highlight">49</i>&nbsp;            @Named(BIGQUERY) ConverterRegistryImpl genericConverterRegistry,
+<i class="no-highlight">50</i>&nbsp;            DatabaseUtils databaseUtils, MySqlSuggestQueryProvider suggestQueryProvider,
+<i class="no-highlight">51</i>&nbsp;            @Named(BIGQUERY) MetadataProvider metadataProvider,
+<i class="no-highlight">52</i>&nbsp;            @Named(BIGQUERY) TypeMappingHandler typeMappingHandler,
+<i class="no-highlight">53</i>&nbsp;            @Named(BIGQUERY) CustomTypeConverter customTypeConverter,
+<i class="no-highlight">54</i>&nbsp;            @Named(BIGQUERY) QuotationHandler quotationHandler) {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;        super(null, genericConverterRegistry, databaseUtils, suggestQueryProvider,</b>
+<i class="no-highlight">56</i>&nbsp;                metadataProvider, typeMappingHandler, customTypeConverter, quotationHandler);
+<i class="no-highlight">57</i>&nbsp;    }
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;    @Override
+<i class="no-highlight">60</i>&nbsp;    public int[] merge(String tableName, String idColumn, String onCondition,
+<i class="no-highlight">61</i>&nbsp;                       Map&lt;String, Object&gt; onConditionValueMap, Document document,
+<i class="no-highlight">62</i>&nbsp;                       DatabaseAccount account, TableMetaData tableMetaData,
+<i class="no-highlight">63</i>&nbsp;                       OutputViews outputViews, ErrorViews errorViews,
+<i class="no-highlight">64</i>&nbsp;                       DocumentUtility documentUtility, List&lt;Document&gt; inputDocuments,
+<i class="no-highlight">65</i>&nbsp;                       int maxRetries, long retryInterval) throws BatchUpdateException {
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        throw new UnsupportedOperationException(MERGE_NOT_SUPPORTED);</b>
+<i class="no-highlight">67</i>&nbsp;    }
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;    @Override
+<i class="no-highlight">70</i>&nbsp;    public DatabaseCursor getDatabaseCursor(final Connection conn, final Cursor&lt;Record&gt; cursor,
+<i class="no-highlight">71</i>&nbsp;                                            int fetchSize) {
+<b class="nc"><i class="no-highlight">72</i>&nbsp;        return new BigQueryDatabaseCursor(conn, cursor, fetchSize, customTypeConverter);</b>
+<i class="no-highlight">73</i>&nbsp;    }
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;    @Override
+<i class="no-highlight">76</i>&nbsp;    public String getName() {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        return BIGQUERY;</b>
+<i class="no-highlight">78</i>&nbsp;    }
+<i class="no-highlight">79</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

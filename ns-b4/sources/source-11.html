@@ -1,0 +1,259 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EltJdbcUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt</a>
+</div>
+
+<h1>Coverage Summary for Class: EltJdbcUtils (com.snaplogic.snaps.elt)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EltJdbcUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/47)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020-2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">14</i>&nbsp;import com.google.inject.Injector;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Key;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.name.Names;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseAccount;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseConfig;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.QuotationHandler;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.jooq.SQLDialect;
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">30</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">33</i>&nbsp;import java.sql.DatabaseMetaData;
+<i class="no-highlight">34</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">35</i>&nbsp;import java.sql.SQLSyntaxErrorException;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.*;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;/**
+<i class="no-highlight">40</i>&nbsp; * Utility class for the jdbc package
+<i class="no-highlight">41</i>&nbsp; */
+<b class="nc"><i class="no-highlight">42</i>&nbsp;public class EltJdbcUtils {</b>
+<i class="no-highlight">43</i>&nbsp;
+<b class="nc"><i class="no-highlight">44</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(EltJdbcUtils.class);</b>
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;    @Inject
+<i class="no-highlight">47</i>&nbsp;    protected Injector injector;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;    protected JdbcOperations jdbcOperations;
+<i class="no-highlight">50</i>&nbsp;    protected QuotationHandler quotationHandler;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;    static String getDbTypeFromDbMetadata(DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">53</i>&nbsp;        DatabaseConfig databaseConfig = account.getDatabaseConfig();</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;        String dbType = account instanceof EltDatabaseAccount ?</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;                ((EltDatabaseAccount) account).getDbType() : null;</b>
+<i class="no-highlight">56</i>&nbsp;
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        if (StringUtils.isBlank(dbType)) {</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;            String originalJdbcOperations = databaseConfig.getJdbcOperations();</b>
+<i class="no-highlight">59</i>&nbsp;            //Try testing the connection using just the SQL-Dialect as we don&#39;t have the any info
+<i class="no-highlight">60</i>&nbsp;            // about the JdbcOperations
+<b class="nc"><i class="no-highlight">61</i>&nbsp;            databaseConfig.setJdbcOperations(null);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;            Connection conn = null;</b>
+<i class="no-highlight">63</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">64</i>&nbsp;                conn = account.connect();</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;                DatabaseMetaData dbMetaData = conn.getMetaData();</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                dbType = dbMetaData.getDatabaseProductName();</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;            } catch (SnapDataException | ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;                Throwable cause = e.getCause();</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                if (cause instanceof SQLException) {</b>
+<i class="no-highlight">70</i>&nbsp;                    //WARNING: we make this check because we know that all the database we supported
+<i class="no-highlight">71</i>&nbsp;                    // throws the same error. if it a new DB we need to either add an appropriate
+<i class="no-highlight">72</i>&nbsp;                    // test query or make sure the driver jar can handle isValid()
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                    if (cause instanceof SQLSyntaxErrorException || StringUtils</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                            .containsIgnoreCase(cause.getMessage(), &quot;syntax error&quot;) || StringUtils</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                            .containsIgnoreCase(cause.getMessage(), &quot;select 1&quot;)) {</b>
+<i class="no-highlight">76</i>&nbsp;                        // Reset the jdbcOperation as we don&#39;t know if the unable to detect the
+<i class="no-highlight">77</i>&nbsp;                        // connection so that we can try using JDBC4 valid(1) feature by setting
+<i class="no-highlight">78</i>&nbsp;                        // test query to null.
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                        databaseConfig.setJdbcOperations(originalJdbcOperations);</b>
+<i class="no-highlight">80</i>&nbsp;                        // Ignore any exception because the snap workflow should not be affected
+<i class="no-highlight">81</i>&nbsp;                        // if we are not able to get the exact dialect.
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                        LOG.debug(ERR_DB_NAME, e);</b>
+<i class="no-highlight">83</i>&nbsp;                    } else {
+<i class="no-highlight">84</i>&nbsp;                        // if there are any other exception we need to float it up the chain and not
+<i class="no-highlight">85</i>&nbsp;                        // ignore it as this could be a valid issue.
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                        throw e;</b>
+<i class="no-highlight">87</i>&nbsp;                    }
+<i class="no-highlight">88</i>&nbsp;                } else {
+<i class="no-highlight">89</i>&nbsp;                    // if there are any other exception we need to float it up the chain and not
+<i class="no-highlight">90</i>&nbsp;                    // ignore it as this could be a valid issue.
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                    throw e;</b>
+<i class="no-highlight">92</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            } catch (SQLException e) {</b>
+<i class="no-highlight">94</i>&nbsp;                // this ideally should never happen as the connect() would handle all the exceptions
+<i class="no-highlight">95</i>&nbsp;                // if that&#39;s not the case we know it happened after getting a valid connection
+<i class="no-highlight">96</i>&nbsp;                // which means that &quot;select 1&quot; worked. so set the jdbc operation to use &quot;Postgres&quot;
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                databaseConfig.setJdbcOperations(JdbcOperations.POSTGRES);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                LOG.debug(ERR_DB_NAME, e);</b>
+<i class="no-highlight">99</i>&nbsp;            } finally {
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                try {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                    if (conn != null) {</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                        conn.close();</b>
+<i class="no-highlight">103</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                    LOG.debug(ERR_CONN_CLOSE, e);</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            }</b>
+<i class="no-highlight">108</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        switch (dbType) {</b>
+<i class="no-highlight">110</i>&nbsp;            case JdbcOperations.SNOWFLAKE:
+<i class="no-highlight">111</i>&nbsp;            case JdbcOperations.REDSHIFT:
+<i class="no-highlight">112</i>&nbsp;            case JdbcOperations.AZURE_SYNAPSE:
+<i class="no-highlight">113</i>&nbsp;            case JdbcOperations.DATABRICKS_LAKEHOUSE_PLATFORM:
+<i class="no-highlight">114</i>&nbsp;            case JdbcOperations.BIGQUERY:
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                databaseConfig.setDialect(SQLDialect.DEFAULT);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                return dbType;</b>
+<i class="no-highlight">117</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                throw new ConfigurationException(INVALID_ACCOUNT_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                        .withReason(INVALID_DATABASE_TYPE_SPECIFIED)</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                        .withResolution(SELECT_SUPPORTED_DATABASE_TYPE);</b>
+<i class="no-highlight">121</i>&nbsp;        }
+<i class="no-highlight">122</i>&nbsp;    }
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;    protected void initOperations(DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        jdbcOperations = jdbcOperations == null ? injector.getInstance(Key.get(JdbcOperations.class,</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                Names.named(getDbType(account)))) : jdbcOperations;</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        quotationHandler = quotationHandler == null ? injector.getInstance(Key.get(QuotationHandler</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                .class, Names.named(getDbType(account)))) : quotationHandler;</b>
+<i class="no-highlight">129</i>&nbsp;    }
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;    static String getDbType(DatabaseAccount account) {
+<i class="no-highlight">132</i>&nbsp;        /* If there is no account set in the ELT snap, then
+<i class="no-highlight">133</i>&nbsp;         * it is assumed that the database type is GENERIC.
+<i class="no-highlight">134</i>&nbsp;         * GENERIC internally in ELT context means it is a
+<i class="no-highlight">135</i>&nbsp;         * dummy database. We could have invented a new
+<i class="no-highlight">136</i>&nbsp;         * dummy database type in JdbcOperations, but we would
+<i class="no-highlight">137</i>&nbsp;         * to need to add the corresponding binding modules
+<i class="no-highlight">138</i>&nbsp;         * and it involves too much of an effort just to denote
+<i class="no-highlight">139</i>&nbsp;         * a dummy database. In the case of standard mode, it is
+<i class="no-highlight">140</i>&nbsp;         * not an issue because there is a separate snap for
+<i class="no-highlight">141</i>&nbsp;         * GENERIC database, snowflake, etc. For ELT, the
+<i class="no-highlight">142</i>&nbsp;         * snaps will all remain the same except the accounts
+<i class="no-highlight">143</i>&nbsp;         * will be different.
+<i class="no-highlight">144</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        if (account == null || account instanceof EltDefaultAccount) {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            return JdbcOperations.GENERIC;</b>
+<i class="no-highlight">147</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            String dbType = account instanceof EltDatabaseAccount ?</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                    ((EltDatabaseAccount) account).getDbType() : JdbcOperations.GENERIC;</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            return dbType;</b>
+<i class="no-highlight">151</i>&nbsp;        }
+<i class="no-highlight">152</i>&nbsp;    }
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

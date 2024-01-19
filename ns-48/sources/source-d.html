@@ -1,0 +1,203 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RequestLogCallback</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.soap</a>
+</div>
+
+<h1>Coverage Summary for Class: RequestLogCallback (com.snaplogic.snap.api.soap)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RequestLogCallback</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.soap;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import org.apache.cxf.common.util.StringUtils;
+<i class="no-highlight">14</i>&nbsp;import org.apache.cxf.interceptor.LoggingMessage;
+<i class="no-highlight">15</i>&nbsp;import org.apache.cxf.io.CachedOutputStream;
+<i class="no-highlight">16</i>&nbsp;import org.apache.cxf.io.CachedOutputStreamCallback;
+<i class="no-highlight">17</i>&nbsp;import org.apache.cxf.message.Message;
+<i class="no-highlight">18</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import java.io.OutputStream;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;/**
+<i class="no-highlight">23</i>&nbsp; * LoggingCallback
+<i class="no-highlight">24</i>&nbsp; *
+<i class="no-highlight">25</i>&nbsp; * Refactored from cxf LoggingOutInterceptor to support SLF4J/Log4j instead of JUL
+<i class="no-highlight">26</i>&nbsp; */
+<i class="no-highlight">27</i>&nbsp;class RequestLogCallback implements CachedOutputStreamCallback {
+<i class="no-highlight">28</i>&nbsp;    private static final int LIMIT = 100 * 1024;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;    private static final String MESSAGE_TRUNCATED_TO = &quot;(message truncated to &quot;;
+<i class="no-highlight">31</i>&nbsp;    private static final String BYTES = &quot; bytes)\n&quot;;
+<i class="no-highlight">32</i>&nbsp;    private static final String OUTBOUND_MESSAGE_SAVED_TO_TMP_FILE =
+<i class="no-highlight">33</i>&nbsp;            &quot;Outbound Message (saved to tmp file):\n&quot;;
+<i class="no-highlight">34</i>&nbsp;    private static final String XML = &quot;xml&quot;;
+<i class="no-highlight">35</i>&nbsp;    private static final String TEXT = &quot;text&quot;;
+<i class="no-highlight">36</i>&nbsp;    private static final String FILENAME = &quot;Filename: &quot;;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;    private final Message message;
+<i class="no-highlight">39</i>&nbsp;    private final OutputStream origStream;
+<i class="no-highlight">40</i>&nbsp;    private final Logger logger;
+<i class="no-highlight">41</i>&nbsp;    private final LoggingMessageHolder holder;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;    public RequestLogCallback(final Logger logger, final Message msg, final OutputStream os,
+<b class="nc"><i class="no-highlight">44</i>&nbsp;            LoggingMessageHolder holder) {</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;        this.logger = logger;</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;        this.message = msg;</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;        this.origStream = os;</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;        this.holder = holder;</b>
+<i class="no-highlight">49</i>&nbsp;    }
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;    public void onFlush(CachedOutputStream cos) {
+<i class="no-highlight">52</i>&nbsp;        //ignore
+<i class="no-highlight">53</i>&nbsp;    }
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;    public void onClose(CachedOutputStream cos) {
+<b class="nc"><i class="no-highlight">56</i>&nbsp;        LoggingMessage buffer = holder.setupBuffer(message);</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        String ct = holder.getContentType();</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;        if (ct != null &amp;&amp; (!ct.contains(XML) &amp;&amp; !ct.contains(TEXT))) {</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;            logger.info(buffer.toString());</b>
+<i class="no-highlight">60</i>&nbsp;            return;
+<i class="no-highlight">61</i>&nbsp;        }
+<i class="no-highlight">62</i>&nbsp;
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        if (cos.getTempFile() != null) {</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;            buffer.getMessage().append(OUTBOUND_MESSAGE_SAVED_TO_TMP_FILE);</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;            buffer.getMessage().append(FILENAME + cos.getTempFile().getAbsolutePath() + &quot;\n&quot;);</b>
+<i class="no-highlight">66</i>&nbsp;        }
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;        // yes - do this in both cases.
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        if (cos.size() &gt; LIMIT) {</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;            buffer.getMessage().append(MESSAGE_TRUNCATED_TO + LIMIT + BYTES);</b>
+<i class="no-highlight">71</i>&nbsp;        }
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            String encoding = holder.getEncoding();</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;            final StringBuilder content = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            if (StringUtils.isEmpty(encoding)) {</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                cos.writeCacheTo(content);</b>
+<i class="no-highlight">78</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                cos.writeCacheTo(content, encoding);</b>
+<i class="no-highlight">80</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">81</i>&nbsp;            buffer.getPayload().append(holder.writePayload(content.toString(), ct));</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        } catch (Exception ex) {</b>
+<i class="no-highlight">83</i>&nbsp;            //ignore
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        }</b>
+<i class="no-highlight">85</i>&nbsp;
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        logger.debug(buffer.toString());</b>
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;        try {
+<i class="no-highlight">89</i>&nbsp;            //empty out the cache
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            cos.lockOutputStream();</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            cos.resetOut(null, false);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        } catch (Exception ex) {</b>
+<i class="no-highlight">93</i>&nbsp;            //ignore
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        }</b>
+<i class="no-highlight">95</i>&nbsp;
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        message.setContent(OutputStream.class, origStream);</b>
+<i class="no-highlight">97</i>&nbsp;    }
+<i class="no-highlight">98</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

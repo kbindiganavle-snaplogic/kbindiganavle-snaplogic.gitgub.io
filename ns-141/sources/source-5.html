@@ -1,0 +1,422 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > HttpRequestHandler</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.request</a>
+</div>
+
+<h1>Coverage Summary for Class: HttpRequestHandler (com.snaplogic.snaps.salesforce.request)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HttpRequestHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/96)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">HttpRequestHandler$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/98)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.request;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.base.Strings;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.rest.RestHttpClient;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snaps.salesforce.FailsafeHelper;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snaps.salesforce.auth.SalesforceLogin;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;import org.apache.commons.lang.StringUtils;
+<i class="no-highlight">24</i>&nbsp;import org.apache.http.Header;
+<i class="no-highlight">25</i>&nbsp;import org.apache.http.HttpHeaders;
+<i class="no-highlight">26</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">27</i>&nbsp;import org.apache.http.client.RedirectStrategy;
+<i class="no-highlight">28</i>&nbsp;import org.apache.http.client.methods.HttpDelete;
+<i class="no-highlight">29</i>&nbsp;import org.apache.http.client.methods.HttpGet;
+<i class="no-highlight">30</i>&nbsp;import org.apache.http.client.methods.HttpPatch;
+<i class="no-highlight">31</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">32</i>&nbsp;import org.apache.http.client.methods.HttpUriRequest;
+<i class="no-highlight">33</i>&nbsp;import org.apache.http.client.protocol.HttpClientContext;
+<i class="no-highlight">34</i>&nbsp;import org.apache.http.entity.StringEntity;
+<i class="no-highlight">35</i>&nbsp;import org.apache.http.message.BasicHeader;
+<i class="no-highlight">36</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">37</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">40</i>&nbsp;import java.net.URI;
+<i class="no-highlight">41</i>&nbsp;import java.util.List;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import javax.inject.Named;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">46</i>&nbsp;import net.jodah.failsafe.FailsafeException;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;import static com.google.common.base.Preconditions.checkNotNull;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.ERR_HTTP_METHOD;
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;import static org.apache.commons.codec.CharEncoding.UTF_8;
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;/**
+<i class="no-highlight">54</i>&nbsp; * Implementation class for handling Salesforce http request.
+<i class="no-highlight">55</i>&nbsp; *
+<i class="no-highlight">56</i>&nbsp; * @author psung, terry
+<i class="no-highlight">57</i>&nbsp; */
+<i class="no-highlight">58</i>&nbsp;@Named
+<i class="no-highlight">59</i>&nbsp;public class HttpRequestHandler extends RequestHandler {
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(HttpRequestHandler.class);</b>
+<i class="no-highlight">61</i>&nbsp;    public static final String TYPE_JSON = &quot;application/json&quot;;
+<i class="no-highlight">62</i>&nbsp;    public static final String TYPE_CSV = &quot;text/csv&quot;;
+<i class="no-highlight">63</i>&nbsp;    private static final String TYPE_XML = &quot;application/xml&quot;;
+<i class="no-highlight">64</i>&nbsp;    private static final String X_FDC_SESSION = &quot;X-SFDC-Session&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String BEARER_SESSION_ID = &quot;Bearer %s&quot;;
+<i class="no-highlight">66</i>&nbsp;    private static final int HTTP_MAX_CONN = 1000;
+<i class="no-highlight">67</i>&nbsp;    private static final int HTTP_DEFAULT_MAX_PER_ROUTE = 500;
+<i class="no-highlight">68</i>&nbsp;    private static final int HTTP_CONNECTION_TIMEOUT_SEC = 600;
+<i class="no-highlight">69</i>&nbsp;    private static final int HTTP_SOCKET_TIMEOUT_SEC = 600;
+<i class="no-highlight">70</i>&nbsp;    private static final String FORMAT_CONTENT_TYPE = &quot;%s; charset=%s&quot;;
+<i class="no-highlight">71</i>&nbsp;    private static final String KEY_PK_CHUNKING = &quot;Sforce-Enable-PKChunking&quot;;
+<i class="no-highlight">72</i>&nbsp;    private static final String QUERY_OPTIONS = &quot;Sforce-Query-Options&quot;;
+<i class="no-highlight">73</i>&nbsp;    private static final String AUTO_ASSIGN_HEADER = &quot;Sforce-Auto-Assign&quot;;
+<i class="no-highlight">74</i>&nbsp;    private static final String FORMAT_PK_CHUNKING = &quot;TRUE; chunkSize=%d&quot;;
+<i class="no-highlight">75</i>&nbsp;    private static final String FORMAT_PK_CHUNKING_WITH_PARENT =
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            FORMAT_PK_CHUNKING.concat(&quot;; parent=%s&quot;);</b>
+<i class="no-highlight">77</i>&nbsp;    private static final String ACCEPT_ENCODING = &quot;Accept-Encoding&quot;;
+<i class="no-highlight">78</i>&nbsp;    public static final String GZIP = &quot;gzip&quot;;
+<b class="nc"><i class="no-highlight">79</i>&nbsp;    private boolean pkChunking = false;</b>
+<i class="no-highlight">80</i>&nbsp;    private int chunkSize;
+<i class="no-highlight">81</i>&nbsp;    private Options options;
+<b class="nc"><i class="no-highlight">82</i>&nbsp;    private boolean doRetry = true;</b>
+<i class="no-highlight">83</i>&nbsp;
+<b class="nc"><i class="no-highlight">84</i>&nbsp;    public HttpRequestHandler() {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        LOG.trace(&quot;{}.client = {}&quot;, this, client);</b>
+<i class="no-highlight">86</i>&nbsp;    }
+<i class="no-highlight">87</i>&nbsp;
+<b class="nc"><i class="no-highlight">88</i>&nbsp;    protected RestHttpClient client = new RestHttpClient();</b>
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;    public HttpRequestHandler withCustomRedirectStrategy(
+<i class="no-highlight">91</i>&nbsp;            RedirectStrategy customRedirectStrategy) {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        client.withCustomRedirectStrategy(customRedirectStrategy);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        return this;</b>
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    public HttpRequestHandler withCustomHttpContext(HttpClientContext httpClientContext) {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        client.withCustomHttpContext(httpClientContext);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        return this;</b>
+<i class="no-highlight">99</i>&nbsp;    }
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;    @Override
+<i class="no-highlight">102</i>&nbsp;    public HttpResponse handleRequest(String url, String contents, String contentType,
+<i class="no-highlight">103</i>&nbsp;                                      String method, Login loginInfo) throws IOException {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        client.withMaxConnections(HTTP_MAX_CONN);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        client.withMaxPerRoute(HTTP_DEFAULT_MAX_PER_ROUTE);</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        if (loginInfo instanceof SalesforceLogin) {</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            SalesforceLogin login = (SalesforceLogin) loginInfo;</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            if (login.isMutualAuth()) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                client.withKeyManagers(login.getKeyManagers());</b>
+<i class="no-highlight">110</i>&nbsp;            }
+<i class="no-highlight">111</i>&nbsp;        }
+<i class="no-highlight">112</i>&nbsp;        HttpUriRequest uriRequest;
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        switch (method) {</b>
+<i class="no-highlight">114</i>&nbsp;            case HttpGet.METHOD_NAME:
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                uriRequest = new HttpGet(url);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                break;</b>
+<i class="no-highlight">117</i>&nbsp;            case HttpPost.METHOD_NAME:
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                uriRequest = new HttpPost(url);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                if (!Strings.isNullOrEmpty(contents)) {</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                    ((HttpPost) uriRequest).setEntity(new StringEntity(contents, UTF_8));</b>
+<i class="no-highlight">121</i>&nbsp;                }
+<i class="no-highlight">122</i>&nbsp;                break;
+<i class="no-highlight">123</i>&nbsp;            case HttpPatch.METHOD_NAME:
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                uriRequest = new HttpPatch(url);</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                if (!Strings.isNullOrEmpty(contents)) {</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                    ((HttpPatch) uriRequest).setEntity(new StringEntity(contents, UTF_8));</b>
+<i class="no-highlight">127</i>&nbsp;                }
+<i class="no-highlight">128</i>&nbsp;                break;
+<i class="no-highlight">129</i>&nbsp;            case HttpDelete.METHOD_NAME:
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                uriRequest = new HttpDelete(url);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                break;</b>
+<i class="no-highlight">132</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                throw new IOException(String.format(ERR_HTTP_METHOD, method));</b>
+<i class="no-highlight">134</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        LOG.trace(&quot;SFDC HTTP {} {}&quot;, method, url);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        uriRequest.setHeaders(getHeaders(String.format(FORMAT_CONTENT_TYPE, contentType, UTF_8),</b>
+<i class="no-highlight">137</i>&nbsp;                loginInfo));
+<i class="no-highlight">138</i>&nbsp;        // Always request gzip compression for all responses except login
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        if (loginInfo != null) {</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            uriRequest.setHeader(ACCEPT_ENCODING, GZIP);</b>
+<i class="no-highlight">141</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        return executeRequest(uriRequest);</b>
+<i class="no-highlight">143</i>&nbsp;    }
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;    /**
+<i class="no-highlight">146</i>&nbsp;     * &lt;p&gt; Executes http request. This is a method which actually accesses Force.com and may be
+<i class="no-highlight">147</i>&nbsp;     * overridden for unit tests to get a mocked HttpResponse object.
+<i class="no-highlight">148</i>&nbsp;     *
+<i class="no-highlight">149</i>&nbsp;     * @param httpUriRequest - HttpUriRequest object
+<i class="no-highlight">150</i>&nbsp;     *
+<i class="no-highlight">151</i>&nbsp;     * @return HttpResponse object
+<i class="no-highlight">152</i>&nbsp;     * @throws IOException if an error occurs while executing request
+<i class="no-highlight">153</i>&nbsp;     */
+<i class="no-highlight">154</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">155</i>&nbsp;    protected HttpResponse executeRequest(HttpUriRequest httpUriRequest) throws IOException {
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        final String method = httpUriRequest.getMethod();</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        final URI uri = httpUriRequest.getURI();</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        if (doRetry) {</b>
+<i class="no-highlight">159</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                return Failsafe.with(FailsafeHelper.newRetryPolicy(options))</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                        .onFailedAttempt(e -&gt; LOG.warn(&quot;Failed to execute HTTP request, &quot; +</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                                &quot;method: {}, URI: {}, {}&quot;, method, uri, e.toString()))</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                        .onRetry(e -&gt; LOG.warn(&quot;Retrying, method: {}, URI: {}&quot;, method, uri))</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                        .get(() -&gt; client.executeRequest(httpUriRequest, false,</b>
+<i class="no-highlight">165</i>&nbsp;                                HTTP_CONNECTION_TIMEOUT_SEC, HTTP_SOCKET_TIMEOUT_SEC, true));
+<b class="nc"><i class="no-highlight">166</i>&nbsp;            } catch (FailsafeException e) {</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                Throwable t = e.getCause();</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                if (t instanceof IOException) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                    throw (IOException) t;</b>
+<i class="no-highlight">170</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                    throw new ExecutionException(t, t.getMessage());</b>
+<i class="no-highlight">172</i>&nbsp;                }
+<i class="no-highlight">173</i>&nbsp;            }
+<i class="no-highlight">174</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            return client.executeRequest(httpUriRequest, false,</b>
+<i class="no-highlight">176</i>&nbsp;                    HTTP_CONNECTION_TIMEOUT_SEC, HTTP_SOCKET_TIMEOUT_SEC, true);
+<i class="no-highlight">177</i>&nbsp;        }
+<i class="no-highlight">178</i>&nbsp;    }
+<i class="no-highlight">179</i>&nbsp;
+<i class="no-highlight">180</i>&nbsp;    /**
+<i class="no-highlight">181</i>&nbsp;     * Make http header for create operation.
+<i class="no-highlight">182</i>&nbsp;     *
+<i class="no-highlight">183</i>&nbsp;     * @param contentType the value for the Content-Type header
+<i class="no-highlight">184</i>&nbsp;     * @param loginInfo the LoginInfo
+<i class="no-highlight">185</i>&nbsp;     * @return Header object array.
+<i class="no-highlight">186</i>&nbsp;     */
+<i class="no-highlight">187</i>&nbsp;    public Header[] getHeaders(String contentType, Login loginInfo) {
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        List&lt;Header&gt; headers = Lists.newArrayListWithExpectedSize(4);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        headers.add(new BasicHeader(HttpHeaders.CONTENT_TYPE, contentType));</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        if (loginInfo != null) {</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;            headers.add(new BasicHeader(X_FDC_SESSION, loginInfo.getSessionId()));</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            headers.add(new BasicHeader(HttpHeaders.AUTHORIZATION,</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                    String.format(BEARER_SESSION_ID, loginInfo.getSessionId())));</b>
+<i class="no-highlight">194</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        if (pkChunking) {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            String parentEntityName = options == null ? null : options.getParentEntityName();</b>
+<i class="no-highlight">197</i>&nbsp;            String value;
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            if (StringUtils.isNotBlank(parentEntityName)) {</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                value = String.format(FORMAT_PK_CHUNKING_WITH_PARENT, chunkSize, parentEntityName);</b>
+<i class="no-highlight">200</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                value = String.format(FORMAT_PK_CHUNKING, chunkSize);</b>
+<i class="no-highlight">202</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">203</i>&nbsp;            headers.add(new BasicHeader(KEY_PK_CHUNKING, value));</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;            pkChunking = false; // needs this header only once when Bulk API job is created</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;            getBatchSizeHeader(headers);</b>
+<i class="no-highlight">207</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        if (options != null &amp;&amp; !options.isBulkAPI()) {</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;            Options.SnapName snapName = options.getSnapName();</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;            if (snapName != null) {</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                switch (snapName) {</b>
+<i class="no-highlight">212</i>&nbsp;                    case CREATE:
+<i class="no-highlight">213</i>&nbsp;                    case UPDATE:
+<i class="no-highlight">214</i>&nbsp;                    case UPSERT:
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                        headers.add(new BasicHeader(AUTO_ASSIGN_HEADER,</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                                String.valueOf(options.isApplyActiveRules())));</b>
+<i class="no-highlight">217</i>&nbsp;                        break;
+<i class="no-highlight">218</i>&nbsp;                }
+<i class="no-highlight">219</i>&nbsp;            }
+<i class="no-highlight">220</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        return headers.toArray(new Header[0]);</b>
+<i class="no-highlight">222</i>&nbsp;    }
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;    private void getBatchSizeHeader(List&lt;Header&gt; headers) {
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        Options.SnapName snapName = options == null ? null : options.getSnapName();</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        if (snapName != null) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;            int batchSize = options.getBatchSize();</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;            boolean isBulkAPI = options.isBulkAPI();</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;            switch (snapName) {</b>
+<i class="no-highlight">230</i>&nbsp;                case READ:
+<i class="no-highlight">231</i>&nbsp;                case QUERY:
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                    if (!isBulkAPI) {</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                        batchSize = Math.min(Math.max(batchSize, 200), 2000);</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                        headers.add(new BasicHeader(QUERY_OPTIONS, &quot;batchSize=&quot; + batchSize));</b>
+<i class="no-highlight">235</i>&nbsp;                    }
+<i class="no-highlight">236</i>&nbsp;            }
+<i class="no-highlight">237</i>&nbsp;        }
+<i class="no-highlight">238</i>&nbsp;    }
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;    /**
+<i class="no-highlight">241</i>&nbsp;     * Gets the content type of HttpRequest
+<i class="no-highlight">242</i>&nbsp;     *
+<i class="no-highlight">243</i>&nbsp;     * @param option - Options object
+<i class="no-highlight">244</i>&nbsp;     *
+<i class="no-highlight">245</i>&nbsp;     * @return content type string
+<i class="no-highlight">246</i>&nbsp;     */
+<i class="no-highlight">247</i>&nbsp;    public String getRequestContentType(Options option) {
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        Options.ContentType contentType = option.getContentType();</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        if (contentType == null) {</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;            return TYPE_XML;</b>
+<i class="no-highlight">251</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        switch (contentType) {</b>
+<i class="no-highlight">253</i>&nbsp;            case JSON:
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                return TYPE_JSON;</b>
+<i class="no-highlight">255</i>&nbsp;            case CSV:
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                return TYPE_CSV;</b>
+<i class="no-highlight">257</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                return TYPE_XML;</b>
+<i class="no-highlight">259</i>&nbsp;        }
+<i class="no-highlight">260</i>&nbsp;    }
+<i class="no-highlight">261</i>&nbsp;
+<i class="no-highlight">262</i>&nbsp;    public void setPKChunking(int chunkSize) {
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        pkChunking = true;</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        this.chunkSize = chunkSize;</b>
+<i class="no-highlight">265</i>&nbsp;    }
+<i class="no-highlight">266</i>&nbsp;
+<i class="no-highlight">267</i>&nbsp;    public void setOptions(Options options) {
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        if (this.options != null &amp;&amp; this.options != options) {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            Throwable t = new Throwable(&quot;capture stack&quot;).fillInStackTrace();</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            LOG.error(&quot;attempting to overwrite previous Options reference&quot;, t);</b>
+<i class="no-highlight">271</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        this.options = checkNotNull(options);</b>
+<i class="no-highlight">273</i>&nbsp;    }
+<i class="no-highlight">274</i>&nbsp;
+<i class="no-highlight">275</i>&nbsp;    public void setDoRetry(boolean doRetry) {
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        this.doRetry = doRetry;</b>
+<i class="no-highlight">277</i>&nbsp;    }
+<i class="no-highlight">278</i>&nbsp;
+<i class="no-highlight">279</i>&nbsp;    @Override
+<i class="no-highlight">280</i>&nbsp;    public void close() {
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        LOG.trace(&quot;{}.close()&quot;, this);</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        if (client != null) {</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            client.close();</b>
+<i class="no-highlight">284</i>&nbsp;        }
+<i class="no-highlight">285</i>&nbsp;    }
+<i class="no-highlight">286</i>&nbsp;
+<i class="no-highlight">287</i>&nbsp;    @Override
+<i class="no-highlight">288</i>&nbsp;    public String toString() {
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        return getClass().getSimpleName() + &#39;@&#39; + Integer.toHexString(hashCode());</b>
+<i class="no-highlight">290</i>&nbsp;    }
+<i class="no-highlight">291</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

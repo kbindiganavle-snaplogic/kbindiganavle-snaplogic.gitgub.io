@@ -1,0 +1,333 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Conditional</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform</a>
+</div>
+
+<h1>Coverage Summary for Class: Conditional (com.snaplogic.snaps.transform)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Conditional</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/113)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.transform;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.util.NullValueHandler;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import org.antlr.v4.runtime.misc.Triple;
+<i class="no-highlight">37</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import java.util.List;
+<i class="no-highlight">40</i>&nbsp;import java.util.Map;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.transform.BaseMapperSnap.NULL_SAFE_ACCESS;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.*;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;/**
+<i class="no-highlight">46</i>&nbsp; * Takes a list of conditionals and returns a value for the first true evaluation.
+<i class="no-highlight">47</i>&nbsp; * If no expressions, evaluate to true then a default value will be returned.
+<i class="no-highlight">48</i>&nbsp; *
+<i class="no-highlight">49</i>&nbsp; * @author jinloes
+<i class="no-highlight">50</i>&nbsp; */
+<i class="no-highlight">51</i>&nbsp;@General(title = CONDITIONAL_TITLE, purpose = CONDITIONAL_PURPOSE)
+<i class="no-highlight">52</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">53</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">54</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">55</i>&nbsp;@Category(snap = SnapCategory.TRANSFORM)
+<b class="nc"><i class="no-highlight">56</i>&nbsp;public class Conditional extends SimpleSnap {</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;    public static final NullValueHandler NULL_VALUE_HANDLER = new NullValueHandler();</b>
+<i class="no-highlight">58</i>&nbsp;    private static final String CONDITIONAL_TABLE_PROP = &quot;conditionalTable&quot;;
+<i class="no-highlight">59</i>&nbsp;    private static final String CONDITIONAL_EXPRESSION_PROP = &quot;conditionalExpression&quot;;
+<i class="no-highlight">60</i>&nbsp;    private static final String RETURN_VALUE_PROP = &quot;returnValue&quot;;
+<i class="no-highlight">61</i>&nbsp;    private static final String EXP_TARGET_PATH_PROP = &quot;targetPath&quot;;
+<i class="no-highlight">62</i>&nbsp;    private static final String DEFAULT_VALUE_TABLE_PROP = &quot;defaultValueTable&quot;;
+<i class="no-highlight">63</i>&nbsp;    private static final String DEFAULT_VALUE_PROP = &quot;defaultValue&quot;;
+<i class="no-highlight">64</i>&nbsp;    private static final String DEFAULT_VALUE_PATH_PROP = &quot;defaultValuePath&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String EVALUATE_ALL_PROP = &quot;evaluateAll&quot;;
+<i class="no-highlight">66</i>&nbsp;    private static final String COMMA_WITH_POST_SPACE = &quot;, &quot;;
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    private List&lt;Triple&lt;ExpressionProperty, ExpressionProperty, JsonPath&gt;&gt; columns;
+<b class="nc"><i class="no-highlight">69</i>&nbsp;    private ExpressionProperty defaultValue = null;</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    private JsonPath defaultValuePath = null;</b>
+<i class="no-highlight">71</i>&nbsp;    private boolean evalAll;
+<i class="no-highlight">72</i>&nbsp;    private boolean nullSafeAccess;
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;    @Override
+<i class="no-highlight">75</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        propertyBuilder.describe(EVALUATE_ALL_PROP, EVALUATE_ALL_LABEL, EVALUATE_ALL_DESC)</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        propertyBuilder.describe(NULL_SAFE_ACCESS, NULL_SAFE_ACCESS_LABEL, NULL_SAFE_ACCESS_DESC)</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        SnapProperty expression = propertyBuilder.describe(CONDITIONAL_EXPRESSION_PROP,</b>
+<i class="no-highlight">84</i>&nbsp;                CONDITIONAL_EXPRESSION_LABEL, CONDITIONAL_EXPRESSION_DESC)
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                .expression(SnapProperty.DecoratorType.ENABLED_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        SnapProperty returnValue = propertyBuilder.describe(RETURN_VALUE_PROP, RETURN_VALUE_LABEL,</b>
+<i class="no-highlight">90</i>&nbsp;                RETURN_VALUE_DESC)
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                .expression(SnapProperty.DecoratorType.ENABLED_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        SnapProperty target = propertyBuilder.describe(EXP_TARGET_PATH_PROP, EXP_TARGET_PATH_LABEL,</b>
+<i class="no-highlight">96</i>&nbsp;                EXP_TARGET_PATH_DESC)
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                .type(SnapType.JSONPATH)</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        propertyBuilder.describe(CONDITIONAL_TABLE_PROP, CONDITIONAL_TABLE_LABEL,</b>
+<i class="no-highlight">102</i>&nbsp;                CONDITIONAL_TABLE_DESC)
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                .withEntry(expression)</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                .withEntry(returnValue)</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                .withEntry(target)</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        SnapProperty defaultValue = propertyBuilder.describe(DEFAULT_VALUE_PROP,</b>
+<i class="no-highlight">110</i>&nbsp;                DEFAULT_VALUE_LABEL, DEFAULT_VALUE_DESC)
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                .expression(SnapProperty.DecoratorType.ENABLED_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        SnapProperty defaultTarget = propertyBuilder.describe(DEFAULT_VALUE_PATH_PROP,</b>
+<i class="no-highlight">115</i>&nbsp;                DEFAULT_VALUE_PATH_LABEL, DEFAULT_VALUE_PATH_DESC)
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .type(SnapType.JSONPATH)</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        propertyBuilder.describe(DEFAULT_VALUE_TABLE_PROP, DEFAULT_VALUE_TABLE_LABEL,</b>
+<i class="no-highlight">120</i>&nbsp;                DEFAULT_VALUE_TABLE_DESC)
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .withEntry(defaultValue)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                .withEntry(defaultTarget)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .add();</b>
+<i class="no-highlight">125</i>&nbsp;    }
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;    @Override
+<i class="no-highlight">128</i>&nbsp;    public void configure(final PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        evalAll = propertyValues.getBoolean(EVALUATE_ALL_PROP, false);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        nullSafeAccess = propertyValues.getBoolean(NULL_SAFE_ACCESS, false);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; conditionalTable = propertyValues.get(CONDITIONAL_TABLE_PROP);</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        columns = Lists.newArrayListWithExpectedSize(conditionalTable.size());</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        for (Map&lt;String, Object&gt; mapping : conditionalTable) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            ExpressionProperty conditionExpr = propertyValues.getExpressionPropertyFor(mapping,</b>
+<i class="no-highlight">135</i>&nbsp;                    CONDITIONAL_EXPRESSION_PROP);
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            ExpressionProperty returnExpr = propertyValues.getExpressionPropertyFor(mapping,</b>
+<i class="no-highlight">137</i>&nbsp;                    RETURN_VALUE_PROP);
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            JsonPath targetPath = propertyValues.getJsonPathFor(mapping, EXP_TARGET_PATH_PROP);</b>
+<i class="no-highlight">139</i>&nbsp;
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            columns.add(new Triple&lt;&gt;(conditionExpr, returnExpr, targetPath));</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        Map&lt;String, Object&gt; defaultValueTable = propertyValues.get(DEFAULT_VALUE_TABLE_PROP);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        if (MapUtils.isNotEmpty(defaultValueTable)) {</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            defaultValue = propertyValues.getExpressionPropertyFor(defaultValueTable,</b>
+<i class="no-highlight">145</i>&nbsp;                    DEFAULT_VALUE_PROP);
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            if (defaultValue.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                defaultValue = null;</b>
+<i class="no-highlight">148</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            defaultValuePath = propertyValues.getJsonPathFor(defaultValueTable,</b>
+<i class="no-highlight">150</i>&nbsp;                    DEFAULT_VALUE_PATH_PROP);
+<i class="no-highlight">151</i>&nbsp;            // Case: default value is entered but default value path is not
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            if (defaultValue != null &amp;&amp; defaultValuePath == null) {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                throw new ExecutionException(DEFAULT_TARGET_EMPTY)</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                        .withReason(DEFAULT_TARGET_PATH_EMPTY_REAS)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                        .withResolution(DEFAULT_PATH_EMPTY_RES);</b>
+<i class="no-highlight">156</i>&nbsp;            }
+<i class="no-highlight">157</i>&nbsp;            // Case: default value is not entered but default value path is
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            if (defaultValue == null &amp;&amp; defaultValuePath != null) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                throw new ExecutionException(DEFAULT_VALUE_EMPTY)</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                        .withReason(DEFAULT_VALUE_EMPTY_REAS)</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                        .withResolution(PLEASE_ENTER_DEFAULT_VALUE);</b>
+<i class="no-highlight">162</i>&nbsp;            }
+<i class="no-highlight">163</i>&nbsp;        }
+<i class="no-highlight">164</i>&nbsp;    }
+<i class="no-highlight">165</i>&nbsp;
+<i class="no-highlight">166</i>&nbsp;    @Override
+<i class="no-highlight">167</i>&nbsp;    protected void process(final Document document, final String inputViewName) {
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        if (document == null) {</b>
+<i class="no-highlight">169</i>&nbsp;            return;
+<i class="no-highlight">170</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        boolean trueEval = false;</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        StringBuilder invalidConditionalExprs = null;</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        for (Triple&lt;ExpressionProperty, ExpressionProperty, JsonPath&gt; cols : columns) {</b>
+<i class="no-highlight">174</i>&nbsp;            Object result;
+<i class="no-highlight">175</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                result = cols.a.eval(document, document.get(),</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                        nullSafeAccess ? NULL_VALUE_HANDLER : null);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            } catch (ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                throw new SnapDataException(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                        .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                        .withResolution(e.getResolution());</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            }</b>
+<i class="no-highlight">183</i>&nbsp;            // Set value and return
+<b class="nc"><i class="no-highlight">184</i>&nbsp;            if (result instanceof Boolean) {</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                if ((Boolean) result) {</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                    trueEval = true;</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                    Object value = cols.b.eval(document, document.get(),</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                            nullSafeAccess ? NULL_VALUE_HANDLER : null);</b>
+<i class="no-highlight">189</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                        cols.c.write(document.get(), value);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                        throw new SnapDataException(e, UNABLE_TO_WRITE_RETURN_VALUE_TO_TARGET_PATH)</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                                .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                                .withResolution(e.getResolution());</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                    if (!evalAll) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                        outputViews.write(document);</b>
+<i class="no-highlight">198</i>&nbsp;                        return;
+<i class="no-highlight">199</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                }</b>
+<i class="no-highlight">201</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                if (invalidConditionalExprs == null) {</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                    invalidConditionalExprs = new StringBuilder(cols.a.getExpression());</b>
+<i class="no-highlight">204</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                    invalidConditionalExprs.append(COMMA_WITH_POST_SPACE)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                            .append(cols.a.getExpression());</b>
+<i class="no-highlight">207</i>&nbsp;                }
+<i class="no-highlight">208</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        if (invalidConditionalExprs != null) {</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;            throw new SnapDataException(INVALID_CONDITIONAL_EXPRESSIONS)</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                    .withReason(String.format(INVALID_CONDITIONAL_EXPRESSIONS_REASON,</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                            invalidConditionalExprs.toString()))</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                    .withResolution(PLEASE_ENTER_VALID_CONDITIONAL_EXPRESSION);</b>
+<i class="no-highlight">215</i>&nbsp;        }
+<i class="no-highlight">216</i>&nbsp;        // None of the conditionals evaluated to true so write default value if it was provided
+<b class="nc"><i class="no-highlight">217</i>&nbsp;        if (defaultValue != null &amp;&amp; !trueEval) {</b>
+<i class="no-highlight">218</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                defaultValuePath.write(document.get(), defaultValue.eval(document));</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                throw new SnapDataException(e, UNABLE_TO_WRITE_DEFAULT_VALUE_TO_DEFAULT_VALUE_PATH)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                        .withResolution(e.getResolution());</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            }</b>
+<i class="no-highlight">225</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        outputViews.write(document);</b>
+<i class="no-highlight">227</i>&nbsp;    }
+<i class="no-highlight">228</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

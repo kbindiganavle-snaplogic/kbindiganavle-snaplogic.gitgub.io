@@ -1,0 +1,593 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ADSearch</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.ad</a>
+</div>
+
+<h1>Coverage Summary for Class: ADSearch (com.snaplogic.snaps.ad)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ADSearch</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/257)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp;s * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014 - 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.ad;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">14</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.util.JsonPathUtil;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">42</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">43</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">44</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">45</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">48</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">49</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">50</i>&nbsp;import java.util.Enumeration;
+<i class="no-highlight">51</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">52</i>&nbsp;import java.util.List;
+<i class="no-highlight">53</i>&nbsp;import java.util.Map;
+<i class="no-highlight">54</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">55</i>&nbsp;import java.util.Set;
+<i class="no-highlight">56</i>&nbsp;import java.util.TreeMap;
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;import javax.naming.NamingEnumeration;
+<i class="no-highlight">59</i>&nbsp;import javax.naming.NamingException;
+<i class="no-highlight">60</i>&nbsp;import javax.naming.PartialResultException;
+<i class="no-highlight">61</i>&nbsp;import javax.naming.directory.Attribute;
+<i class="no-highlight">62</i>&nbsp;import javax.naming.directory.SearchControls;
+<i class="no-highlight">63</i>&nbsp;import javax.naming.directory.SearchResult;
+<i class="no-highlight">64</i>&nbsp;import javax.naming.ldap.LdapContext;
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.ad.ADUtilities.checkAccountNotNull;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.ad.Constants.*;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.ad.Messages.*;
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;/**
+<i class="no-highlight">71</i>&nbsp; * The Search Snap lets you search Active Directory and provides the options to
+<i class="no-highlight">72</i>&nbsp; * define the scope and filters to effectively return search results as compared
+<i class="no-highlight">73</i>&nbsp; * to List Users Snap which returns all the entries.
+<i class="no-highlight">74</i>&nbsp; *
+<i class="no-highlight">75</i>&nbsp; * @author rkumar
+<i class="no-highlight">76</i>&nbsp; * @author smudassir
+<i class="no-highlight">77</i>&nbsp; */
+<i class="no-highlight">78</i>&nbsp;@General(title = AD_SEARCH, purpose = AD_SEARCH_PURPOSE, docLink = AD_SEARCH_DOC_LINK)
+<i class="no-highlight">79</i>&nbsp;@Inputs(min = 0, max = 1, accepts = { ViewType.DOCUMENT })
+<i class="no-highlight">80</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">81</i>&nbsp;@Accounts(provides = ADBasicAuth.class)
+<i class="no-highlight">82</i>&nbsp;@Outputs(min = 1, max = 1, offers = { ViewType.DOCUMENT })
+<i class="no-highlight">83</i>&nbsp;@Category(snap = SnapCategory.READ)
+<b class="nc"><i class="no-highlight">84</i>&nbsp;public class ADSearch extends SimpleSnap implements InputSchemaProvider {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(ADSearch.class);</b>
+<i class="no-highlight">86</i>&nbsp;    private static final String DISTINGUISHED_NAME = &quot;DistinguishedName&quot;;
+<i class="no-highlight">87</i>&nbsp;    private static final String SCOPE_TYPE = &quot;ScopeType&quot;;
+<i class="no-highlight">88</i>&nbsp;    private static final String FILTER_KEYS = &quot;FilterKeys&quot;;
+<i class="no-highlight">89</i>&nbsp;    private static final String FILTER_VALUES = &quot;FilterValues&quot;;
+<i class="no-highlight">90</i>&nbsp;    private static final String FILTERS_TABLE = &quot;FilterAttributesTable&quot;;
+<i class="no-highlight">91</i>&nbsp;    private static final String ATTR_KEYS = &quot;AttributeKeys&quot;;
+<i class="no-highlight">92</i>&nbsp;    private static final String ATTRS_TABLE = &quot;AttributesTable&quot;;
+<i class="no-highlight">93</i>&nbsp;    private static final String PAGE_SIZE = &quot;PageSize&quot;;
+<i class="no-highlight">94</i>&nbsp;    private static final String LIMIT_PROP = &quot;limit&quot;;
+<i class="no-highlight">95</i>&nbsp;    private static final String GROUP_RESULT_PROP = &quot;groupResult&quot;;
+<i class="no-highlight">96</i>&nbsp;    private Boolean groupResult;
+<i class="no-highlight">97</i>&nbsp;    private boolean passThrough;
+<b class="nc"><i class="no-highlight">98</i>&nbsp;    private final static String KEY_PATH = new JsonPathBuilder(FILTER_KEYS)</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;    private final static String FILTER_TABLE_PATH = new JsonPathBuilder(FILTERS_TABLE)</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            .appendAllListElements()</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            .build();</b>
+<i class="no-highlight">104</i>&nbsp;    private final static String ATTR_TABLE_PATH = new JsonPathBuilder(ATTRS_TABLE)
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            .appendAllListElements()</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;            .build();</b>
+<i class="no-highlight">107</i>&nbsp;    @Inject
+<i class="no-highlight">108</i>&nbsp;    private ADUtilities util;
+<i class="no-highlight">109</i>&nbsp;    @Inject
+<i class="no-highlight">110</i>&nbsp;    private ADBasicAuth account;
+<i class="no-highlight">111</i>&nbsp;    @Inject
+<i class="no-highlight">112</i>&nbsp;    private JsonPathUtil jsonPathUtil;
+<i class="no-highlight">113</i>&nbsp;    @Inject
+<i class="no-highlight">114</i>&nbsp;    private SearchControls searchControls;
+<i class="no-highlight">115</i>&nbsp;    private LdapContext ldapContext;
+<i class="no-highlight">116</i>&nbsp;    private List&lt;Pair&lt;ExpressionProperty, ExpressionProperty&gt;&gt; pairRoot;
+<i class="no-highlight">117</i>&nbsp;    private List&lt;ExpressionProperty&gt; returningAttributes;
+<i class="no-highlight">118</i>&nbsp;    private ExpressionProperty distinguishedNameExp;
+<i class="no-highlight">119</i>&nbsp;    private String distinguishedName;
+<i class="no-highlight">120</i>&nbsp;    private String scopeValue;
+<i class="no-highlight">121</i>&nbsp;    private int pageSize;
+<i class="no-highlight">122</i>&nbsp;    private int limit;
+<i class="no-highlight">123</i>&nbsp;    Map&lt;String, Set&lt;String&gt;&gt; cachedAttributes;
+<i class="no-highlight">124</i>&nbsp;    private LdapContext ldapContextToFetchAttributes;
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    @Override
+<i class="no-highlight">127</i>&nbsp;    public void configure(PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        checkAccountNotNull(account);</b>
+<i class="no-highlight">129</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            account.setBinaryAttributes(String.join(StringUtils.SPACE, OBJECT_SID, OBJECT_GUID));</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            ldapContext = account.connect();</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        } catch (ExecutionException ex) {</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            throw new ExecutionException(ex, CREDENTIAL_ERROR)</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                    .withReason(String.format(CREDENTIAL_ERROR_REASON, ex.getLocalizedMessage()))</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                    .withResolution(CREDENTIAL_ERROR_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        distinguishedNameExp = propertyValues.getAsExpression(DISTINGUISHED_NAME);</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        scopeValue = propertyValues.get(SCOPE_TYPE);</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        pageSize = propertyValues.getInt(PAGE_SIZE).intValue();</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        BigInteger limitVal = propertyValues.getInt(LIMIT_PROP);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        if (limitVal != null) {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            limit = limitVal.intValue();</b>
+<i class="no-highlight">143</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; tableAttributeList = propertyValues.get(FILTER_TABLE_PATH);</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        if (CollectionUtils.isNotEmpty(tableAttributeList)) {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            pairRoot = Lists.newArrayListWithExpectedSize(tableAttributeList.size());</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            for (Map&lt;String, String&gt; pairEntry : tableAttributeList) {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                ExpressionProperty keyExpProp = propertyValues.getExpressionPropertyFor(pairEntry,</b>
+<i class="no-highlight">149</i>&nbsp;                        FILTER_KEYS);
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                ExpressionProperty valueExpProp = propertyValues.getExpressionPropertyFor(pairEntry,</b>
+<i class="no-highlight">151</i>&nbsp;                        FILTER_VALUES);
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                pairRoot.add(Pair.of(keyExpProp, valueExpProp));</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;            }</b>
+<i class="no-highlight">154</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; attributesTable = propertyValues.get(ATTR_TABLE_PATH);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        if (CollectionUtils.isNotEmpty(attributesTable)) {</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            returningAttributes = Lists.newArrayListWithExpectedSize(attributesTable.size());</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            for (Map&lt;String, String&gt; entry : attributesTable) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                ExpressionProperty expProp = propertyValues.getExpressionPropertyFor(entry,</b>
+<i class="no-highlight">160</i>&nbsp;                        ATTR_KEYS);
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                returningAttributes.add(expProp);</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;            }</b>
+<i class="no-highlight">163</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        groupResult = propertyValues.get(GROUP_RESULT_PROP);</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        if (groupResult == null)</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;            groupResult = Boolean.FALSE;</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        cachedAttributes = new TreeMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        passThrough = propertyValues.getBoolean(PASS_THROUGH_PROP, false);</b>
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;    }
+<i class="no-highlight">171</i>&nbsp;
+<i class="no-highlight">172</i>&nbsp;    @Override
+<i class="no-highlight">173</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        propertyBuilder.describe(DISTINGUISHED_NAME, EXISTING_DISTINGUISHED_NAME_LABEL,</b>
+<i class="no-highlight">175</i>&nbsp;                EXISTING_DISTINGUISHED_NAME_DESCRIPTION)
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        propertyBuilder.describe(PAGE_SIZE, PAGE_SIZE_LABLE, PAGE_SIZE_DESC)</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                .type(SnapType.NUMBER)</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                .withMinValue(DEFAULT_MIN_PAGE_SIZE)</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .defaultValue(DEFAULT_MAX_PAGE_SIZE)</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        propertyBuilder.describe(LIMIT_PROP, LIMIT_LABEL,</b>
+<i class="no-highlight">187</i>&nbsp;                LIMIT_DESC)
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .type(SnapType.NUMBER)</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                .defaultValue(DEFAULT_LIMIT)</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                .withMinValue(DEFAULT_LIMIT)</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        propertyBuilder.describe(SCOPE_TYPE, SCOPE_TYPE_LABEL, SCOPE_TYPE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                .defaultValue(DEFAULT_SCOPE_TYPE)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                .withAllowedValues(SCOPE_TYPE_LIST)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        SnapProperty filterKeys = propertyBuilder.describe(FILTER_KEYS, FILTER_KEYS_LABEL,</b>
+<i class="no-highlight">197</i>&nbsp;                FILTER_KEYS_DESCRIPTION)
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt;</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                    this.suggestAttributes(suggestionBuilder, propertyValues,</b>
+<i class="no-highlight">200</i>&nbsp;                            FILTERS_TABLE, FILTER_KEYS))
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        SnapProperty filterValues = propertyBuilder.describe(FILTER_VALUES,</b>
+<i class="no-highlight">204</i>&nbsp;                FILTER_VALUES_LABEL, FILTER_VALUES_DESCRIPTION)
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        propertyBuilder.describe(FILTERS_TABLE, FILTERS_TABLE_LABEL, FILTERS_TABLE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .withEntry(filterKeys)</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                .withEntry(filterValues)</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        SnapProperty attributeKeys = propertyBuilder.describe(ATTR_KEYS,</b>
+<i class="no-highlight">214</i>&nbsp;                        ATTR_KEYS_LABEL, ATTR_KEYS_DESCRIPTION)
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt;</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        this.suggestAttributes(suggestionBuilder, propertyValues,</b>
+<i class="no-highlight">218</i>&nbsp;                                ATTRS_TABLE, ATTR_KEYS))
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        propertyBuilder.describe(ATTRS_TABLE, ATTRS_TABLE_LABEL, ATTRS_TABLE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                .withEntry(attributeKeys)</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        propertyBuilder.describe(GROUP_RESULT_PROP, GROUP_RESULT_LABEL,</b>
+<i class="no-highlight">225</i>&nbsp;                GROUP_RESULT_DESC)
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        propertyBuilder.describe(PASS_THROUGH_PROP, PASS_THROUGH_LABEL, PASS_THROUGH_DESC)</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                .add();</b>
+<i class="no-highlight">232</i>&nbsp;
+<i class="no-highlight">233</i>&nbsp;    }
+<i class="no-highlight">234</i>&nbsp;
+<i class="no-highlight">235</i>&nbsp;    @Override
+<i class="no-highlight">236</i>&nbsp;    public void defineInputSchema(SchemaProvider provider) {
+<i class="no-highlight">237</i>&nbsp;        Set&lt;String&gt; suggestedAttributesSchemas;
+<i class="no-highlight">238</i>&nbsp;        try {
+<i class="no-highlight">239</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                distinguishedName = util.escapeSpecialCharacters(</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                        distinguishedNameExp.eval(null));</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;            } catch (SnapDataException e1) {</b>
+<i class="no-highlight">243</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            if (distinguishedName != null) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                suggestedAttributesSchemas = util.getSuggestedAttributesForSearch(ldapContext,</b>
+<i class="no-highlight">247</i>&nbsp;                        distinguishedName);
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                for (String inputViewName : provider.getRegisteredViewNames()) {</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                    SchemaBuilder schemaBuilder = provider.getSchemaBuilder(inputViewName);</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                    schemaBuilder.type(SnapType.COMPOSITE);</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                    for (String propertyName : suggestedAttributesSchemas) {</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                        Schema fieldSchema = provider.createSchema(SnapType.STRING, propertyName);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                        schemaBuilder.withChildSchema(fieldSchema);</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                    schemaBuilder.build();</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                }</b>
+<i class="no-highlight">257</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        } catch (NamingException | IOException e) {</b>
+<i class="no-highlight">259</i>&nbsp;            // NO OP
+<i class="no-highlight">260</i>&nbsp;            // process() will handle this exception
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        }</b>
+<i class="no-highlight">262</i>&nbsp;    }
+<i class="no-highlight">263</i>&nbsp;
+<i class="no-highlight">264</i>&nbsp;    @Override
+<i class="no-highlight">265</i>&nbsp;    protected void process(Document inputDocument, String inputViewName) {
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        distinguishedName = util.escapeSpecialCharacters(</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                distinguishedNameExp.eval(inputDocument));</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        if (distinguishedName == null) {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            SnapDataException dataException = new SnapDataException(ERR_DN_NULL_MSG)</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                    .withReason(ERR_DN_NULL_REASON)</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                    .withResolution(ERR_DN_NULL_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            errorViews.write(dataException);</b>
+<i class="no-highlight">273</i>&nbsp;            return;
+<i class="no-highlight">274</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        StringBuffer filter = new StringBuffer().append(APPEND_CRITERIA);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        if (pairRoot == null) {</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            filter.append(RIGHT_PARENTHESES).toString();</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;            performSearch(filter.toString(), inputDocument, true);</b>
+<i class="no-highlight">279</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">280</i>&nbsp;            for (Pair&lt;ExpressionProperty, ExpressionProperty&gt; routeEntry : pairRoot) {</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                String key = routeEntry.getLeft().eval(inputDocument);</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                Object value = routeEntry.getRight().eval(inputDocument);</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                if (DN_ATTRBUTES.contains(key) &amp;&amp; value != null) {</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                    value = util.escapeSpecialCharactersForSearch(value.toString());</b>
+<i class="no-highlight">285</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                if (key != null &amp;&amp; value != null) {</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                    if (key.contains(NOT)) {</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                        filter.append(LEFT_PARENTHESES)</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                                .append(NOT)</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                                .append(LEFT_PARENTHESES)</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                                .append(key.substring(1))</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                                .append(EQUALS)</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                                .append(value.toString())</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                                .append(RIGHT_PARENTHESES)</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                                .append(RIGHT_PARENTHESES);</b>
+<i class="no-highlight">296</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                        filter.append(LEFT_PARENTHESES)</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                                .append(key)</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                                .append(EQUALS)</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                                .append(value.toString())</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                                .append(RIGHT_PARENTHESES);</b>
+<i class="no-highlight">302</i>&nbsp;                    }
+<i class="no-highlight">303</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">304</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;            filter.append(RIGHT_PARENTHESES).toString();</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;            performSearch(filter.toString(), inputDocument, true);</b>
+<i class="no-highlight">307</i>&nbsp;        }
+<i class="no-highlight">308</i>&nbsp;    }
+<i class="no-highlight">309</i>&nbsp;
+<i class="no-highlight">310</i>&nbsp;    private void suggestAttributes(SuggestionBuilder suggestionBuilder, PropertyValues propertyValues,
+<i class="no-highlight">311</i>&nbsp;                                   String suggestNode, String suggestOverNode) {
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        distinguishedNameExp = propertyValues.getAsExpression(DISTINGUISHED_NAME);</b>
+<i class="no-highlight">313</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            distinguishedName = util.escapeSpecialCharacters(</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                    distinguishedNameExp.eval(null));</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;            throw new ConfigurationException(SUGGEST_ERROR_MSG)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                    .withResolution(SUGGEST_ERROR_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        if (distinguishedName == null) {</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;            throw new ConfigurationException(ERR_DN_NULL_MSG)</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                    .withReason(ERR_DN_NULL_REASON)</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                    .withResolution(ERR_DN_NULL_RESOLUTION);</b>
+<i class="no-highlight">325</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        if (ldapContext == null) {</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;            ldapContext = account.connect();</b>
+<i class="no-highlight">328</i>&nbsp;        }
+<i class="no-highlight">329</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">330</i>&nbsp;            Set&lt;String&gt; suggestedList = util.getSuggestedAttributesForSearch(</b>
+<i class="no-highlight">331</i>&nbsp;                    ldapContext, distinguishedName);
+<b class="nc"><i class="no-highlight">332</i>&nbsp;            if (suggestedList == null || suggestedList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                suggestionBuilder.node(suggestNode)</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                        .over(suggestOverNode)</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                        .suggestions(NO_SUGGESTIONS_FOUND);</b>
+<i class="no-highlight">336</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                suggestionBuilder.node(suggestNode)</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                        .over(suggestOverNode)</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                        .suggestions(suggestedList.toArray(new String[0]));</b>
+<i class="no-highlight">340</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        } catch (NamingException | IOException e) {</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;            throw new ConfigurationException(INVALID_DN_ERROR)</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                    .withReason(e.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                    .withResolution(INVALID_DN_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        }</b>
+<i class="no-highlight">346</i>&nbsp;    }
+<i class="no-highlight">347</i>&nbsp;
+<i class="no-highlight">348</i>&nbsp;    private SearchControls createSearchControls(String scopeType) {
+<b class="nc"><i class="no-highlight">349</i>&nbsp;        switch (scopeType) {</b>
+<i class="no-highlight">350</i>&nbsp;            case DEFAULT_SCOPE_TYPE : {
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                break;</b>
+<i class="no-highlight">353</i>&nbsp;            }
+<i class="no-highlight">354</i>&nbsp;            case OBJECT_SCOPE : {
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                break;</b>
+<i class="no-highlight">357</i>&nbsp;            }
+<i class="no-highlight">358</i>&nbsp;            case ONELEVEL_SCOPE : {
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                searchControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);</b>
+<i class="no-highlight">360</i>&nbsp;                break;
+<i class="no-highlight">361</i>&nbsp;            }
+<i class="no-highlight">362</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        return searchControls;</b>
+<i class="no-highlight">364</i>&nbsp;    }
+<i class="no-highlight">365</i>&nbsp;
+<i class="no-highlight">366</i>&nbsp;    private void performSearch(String filterValue, Document inputDocument, boolean retry) {
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        if (ldapContext == null) {</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            ldapContext = account.connect();</b>
+<i class="no-highlight">369</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">370</i>&nbsp;        searchControls = createSearchControls(scopeValue);</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;        searchControls.setReturningAttributes(getReturningAttributes(inputDocument));</b>
+<i class="no-highlight">372</i>&nbsp;        byte[] cookie;
+<i class="no-highlight">373</i>&nbsp;        String reason;
+<i class="no-highlight">374</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">375</i>&nbsp;            if (ldapContextToFetchAttributes == null) {</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                ldapContextToFetchAttributes = account.connect();</b>
+<i class="no-highlight">377</i>&nbsp;            }
+<i class="no-highlight">378</i>&nbsp;            NamingEnumeration&lt;SearchResult&gt; answer;
+<i class="no-highlight">379</i>&nbsp;            // Request the paged results control
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            util.setControls(pageSize, ldapContext);</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; results = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;            Map&lt;String, Object&gt; output = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;            int count = 0;</b>
+<i class="no-highlight">384</i>&nbsp;            do {
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                if (pairRoot != null &amp;&amp; !filterValue.equals(NO_FILTERS)) {</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                    answer = ldapContext.search(distinguishedName, filterValue, searchControls);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                    reason = filterValue;</b>
+<i class="no-highlight">388</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                    answer = ldapContext.search(distinguishedName, FILTER, searchControls);</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                    reason = FILTER;</b>
+<i class="no-highlight">391</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                if (!answer.hasMore()) {</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                    SnapDataException dataException = new SnapDataException(ERR_NO_SEARCH_RESULTS_MSG)</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                            .withReason(String.format(ERR_NO_SEARCH_RESULTS_REASON, reason))</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                            .withResolution(ERR_NO_SEARCH_RESULTS_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                    errorViews.write(dataException);</b>
+<i class="no-highlight">397</i>&nbsp;                    return;
+<i class="no-highlight">398</i>&nbsp;                }
+<i class="no-highlight">399</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                    while (answer.hasMore()) {</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                        Map&lt;String, Object&gt; recordEntry = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;                        SearchResult result = answer.next();</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;                        Enumeration&lt;? extends Attribute&gt; attributes = result.getAttributes()</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                                .getAll();</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                        while (attributes.hasMoreElements()) {</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                            Attribute attribute = attributes.nextElement();</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                            ADUtilities.putAttributeToMap(recordEntry, attribute);</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                        Set&lt;String&gt; unassignedAttributes = getUnAssignedAttributes(</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                                recordEntry.keySet(), util.getAllPossibleAttributes(</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                                        ldapContextToFetchAttributes, result.getNameInNamespace(),</b>
+<i class="no-highlight">412</i>&nbsp;                                        util, cachedAttributes));
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                        for (String unassignedAttribute : unassignedAttributes) {</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                            recordEntry.put(unassignedAttribute, StringUtils.EMPTY);</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                        if (!groupResult) {</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                            Document outDoc = documentUtility.newDocumentFor(inputDocument, recordEntry);</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                            outputViews.write(outDoc, passThrough ? inputDocument : null);</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                        } else {</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                            results.add(recordEntry);</b>
+<i class="no-highlight">421</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                        count++;</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;                        if (limit == count) {</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                            break;</b>
+<i class="no-highlight">425</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                } catch (PartialResultException e) {</b>
+<i class="no-highlight">428</i>&nbsp;                    // Workaround for AD servers not handling referrals correctly.
+<i class="no-highlight">429</i>&nbsp;                    // Inspired by Spring LDAP: https://docs.spring.io/spring-ldap/docs/1.1.2/api/org/springframework/ldap/LdapTemplate.html
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                    LOGGER.debug(&quot;PartialResultException encountered and ignored&quot;, e);</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                if (limit == count) {</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                    break;</b>
+<i class="no-highlight">434</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                cookie = util.parseControls(ldapContext);</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                util.setRequestControls(ldapContext, cookie, pageSize);</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;            } while (cookie != null &amp;&amp; cookie.length != 0);</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;            if (groupResult) {</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                output.put(&quot;result&quot;, results);</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                Document outDoc = documentUtility.newDocumentFor(inputDocument, output);</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                outputViews.write(outDoc, passThrough ? inputDocument : null);</b>
+<i class="no-highlight">442</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">443</i>&nbsp;        } catch (NamingException | IOException e) {</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;            if (retry &amp;&amp; groupResult) {</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                ldapContextToFetchAttributes = null;</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                ldapContext = null;</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                performSearch(filterValue, inputDocument, false);</b>
+<i class="no-highlight">448</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                SnapDataException snapEx = new SnapDataException(e, SEARCH_ERROR)</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                        .formatWith(distinguishedName)</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                        .withResolution(SEARCH_ERROR_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;                errorViews.write(snapEx, inputDocument);</b>
+<i class="no-highlight">454</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">455</i>&nbsp;        }</b>
+<i class="no-highlight">456</i>&nbsp;    }
+<i class="no-highlight">457</i>&nbsp;
+<i class="no-highlight">458</i>&nbsp;    private String[] getReturningAttributes(Document inputDocument) {
+<b class="nc"><i class="no-highlight">459</i>&nbsp;        if (CollectionUtils.isEmpty(returningAttributes)) {</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;            return null;</b>
+<i class="no-highlight">461</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">462</i>&nbsp;        return returningAttributes.stream()</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                .map(attr -&gt; attr.eval(inputDocument))</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                .filter(Objects::nonNull)</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                .map(Objects::toString)</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                .toArray(String[]::new);</b>
+<i class="no-highlight">467</i>&nbsp;    }
+<i class="no-highlight">468</i>&nbsp;
+<i class="no-highlight">469</i>&nbsp;    @Override
+<i class="no-highlight">470</i>&nbsp;    public void cleanup() {
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        if (account != null) {</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;            account.disconnect();</b>
+<i class="no-highlight">473</i>&nbsp;        }
+<i class="no-highlight">474</i>&nbsp;    }
+<i class="no-highlight">475</i>&nbsp;
+<i class="no-highlight">476</i>&nbsp;    /**
+<i class="no-highlight">477</i>&nbsp;     * Returns all attributes minus assigned attributes
+<i class="no-highlight">478</i>&nbsp;     *
+<i class="no-highlight">479</i>&nbsp;     * @param assignedAttributes
+<i class="no-highlight">480</i>&nbsp;     * @param allAttributes
+<i class="no-highlight">481</i>&nbsp;     * @return unassigned attributes
+<i class="no-highlight">482</i>&nbsp;     */
+<i class="no-highlight">483</i>&nbsp;    static Set&lt;String&gt; getUnAssignedAttributes(Set&lt;String&gt; assignedAttributes,
+<i class="no-highlight">484</i>&nbsp;            Set&lt;String&gt; allAttributes) {
+<b class="nc"><i class="no-highlight">485</i>&nbsp;        allAttributes.removeAll(assignedAttributes);</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;        return allAttributes;</b>
+<i class="no-highlight">487</i>&nbsp;    }
+<i class="no-highlight">488</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

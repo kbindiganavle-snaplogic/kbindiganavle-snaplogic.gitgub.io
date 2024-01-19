@@ -1,0 +1,1543 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkLoad</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.snowflake</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkLoad (com.snaplogic.snaps.snowflake)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkLoad</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/35)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/660)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BulkLoad$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">BulkLoad$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/668)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.snowflake;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.services.s3.AmazonS3URI;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.services.s3.model.AmazonS3Exception;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.s3.model.GetObjectRequest;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.services.s3.model.S3Object;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">19</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">20</i>&nbsp;import com.google.inject.Key;
+<i class="no-highlight">21</i>&nbsp;import com.google.inject.Module;
+<i class="no-highlight">22</i>&nbsp;import com.google.inject.name.Names;
+<i class="no-highlight">23</i>&nbsp;import com.microsoft.azure.storage.StorageCredentials;
+<i class="no-highlight">24</i>&nbsp;import com.microsoft.azure.storage.StorageException;
+<i class="no-highlight">25</i>&nbsp;import com.microsoft.azure.storage.blob.CloudBlockBlob;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.api.LifecycleEvent;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.api.Lint;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.api.Notification;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.api.Notifications;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.api.ViewProvider;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.common.properties.Suggestions;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.common.properties.builders.ViewBuilder;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.ViewCategory;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">54</i>&nbsp;import com.snaplogic.snap.api.fs.s3.S3EncryptionType;
+<i class="no-highlight">55</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseMetaData;
+<i class="no-highlight">56</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseUtils;
+<i class="no-highlight">57</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">58</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeAccountType;
+<i class="no-highlight">59</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeAccountTypeProvider;
+<i class="no-highlight">60</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeAzureDatabaseAccount;
+<i class="no-highlight">61</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeAzureOAuth2Account;
+<i class="no-highlight">62</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeDatabaseAccount;
+<i class="no-highlight">63</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeDynamicAccount;
+<i class="no-highlight">64</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeGoogleCloudInfoProvider;
+<i class="no-highlight">65</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeGoogleStorageDatabaseAccount;
+<i class="no-highlight">66</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeGoogleStorageOAuth2Account;
+<i class="no-highlight">67</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.SnowflakeS3OAuth2Account;
+<i class="no-highlight">68</i>&nbsp;import com.snaplogic.snap.api.sql.operations.SnowflakeOperations;
+<i class="no-highlight">69</i>&nbsp;import com.snaplogic.snap.api.sql.query.SqlQueryManagementOptions;
+<i class="no-highlight">70</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.QuotationHandler;
+<i class="no-highlight">71</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">74</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">75</i>&nbsp;import org.jooq.tools.jdbc.JDBCUtils;
+<i class="no-highlight">76</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">77</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;import java.io.BufferedReader;
+<i class="no-highlight">80</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">81</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">82</i>&nbsp;import java.io.InputStreamReader;
+<i class="no-highlight">83</i>&nbsp;import java.io.Reader;
+<i class="no-highlight">84</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">85</i>&nbsp;import java.net.URI;
+<i class="no-highlight">86</i>&nbsp;import java.net.URISyntaxException;
+<i class="no-highlight">87</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">88</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">89</i>&nbsp;import java.sql.ResultSetMetaData;
+<i class="no-highlight">90</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">91</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">92</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">93</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">94</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">95</i>&nbsp;import java.util.List;
+<i class="no-highlight">96</i>&nbsp;import java.util.Map;
+<i class="no-highlight">97</i>&nbsp;import java.util.Set;
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;import static com.snaplogic.common.properties.SnapProperty.DecoratorType.ACCEPTS_SCHEMA;
+<i class="no-highlight">100</i>&nbsp;import static com.snaplogic.snaps.snowflake.Constants.AZURE_SCHEME;
+<i class="no-highlight">101</i>&nbsp;import static com.snaplogic.snaps.snowflake.Constants.COMMA;
+<i class="no-highlight">102</i>&nbsp;import static com.snaplogic.snaps.snowflake.Constants.HTTPS_SCHEME;
+<i class="no-highlight">103</i>&nbsp;import static com.snaplogic.snaps.snowflake.Constants.INVALID_SAS_TOKEN_ERROR_CONTENTS_FROM_MICROSOFT;
+<i class="no-highlight">104</i>&nbsp;import static com.snaplogic.snaps.snowflake.Constants.SLASH;
+<i class="no-highlight">105</i>&nbsp;import static com.snaplogic.snaps.snowflake.Messages.*;
+<i class="no-highlight">106</i>&nbsp;import static com.snaplogic.snaps.snowflake.SnowflakeUtils.StagingInputType.AZURE_URI;
+<i class="no-highlight">107</i>&nbsp;import static com.snaplogic.snaps.snowflake.SnowflakeUtils.StagingInputType.GCS_URI;
+<i class="no-highlight">108</i>&nbsp;import static com.snaplogic.snaps.snowflake.SnowflakeUtils.StagingInputType.NAMED_STAGE;
+<i class="no-highlight">109</i>&nbsp;import static com.snaplogic.snaps.snowflake.SnowflakeUtils.StagingInputType.S3_URI;
+<i class="no-highlight">110</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.SCHEMA_NAME_DESC;
+<i class="no-highlight">111</i>&nbsp;import static com.snaplogic.snaps.sql.Messages.SCHEMA_NAME_LABEL;
+<i class="no-highlight">112</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_DELETE_OBJECT_ACCESS;
+<i class="no-highlight">113</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_DELETE_OBJECT_ACCESS_REASON;
+<i class="no-highlight">114</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_DELETE_OBJECT_ACCESS_RESOLUTION;
+<i class="no-highlight">115</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_INVALID_INPUT_REASON;
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;/**
+<i class="no-highlight">118</i>&nbsp; * Bulk load into Snowflake.
+<i class="no-highlight">119</i>&nbsp; */
+<i class="no-highlight">120</i>&nbsp;@General(title = BULK_LOAD_TITLE, purpose = BULK_LOAD_PURPOSE)
+<i class="no-highlight">121</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">122</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<i class="no-highlight">123</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">124</i>&nbsp;@Inputs(min = 0, max = 2, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">125</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">126</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">127</i>&nbsp;@Accounts(provides = {SnowflakeDatabaseAccount.class,
+<i class="no-highlight">128</i>&nbsp;        SnowflakeDynamicAccount.class,
+<i class="no-highlight">129</i>&nbsp;        SnowflakeAzureDatabaseAccount.class,
+<i class="no-highlight">130</i>&nbsp;        SnowflakeGoogleStorageDatabaseAccount.class,
+<i class="no-highlight">131</i>&nbsp;        SnowflakeS3OAuth2Account.class, SnowflakeGoogleStorageOAuth2Account.class,
+<i class="no-highlight">132</i>&nbsp;        SnowflakeAzureOAuth2Account.class})
+<b class="nc"><i class="no-highlight">133</i>&nbsp;public class BulkLoad extends AbstractBulkSnap implements ViewProvider,</b>
+<i class="no-highlight">134</i>&nbsp;        OAuthRetryableSnowflakeSnap {
+<i class="no-highlight">135</i>&nbsp;
+<b class="nc"><i class="no-highlight">136</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(BulkLoad.class);</b>
+<i class="no-highlight">137</i>&nbsp;    private static final String ROWS_TO_RETURN_PROP = &quot;rowsToReturn&quot;;
+<i class="no-highlight">138</i>&nbsp;    private static final String SIZE_LIMIT_PROP = &quot;sizeLimit&quot;;
+<i class="no-highlight">139</i>&nbsp;    private static final String PURGE_PROP = &quot;purge&quot;;
+<i class="no-highlight">140</i>&nbsp;    private static final String FORCE_PROP = &quot;force&quot;;
+<i class="no-highlight">141</i>&nbsp;    private static final String AGGREGATE_ERRORS_PROP = &quot;aggregateErrorSummary&quot;;
+<i class="no-highlight">142</i>&nbsp;    private static final String VALIDATION_MODE_PROP = &quot;validationMode&quot;;
+<i class="no-highlight">143</i>&nbsp;    private static final String TRUNCATE_PROP = &quot;truncate&quot;;
+<i class="no-highlight">144</i>&nbsp;    private static final String STAGING_PROP = &quot;staging&quot;;
+<i class="no-highlight">145</i>&nbsp;    private static final String STAGED_FILE_PROP = &quot;stagedFile&quot;;
+<i class="no-highlight">146</i>&nbsp;    private static final String STAGED_FILE_LIST_PROP = &quot;stagedFileList&quot;;
+<i class="no-highlight">147</i>&nbsp;    private static final String DATA_SOURCE_PROP = &quot;dataSource&quot;;
+<i class="no-highlight">148</i>&nbsp;    private static final String CREATE_TABLE_WITH_UPPERCASE_COLUMN_NAMES_PROP =
+<i class="no-highlight">149</i>&nbsp;            &quot;createTableWithUppercaseColumnNames&quot;;
+<b class="nc"><i class="no-highlight">150</i>&nbsp;    private static final String CREATE_TABLE_WITH_UPPERCASE_COLUMN_NAMES_CONDITION = String.format(</b>
+<i class="no-highlight">151</i>&nbsp;            &quot;$.settings.%s.value &amp;&amp; !$.settings.%s.value&quot;,
+<i class="no-highlight">152</i>&nbsp;            CREATE_TABLE_PROP, PRESERVE_CASE_SENSITIVITY_PROP);
+<b class="nc"><i class="no-highlight">153</i>&nbsp;    private static final String FILE_LIST_PATH = new JsonPathBuilder(STAGED_FILE_LIST_PROP)</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            .appendAllListElements().build();</b>
+<i class="no-highlight">155</i>&nbsp;    private static final String S3_FILE_KEY_FULL_PATH_NO_FOLDER = &quot;s3://%s&quot;;
+<i class="no-highlight">156</i>&nbsp;    private static final String GCS_FILE_KEY_FULL_PATH_NO_FOLDER = &quot;gcs://%s&quot;;
+<i class="no-highlight">157</i>&nbsp;    private static final String COPY_FROM_STAGED_FILE_COMMAND = &quot;COPY INTO %s FROM &#39;%s&#39;&quot;;
+<i class="no-highlight">158</i>&nbsp;    private static final String COPY_FROM_STAGED_FILE_COMMAND_WITH_DATA_TRANSFORMATION = &quot;COPY &quot; +
+<i class="no-highlight">159</i>&nbsp;            &quot;INTO %s (%s) FROM &#39;%s&#39;&quot;;
+<i class="no-highlight">160</i>&nbsp;    private static final String COPY_FROM_STAGED_FILE_COMMAND_WITH_DATA_QUERY_TRANSFORMATION =
+<i class="no-highlight">161</i>&nbsp;            &quot;COPY INTO %s (%s) FROM (%s)&quot;;
+<i class="no-highlight">162</i>&nbsp;    private static final String TRUNCATE_COMMAND = &quot;TRUNCATE TABLE %s&quot;;
+<i class="no-highlight">163</i>&nbsp;    private static final int DEFAULT_SIZE_LIMIT = 0;
+<i class="no-highlight">164</i>&nbsp;    private static final int MIN_SIZE_LIMIT = 0;
+<i class="no-highlight">165</i>&nbsp;    private static final String ROWS_VIEW_LABEL = &quot;rows&quot;;
+<i class="no-highlight">166</i>&nbsp;    private static final String FILES_FMT = &quot; FILES = ( &#39;%s&#39; ) &quot;;
+<i class="no-highlight">167</i>&nbsp;    // Output view keys
+<i class="no-highlight">168</i>&nbsp;    private static final String KEY_TABLE = &quot;table&quot;;
+<i class="no-highlight">169</i>&nbsp;    private static final String KEY_INPUT_RECORDS = &quot;input_records&quot;;
+<i class="no-highlight">170</i>&nbsp;    // Error view keys
+<i class="no-highlight">171</i>&nbsp;    private static final String KEY_PATTERN = &quot;PATTERN&quot;;
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    private static final String STORAGE_INTEGRATION_PROP = &quot;storageIntegration&quot;;
+<i class="no-highlight">174</i>&nbsp;    private static final String PROP_CONDITION_FMT = &quot;$.settings.%s.value==&#39;%s&#39;&quot;;
+<i class="no-highlight">175</i>&nbsp;    private static final String PROP_NEG_CONDITION_FMT = &quot;$.settings.%s.value!=&#39;%s&#39;&quot;;
+<i class="no-highlight">176</i>&nbsp;    // Condition: datasource == stageFile
+<b class="nc"><i class="no-highlight">177</i>&nbsp;    private static final String PROP_CONDITION_STAGED_FILE = String.format(PROP_CONDITION_FMT,</b>
+<i class="no-highlight">178</i>&nbsp;            DATA_SOURCE_PROP, DATA_SOURCE_STAGED_FILES);
+<i class="no-highlight">179</i>&nbsp;    // Condition: stagingLocation == internal &amp;&amp; datasource == inputview
+<b class="nc"><i class="no-highlight">180</i>&nbsp;    private static final String ENABLE_IF_FLUSH_CHUNK_SIZE = String.format(</b>
+<i class="no-highlight">181</i>&nbsp;            &quot;($.settings.%s.expression || $.settings.%s.value==&#39;%s&#39;) &amp;&amp; $.settings.%s.value==&#39;%s&#39;&quot;,
+<i class="no-highlight">182</i>&nbsp;            STAGING_LOCATION_PROP, STAGING_LOCATION_PROP, STAGING_LOCATION_INTERNAL,
+<i class="no-highlight">183</i>&nbsp;            DATA_SOURCE_PROP, DATA_SOURCE_INPUT_VIEW);
+<i class="no-highlight">184</i>&nbsp;    // Condition: stagingLocation == external &amp;&amp; datasource == stagedFile
+<b class="nc"><i class="no-highlight">185</i>&nbsp;    private static final String PROP_CONDITION_STORAGE_INTEGRATION = String.format(</b>
+<i class="no-highlight">186</i>&nbsp;            &quot;($.settings.%s.expression || $.settings.%s.value==&#39;%s&#39;)&quot;, STAGING_LOCATION_PROP
+<i class="no-highlight">187</i>&nbsp;            , STAGING_LOCATION_PROP, STAGING_LOCATION_EXTERNAL) + &quot; &amp;&amp; &quot; + PROP_CONDITION_STAGED_FILE;
+<b class="nc"><i class="no-highlight">188</i>&nbsp;    private static final Set&lt;String&gt; VALIDATION_LIST = ImmutableSet.of(NONE, RETURN_N_ROWS,</b>
+<i class="no-highlight">189</i>&nbsp;            &quot;RETURN_ERRORS&quot;, &quot;RETURN_ALL_ERRORS&quot;);
+<b class="nc"><i class="no-highlight">190</i>&nbsp;    private static final Set&lt;String&gt; SHOW_ERROR_LIST = ImmutableSet.of(ROW_AGGREGATE_ERRORS,</b>
+<i class="no-highlight">191</i>&nbsp;            FULL_ERROR_VIEW, DONT_VALIDATE);
+<b class="nc"><i class="no-highlight">192</i>&nbsp;    private static final Set&lt;String&gt; DATA_SOURCES = ImmutableSet.of(DATA_SOURCE_INPUT_VIEW,</b>
+<i class="no-highlight">193</i>&nbsp;            DATA_SOURCE_STAGED_FILES);
+<i class="no-highlight">194</i>&nbsp;    private static final String KEY_RESULTS = &quot;results&quot;;
+<i class="no-highlight">195</i>&nbsp;    protected static final String S3_FILE_KEY_WITH_FOLDER = &quot;%s/%s&quot;;
+<i class="no-highlight">196</i>&nbsp;    protected static final String S3_FILE_KEY_WTHOUT_FOLDER = &quot;%s&quot;;
+<i class="no-highlight">197</i>&nbsp;    private static final String QUERY_TO_GET_TABLE_COLUMNS = &quot;SELECT * FROM %s where 1 = 0&quot;;
+<i class="no-highlight">198</i>&nbsp;    private static final String FIELD_DELIMITER = &quot;,&quot;;
+<i class="no-highlight">199</i>&nbsp;    private static final String DATA_SOURCE_VALUE_STAGED_FILES = &quot;$.settings.&quot; +
+<i class="no-highlight">200</i>&nbsp;            DATA_SOURCE_PROP + &quot;.value == &#39;&quot; + DATA_SOURCE_STAGED_FILES + &quot;&#39;&quot;;
+<i class="no-highlight">201</i>&nbsp;    private SqlQueryManagementOptions queryManagementOption;
+<i class="no-highlight">202</i>&nbsp;    protected String s3format;
+<i class="no-highlight">203</i>&nbsp;    private ExpressionProperty stagingExpression;
+<i class="no-highlight">204</i>&nbsp;    private String fileNamePattern;
+<i class="no-highlight">205</i>&nbsp;    private ExpressionProperty fileNamePatternExpression;
+<b class="nc"><i class="no-highlight">206</i>&nbsp;    private long inputCount = 0;</b>
+<i class="no-highlight">207</i>&nbsp;    private String aggregateErrorType;
+<i class="no-highlight">208</i>&nbsp;    private boolean truncate;
+<i class="no-highlight">209</i>&nbsp;    private List&lt;ExpressionProperty&gt; filePathExpressions;
+<i class="no-highlight">210</i>&nbsp;    private List&lt;String&gt; filePaths;
+<i class="no-highlight">211</i>&nbsp;    private List&lt;ExpressionProperty&gt; queryColumns;
+<i class="no-highlight">212</i>&nbsp;    private boolean queryForStagedFileExecuted;
+<i class="no-highlight">213</i>&nbsp;    private ExpressionProperty storageIntegrationExpr;
+<i class="no-highlight">214</i>&nbsp;    private String storageIntegration;
+<i class="no-highlight">215</i>&nbsp;    private boolean metadataFound;
+<i class="no-highlight">216</i>&nbsp;
+<i class="no-highlight">217</i>&nbsp;    @Notification(
+<i class="no-highlight">218</i>&nbsp;            message = LINT_COLUMNS_MSG,
+<i class="no-highlight">219</i>&nbsp;            reason = LINT_COLUMNS_REASON,
+<i class="no-highlight">220</i>&nbsp;            resolution = LINT_COLUMNS_RES
+<i class="no-highlight">221</i>&nbsp;    )
+<b class="nc"><i class="no-highlight">222</i>&nbsp;    private static final Lint COLUMNS_FROM_FILE_LINT = new Lint();</b>
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;    @Notification(
+<i class="no-highlight">225</i>&nbsp;            message = ERROR_DELETE_OBJECT_ACCESS,
+<i class="no-highlight">226</i>&nbsp;            reason = ERROR_DELETE_OBJECT_ACCESS_REASON,
+<i class="no-highlight">227</i>&nbsp;            resolution = ERROR_DELETE_OBJECT_ACCESS_RESOLUTION
+<i class="no-highlight">228</i>&nbsp;    )
+<b class="nc"><i class="no-highlight">229</i>&nbsp;    private static final Lint FAILED_TO_DELETE_OBJECT = new Lint();</b>
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;    @Notification(
+<i class="no-highlight">232</i>&nbsp;            message = PURGE_LINT_MESSAGE,
+<b class="nc"><i class="no-highlight">233</i>&nbsp;            reason = PURGE_LINT_REASON,</b>
+<i class="no-highlight">234</i>&nbsp;            resolution = PURGE_LINT_RESOLUTION
+<i class="no-highlight">235</i>&nbsp;    )
+<i class="no-highlight">236</i>&nbsp;    protected static final Lint PURGE_LINT = new Lint();
+<i class="no-highlight">237</i>&nbsp;
+<b class="nc"><i class="no-highlight">238</i>&nbsp;    static {</b>
+<i class="no-highlight">239</i>&nbsp;        //required to use lint rules
+<i class="no-highlight">240</i>&nbsp;        Notifications.register(BulkLoad.class);
+<i class="no-highlight">241</i>&nbsp;    }
+<i class="no-highlight">242</i>&nbsp;
+<b class="nc"><i class="no-highlight">243</i>&nbsp;    @Override</b>
+<i class="no-highlight">244</i>&nbsp;    protected String getName() {
+<i class="no-highlight">245</i>&nbsp;        return JdbcOperations.SNOWFLAKE;
+<i class="no-highlight">246</i>&nbsp;    }
+<i class="no-highlight">247</i>&nbsp;
+<b class="nc"><i class="no-highlight">248</i>&nbsp;    @Override</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;    public Module getManagedModule() {</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        return new SnowflakeModule();</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;    @Override</b>
+<i class="no-highlight">254</i>&nbsp;    protected void initOperations() {
+<i class="no-highlight">255</i>&nbsp;        jdbcOperations = jdbcOperations == null ?
+<i class="no-highlight">256</i>&nbsp;                injector.getInstance(Key.get(JdbcOperations.class,
+<i class="no-highlight">257</i>&nbsp;                        Names.named(JdbcOperations.SNOWFLAKE))) :
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                jdbcOperations;</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        quotationHandler = quotationHandler == null ? injector.getInstance(Key.get(</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                QuotationHandler.class, Names.named(JdbcOperations.SNOWFLAKE))) : quotationHandler;</b>
+<i class="no-highlight">261</i>&nbsp;    }
+<i class="no-highlight">262</i>&nbsp;
+<i class="no-highlight">263</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">264</i>&nbsp;    protected void addSchemaProperty(PropertyBuilder builder, final DatabaseUtils databaseUtils) {</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        builder.describe(SCHEMA_NAME_PROP, SCHEMA_NAME_LABEL, SCHEMA_NAME_DESC)</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                .expression(ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                .withSuggestions(new Suggestions() {</b>
+<i class="no-highlight">268</i>&nbsp;                    @Override
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                    public void suggest(final SuggestionBuilder suggestionBuilder,</b>
+<i class="no-highlight">270</i>&nbsp;                            final PropertyValues propertyValues) {
+<i class="no-highlight">271</i>&nbsp;                        initOperations();
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                        Connection conn = jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">273</i>&nbsp;                        DatabaseMetaData dbMetaData = jdbcOperations
+<i class="no-highlight">274</i>&nbsp;                                .getDatabaseMetaData(conn, account);
+<i class="no-highlight">275</i>&nbsp;                        // TODO if we want to remove account-level calls, this would have to change
+<i class="no-highlight">276</i>&nbsp;                        databaseUtils.suggestSchemaNames(conn, suggestionBuilder, dbMetaData);
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                })</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;    @Override</b>
+<i class="no-highlight">283</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder builder) {
+<i class="no-highlight">284</i>&nbsp;        super.createSnapProperties(builder);
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        builder.describe(DATA_SOURCE_PROP, DATA_SOURCE_LABEL, DATA_SOURCE_DESC)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                .withAllowedValues(DATA_SOURCES)</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        definePreserveCaseSensitivityProperty(builder);</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        builder.describe(CREATE_TABLE_WITH_UPPERCASE_COLUMN_NAMES_PROP,</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                CREATE_TABLE_WITH_UPPERCASE_COLUMN_NAMES_LABEL,</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                CREATE_TABLE_WITH_UPPERCASE_COLUMN_NAMES_DESC)</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                .enableIf(CREATE_TABLE_WITH_UPPERCASE_COLUMN_NAMES_CONDITION)</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        defineParallelismProperty(builder);</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        defineLoadEmptyStringsProperty(builder, false);</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        builder.describe(TRUNCATE_PROP, TRUNCATE_LABEL, TRUNCATE_DESC)</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<i class="no-highlight">301</i>&nbsp;                .add();
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        defineStagingLocationProperty(builder);</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        defineFlushChunkSizeProperty(builder, ENABLE_IF_FLUSH_CHUNK_SIZE);</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        builder.describe(STAGING_PROP, STAGING_LABEL, STAGING_DESC)</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                .add();</b>
+<i class="no-highlight">307</i>&nbsp;        builder.describe(STORAGE_INTEGRATION_PROP, STORAGE_INTEGRATION_LABEL,
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                STORAGE_INTEGRATION_DESC)</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                .enableIf(PROP_CONDITION_STORAGE_INTEGRATION)</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        SnapProperty stagedFile = builder.describe(STAGED_FILE_PROP, STAGED_FILE_LABEL,</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                STAGED_FILE_DESC)</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                .expression(ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        builder.describe(STAGED_FILE_LIST_PROP, STAGED_FILE_LIST_LABEL, STAGED_FILE_LIST_DESC)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                .withEntry(stagedFile)</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                .enableIf(PROP_CONDITION_STAGED_FILE)</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        builder.describe(FILE_NAME_PATTERN_PROP, FILE_NAME_PATTERN_LABEL, FILE_NAME_PATTERN_DESC)</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                .enableIf(DATA_SOURCE_VALUE_STAGED_FILES)</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        defineFileFormatProperties(builder);</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        SnapProperty columnNameProp = builder.describe(COLUMN_PROP, COLUMN_PROP)</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                .withSuggestions(this::suggestTableColumns)</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;        builder.describe(COLUMN_NAMES_PROP, TABLE_COLUMNS_LABEL, TABLE_COLUMNS_DESC)</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                .withEntry(columnNameProp)</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        builder.describe(SELECT_STATEMENT_PROP, SELECT_STATEMENT_LABEL, SELECT_STATEMENT_DESC)</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                .type(SnapType.STRING)</b>
+<i class="no-highlight">338</i>&nbsp;                .expression()
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                .enableIf(DATA_SOURCE_VALUE_STAGED_FILES)</b>
+<i class="no-highlight">340</i>&nbsp;                .add();
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        SnowflakeUtils.defineEncryptionTypeProperty(builder);</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;        SnowflakeUtils.defineKMSKeyProperty(builder);</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;        SnowflakeUtils.defineBufferSizeProperty(builder);</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;        SnowflakeUtils.defineSQLQueryManagementProperty(builder);</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;        SnapProperty sizeLimitProp = builder.describe(SIZE_LIMIT_PROP, SIZE_LIMIT_LABEL,</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                SIZE_LIMIT_DESC)</b>
+<i class="no-highlight">348</i>&nbsp;                .type(SnapType.INTEGER)
+<i class="no-highlight">349</i>&nbsp;                .defaultValue(DEFAULT_SIZE_LIMIT)
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                .withMinValue(MIN_SIZE_LIMIT)</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                .build();</b>
+<i class="no-highlight">352</i>&nbsp;        SnapProperty purgeProp = builder.describe(PURGE_PROP, PURGE_LABEL, PURGE_DESC)
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%s.value != &#39;%s&#39; || $.settings.%s.value != &#39;%s&#39;&quot;,</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                        DATA_SOURCE_PROP, DATA_SOURCE_INPUT_VIEW ,</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                        STAGING_LOCATION_PROP, STAGING_LOCATION_INTERNAL))</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        SnapProperty returnFailedOnlyProp = builder.describe(RETURN_FAILED_ONLY_PROP,</b>
+<i class="no-highlight">359</i>&nbsp;                RETURN_FAILED_ONLY_LABEL, RETURN_FAILED_ONLY_DESC)
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        SnapProperty forceProp = builder.describe(FORCE_PROP, FORCE_LABEL, FORCE_DESC)</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        SnapProperty truncateColumnsProp = builder.describe(TRUNCATE_COLUMNS_PROP,</b>
+<i class="no-highlight">366</i>&nbsp;                TRUNCATE_COLUMNS_LABEL, TRUNCATE_COLUMNS_DESC)
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;        List&lt;SnapProperty&gt; errorProperties = buildOnErrorProperties(builder);</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        builder.describe(ADDITIONAL_OPTIONS_PROP, ADDITIONAL_OPTIONS_LABEL,</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                ADDITIONAL_OPTIONS_DESC)</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                .withEntry(errorProperties.get(0))</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                .withEntry(errorProperties.get(1))</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                .withEntry(errorProperties.get(2))</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                .withEntry(sizeLimitProp)</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                .withEntry(purgeProp)</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                .withEntry(returnFailedOnlyProp)</b>
+<i class="no-highlight">381</i>&nbsp;                .withEntry(forceProp)
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                .withEntry(truncateColumnsProp)</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;        builder.describe(VALIDATION_MODE_PROP, VALIDATION_MODE_LABEL, VALIDATION_MODE_DESC)</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                .withAllowedValues(VALIDATION_LIST)</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;        builder.describe(AGGREGATE_ERRORS_PROP, AGGREGATE_ERRORS_LABEL,</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                        AGGREGATE_ERRORS_DESC)</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                .withAllowedValues(SHOW_ERROR_LIST)</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                .type(SnapType.STRING)</b>
+<i class="no-highlight">391</i>&nbsp;                .defaultValue(FULL_ERROR_VIEW)
+<i class="no-highlight">392</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%s.value == &#39;%s&#39;&quot;, VALIDATION_MODE_PROP, NONE))
+<i class="no-highlight">393</i>&nbsp;                .add();
+<i class="no-highlight">394</i>&nbsp;        builder.describe(ROWS_TO_RETURN_PROP, ROWS_TO_RETURN_LABEL, ROWS_TO_RETURN_DESC)
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                .defaultValue(0)</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;    @Override</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;    protected void configureSnap(PropertyValues propertyValues) {</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<i class="no-highlight">403</i>&nbsp;        setTempDir(propertyValues);
+<b class="nc"><i class="no-highlight">404</i>&nbsp;        doNullSchemaCheck();</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;        readStagingLocationProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        dataSource = propertyValues.get(DATA_SOURCE_PROP);</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;        if (!DATA_SOURCE_STAGED_FILES.equals(dataSource) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                STAGING_LOCATION_INTERNAL.equals(stagingLocation)) {</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;            readFlushChunkSizeProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;        truncate = propertyValues.getBoolean(TRUNCATE_PROP, false);</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;        stagingExpression = propertyValues.getAsExpression(STAGING_PROP);</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; fileList = propertyValues.get(FILE_LIST_PATH);</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;        fileNamePatternExpression = propertyValues.getAsExpression(FILE_NAME_PATTERN_PROP);</b>
+<i class="no-highlight">415</i>&nbsp;        selectQuery = propertyValues.getAsExpression(SELECT_STATEMENT_PROP).eval(null);
+<b class="nc"><i class="no-highlight">416</i>&nbsp;        aggregateErrorType = propertyValues.get(AGGREGATE_ERRORS_PROP) == null</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                ? FULL_ERROR_VIEW : propertyValues.get(AGGREGATE_ERRORS_PROP);</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;        if (!DATA_SOURCE_STAGED_FILES.equals(dataSource) &amp;&amp; StringUtils.isNotBlank(selectQuery)) {</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            throw new ConfigurationException(ERROR_DATA_QUERY_TRANSFORMATION)</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                    .withReason(ERROR_DATA_QUERY_TRANSFORMATION_REASON)</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                    .withResolution(ERROR_DATA_QUERY_TRANSFORMATION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        }</b>
+<i class="no-highlight">423</i>&nbsp;        Connection conn = jdbcOperations.acquireConnection(account);
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        if (DATA_SOURCE_STAGED_FILES.equals(dataSource)) {</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;            if (autoCreateTable &amp;&amp; !jdbcOperations.tableExists(conn,</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                    account.getDatabaseConfig().getDatabaseName(), tableName)) {</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                throw new ConfigurationException(ERROR_AUTO_CREATE_TABLE_NOT_SUPPORTED)</b>
+<i class="no-highlight">428</i>&nbsp;                        .withReason(ERROR_AUTO_CREATE_TABLE_NOT_SUPPORTED_REASON)
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                        .withResolution(ERROR_AUTO_CREATE_TABLE_NOT_SUPPORTED_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;            if (CollectionUtils.isNotEmpty(fileList)) {</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                filePathExpressions = new ArrayList&lt;&gt;(fileList.size());</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                for (Map&lt;String, String&gt; item : fileList) {</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                    ExpressionProperty pathExpression = propertyValues.getExpressionPropertyFor(</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                            item, STAGED_FILE_PROP);</b>
+<i class="no-highlight">436</i>&nbsp;                    filePathExpressions.add(pathExpression);
+<i class="no-highlight">437</i>&nbsp;                }
+<i class="no-highlight">438</i>&nbsp;            } else if (CollectionUtils.isEmpty(fileList) &amp;&amp;
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                    fileNamePatternExpression.isEmpty() &amp;&amp; StringUtils.isEmpty(selectQuery)) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                throw new ConfigurationException(ERROR_NO_STAGED_FILE_OR_PATTERN)</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                        .withReason(ERROR_NO_STAGED_FILE_OR_PATTERN_REASON)</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                        .withResolution(ERROR_NO_STAGED_FILE_OR_PATTERN_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;        readFileFormatProperties(propertyValues);</b>
+<i class="no-highlight">447</i>&nbsp;        encryptionType = S3EncryptionType.toEnum(propertyValues.get(ENCRYPT_TYPE_PROP));
+<b class="nc"><i class="no-highlight">448</i>&nbsp;        kmsKeyExpression = propertyValues.getAsExpression(KMS_KEY_PROP);</b>
+<i class="no-highlight">449</i>&nbsp;        bufferSizeExpr = propertyValues.getAsExpression(BUFFER_SIZE_PROP);
+<b class="nc"><i class="no-highlight">450</i>&nbsp;        readErrorProperties(propertyValues);</b>
+<i class="no-highlight">451</i>&nbsp;        sizeLimit = propertyValues.get(getPropPath(ADDITIONAL_OPTIONS_PROP, SIZE_LIMIT_PROP));
+<b class="nc"><i class="no-highlight">452</i>&nbsp;        returnFailedOnly = Boolean.TRUE.equals(propertyValues.get(RETURN_FAILED_ONLY_PROP));</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;        force = Boolean.TRUE.equals(propertyValues.get(getPropPath(ADDITIONAL_OPTIONS_PROP,</b>
+<i class="no-highlight">454</i>&nbsp;                FORCE_PROP)));
+<b class="nc"><i class="no-highlight">455</i>&nbsp;        truncateColumns = propertyValues.getBoolean(getPropPath(ADDITIONAL_OPTIONS_PROP,</b>
+<i class="no-highlight">456</i>&nbsp;                TRUNCATE_COLUMNS_PROP), false);
+<b class="nc"><i class="no-highlight">457</i>&nbsp;        purge = Boolean.TRUE.equals(propertyValues.get(getPropPath(ADDITIONAL_OPTIONS_PROP,</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                PURGE_PROP)));</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;        validationMode = propertyValues.get(VALIDATION_MODE_PROP);</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;        rowsToReturn = propertyValues.get(ROWS_TO_RETURN_PROP);</b>
+<i class="no-highlight">461</i>&nbsp;
+<i class="no-highlight">462</i>&nbsp;        List&lt;String&gt; viewOrder = viewNameUtil.sortViewNames(inputViews.getAll().keySet(),
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                INPUT_ROWS_VIEW_NAME);</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;        if (!viewOrder.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;            rowViewName = viewOrder.get(0);</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;            if (viewOrder.size() &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                schemaViewName = viewOrder.get(1);</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;        loadEmptyString = Boolean.TRUE.equals(propertyValues.get(LOAD_EMPTY_STRINGS_PROP));</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        readPreserveCaseSensitivityProperty(propertyValues);</b>
+<i class="no-highlight">472</i>&nbsp;        ((SnowflakeOperations) jdbcOperations).preserveCaseSensitivity = preserveCaseSensitivity;
+<b class="nc"><i class="no-highlight">473</i>&nbsp;        ((SnowflakeOperations) jdbcOperations).createTableWithUppercaseColumnNames =</b>
+<i class="no-highlight">474</i>&nbsp;                propertyValues.getBoolean(CREATE_TABLE_WITH_UPPERCASE_COLUMN_NAMES_PROP, false);
+<b class="nc"><i class="no-highlight">475</i>&nbsp;        readParallelismProperty(propertyValues);</b>
+<i class="no-highlight">476</i>&nbsp;        queryColumns = super.getTableColumns(propertyValues);
+<b class="nc"><i class="no-highlight">477</i>&nbsp;        if (!queryColumns.isEmpty() &amp;&amp; DATA_SOURCE_INPUT_VIEW.equalsIgnoreCase(dataSource)) {</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;            throw new ConfigurationException(String.format(INVALID_QUERY_COLUMNS,</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;                    TABLE_COLUMNS_LABEL, DATA_SOURCE_LABEL, DATA_SOURCE_STAGED_FILES))</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                    .withReason(String.format(INVALID_QUERY_COLUMNS_REASON, DATA_SOURCE_LABEL,</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                            DATA_SOURCE_INPUT_VIEW))</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;                    .withResolution(INVALID_QUERY_COLUMNS_RES);</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;        initSubstituteValueForNull();</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;        storageIntegrationExpr = propertyValues.getAsExpression(STORAGE_INTEGRATION_PROP);</b>
+<i class="no-highlight">486</i>&nbsp;        queryManagementOption = SqlQueryManagementOptions.toEnum(
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                propertyValues.get(SnowflakeUtils.SQL_QUERY_MANAGEMENT_PROP));</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;        staging = stagingExpression.eval(null);</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;        storageIntegration = storageIntegrationExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;        stagingInputType = SnowflakeUtils.identifyStagingType(staging, stagingLocation);</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;        if (((SnowflakeAccountTypeProvider) account).getAccountType()</b>
+<i class="no-highlight">492</i>&nbsp;                .equals(SnowflakeAccountType.GoogleCloudStorage)) {
+<i class="no-highlight">493</i>&nbsp;
+<b class="nc"><i class="no-highlight">494</i>&nbsp;            if (DATA_SOURCE_INPUT_VIEW.equals(dataSource) &amp;&amp;</b>
+<i class="no-highlight">495</i>&nbsp;                    !STAGING_LOCATION_INTERNAL.equals(stagingLocation)) {
+<b class="nc"><i class="no-highlight">496</i>&nbsp;                throw new SnapDataException(ERR_INVALID_SNAP_CONFIG_MSG)</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                        .withReason(ERR_GCS_EXTERNAL_STAGE_INPUT_VIEW_DATA_REASON)</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                        .withResolution(ERR_GCS_EXTERNAL_STAGE_INPUT_VIEW_DATA_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;            SnowflakeGoogleCloudInfoProvider gcsAccount =</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;                    (SnowflakeGoogleCloudInfoProvider) account;</b>
+<i class="no-highlight">503</i>&nbsp;            storageIntegration = StringUtils.isNotEmpty(storageIntegration) ?
+<i class="no-highlight">504</i>&nbsp;                    storageIntegration : gcsAccount.getStorageIntegrationProp();
+<b class="nc"><i class="no-highlight">505</i>&nbsp;            if (StringUtils.isEmpty(storageIntegration)</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                    &amp;&amp; DATA_SOURCE_STAGED_FILES.equals(dataSource)) {</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                throw new SnapDataException(ERR_INVALID_SNAP_CONFIG_MSG)</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;                        .withReason(ERR_GCS_CREDENTIALS_NOT_PROVIDED_REASON)</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;                        .withResolution(ERR_GCS_CREDENTIALS_NOT_PROVIDED_RESOLUTION);</b>
+<i class="no-highlight">510</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">511</i>&nbsp;        }</b>
+<i class="no-highlight">512</i>&nbsp;        if (((SnowflakeAccountTypeProvider) account).getAccountType()
+<b class="nc"><i class="no-highlight">513</i>&nbsp;            .equals(SnowflakeAccountType.S3)) {</b>
+<i class="no-highlight">514</i>&nbsp;            retrieveAwsS3Info();
+<i class="no-highlight">515</i>&nbsp;            storageIntegration = StringUtils.isNotEmpty(storageIntegration) ?
+<i class="no-highlight">516</i>&nbsp;                storageIntegration : s3StorageIntegration;
+<i class="no-highlight">517</i>&nbsp;            //overriding defaults3storage integration from the snap properties.
+<i class="no-highlight">518</i>&nbsp;            s3StorageIntegration = storageIntegration;
+<b class="nc"><i class="no-highlight">519</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;        examineStorageCredentials(StringUtils.isNotBlank(storageIntegration));</b>
+<i class="no-highlight">521</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">522</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;    @Override</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;    public void execute() {</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;        if (inputViews.isEmpty()) {</b>
+<i class="no-highlight">527</i>&nbsp;            process(null, null);
+<i class="no-highlight">528</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">529</i>&nbsp;            for (String viewName : getInputViewOrder()) {</b>
+<i class="no-highlight">530</i>&nbsp;                for (Document document : inputViews.documents(inputViews.get(viewName))) {
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                    process(document, viewName);</b>
+<i class="no-highlight">532</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">533</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;        }</b>
+<i class="no-highlight">535</i>&nbsp;
+<i class="no-highlight">536</i>&nbsp;        if (!firstRecord &amp;&amp; autoCreateTable &amp;&amp; schema != null) {
+<b class="nc"><i class="no-highlight">537</i>&nbsp;            // We want to create the table even if there are no rows to be loaded.</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;            createTableIfAbsent(null);</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;        if (DATA_SOURCE_INPUT_VIEW.equals(dataSource)) {</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;            if (!successful || (bulkLoadWrapper == null &amp;&amp; dataWriter == null)) {</b>
+<i class="no-highlight">542</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">543</i>&nbsp;            }</b>
+<i class="no-highlight">544</i>&nbsp;            if (STAGING_LOCATION_EXTERNAL.equals(stagingLocation)) {
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                LOGGER.debug(LOG_WRITING_TO_EXTERNAL_LOCATION, accountType.name());</b>
+<i class="no-highlight">546</i>&nbsp;                if (bulkLoadWrapper != null) {
+<b class="nc"><i class="no-highlight">547</i>&nbsp;                    bulkLoadWrapper.close();</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;                    bulkLoadWrapperClosed = true;</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;                LOGGER.debug(LOG_WRITING_TO_EXTERNAL_LOCATION_DONE, accountType.name());</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;                closeDataWriter();</b>
+<i class="no-highlight">553</i>&nbsp;                try {
+<i class="no-highlight">554</i>&nbsp;                    waitForPutChunksCompletion();
+<i class="no-highlight">555</i>&nbsp;                } catch (java.util.concurrent.ExecutionException | InterruptedException e) {
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                    throw new ExecutionException(e, ERR_SENDING_LAST_CHUNK)</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;                            .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">559</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;            }</b>
+<i class="no-highlight">561</i>&nbsp;            try {
+<i class="no-highlight">562</i>&nbsp;                // This is for loading the data from inputview, which is batched in temp file
+<i class="no-highlight">563</i>&nbsp;                preLoadAction();
+<i class="no-highlight">564</i>&nbsp;                loadActionWithOAuthRetry(tableName, null);
+<i class="no-highlight">565</i>&nbsp;            } catch (SnapDataException e) {
+<i class="no-highlight">566</i>&nbsp;                errorViews.write(e);
+<b class="nc"><i class="no-highlight">567</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;    @Override</b>
+<i class="no-highlight">572</i>&nbsp;    protected void processDocument(final Document document, final String inputViewName) {
+<b class="nc"><i class="no-highlight">573</i>&nbsp;        // Initialize expression properties</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;        fileNamePattern = fileNamePatternExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;        formatName = formatNameExpression.eval(document);</b>
+<i class="no-highlight">576</i>&nbsp;        fileFormatOption = fileFormatOptionExpression.eval(document);
+<b class="nc"><i class="no-highlight">577</i>&nbsp;        if (StringUtils.isNotBlank(fileFormatOption)) {</b>
+<i class="no-highlight">578</i>&nbsp;            verifyFileFormatOption();
+<i class="no-highlight">579</i>&nbsp;        }
+<i class="no-highlight">580</i>&nbsp;        kmsKey = kmsKeyExpression.eval(document);
+<b class="nc"><i class="no-highlight">581</i>&nbsp;        bufferSizeInMB = bufferSizeExpr.eval(document);</b>
+<b class="nc"><i class="no-highlight">582</i>&nbsp;        if (queryManagementOption.equals(SqlQueryManagementOptions.CANCEL_QUEUED_QUERIES) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                !queryIDThreadStarted) {</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;            startQueryIDThread(snowflakeConnection);</b>
+<i class="no-highlight">585</i>&nbsp;        }
+<i class="no-highlight">586</i>&nbsp;
+<i class="no-highlight">587</i>&nbsp;        // Check if this is the schema document and save it for later.
+<i class="no-highlight">588</i>&nbsp;        if (inputViewName != null &amp;&amp; inputViewName.equals(schemaViewName)) {
+<b class="nc"><i class="no-highlight">589</i>&nbsp;            if (document != null) {</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;                schema = document;</b>
+<i class="no-highlight">591</i>&nbsp;                columnTranslation = databaseUtils.buildColumnTranslation(schema);
+<i class="no-highlight">592</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">593</i>&nbsp;            return;</b>
+<i class="no-highlight">594</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">595</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;        if (document != null) {</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;            inputCount++;</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;        if (DATA_SOURCE_INPUT_VIEW.equals(dataSource)) {</b>
+<i class="no-highlight">601</i>&nbsp;            // If the data is from inputview, we need to batch the input into a temp file
+<i class="no-highlight">602</i>&nbsp;            if (STAGING_LOCATION_EXTERNAL.equals(stagingLocation)
+<b class="nc"><i class="no-highlight">603</i>&nbsp;                    &amp;&amp; NAMED_STAGE.equals(stagingInputType)) {</b>
+<i class="no-highlight">604</i>&nbsp;                SnapDataException sde = new SnapDataException(OPERATION_NOT_SUPPORTED)
+<i class="no-highlight">605</i>&nbsp;                        .withReason(REASON_CANNOT_UPLOAD_DOC_TO_EXTERNAL_NAMED_STAGE)
+<i class="no-highlight">606</i>&nbsp;                        .withResolution(RESOLUTION_CANNOT_UPLOAD_DOC_TO_EXTERNAL_NAMED_STAGE);
+<b class="nc"><i class="no-highlight">607</i>&nbsp;                errorViews.write(sde, document);</b>
+<i class="no-highlight">608</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">609</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">610</i>&nbsp;            storeInputDocument(document);</b>
+<b class="nc"><i class="no-highlight">611</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">612</i>&nbsp;            // For staged file, we note down the file list if there is any, and go ahead to load</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;            // them</b>
+<i class="no-highlight">614</i>&nbsp;            if (CollectionUtils.isNotEmpty(filePathExpressions)) {
+<b class="nc"><i class="no-highlight">615</i>&nbsp;                // Evaluate file paths</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;                filePaths = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">617</i>&nbsp;                for (ExpressionProperty pathExpression : filePathExpressions) {
+<i class="no-highlight">618</i>&nbsp;                    String path = pathExpression.eval(document);
+<b class="nc"><i class="no-highlight">619</i>&nbsp;                    if (StringUtils.isBlank(path)) {</b>
+<b class="nc"><i class="no-highlight">620</i>&nbsp;                        continue;</b>
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                    filePaths.add(path);</b>
+<i class="no-highlight">623</i>&nbsp;                }
+<i class="no-highlight">624</i>&nbsp;            }
+<i class="no-highlight">625</i>&nbsp;            try {
+<i class="no-highlight">626</i>&nbsp;                loadActionWithOAuthRetry(tableName, document);
+<b class="nc"><i class="no-highlight">627</i>&nbsp;            } catch (SnapDataException e) {</b>
+<i class="no-highlight">628</i>&nbsp;                errorViews.write(e, document);
+<b class="nc"><i class="no-highlight">629</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;</b>
+<i class="no-highlight">633</i>&nbsp;    private void closeDataWriter() {
+<b class="nc"><i class="no-highlight">634</i>&nbsp;        if (dataWriter != null) {</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;                dataWriter.close();</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;                if (DATA_SOURCE_INPUT_VIEW.equals(dataSource) &amp;&amp;</b>
+<i class="no-highlight">638</i>&nbsp;                        STAGING_LOCATION_INTERNAL.equals(stagingLocation)) {
+<i class="no-highlight">639</i>&nbsp;                    putLocalDataToSnowflakeStage(chunkedFileName, true);
+<i class="no-highlight">640</i>&nbsp;                }
+<i class="no-highlight">641</i>&nbsp;                dataWriter = null;
+<i class="no-highlight">642</i>&nbsp;            } catch (IOException | InterruptedException e) {
+<i class="no-highlight">643</i>&nbsp;                LOGGER.debug(String.format(&quot;Failed to close writer for file: %s&quot;, chunkedFileName), e);
+<i class="no-highlight">644</i>&nbsp;            }
+<i class="no-highlight">645</i>&nbsp;        }
+<i class="no-highlight">646</i>&nbsp;    }
+<i class="no-highlight">647</i>&nbsp;
+<i class="no-highlight">648</i>&nbsp;    /**
+<i class="no-highlight">649</i>&nbsp;     * Store the input document into a temporary file. The temp file will be on local disk if
+<b class="nc"><i class="no-highlight">650</i>&nbsp;     * internal stage, on S3 bucket defined in the account if external.</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;     *</b>
+<i class="no-highlight">652</i>&nbsp;     * NOTE: Staging is not used when data source is inputview
+<i class="no-highlight">653</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">654</i>&nbsp;     * @param document Single document object</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;     */</b>
+<i class="no-highlight">656</i>&nbsp;    private void storeInputDocument(Document document) {
+<i class="no-highlight">657</i>&nbsp;        Map&lt;String, Object&gt; data = document == null ? null : document.get(Map.class);
+<b class="nc"><i class="no-highlight">658</i>&nbsp;        if (data == null) {</b>
+<b class="nc"><i class="no-highlight">659</i>&nbsp;            return;</b>
+<b class="nc"><i class="no-highlight">660</i>&nbsp;        }</b>
+<i class="no-highlight">661</i>&nbsp;        databaseUtils.translateColumnNamesInDoc(columnTranslation, document);
+<b class="nc"><i class="no-highlight">662</i>&nbsp;        if (firstRecord) {</b>
+<i class="no-highlight">663</i>&nbsp;            // tableMetaData may have been set by configureSnap, but might be stale
+<b class="nc"><i class="no-highlight">664</i>&nbsp;            // if snaps running in parallel recreated the table since then.</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;            if (!metadataFound) {</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;                tableMetaData = lazyLoadTableMetadata() ? null : tableMetaData;</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;                if (autoCreateTable) {</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;                    // this will set tableMetaData if the table is created</b>
+<b class="nc"><i class="no-highlight">669</i>&nbsp;                    createTableIfAbsent(document);</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">671</i>&nbsp;                if (tableMetaData == null) {</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;                    Connection conn = jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">673</i>&nbsp;                    tableMetaData = jdbcOperations.getTableMetaData(conn,
+<i class="no-highlight">674</i>&nbsp;                            account.getDatabaseConfig().getDatabaseName(), tableName);
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                    if (tableMetaData.isEmpty()) {</b>
+<i class="no-highlight">676</i>&nbsp;                        throw new ConfigurationException(TABLE_NOT_FOUND)
+<b class="nc"><i class="no-highlight">677</i>&nbsp;                                .formatWith(tableName)</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;                                .withReason(ERROR_TABLE_DOES_NOT_EXIST)</b>
+<i class="no-highlight">679</i>&nbsp;                                .withResolution(ERROR_TABLE_DOES_NOT_EXIST_RESOLUTION);
+<i class="no-highlight">680</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">681</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">682</i>&nbsp;                metadataFound = true;</b>
+<b class="nc"><i class="no-highlight">683</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">684</i>&nbsp;            if (preserveCaseSensitivity) {</b>
+<b class="nc"><i class="no-highlight">685</i>&nbsp;                snowflakeMetadataProvider.setUseUpperCaseIdentifiers(false);</b>
+<i class="no-highlight">686</i>&nbsp;            }
+<i class="no-highlight">687</i>&nbsp;            // Initialize copyColumns and quotedCopyColumns
+<i class="no-highlight">688</i>&nbsp;            initCopyColumns(data);
+<b class="nc"><i class="no-highlight">689</i>&nbsp;            if (copyColumns.isEmpty()) {</b>
+<i class="no-highlight">690</i>&nbsp;                throw new ExecutionException(ERROR_INVALID_INPUT)
+<i class="no-highlight">691</i>&nbsp;                        .withReason(ERROR_INVALID_INPUT_REASON)
+<i class="no-highlight">692</i>&nbsp;                        .withResolution(ERROR_INVALID_INPUT_RESOLUTION);
+<i class="no-highlight">693</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">694</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">695</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">696</i>&nbsp;        writeDataToFile(data, chunkFlushSize, snowflakeConnection);</b>
+<i class="no-highlight">697</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">698</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;    @Override</b>
+<i class="no-highlight">700</i>&nbsp;    public void cleanup() {
+<b class="nc"><i class="no-highlight">701</i>&nbsp;        super.cleanup();</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;        stopQueryIDThread();</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;        JDBCUtils.safeClose(snowflakeConnection);</b>
+<b class="nc"><i class="no-highlight">704</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">705</i>&nbsp;            if (snowflakeConnection != null &amp;&amp; !snowflakeConnection.isClosed()) {</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;                snowflakeConnection.close();</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;        } catch (SQLException e2) {</b>
+<b class="nc"><i class="no-highlight">709</i>&nbsp;            LOGGER.error(&quot;Error closing the database connection&quot;, e2);</b>
+<i class="no-highlight">710</i>&nbsp;            SnapDataException snapException = new SnapDataException(ERROR_PERFORMING_UPSERT)
+<b class="nc"><i class="no-highlight">711</i>&nbsp;                    .withReason(e2.getMessage())</b>
+<b class="nc"><i class="no-highlight">712</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">713</i>&nbsp;            errorViews.write(snapException);
+<b class="nc"><i class="no-highlight">714</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">715</i>&nbsp;        if (account != null) {</b>
+<i class="no-highlight">716</i>&nbsp;            account.disconnect();
+<b class="nc"><i class="no-highlight">717</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">718</i>&nbsp;        if (jdbcOperations != null) {</b>
+<i class="no-highlight">719</i>&nbsp;            jdbcOperations.cleanup();
+<b class="nc"><i class="no-highlight">720</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;        if (s3 != null) {</b>
+<b class="nc"><i class="no-highlight">722</i>&nbsp;            s3.shutdown();</b>
+<i class="no-highlight">723</i>&nbsp;        }
+<i class="no-highlight">724</i>&nbsp;        closeDataWriter();
+<b class="nc"><i class="no-highlight">725</i>&nbsp;        deleteTempFile();</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;        if (bulkLoadWrapper != null) {</b>
+<b class="nc"><i class="no-highlight">728</i>&nbsp;            if (!bulkLoadWrapperClosed) {</b>
+<i class="no-highlight">729</i>&nbsp;                bulkLoadWrapper.close();
+<b class="nc"><i class="no-highlight">730</i>&nbsp;            }</b>
+<i class="no-highlight">731</i>&nbsp;            try {
+<i class="no-highlight">732</i>&nbsp;                bulkLoadWrapper.cleanup();
+<i class="no-highlight">733</i>&nbsp;            } catch (AmazonS3Exception e) {
+<i class="no-highlight">734</i>&nbsp;                LOGGER.error(&quot;Error communicating with the s3 services&quot;, e);
+<i class="no-highlight">735</i>&nbsp;                handleS3Exception(e, bulkLoadWrapper,
+<i class="no-highlight">736</i>&nbsp;                        FAILED_TO_DELETE_OBJECT, ERROR_PERFORMING_LOAD);
+<i class="no-highlight">737</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">738</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">739</i>&nbsp;    }</b>
+<i class="no-highlight">740</i>&nbsp;
+<b class="nc"><i class="no-highlight">741</i>&nbsp;    /**</b>
+<i class="no-highlight">742</i>&nbsp;     * Operations done before load happens.
+<b class="nc"><i class="no-highlight">743</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">744</i>&nbsp;    protected void preLoadAction() {</b>
+<b class="nc"><i class="no-highlight">745</i>&nbsp;        if (truncate) {</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;            if (snowflakeConnection == null) {</b>
+<b class="nc"><i class="no-highlight">747</i>&nbsp;                // Connection might have been created already if truncate was done</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;                snowflakeConnection = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;            try (Statement stmt = snowflakeConnection.createStatement()) {</b>
+<i class="no-highlight">751</i>&nbsp;                LOGGER.debug(LOG_TRUNCATING_TABLE);
+<i class="no-highlight">752</i>&nbsp;                stmt.execute(String.format(TRUNCATE_COMMAND, tableName));
+<i class="no-highlight">753</i>&nbsp;            } catch (SQLException e) {
+<i class="no-highlight">754</i>&nbsp;                throw new SnapDataException(e, ERR_TRUNCATE_TABLE_FAILED)
+<i class="no-highlight">755</i>&nbsp;                        .withReason(e.getMessage())
+<i class="no-highlight">756</i>&nbsp;                        .withResolution(ERR_TRUNCATE_TABLE_FAILED_RESOLUTION);
+<i class="no-highlight">757</i>&nbsp;            }
+<i class="no-highlight">758</i>&nbsp;        }
+<i class="no-highlight">759</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">760</i>&nbsp;</b>
+<i class="no-highlight">761</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">762</i>&nbsp;     * The action that loads staged file (either specified by user or generated by snap) to the</b>
+<i class="no-highlight">763</i>&nbsp;     * table in Snowflake.
+<i class="no-highlight">764</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">765</i>&nbsp;    @Override</b>
+<b class="nc"><i class="no-highlight">766</i>&nbsp;    protected void loadAction(String targetTable, Document original) {</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;        if (snowflakeConnection == null) {</b>
+<i class="no-highlight">768</i>&nbsp;            // Connection might have been created already if truncate was done
+<b class="nc"><i class="no-highlight">769</i>&nbsp;            snowflakeConnection = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">770</i>&nbsp;        }</b>
+<i class="no-highlight">771</i>&nbsp;
+<i class="no-highlight">772</i>&nbsp;        try (Statement stmt = snowflakeConnection.createStatement()) {
+<i class="no-highlight">773</i>&nbsp;            if (DATA_SOURCE_INPUT_VIEW.equals(dataSource)) {
+<b class="nc"><i class="no-highlight">774</i>&nbsp;                loadFromInputView(targetTable, stmt);</b>
+<b class="nc"><i class="no-highlight">775</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">776</i>&nbsp;                queryForStagedFileExecuted = false;</b>
+<b class="nc"><i class="no-highlight">777</i>&nbsp;                loadFromStagedFile(targetTable, stmt, original);</b>
+<b class="nc"><i class="no-highlight">778</i>&nbsp;            }</b>
+<i class="no-highlight">779</i>&nbsp;
+<b class="nc"><i class="no-highlight">780</i>&nbsp;            // Output results</b>
+<b class="nc"><i class="no-highlight">781</i>&nbsp;            try (ResultSet rs = stmt.getResultSet()) {</b>
+<i class="no-highlight">782</i>&nbsp;                if (canExecuteValidateCommand()) {
+<b class="nc"><i class="no-highlight">783</i>&nbsp;                    writeErrorView(targetTable, original);</b>
+<i class="no-highlight">784</i>&nbsp;                } else if (!DONT_VALIDATE.equals(aggregateErrorType)){
+<b class="nc"><i class="no-highlight">785</i>&nbsp;                    WARNING_MESSAGE_S3.report();</b>
+<b class="nc"><i class="no-highlight">786</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">787</i>&nbsp;                if (!purge &amp;&amp; DATA_SOURCE_INPUT_VIEW.equals(dataSource) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">788</i>&nbsp;                        STAGING_LOCATION_EXTERNAL.equals(stagingLocation)) {</b>
+<b class="nc"><i class="no-highlight">789</i>&nbsp;                    PURGE_LINT.report();</b>
+<b class="nc"><i class="no-highlight">790</i>&nbsp;                }</b>
+<i class="no-highlight">791</i>&nbsp;                if (DATA_SOURCE_INPUT_VIEW.equals(dataSource) ||
+<b class="nc"><i class="no-highlight">792</i>&nbsp;                        (DATA_SOURCE_STAGED_FILES.equals(dataSource) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">793</i>&nbsp;                                queryForStagedFileExecuted)) {</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;                    writeResultToOutputView(rs, original);</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;                }</b>
+<i class="no-highlight">796</i>&nbsp;            } catch (SQLException e) {
+<i class="no-highlight">797</i>&nbsp;                throw new ExecutionException(e, ERROR_COPYING_EXTERNAL_FILE_SNOWFLAKE)
+<b class="nc"><i class="no-highlight">798</i>&nbsp;                        .formatWith(accountType.name())</b>
+<b class="nc"><i class="no-highlight">799</i>&nbsp;                        .withReason(e.getMessage())</b>
+<i class="no-highlight">800</i>&nbsp;                        .withResolution(ERROR_FIX_DATA_ISSUES);
+<b class="nc"><i class="no-highlight">801</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">802</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">803</i>&nbsp;            cleanupTempStageFolder();</b>
+<i class="no-highlight">804</i>&nbsp;        } catch (ExecutionException | SnapDataException e) {
+<b class="nc"><i class="no-highlight">805</i>&nbsp;            throw e;</b>
+<i class="no-highlight">806</i>&nbsp;        } catch (SQLException e) {
+<b class="nc"><i class="no-highlight">807</i>&nbsp;            // Check if the token expired and operation needs to be re-attempted if its</b>
+<i class="no-highlight">808</i>&nbsp;            //  system-generated token option
+<b class="nc"><i class="no-highlight">809</i>&nbsp;            boolean sasTokenExpired = (accountType == SnowflakeAccountType.AZURE) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">810</i>&nbsp;                    (StringUtils.containsIgnoreCase(e.getMessage(),</b>
+<i class="no-highlight">811</i>&nbsp;                            INVALID_SAS_TOKEN_ERROR_CONTENTS_FROM_MICROSOFT));
+<i class="no-highlight">812</i>&nbsp;            if (sasTokenExpired &amp;&amp; !sasTokenRefreshed &amp;&amp; azureAccount.isSystemGeneratedToken()) {
+<b class="nc"><i class="no-highlight">813</i>&nbsp;                sasTokenRefreshed = true;</b>
+<b class="nc"><i class="no-highlight">814</i>&nbsp;                LOGGER.info(&quot;System generated SAS token might have expired as the error message &quot; +</b>
+<b class="nc"><i class="no-highlight">815</i>&nbsp;                        &quot;is {}; attempting the unload operation once more by generating a &quot; +</b>
+<b class="nc"><i class="no-highlight">816</i>&nbsp;                        &quot;new SAS token&quot;, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">817</i>&nbsp;                try {</b>
+<b class="nc"><i class="no-highlight">818</i>&nbsp;                    loadActionWithOAuthRetry(targetTable, original);</b>
+<i class="no-highlight">819</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">820</i>&nbsp;                    sasTokenRefreshed = false;</b>
+<i class="no-highlight">821</i>&nbsp;                }
+<i class="no-highlight">822</i>&nbsp;            } else {
+<i class="no-highlight">823</i>&nbsp;                // Handle the Data type exception from Snowflake. Route them to Errorview
+<b class="nc"><i class="no-highlight">824</i>&nbsp;                String resolution = RESOLUTION_ADDRESS_ISSUE;</b>
+<b class="nc"><i class="no-highlight">825</i>&nbsp;                if (sasTokenExpired) {</b>
+<b class="nc"><i class="no-highlight">826</i>&nbsp;                    if (!azureAccount.isSystemGeneratedToken()) {</b>
+<b class="nc"><i class="no-highlight">827</i>&nbsp;                        resolution = ERR_UNLOAD_OPERATION_FAILED_FOR_INVALID_SAS_TOKEN_RESOLUTION;</b>
+<b class="nc"><i class="no-highlight">828</i>&nbsp;                    } else if (sasTokenRefreshed) {</b>
+<b class="nc"><i class="no-highlight">829</i>&nbsp;                        LOGGER.info(&quot;System generated token seems to be valid for very short &quot; +</b>
+<i class="no-highlight">830</i>&nbsp;                                &quot;amount of time.  Consider increasing its longivity.&quot;);
+<b class="nc"><i class="no-highlight">831</i>&nbsp;                        resolution = null;</b>
+<b class="nc"><i class="no-highlight">832</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">833</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">834</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">835</i>&nbsp;                SnapDataException exception = new SnapDataException(e, ERROR_PERFORMING_LOAD)</b>
+<b class="nc"><i class="no-highlight">836</i>&nbsp;                        .withReason(e.getLocalizedMessage());</b>
+<b class="nc"><i class="no-highlight">837</i>&nbsp;                exception = resolution != null ?</b>
+<b class="nc"><i class="no-highlight">838</i>&nbsp;                        exception.withResolution(resolution) :</b>
+<b class="nc"><i class="no-highlight">839</i>&nbsp;                        exception.withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">840</i>&nbsp;                throw exception;</b>
+<i class="no-highlight">841</i>&nbsp;            }
+<i class="no-highlight">842</i>&nbsp;        } catch (NumberFormatException ne) {
+<i class="no-highlight">843</i>&nbsp;            throw new SnapDataException(ne, ERROR_PERFORMING_LOAD)
+<i class="no-highlight">844</i>&nbsp;                    .withReason(ne.getLocalizedMessage())
+<i class="no-highlight">845</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">846</i>&nbsp;        } catch (Exception e) {
+<i class="no-highlight">847</i>&nbsp;            throw new ExecutionException(e, ERROR_PERFORMING_LOAD)
+<i class="no-highlight">848</i>&nbsp;                    .withReason(e.getLocalizedMessage())
+<i class="no-highlight">849</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">850</i>&nbsp;        }
+<i class="no-highlight">851</i>&nbsp;        LOGGER.debug(LOG_COPY_DONE);
+<i class="no-highlight">852</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">853</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">854</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">855</i>&nbsp;     * Execute &#39;COPY INTO table&#39; to load a staged file into the target table.</b>
+<i class="no-highlight">856</i>&nbsp;     *
+<i class="no-highlight">857</i>&nbsp;     * @param targetTable
+<b class="nc"><i class="no-highlight">858</i>&nbsp;     * @param stmt</b>
+<i class="no-highlight">859</i>&nbsp;     *
+<i class="no-highlight">860</i>&nbsp;     * @throws SQLException
+<i class="no-highlight">861</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">862</i>&nbsp;    private void loadFromStagedFile(String targetTable, Statement stmt, Document document) throws</b>
+<i class="no-highlight">863</i>&nbsp;            SQLException {
+<i class="no-highlight">864</i>&nbsp;        String query = getQueryForStagedFile(targetTable, document);
+<i class="no-highlight">865</i>&nbsp;        DatabaseUtils.submitQueryToThread(query, queryQueue);
+<i class="no-highlight">866</i>&nbsp;        if (query == null) {
+<i class="no-highlight">867</i>&nbsp;            return;
+<i class="no-highlight">868</i>&nbsp;        }
+<i class="no-highlight">869</i>&nbsp;        queryForStagedFileExecuted = true;
+<i class="no-highlight">870</i>&nbsp;        // SNAP-6457: We have to use executeQuery here to get the resultSet for DDL statement
+<i class="no-highlight">871</i>&nbsp;        // Since Snowflake JDBC 3.8.1, execute() method won&#39;t return resultSet for DDL.
+<i class="no-highlight">872</i>&nbsp;        // Corresponding Snowflake ticket: SNOW-76035
+<i class="no-highlight">873</i>&nbsp;        stmt.executeQuery(query);
+<i class="no-highlight">874</i>&nbsp;    }
+<i class="no-highlight">875</i>&nbsp;
+<b class="nc"><i class="no-highlight">876</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">877</i>&nbsp;     * Get the full &#39;COPY INTO table&#39; string for loading staged files.</b>
+<i class="no-highlight">878</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">879</i>&nbsp;     * @param targetTable target table name for loading</b>
+<i class="no-highlight">880</i>&nbsp;     * @param document
+<b class="nc"><i class="no-highlight">881</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">882</i>&nbsp;     * @return &#39;COPY INTO table&#39; string that is sent to the endpoint</b>
+<b class="nc"><i class="no-highlight">883</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">884</i>&nbsp;    protected String getQueryForStagedFile(String targetTable, Document document)</b>
+<b class="nc"><i class="no-highlight">885</i>&nbsp;            throws SQLException {</b>
+<i class="no-highlight">886</i>&nbsp;        StringBuilder queryBuilder;
+<b class="nc"><i class="no-highlight">887</i>&nbsp;        String stagePrefix = toStagingString(staging);</b>
+<b class="nc"><i class="no-highlight">888</i>&nbsp;        queryBuilder = buildQueryBuilderFromFile(targetTable, stagePrefix, document);</b>
+<b class="nc"><i class="no-highlight">889</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">890</i>&nbsp;        if (CollectionUtils.isNotEmpty(filePaths)) {</b>
+<i class="no-highlight">891</i>&nbsp;            // Format: FILES = ( &#39;file1&#39;,&#39;file2&#39;,&#39;file3&#39;... )
+<b class="nc"><i class="no-highlight">892</i>&nbsp;            queryBuilder.append(String.format(FILES_FMT, StringUtils.join(filePaths, &quot;&#39;,&#39;&quot;)));</b>
+<i class="no-highlight">893</i>&nbsp;        } else if (StringUtils.isNotBlank(fileNamePattern)) {
+<b class="nc"><i class="no-highlight">894</i>&nbsp;            queryBuilder.append(String.format(FORMAT_SPACE_QUOTE, KEY_PATTERN, fileNamePattern));</b>
+<b class="nc"><i class="no-highlight">895</i>&nbsp;        } else if (StringUtils.isBlank(selectQuery)) {</b>
+<b class="nc"><i class="no-highlight">896</i>&nbsp;            SnapDataException snapDataException = new SnapDataException(</b>
+<i class="no-highlight">897</i>&nbsp;                    ERROR_NO_STAGED_FILE_OR_PATTERN)
+<b class="nc"><i class="no-highlight">898</i>&nbsp;                    .withReason(ERROR_NO_STAGED_FILE_OR_PATTERN_REASON)</b>
+<b class="nc"><i class="no-highlight">899</i>&nbsp;                    .withResolution(ERROR_NO_STAGED_FILE_OR_PATTERN_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">900</i>&nbsp;            errorViews.write(snapDataException);</b>
+<b class="nc"><i class="no-highlight">901</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">902</i>&nbsp;        }</b>
+<i class="no-highlight">903</i>&nbsp;        queryBuilder = SnowflakeUtils.addEncryptionProperty(queryBuilder, encryptionType, kmsKey);
+<b class="nc"><i class="no-highlight">904</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">905</i>&nbsp;        if (formatName != null) {</b>
+<i class="no-highlight">906</i>&nbsp;            queryBuilder.append(String.format(FILE_FORMAT_OPTION, KEY_FORMAT_NAME,
+<i class="no-highlight">907</i>&nbsp;                    validateAndReturnFullFormatName(formatName),
+<i class="no-highlight">908</i>&nbsp;                    StringUtils.EMPTY, StringUtils.EMPTY));
+<i class="no-highlight">909</i>&nbsp;        } else if (fileFormatType != null) {
+<b class="nc"><i class="no-highlight">910</i>&nbsp;            if (!NONE.equals(fileFormatType)) {</b>
+<b class="nc"><i class="no-highlight">911</i>&nbsp;                queryBuilder.append(String.format(FILE_FORMAT_OPTION, KEY_TYPE, fileFormatType,</b>
+<b class="nc"><i class="no-highlight">912</i>&nbsp;                        StringUtils.isNotBlank(fileFormatOption) ?</b>
+<b class="nc"><i class="no-highlight">913</i>&nbsp;                                fileFormatOption.trim() : StringUtils.EMPTY,</b>
+<i class="no-highlight">914</i>&nbsp;                        StringUtils.EMPTY));
+<i class="no-highlight">915</i>&nbsp;            } else if (StringUtils.isNotBlank(fileFormatOption)) {
+<i class="no-highlight">916</i>&nbsp;                queryBuilder.append(String.format(FILE_FORMAT_NONE, fileFormatOption.trim(),
+<i class="no-highlight">917</i>&nbsp;                        StringUtils.EMPTY));
+<i class="no-highlight">918</i>&nbsp;            }
+<i class="no-highlight">919</i>&nbsp;        }
+<i class="no-highlight">920</i>&nbsp;
+<i class="no-highlight">921</i>&nbsp;        appendQueryOptions(queryBuilder);
+<i class="no-highlight">922</i>&nbsp;        String query = queryBuilder.toString();
+<i class="no-highlight">923</i>&nbsp;        logQuery(query);
+<i class="no-highlight">924</i>&nbsp;        return query;
+<i class="no-highlight">925</i>&nbsp;    }
+<i class="no-highlight">926</i>&nbsp;
+<i class="no-highlight">927</i>&nbsp;    /**
+<i class="no-highlight">928</i>&nbsp;     * Build the initial COPY query for external/internal staged files.
+<i class="no-highlight">929</i>&nbsp;     *
+<i class="no-highlight">930</i>&nbsp;     * With columns:
+<i class="no-highlight">931</i>&nbsp;     * If table columns are provided in the snap configuration:
+<i class="no-highlight">932</i>&nbsp;     * COPY INTO table(&quot;column1&quot;, &quot;column2&quot;, ...) FROM stage/
+<i class="no-highlight">933</i>&nbsp;     *
+<i class="no-highlight">934</i>&nbsp;     * Legacy behavior:
+<i class="no-highlight">935</i>&nbsp;     * If all files contains the same columns and those columns are all included in the table:
+<i class="no-highlight">936</i>&nbsp;     * COPY INTO table(column1, column2, ...) FROM stage/
+<i class="no-highlight">937</i>&nbsp;     *
+<i class="no-highlight">938</i>&nbsp;     * otherwise:
+<b class="nc"><i class="no-highlight">939</i>&nbsp;     * COPY INTO table FROM stage/</b>
+<b class="nc"><i class="no-highlight">940</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">941</i>&nbsp;     * @param targetTable Table name we are loading to</b>
+<b class="nc"><i class="no-highlight">942</i>&nbsp;     * @param stagePrefix Staging prefix for the staged file(s)</b>
+<b class="nc"><i class="no-highlight">943</i>&nbsp;     * @param document</b>
+<i class="no-highlight">944</i>&nbsp;     *
+<i class="no-highlight">945</i>&nbsp;     * @return The String builder for the query string; null if no file is specified
+<i class="no-highlight">946</i>&nbsp;     * @throws SQLException
+<i class="no-highlight">947</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">948</i>&nbsp;    private StringBuilder buildQueryBuilderFromFile(String targetTable, String stagePrefix,</b>
+<b class="nc"><i class="no-highlight">949</i>&nbsp;            Document document) throws SQLException {</b>
+<b class="nc"><i class="no-highlight">950</i>&nbsp;        List&lt;String&gt; tableColumns = getQueryColumns(targetTable, document);</b>
+<i class="no-highlight">951</i>&nbsp;        String headerColumns = null;
+<b class="nc"><i class="no-highlight">952</i>&nbsp;        boolean queryWithColumn = CollectionUtils.isNotEmpty(tableColumns);</b>
+<b class="nc"><i class="no-highlight">953</i>&nbsp;        if (queryWithColumn) {</b>
+<i class="no-highlight">954</i>&nbsp;            headerColumns = StringUtils.join(tableColumns, COMMA);
+<b class="nc"><i class="no-highlight">955</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">956</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">957</i>&nbsp;        StringBuilder queryBuilder;</b>
+<b class="nc"><i class="no-highlight">958</i>&nbsp;        String filePathStage;</b>
+<b class="nc"><i class="no-highlight">959</i>&nbsp;        if (StringUtils.isNotEmpty(selectQuery)) {</b>
+<i class="no-highlight">960</i>&nbsp;            queryBuilder = new StringBuilder(String.format
+<i class="no-highlight">961</i>&nbsp;                    (COPY_FROM_STAGED_FILE_COMMAND_WITH_DATA_QUERY_TRANSFORMATION,
+<b class="nc"><i class="no-highlight">962</i>&nbsp;                            targetTable, headerColumns, selectQuery));</b>
+<i class="no-highlight">963</i>&nbsp;        } else if (STAGING_LOCATION_EXTERNAL.equals(stagingLocation)
+<i class="no-highlight">964</i>&nbsp;                &amp;&amp; !NAMED_STAGE.equals(stagingInputType)) {
+<i class="no-highlight">965</i>&nbsp;            // Perform the query building for External Staging location.
+<b class="nc"><i class="no-highlight">966</i>&nbsp;            if (S3_URI.equals(stagingInputType) || AZURE_URI.equals(stagingInputType) ||</b>
+<i class="no-highlight">967</i>&nbsp;                    GCS_URI.equals(stagingInputType)) {
+<b class="nc"><i class="no-highlight">968</i>&nbsp;                if (queryWithColumn) {</b>
+<i class="no-highlight">969</i>&nbsp;                    queryBuilder = new StringBuilder(String.format
+<b class="nc"><i class="no-highlight">970</i>&nbsp;                            (COPY_FROM_STAGED_FILE_COMMAND_WITH_DATA_TRANSFORMATION,</b>
+<b class="nc"><i class="no-highlight">971</i>&nbsp;                                    targetTable, headerColumns, stagePrefix + SLASH));</b>
+<b class="nc"><i class="no-highlight">972</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">973</i>&nbsp;                    queryBuilder = new StringBuilder(String.format(COPY_FROM_STAGED_FILE_COMMAND,</b>
+<b class="nc"><i class="no-highlight">974</i>&nbsp;                            targetTable, stagePrefix + SLASH));</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">976</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">977</i>&nbsp;                if (stagePrefix.length() &gt; 0 &amp;&amp; !(stagePrefix.startsWith(SLASH))) {</b>
+<i class="no-highlight">978</i>&nbsp;                    // if Staging is specified
+<i class="no-highlight">979</i>&nbsp;                    stagePrefix = SLASH + stagePrefix;
+<b class="nc"><i class="no-highlight">980</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">981</i>&nbsp;                if (accountType == SnowflakeAccountType.AZURE) {</b>
+<i class="no-highlight">982</i>&nbsp;                    filePathStage = setAzurePath(azureAccount.getStorageBlobUrl(), stagePrefix);
+<i class="no-highlight">983</i>&nbsp;                } else if (accountType == SnowflakeAccountType.GoogleCloudStorage) {
+<b class="nc"><i class="no-highlight">984</i>&nbsp;                    retrieveGCSInfo();</b>
+<i class="no-highlight">985</i>&nbsp;                    if (StringUtils.isBlank(gcsFolder)) {
+<i class="no-highlight">986</i>&nbsp;                        if (StringUtils.isBlank(stagePrefix)) {
+<i class="no-highlight">987</i>&nbsp;                            filePathStage =
+<b class="nc"><i class="no-highlight">988</i>&nbsp;                                    String.format(GCS_FILE_KEY_FULL_PATH_NO_FOLDER,</b>
+<b class="nc"><i class="no-highlight">989</i>&nbsp;                                            gcsBucket + SLASH);</b>
+<b class="nc"><i class="no-highlight">990</i>&nbsp;                        } else {</b>
+<b class="nc"><i class="no-highlight">991</i>&nbsp;                            filePathStage = String.format(GCS_FILE_KEY_FULL_PATH, gcsBucket,</b>
+<i class="no-highlight">992</i>&nbsp;                                    stagePrefix.substring(1) + SLASH);
+<i class="no-highlight">993</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">994</i>&nbsp;                    } else {</b>
+<b class="nc"><i class="no-highlight">995</i>&nbsp;                        filePathStage = String.format(GCS_FILE_KEY_FULL_PATH, gcsBucket,</b>
+<i class="no-highlight">996</i>&nbsp;                                gcsFolder + stagePrefix + SLASH);
+<i class="no-highlight">997</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">998</i>&nbsp;                } else {</b>
+<i class="no-highlight">999</i>&nbsp;                    if (StringUtils.isBlank(s3Folder)) {
+<i class="no-highlight">1000</i>&nbsp;                        if (StringUtils.isBlank(stagePrefix)) {
+<i class="no-highlight">1001</i>&nbsp;                            filePathStage =
+<i class="no-highlight">1002</i>&nbsp;                                    String.format(S3_FILE_KEY_FULL_PATH_NO_FOLDER,
+<b class="nc"><i class="no-highlight">1003</i>&nbsp;                                            s3Bucket + SLASH);</b>
+<b class="nc"><i class="no-highlight">1004</i>&nbsp;                        } else {</b>
+<b class="nc"><i class="no-highlight">1005</i>&nbsp;                            filePathStage = String.format(S3_FILE_KEY_FULL_PATH, s3Bucket,</b>
+<i class="no-highlight">1006</i>&nbsp;                                    stagePrefix.substring(1) + SLASH);
+<i class="no-highlight">1007</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">1008</i>&nbsp;                    } else {</b>
+<i class="no-highlight">1009</i>&nbsp;                        filePathStage = String.format(S3_FILE_KEY_FULL_PATH, s3Bucket,
+<i class="no-highlight">1010</i>&nbsp;                                s3Folder + stagePrefix + SLASH);
+<i class="no-highlight">1011</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">1012</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">1013</i>&nbsp;</b>
+<i class="no-highlight">1014</i>&nbsp;                if (queryWithColumn) {
+<i class="no-highlight">1015</i>&nbsp;                    queryBuilder = new StringBuilder(String.format
+<b class="nc"><i class="no-highlight">1016</i>&nbsp;                            (COPY_FROM_STAGED_FILE_COMMAND_WITH_DATA_TRANSFORMATION,</b>
+<i class="no-highlight">1017</i>&nbsp;                                    targetTable, headerColumns, filePathStage));
+<i class="no-highlight">1018</i>&nbsp;                } else {
+<i class="no-highlight">1019</i>&nbsp;                    queryBuilder = new StringBuilder(String.format(COPY_FROM_STAGED_FILE_COMMAND,
+<b class="nc"><i class="no-highlight">1020</i>&nbsp;                            targetTable, filePathStage));</b>
+<b class="nc"><i class="no-highlight">1021</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">1022</i>&nbsp;            }</b>
+<i class="no-highlight">1023</i>&nbsp;            if (StringUtils.isNotEmpty(storageIntegration)) {
+<i class="no-highlight">1024</i>&nbsp;                queryBuilder = SnowflakeUtils.appendStorageIntegrationIfProvided(queryBuilder,
+<b class="nc"><i class="no-highlight">1025</i>&nbsp;                        storageIntegration);</b>
+<i class="no-highlight">1026</i>&nbsp;            } else {
+<i class="no-highlight">1027</i>&nbsp;                appendCredentials(queryBuilder);
+<b class="nc"><i class="no-highlight">1028</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1029</i>&nbsp;        } else {</b>
+<i class="no-highlight">1030</i>&nbsp;            // Perform the query building for Internal Staging location and Named Stage.
+<i class="no-highlight">1031</i>&nbsp;            if (queryWithColumn) {
+<i class="no-highlight">1032</i>&nbsp;                queryBuilder = new StringBuilder(String.format
+<b class="nc"><i class="no-highlight">1033</i>&nbsp;                        (COPY_FROM_STAGED_FILE_COMMAND_WITH_DATA_TRANSFORMATION,</b>
+<i class="no-highlight">1034</i>&nbsp;                                targetTable, headerColumns, stagePrefix + SLASH));
+<i class="no-highlight">1035</i>&nbsp;            } else {
+<i class="no-highlight">1036</i>&nbsp;                queryBuilder = new StringBuilder(String.format(COPY_FROM_STAGED_FILE_COMMAND,
+<i class="no-highlight">1037</i>&nbsp;                        targetTable, stagePrefix + SLASH));
+<i class="no-highlight">1038</i>&nbsp;            }
+<i class="no-highlight">1039</i>&nbsp;            if (StringUtils.isNotEmpty(storageIntegration)) {
+<i class="no-highlight">1040</i>&nbsp;                queryBuilder = SnowflakeUtils.appendStorageIntegrationIfProvided(queryBuilder,
+<i class="no-highlight">1041</i>&nbsp;                        storageIntegration);
+<i class="no-highlight">1042</i>&nbsp;            }
+<i class="no-highlight">1043</i>&nbsp;        }
+<i class="no-highlight">1044</i>&nbsp;        return queryBuilder;
+<i class="no-highlight">1045</i>&nbsp;    }
+<i class="no-highlight">1046</i>&nbsp;
+<i class="no-highlight">1047</i>&nbsp;
+<i class="no-highlight">1048</i>&nbsp;
+<i class="no-highlight">1049</i>&nbsp;    /**
+<i class="no-highlight">1050</i>&nbsp;     * This gets the columns to use in the COPY INTO query. It returns null if no columns should
+<b class="nc"><i class="no-highlight">1051</i>&nbsp;     * be included in the query.</b>
+<i class="no-highlight">1052</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">1053</i>&nbsp;     * @param targetTable</b>
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;     * @param document</b>
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">1056</i>&nbsp;     * @return A list of column names enclosed in the Snowflake identifier character.</b>
+<b class="nc"><i class="no-highlight">1057</i>&nbsp;     * @throws SQLException</b>
+<b class="nc"><i class="no-highlight">1058</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">1059</i>&nbsp;    private List&lt;String&gt; getQueryColumns(String targetTable, Document document)</b>
+<b class="nc"><i class="no-highlight">1060</i>&nbsp;            throws SQLException {</b>
+<i class="no-highlight">1061</i>&nbsp;        List&lt;String&gt; columns;
+<i class="no-highlight">1062</i>&nbsp;        if (!queryColumns.isEmpty()) {
+<i class="no-highlight">1063</i>&nbsp;            //Columns defined in the snap configuration
+<i class="no-highlight">1064</i>&nbsp;            columns = new ArrayList&lt;&gt;();
+<b class="nc"><i class="no-highlight">1065</i>&nbsp;            queryColumns.forEach(columnExp -&gt; {</b>
+<i class="no-highlight">1066</i>&nbsp;                String column = columnExp.eval(document);
+<b class="nc"><i class="no-highlight">1067</i>&nbsp;                if (StringUtils.isBlank(column)) {</b>
+<b class="nc"><i class="no-highlight">1068</i>&nbsp;                    throw new SnapDataException(INVALID_TABLE_COLUMN)</b>
+<b class="nc"><i class="no-highlight">1069</i>&nbsp;                            .formatWith(columnExp.getExpression())</b>
+<b class="nc"><i class="no-highlight">1070</i>&nbsp;                            .withReason(INVALID_TABLE_COLUMN_REASON)</b>
+<b class="nc"><i class="no-highlight">1071</i>&nbsp;                            .withResolution(INVALID_TABLE_COLUMN_RES);</b>
+<i class="no-highlight">1072</i>&nbsp;                }
+<i class="no-highlight">1073</i>&nbsp;
+<i class="no-highlight">1074</i>&nbsp;                //Surround the column name with the identifier for cases like the column name
+<i class="no-highlight">1075</i>&nbsp;                //having a space or special character in it.
+<b class="nc"><i class="no-highlight">1076</i>&nbsp;                columns.add(String.format(ID_QUOTE_FORMAT, column));</b>
+<b class="nc"><i class="no-highlight">1077</i>&nbsp;            });</b>
+<i class="no-highlight">1078</i>&nbsp;        } else if (!StringUtils.isEmpty(selectQuery)) {
+<i class="no-highlight">1079</i>&nbsp;            columns = fetchTableColumns(targetTable);
+<i class="no-highlight">1080</i>&nbsp;        } else if (STAGING_LOCATION_EXTERNAL.equals(stagingLocation)
+<b class="nc"><i class="no-highlight">1081</i>&nbsp;                &amp;&amp; !NAMED_STAGE.equals(stagingInputType)</b>
+<i class="no-highlight">1082</i>&nbsp;                &amp;&amp; StringUtils.isEmpty(storageIntegration)) {
+<i class="no-highlight">1083</i>&nbsp;            //This is the legacy path from SWAT-391
+<i class="no-highlight">1084</i>&nbsp;            //This does not enclose the column names in the identifier because this was the existing
+<i class="no-highlight">1085</i>&nbsp;            //behavior that has been released. Based on the code it appears that an assumption was
+<b class="nc"><i class="no-highlight">1086</i>&nbsp;            //made that the staged files would have the column names enclosed in the identifier.</b>
+<i class="no-highlight">1087</i>&nbsp;            if (accountType == SnowflakeAccountType.S3 &amp;&amp; StringUtils.isEmpty(awsToken)) {
+<i class="no-highlight">1088</i>&nbsp;                columns = getQueryColumnsS3Legacy(targetTable);
+<b class="nc"><i class="no-highlight">1089</i>&nbsp;            } else {</b>
+<i class="no-highlight">1090</i>&nbsp;                // When AWS Security Token is provided in the account, it can be directly used in
+<i class="no-highlight">1091</i>&nbsp;                // the COPY INTO Table Command. There is no need to parse the files in s3
+<i class="no-highlight">1092</i>&nbsp;                columns = null;
+<i class="no-highlight">1093</i>&nbsp;            }
+<i class="no-highlight">1094</i>&nbsp;
+<i class="no-highlight">1095</i>&nbsp;        } else {
+<i class="no-highlight">1096</i>&nbsp;            //No columns defined
+<i class="no-highlight">1097</i>&nbsp;            columns = null;
+<i class="no-highlight">1098</i>&nbsp;        }
+<i class="no-highlight">1099</i>&nbsp;
+<i class="no-highlight">1100</i>&nbsp;        return columns;
+<i class="no-highlight">1101</i>&nbsp;    }
+<i class="no-highlight">1102</i>&nbsp;
+<i class="no-highlight">1103</i>&nbsp;    /**
+<i class="no-highlight">1104</i>&nbsp;     * This reads the staged file header to get the column names to include in the query.
+<i class="no-highlight">1105</i>&nbsp;     * This has many bad assumptions (assumes CSV format, comma delimited, UTF-8, etc),
+<i class="no-highlight">1106</i>&nbsp;     * but has been left in to maintain backwards compatibility.
+<b class="nc"><i class="no-highlight">1107</i>&nbsp;     * We can use the lint rule invocations to determine if customers are still using this code</b>
+<i class="no-highlight">1108</i>&nbsp;     * path
+<b class="nc"><i class="no-highlight">1109</i>&nbsp;     * and delete it once no pipelines use this. The replacement method is to define the file</b>
+<b class="nc"><i class="no-highlight">1110</i>&nbsp;     * columns in the snap configuration.</b>
+<i class="no-highlight">1111</i>&nbsp;     *
+<i class="no-highlight">1112</i>&nbsp;     * @param targetTable
+<b class="nc"><i class="no-highlight">1113</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">1114</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">1115</i>&nbsp;     * @throws SQLException</b>
+<b class="nc"><i class="no-highlight">1116</i>&nbsp;     */</b>
+<i class="no-highlight">1117</i>&nbsp;    private List&lt;String&gt; getQueryColumnsS3Legacy(String targetTable) throws SQLException {
+<b class="nc"><i class="no-highlight">1118</i>&nbsp;        List&lt;String&gt; tableColumns = fetchTableColumns(targetTable);</b>
+<b class="nc"><i class="no-highlight">1119</i>&nbsp;        //Boolean that indicate if we should include column in the query</b>
+<i class="no-highlight">1120</i>&nbsp;        List&lt;String&gt; fileColumns = null;
+<i class="no-highlight">1121</i>&nbsp;        if (CollectionUtils.isNotEmpty(filePaths)) {
+<b class="nc"><i class="no-highlight">1122</i>&nbsp;            //Check each of the listed file to see if we should specify columns into query.</b>
+<i class="no-highlight">1123</i>&nbsp;            // If all the files have the same columns
+<i class="no-highlight">1124</i>&nbsp;            for (String path : filePaths) {
+<b class="nc"><i class="no-highlight">1125</i>&nbsp;                List&lt;String&gt; columns = getFields(path);</b>
+<i class="no-highlight">1126</i>&nbsp;                if (fileColumns == null) {
+<b class="nc"><i class="no-highlight">1127</i>&nbsp;                    fileColumns = columns;</b>
+<i class="no-highlight">1128</i>&nbsp;                }
+<i class="no-highlight">1129</i>&nbsp;                if (tableColumns.containsAll(columns)) {
+<b class="nc"><i class="no-highlight">1130</i>&nbsp;                    if (!fileColumns.equals(columns)) {</b>
+<b class="nc"><i class="no-highlight">1131</i>&nbsp;                        // Only when all files contains same columns and the columns are in the</b>
+<b class="nc"><i class="no-highlight">1132</i>&nbsp;                        // target table, will we specify the column name in the COPY command</b>
+<i class="no-highlight">1133</i>&nbsp;                        return Collections.emptyList();
+<b class="nc"><i class="no-highlight">1134</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">1135</i>&nbsp;                } else {</b>
+<i class="no-highlight">1136</i>&nbsp;                    return Collections.emptyList();
+<i class="no-highlight">1137</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1138</i>&nbsp;            }</b>
+<i class="no-highlight">1139</i>&nbsp;        }
+<i class="no-highlight">1140</i>&nbsp;
+<b class="nc"><i class="no-highlight">1141</i>&nbsp;        if (CollectionUtils.isEmpty(fileColumns)) {</b>
+<i class="no-highlight">1142</i>&nbsp;            return Collections.emptyList();
+<i class="no-highlight">1143</i>&nbsp;        } else if (fileColumns.size() == tableColumns.size()) {
+<i class="no-highlight">1144</i>&nbsp;            //There is no need to use the column names. The files match the table columns exactly.
+<b class="nc"><i class="no-highlight">1145</i>&nbsp;            return Collections.emptyList();</b>
+<i class="no-highlight">1146</i>&nbsp;        } else if (fileColumns.size() &lt; tableColumns.size()) {
+<b class="nc"><i class="no-highlight">1147</i>&nbsp;            //the files have a subset of the columns in the table</b>
+<i class="no-highlight">1148</i>&nbsp;            //this path is deprecated and only here to maintain backwards compatibility
+<b class="nc"><i class="no-highlight">1149</i>&nbsp;            COLUMNS_FROM_FILE_LINT.report();</b>
+<i class="no-highlight">1150</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1151</i>&nbsp;</b>
+<i class="no-highlight">1152</i>&nbsp;        return fileColumns;
+<i class="no-highlight">1153</i>&nbsp;    }
+<i class="no-highlight">1154</i>&nbsp;
+<i class="no-highlight">1155</i>&nbsp;    private List&lt;String&gt; getFields(String path) {
+<i class="no-highlight">1156</i>&nbsp;        switch (accountType) {
+<b class="nc"><i class="no-highlight">1157</i>&nbsp;            case AZURE:</b>
+<b class="nc"><i class="no-highlight">1158</i>&nbsp;                return getFieldsFromAzureBlobFile(path);</b>
+<i class="no-highlight">1159</i>&nbsp;            case S3:
+<i class="no-highlight">1160</i>&nbsp;                return getFieldsFromS3File(path);
+<i class="no-highlight">1161</i>&nbsp;            default:
+<i class="no-highlight">1162</i>&nbsp;                return null;
+<i class="no-highlight">1163</i>&nbsp;        }
+<i class="no-highlight">1164</i>&nbsp;    }
+<i class="no-highlight">1165</i>&nbsp;
+<i class="no-highlight">1166</i>&nbsp;    protected InputStream getBlobInputStream(String azureBlobUri,
+<i class="no-highlight">1167</i>&nbsp;            StorageCredentials storageCredentials) throws StorageException, URISyntaxException {
+<i class="no-highlight">1168</i>&nbsp;        CloudBlockBlob blob = new CloudBlockBlob(new URI(azureBlobUri), storageCredentials);
+<b class="nc"><i class="no-highlight">1169</i>&nbsp;        return blob.openInputStream();</b>
+<b class="nc"><i class="no-highlight">1170</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">1171</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">1172</i>&nbsp;    /**</b>
+<i class="no-highlight">1173</i>&nbsp;     * Get the list of fields from the staged file on S3.
+<i class="no-highlight">1174</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">1175</i>&nbsp;     * @param path path of the file under the account&#39;s Azure container</b>
+<i class="no-highlight">1176</i>&nbsp;     *
+<i class="no-highlight">1177</i>&nbsp;     * @return List of the fields. or return error if the file is empty.
+<i class="no-highlight">1178</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">1179</i>&nbsp;    protected List&lt;String&gt; getFieldsFromAzureBlobFile(String path) {</b>
+<b class="nc"><i class="no-highlight">1180</i>&nbsp;        path = path.startsWith(SLASH) ?</b>
+<b class="nc"><i class="no-highlight">1181</i>&nbsp;                path.substring(1) :</b>
+<i class="no-highlight">1182</i>&nbsp;                path;
+<b class="nc"><i class="no-highlight">1183</i>&nbsp;        String azureBlobUri = azureAccount.getStorageBlobUrl();</b>
+<i class="no-highlight">1184</i>&nbsp;
+<i class="no-highlight">1185</i>&nbsp;        try {
+<i class="no-highlight">1186</i>&nbsp;            StorageCredentials storageCredentials = azureAccount.getStorageCredentials();
+<b class="nc"><i class="no-highlight">1187</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">1188</i>&nbsp;            // If an azure blob uri is specified in the staging property of the snap, then it will</b>
+<b class="nc"><i class="no-highlight">1189</i>&nbsp;            // override the container and path information specified in the Snowflake account.</b>
+<b class="nc"><i class="no-highlight">1190</i>&nbsp;            if (StringUtils.isNotBlank(staging)) {</b>
+<i class="no-highlight">1191</i>&nbsp;                if (stagingInputType.equals(AZURE_URI)) {
+<b class="nc"><i class="no-highlight">1192</i>&nbsp;                    azureBlobUri = staging;</b>
+<b class="nc"><i class="no-highlight">1193</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">1194</i>&nbsp;                    azureBlobUri = setAzurePath(azureBlobUri, staging);</b>
+<b class="nc"><i class="no-highlight">1195</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">1196</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1197</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">1198</i>&nbsp;            azureBlobUri = azureBlobUri.endsWith(SLASH) ?</b>
+<b class="nc"><i class="no-highlight">1199</i>&nbsp;                    azureBlobUri + path :</b>
+<i class="no-highlight">1200</i>&nbsp;                    azureBlobUri + SLASH + path;
+<b class="nc"><i class="no-highlight">1201</i>&nbsp;            azureBlobUri = azureBlobUri.replace(AZURE_SCHEME, HTTPS_SCHEME);</b>
+<b class="nc"><i class="no-highlight">1202</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">1203</i>&nbsp;            try (InputStream inputStream = getBlobInputStream(azureBlobUri, storageCredentials);</b>
+<b class="nc"><i class="no-highlight">1204</i>&nbsp;                 Reader inputStreamReader = new InputStreamReader(inputStream);</b>
+<i class="no-highlight">1205</i>&nbsp;                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+<i class="no-highlight">1206</i>&nbsp;                return readFieldsFrom(bufferedReader);
+<i class="no-highlight">1207</i>&nbsp;            } catch (IOException ioe) {
+<i class="no-highlight">1208</i>&nbsp;                throw new SnapDataException(ioe, ERROR_READING_AZURE_DATA)
+<b class="nc"><i class="no-highlight">1209</i>&nbsp;                        .withReason(ERROR_INVALID_INPUT_REASON)</b>
+<b class="nc"><i class="no-highlight">1210</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">1211</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1212</i>&nbsp;        } catch (StorageException | URISyntaxException e1) {</b>
+<b class="nc"><i class="no-highlight">1213</i>&nbsp;            throw new SnapDataException(e1, ERROR_READING_STAGED_FILE_MSG)</b>
+<b class="nc"><i class="no-highlight">1214</i>&nbsp;                    .formatWith(azureBlobUri)</b>
+<b class="nc"><i class="no-highlight">1215</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">1216</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1217</i>&nbsp;    }</b>
+<i class="no-highlight">1218</i>&nbsp;
+<i class="no-highlight">1219</i>&nbsp;    private String setAzurePath(String azureBlobUri, String staging) {
+<i class="no-highlight">1220</i>&nbsp;        String stagePrefixAzure = staging.startsWith(SLASH) ?
+<i class="no-highlight">1221</i>&nbsp;                staging.substring(1) :
+<i class="no-highlight">1222</i>&nbsp;                staging;
+<i class="no-highlight">1223</i>&nbsp;        azureBlobUri = (!azureBlobUri.endsWith(SLASH)) ?
+<i class="no-highlight">1224</i>&nbsp;                azureBlobUri + SLASH + stagePrefixAzure :
+<i class="no-highlight">1225</i>&nbsp;                azureBlobUri + stagePrefixAzure;
+<i class="no-highlight">1226</i>&nbsp;        return azureBlobUri.endsWith(SLASH) ?
+<i class="no-highlight">1227</i>&nbsp;                azureBlobUri :
+<i class="no-highlight">1228</i>&nbsp;                azureBlobUri + SLASH;
+<i class="no-highlight">1229</i>&nbsp;    }
+<i class="no-highlight">1230</i>&nbsp;
+<b class="nc"><i class="no-highlight">1231</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">1232</i>&nbsp;     * Get the list of fields from the staged file on S3.</b>
+<b class="nc"><i class="no-highlight">1233</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">1234</i>&nbsp;     * @param path path of the file under the account&#39;s S3 folder</b>
+<i class="no-highlight">1235</i>&nbsp;     *
+<i class="no-highlight">1236</i>&nbsp;     * @return List of the fields. or return error if the file is empty.
+<b class="nc"><i class="no-highlight">1237</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">1238</i>&nbsp;    protected List&lt;String&gt; getFieldsFromS3File(String path) {</b>
+<i class="no-highlight">1239</i>&nbsp;        // If an amazon s3 uri is specified in the staging property of the snap, then
+<b class="nc"><i class="no-highlight">1240</i>&nbsp;        // it will override the s3 bucket and s3 folder information specified in</b>
+<i class="no-highlight">1241</i>&nbsp;        // the Snowflake account.
+<i class="no-highlight">1242</i>&nbsp;        if (StringUtils.isNotBlank(staging) &amp;&amp; stagingInputType.equals(S3_URI)) {
+<b class="nc"><i class="no-highlight">1243</i>&nbsp;            AmazonS3URI amazonS3URI = new AmazonS3URI(staging);</b>
+<i class="no-highlight">1244</i>&nbsp;            s3Bucket = amazonS3URI.getBucket();
+<b class="nc"><i class="no-highlight">1245</i>&nbsp;            s3Folder = amazonS3URI.getKey();</b>
+<b class="nc"><i class="no-highlight">1246</i>&nbsp;        }</b>
+<i class="no-highlight">1247</i>&nbsp;
+<b class="nc"><i class="no-highlight">1248</i>&nbsp;        if (StringUtils.isBlank(s3Folder)) {</b>
+<b class="nc"><i class="no-highlight">1249</i>&nbsp;            s3format = String.format(S3_FILE_KEY_WTHOUT_FOLDER, path);</b>
+<b class="nc"><i class="no-highlight">1250</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">1251</i>&nbsp;            s3format = String.format(S3_FILE_KEY_WITH_FOLDER, s3Folder, path);</b>
+<b class="nc"><i class="no-highlight">1252</i>&nbsp;        }</b>
+<i class="no-highlight">1253</i>&nbsp;
+<i class="no-highlight">1254</i>&nbsp;        S3Object s3object = s3.getObject(new GetObjectRequest(
+<i class="no-highlight">1255</i>&nbsp;                s3Bucket, s3format));
+<i class="no-highlight">1256</i>&nbsp;        BufferedReader reader = new BufferedReader(new InputStreamReader(
+<i class="no-highlight">1257</i>&nbsp;                s3object.getObjectContent()));
+<i class="no-highlight">1258</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1259</i>&nbsp;            return readFieldsFrom(reader);</b>
+<b class="nc"><i class="no-highlight">1260</i>&nbsp;        } catch (IOException ioe) {</b>
+<b class="nc"><i class="no-highlight">1261</i>&nbsp;            throw new SnapDataException(ERROR_READING_DATA)</b>
+<i class="no-highlight">1262</i>&nbsp;                    .withReason(ERROR_INVALID_INPUT_REASON)
+<i class="no-highlight">1263</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<b class="nc"><i class="no-highlight">1264</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1265</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">1266</i>&nbsp;</b>
+<i class="no-highlight">1267</i>&nbsp;    private List&lt;String&gt; readFieldsFrom(BufferedReader reader) throws IOException {
+<b class="nc"><i class="no-highlight">1268</i>&nbsp;        //Read until the first line with content is found</b>
+<b class="nc"><i class="no-highlight">1269</i>&nbsp;        //if the line is null the end of the reader has been reached</b>
+<b class="nc"><i class="no-highlight">1270</i>&nbsp;        String line = reader.readLine();</b>
+<i class="no-highlight">1271</i>&nbsp;        while (line != null &amp;&amp; StringUtils.isBlank(line)) {
+<i class="no-highlight">1272</i>&nbsp;            line = reader.readLine();
+<i class="no-highlight">1273</i>&nbsp;        }
+<i class="no-highlight">1274</i>&nbsp;
+<i class="no-highlight">1275</i>&nbsp;        if (StringUtils.isNotBlank(line)) {
+<i class="no-highlight">1276</i>&nbsp;            String[] internalStageFields = line.split(FIELD_DELIMITER);
+<i class="no-highlight">1277</i>&nbsp;            return Arrays.asList(internalStageFields);
+<i class="no-highlight">1278</i>&nbsp;        } else {
+<i class="no-highlight">1279</i>&nbsp;            throw new SnapDataException(ERR_ALL_COLUMNS_NULL)
+<i class="no-highlight">1280</i>&nbsp;                    .withReason(REASON_ALL_COLUMNS_NULL)
+<i class="no-highlight">1281</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">1282</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1283</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">1284</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">1285</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">1286</i>&nbsp;     * Fetch the column names that the table has</b>
+<b class="nc"><i class="no-highlight">1287</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">1288</i>&nbsp;     * @param tableName The target table name</b>
+<b class="nc"><i class="no-highlight">1289</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">1290</i>&nbsp;     * @return The String list that contains column names</b>
+<b class="nc"><i class="no-highlight">1291</i>&nbsp;     * @throws SQLException</b>
+<i class="no-highlight">1292</i>&nbsp;     */
+<i class="no-highlight">1293</i>&nbsp;    protected List&lt;String&gt; fetchTableColumns(String tableName) throws SQLException {
+<b class="nc"><i class="no-highlight">1294</i>&nbsp;        try (Statement stmt = snowflakeConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">1295</i>&nbsp;            List&lt;String&gt; tableColumns = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">1296</i>&nbsp;            try (ResultSet resultSet = stmt.executeQuery(</b>
+<b class="nc"><i class="no-highlight">1297</i>&nbsp;                    String.format(QUERY_TO_GET_TABLE_COLUMNS, tableName))) {</b>
+<b class="nc"><i class="no-highlight">1298</i>&nbsp;                if (resultSet != null) {</b>
+<i class="no-highlight">1299</i>&nbsp;                    ResultSetMetaData metaData = resultSet.getMetaData();
+<b class="nc"><i class="no-highlight">1300</i>&nbsp;                    int columnCount = metaData.getColumnCount();</b>
+<i class="no-highlight">1301</i>&nbsp;                    for (int i = 1; i &lt;= columnCount; i++) {
+<i class="no-highlight">1302</i>&nbsp;                        tableColumns.add(String.format(ID_QUOTE_FORMAT, metaData.getColumnName(i)));
+<i class="no-highlight">1303</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">1304</i>&nbsp;                }</b>
+<i class="no-highlight">1305</i>&nbsp;                return tableColumns;
+<i class="no-highlight">1306</i>&nbsp;            } catch (SQLException e) {
+<b class="nc"><i class="no-highlight">1307</i>&nbsp;                throw new ExecutionException(e, ERR_FETCH_TABLE_COLUMNS)</b>
+<i class="no-highlight">1308</i>&nbsp;                        .withReason(e.getMessage())
+<b class="nc"><i class="no-highlight">1309</i>&nbsp;                        .withResolution(ERR_FETCH_TABLE_COLUMNS_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1310</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1311</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1312</i>&nbsp;    }</b>
+<i class="no-highlight">1313</i>&nbsp;
+<b class="nc"><i class="no-highlight">1314</i>&nbsp;    protected void writeErrorView(String tableName, Document original) {</b>
+<i class="no-highlight">1315</i>&nbsp;        if (errorViews.isEmpty() || DONT_VALIDATE.equals(aggregateErrorType)) {
+<b class="nc"><i class="no-highlight">1316</i>&nbsp;            return;</b>
+<b class="nc"><i class="no-highlight">1317</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1318</i>&nbsp;        String ERROR_SQL_STATEMENT =</b>
+<i class="no-highlight">1319</i>&nbsp;                &quot;SELECT * FROM TABLE(VALIDATE(&quot; + tableName + &quot; , job_id =&gt; &#39;_last&#39;))&quot;;
+<i class="no-highlight">1320</i>&nbsp;        try (Statement stmt = snowflakeConnection.createStatement();
+<i class="no-highlight">1321</i>&nbsp;             ResultSet rs = stmt.executeQuery(ERROR_SQL_STATEMENT)) {
+<i class="no-highlight">1322</i>&nbsp;            if (ROW_AGGREGATE_ERRORS.equals(aggregateErrorType)) {
+<b class="nc"><i class="no-highlight">1323</i>&nbsp;                aggregateErrorsToErrorView(rs, original);</b>
+<b class="nc"><i class="no-highlight">1324</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">1325</i>&nbsp;                addErrorsToErrorView(rs, original);</b>
+<b class="nc"><i class="no-highlight">1326</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1327</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">1328</i>&nbsp;            LOGGER.error(&quot;SQLException: &quot;, e);</b>
+<b class="nc"><i class="no-highlight">1329</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1330</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">1331</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">1332</i>&nbsp;    private void writeResultToOutputView(final ResultSet rs, Document original) throws</b>
+<b class="nc"><i class="no-highlight">1333</i>&nbsp;            SQLException {</b>
+<b class="nc"><i class="no-highlight">1334</i>&nbsp;        Map&lt;String, Object&gt; outputViewInfo = Maps.newLinkedHashMap();</b>
+<i class="no-highlight">1335</i>&nbsp;        outputViewInfo.put(KEY_TABLE, tableName);
+<b class="nc"><i class="no-highlight">1336</i>&nbsp;        outputViewInfo.put(KEY_INPUT_RECORDS, BigInteger.valueOf(inputCount));</b>
+<b class="nc"><i class="no-highlight">1337</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; results = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">1338</i>&nbsp;        outputViewInfo.put(KEY_RESULTS, results);
+<b class="nc"><i class="no-highlight">1339</i>&nbsp;        if (rs != null) {</b>
+<i class="no-highlight">1340</i>&nbsp;            ResultSetMetaData metaData = rs.getMetaData();
+<i class="no-highlight">1341</i>&nbsp;            int columnCount = metaData.getColumnCount();
+<i class="no-highlight">1342</i>&nbsp;            while (rs.next()) {
+<i class="no-highlight">1343</i>&nbsp;                Map&lt;String, Object&gt; resultMap = Maps.newLinkedHashMap();
+<b class="nc"><i class="no-highlight">1344</i>&nbsp;                for (int i = 1; i &lt;= columnCount; i++) {</b>
+<b class="nc"><i class="no-highlight">1345</i>&nbsp;                    resultMap.put(metaData.getColumnName(i), rs.getString(i));</b>
+<b class="nc"><i class="no-highlight">1346</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">1347</i>&nbsp;                results.add(resultMap);</b>
+<b class="nc"><i class="no-highlight">1348</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1349</i>&nbsp;        }</b>
+<i class="no-highlight">1350</i>&nbsp;        outputViews.write(documentUtility.newDocument(outputViewInfo), original);
+<i class="no-highlight">1351</i>&nbsp;    }
+<i class="no-highlight">1352</i>&nbsp;
+<i class="no-highlight">1353</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">1354</i>&nbsp;    public void defineViews(final ViewBuilder viewBuilder) {</b>
+<i class="no-highlight">1355</i>&nbsp;        viewBuilder.describe(INPUT_ROWS_VIEW_NAME, ROWS_VIEW_LABEL, ROWS_INPUT_VIEW_DESC)
+<i class="no-highlight">1356</i>&nbsp;                .type(ViewType.DOCUMENT)
+<i class="no-highlight">1357</i>&nbsp;                .add(ViewCategory.INPUT);
+<i class="no-highlight">1358</i>&nbsp;        viewBuilder.describe(DEFAULT_OUTPUT_VIEW_0)
+<b class="nc"><i class="no-highlight">1359</i>&nbsp;                .type(ViewType.DOCUMENT)</b>
+<i class="no-highlight">1360</i>&nbsp;                .add(ViewCategory.OUTPUT);
+<b class="nc"><i class="no-highlight">1361</i>&nbsp;    }</b>
+<i class="no-highlight">1362</i>&nbsp;
+<i class="no-highlight">1363</i>&nbsp;    @Override
+<i class="no-highlight">1364</i>&nbsp;    public Logger getLogger() {
+<b class="nc"><i class="no-highlight">1365</i>&nbsp;        return LOGGER;</b>
+<b class="nc"><i class="no-highlight">1366</i>&nbsp;    }</b>
+<i class="no-highlight">1367</i>&nbsp;
+<b class="nc"><i class="no-highlight">1368</i>&nbsp;    @Override</b>
+<i class="no-highlight">1369</i>&nbsp;    public void handle(final LifecycleEvent event) {
+<b class="nc"><i class="no-highlight">1370</i>&nbsp;        switch (event) {</b>
+<b class="nc"><i class="no-highlight">1371</i>&nbsp;            case SUCCESS:</b>
+<i class="no-highlight">1372</i>&nbsp;                break;
+<b class="nc"><i class="no-highlight">1373</i>&nbsp;            case CLOSE:</b>
+<i class="no-highlight">1374</i>&nbsp;            case STOP:
+<b class="nc"><i class="no-highlight">1375</i>&nbsp;            case FAILURE:</b>
+<i class="no-highlight">1376</i>&nbsp;                LOGGER.debug(STOP_LIFECYCLE_MSG, String.valueOf(event));
+<i class="no-highlight">1377</i>&nbsp;                if (queryManagementOption.equals(SqlQueryManagementOptions.CANCEL_QUEUED_QUERIES)
+<i class="no-highlight">1378</i>&nbsp;                        &amp;&amp; queryIDThreadStarted) {
+<i class="no-highlight">1379</i>&nbsp;                    stopQuery(snowflakeConnection);
+<b class="nc"><i class="no-highlight">1380</i>&nbsp;                }</b>
+<i class="no-highlight">1381</i>&nbsp;                super.handle(event);
+<i class="no-highlight">1382</i>&nbsp;                break;
+<i class="no-highlight">1383</i>&nbsp;            default:
+<i class="no-highlight">1384</i>&nbsp;                LOGGER.debug(OTHER_LIFECYCLE_MSG, String.valueOf(event));
+<i class="no-highlight">1385</i>&nbsp;        }
+<i class="no-highlight">1386</i>&nbsp;        super.handle(event);
+<i class="no-highlight">1387</i>&nbsp;    }
+<i class="no-highlight">1388</i>&nbsp;
+<i class="no-highlight">1389</i>&nbsp;    @Override
+<i class="no-highlight">1390</i>&nbsp;    public void setConnectionOnRetry(Connection connection) {
+<i class="no-highlight">1391</i>&nbsp;        this.snowflakeConnection = connection;
+<i class="no-highlight">1392</i>&nbsp;    }
+<i class="no-highlight">1393</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

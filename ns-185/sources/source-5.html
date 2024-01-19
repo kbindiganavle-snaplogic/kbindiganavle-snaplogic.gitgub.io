@@ -1,0 +1,345 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ExportExecutor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.zuora.request</a>
+</div>
+
+<h1>Coverage Summary for Class: ExportExecutor (com.snaplogic.snaps.zuora.request)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ExportExecutor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/99)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.zuora.request;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.metrics.Counter;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.EditorProperty;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.TemplateEvaluator;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.soap.ClientBuilder;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.soap.InvocationService;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snaps.zuora.ZuoraSoapAccount;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.util.HttpUtils;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.util.JsonPathUtil;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import org.apache.commons.csv.CSVFormat;
+<i class="no-highlight">32</i>&nbsp;import org.apache.commons.csv.CSVParser;
+<i class="no-highlight">33</i>&nbsp;import org.apache.commons.csv.CSVRecord;
+<i class="no-highlight">34</i>&nbsp;import org.apache.commons.httpclient.HttpStatus;
+<i class="no-highlight">35</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">36</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">37</i>&nbsp;import org.apache.http.client.ClientProtocolException;
+<i class="no-highlight">38</i>&nbsp;import org.apache.http.client.methods.HttpGet;
+<i class="no-highlight">39</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">40</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">43</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">44</i>&nbsp;import java.io.InputStreamReader;
+<i class="no-highlight">45</i>&nbsp;import java.io.Reader;
+<i class="no-highlight">46</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">47</i>&nbsp;import java.util.List;
+<i class="no-highlight">48</i>&nbsp;import java.util.Map;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;import javax.xml.namespace.QName;
+<i class="no-highlight">51</i>&nbsp;import javax.xml.soap.SOAPException;
+<i class="no-highlight">52</i>&nbsp;import javax.xml.soap.SOAPMessage;
+<i class="no-highlight">53</i>&nbsp;import javax.xml.stream.XMLStreamException;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.zuora.request.Messages.*;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;/**
+<i class="no-highlight">58</i>&nbsp; * Executes the export request. Export has multiple steps, first the export is created via the
+<i class="no-highlight">59</i>&nbsp; * create operation which returns an Id. Then we poll on the Id until the result indicates the
+<i class="no-highlight">60</i>&nbsp; * export is completed. Then, finally we request the Export via its file id through REST,
+<i class="no-highlight">61</i>&nbsp; * parse the response (either csv or html) and write it to the output view as JSON documents.
+<i class="no-highlight">62</i>&nbsp; *
+<i class="no-highlight">63</i>&nbsp; * @author mklumpp
+<i class="no-highlight">64</i>&nbsp; */
+<i class="no-highlight">65</i>&nbsp;public class ExportExecutor extends RequestExecutor {
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(ExportExecutor.class);</b>
+<i class="no-highlight">67</i>&nbsp;    private static final String EXPORT_ID_PATH = &quot;$soapenv:Body.ns1:createResponse&quot; +
+<i class="no-highlight">68</i>&nbsp;            &quot;.ns1:result.ns1:Id&quot;;
+<i class="no-highlight">69</i>&nbsp;    private static final String EXPORT_READY_QUERY = &quot;SELECT status, fileId, query, &quot; +
+<i class="no-highlight">70</i>&nbsp;            &quot;size FROM Export WHERE Id=&#39;%s&#39;&quot;;
+<i class="no-highlight">71</i>&nbsp;    private static final String EXPORT_DONE_PATH = &quot;$soapenv:Body.ns1:queryResponse&quot; +
+<i class="no-highlight">72</i>&nbsp;            &quot;.ns1:result.ns1:records.ns2:Status&quot;;
+<i class="no-highlight">73</i>&nbsp;    private static final String EXPORT_FILE_ID_PATH = &quot;$soapenv:Body.ns1:queryResponse&quot; +
+<i class="no-highlight">74</i>&nbsp;            &quot;.ns1:result.ns1:records.ns2:FileId&quot;;
+<i class="no-highlight">75</i>&nbsp;    private static final String QUERY_OPERATION = &quot;{http://api.zuora.com/}query&quot;;
+<i class="no-highlight">76</i>&nbsp;    private static final String PRODUCTION_GET_FILE_URI =
+<i class="no-highlight">77</i>&nbsp;            &quot;https://www.zuora.com/apps/api/file/%s&quot;;
+<i class="no-highlight">78</i>&nbsp;    private static final String SANDBOX_GET_FILE_URI =
+<i class="no-highlight">79</i>&nbsp;            &quot;https://apisandbox.zuora.com/apps/api/file/%s&quot;;
+<i class="no-highlight">80</i>&nbsp;    private static final String QUERY_OBJECT_XML = &quot;/query/object.xml&quot;;
+<i class="no-highlight">81</i>&nbsp;    private static final String QUERY = &quot;query&quot;;
+<i class="no-highlight">82</i>&nbsp;    private static final String COMPLETED = &quot;Completed&quot;;
+<i class="no-highlight">83</i>&nbsp;    private static final int SLEEP_TIME_IN_MS = 500;
+<b class="nc"><i class="no-highlight">84</i>&nbsp;    private static final String UNAUTHORIZED = String.valueOf(HttpStatus.SC_UNAUTHORIZED);</b>
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;    private final TemplateEvaluator templateEvaluator;
+<i class="no-highlight">87</i>&nbsp;    private final ZuoraHttpClient httpClient;
+<i class="no-highlight">88</i>&nbsp;    private final ZuoraSoapAccount account;
+<i class="no-highlight">89</i>&nbsp;    private final HttpUtils httpUtils;
+<i class="no-highlight">90</i>&nbsp;    private final ExpressionProperty queryProperty;
+<i class="no-highlight">91</i>&nbsp;    private final JsonPathUtil jsonPathUtil;
+<i class="no-highlight">92</i>&nbsp;
+<i class="no-highlight">93</i>&nbsp;    public ExportExecutor(final ClientBuilder clientBuilder, final EditorProperty editorProperty,
+<i class="no-highlight">94</i>&nbsp;            final InvocationService invocationService, final Counter counter,
+<i class="no-highlight">95</i>&nbsp;            final Map&lt;String, Object&gt; snapProperties, final DocumentUtility documentUtility,
+<i class="no-highlight">96</i>&nbsp;            final OutputViews outputViews, final ErrorViews errorViews,
+<i class="no-highlight">97</i>&nbsp;            final TemplateEvaluator templateEvaluator, final ZuoraHttpClient httpClient,
+<i class="no-highlight">98</i>&nbsp;            final HttpUtils httpUtils, final ZuoraSoapAccount account,
+<i class="no-highlight">99</i>&nbsp;            final DefaultMessageHandler messageHandler, final ExpressionProperty queryProperty,
+<i class="no-highlight">100</i>&nbsp;            final JsonPathUtil jsonPathUtil) {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        super(clientBuilder, editorProperty, invocationService, counter, snapProperties,</b>
+<i class="no-highlight">102</i>&nbsp;                documentUtility, outputViews, errorViews, messageHandler);
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        this.templateEvaluator = templateEvaluator;</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        this.httpClient = httpClient;</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        this.account = account;</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        this.httpUtils = httpUtils;</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        this.queryProperty = queryProperty;</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        this.jsonPathUtil = jsonPathUtil;</b>
+<i class="no-highlight">109</i>&nbsp;    }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    @Override
+<i class="no-highlight">112</i>&nbsp;    protected void postProcess(final SOAPMessage soapMessage, final Document inputDocument)
+<i class="no-highlight">113</i>&nbsp;            throws XMLStreamException, SOAPException {
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        Object data = invocationService.serialize(soapMessage);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        if (isSuccessful(data, inputDocument)) {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            String exportId = jsonPathUtil.nullableRead(EXPORT_ID_PATH, data);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            if (exportId == null) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                SnapDataException exception = new SnapDataException(inputDocument,</b>
+<i class="no-highlight">119</i>&nbsp;                        FAILED_TO_CREATE_EXPORT)
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                        .withReason(FAILED_TO_CREATE_EXPORT)</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                        .withResolution(REASON_EXPORT_FAILED);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                errorViews.write(exception);</b>
+<i class="no-highlight">123</i>&nbsp;                return;
+<i class="no-highlight">124</i>&nbsp;            }
+<i class="no-highlight">125</i>&nbsp;            // SOAP request with belows query until
+<b class="nc"><i class="no-highlight">126</i>&nbsp;            try (InputStream is = ExportExecutor.class.getResourceAsStream(QUERY_OBJECT_XML)) {</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                String template = IOUtils.toString(is);</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                Map&lt;String, Object&gt; additionalProperties = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                additionalProperties.put(QUERY, String.format(EXPORT_READY_QUERY, exportId));</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                String evaluatedTemplate = templateEvaluator.evaluate(template, null,</b>
+<i class="no-highlight">131</i>&nbsp;                        additionalProperties);
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                Object result = pollResult(evaluatedTemplate);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                fetchResults(result, inputDocument);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                throw new ExecutionException(e, ERROR_WHILE_READING_XML_TEMPLATE)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                        .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            }</b>
+<i class="no-highlight">138</i>&nbsp;        }
+<i class="no-highlight">139</i>&nbsp;    }
+<i class="no-highlight">140</i>&nbsp;
+<i class="no-highlight">141</i>&nbsp;    private Object pollResult(String evaluatedTemplate) {
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        clientBuilder.requestMessageBody(QName.valueOf(QUERY_OPERATION));</b>
+<i class="no-highlight">143</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            SOAPMessage soapMessage = invocationService.call(clientBuilder, evaluatedTemplate);</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            if (soapMessage == null) {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                throw new ExecutionException(NO_SOAP_RESPONSE).formatWith(evaluatedTemplate)</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                        .withResolutionAsDefect();</b>
+<i class="no-highlight">148</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            Object data = invocationService.serialize(soapMessage);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            String completed = jsonPathUtil.nullableRead(EXPORT_DONE_PATH, data);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            if (completed == null || !completed.equalsIgnoreCase(COMPLETED)) {</b>
+<i class="no-highlight">152</i>&nbsp;                try {
+<i class="no-highlight">153</i>&nbsp;                    // TODO - MK: make property on account
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                    Thread.sleep(SLEEP_TIME_IN_MS);</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                    throw new ExecutionException(e, THREAD_INTERRUPT_EXCEPTION);</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                return pollResult(evaluatedTemplate);</b>
+<i class="no-highlight">159</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            return data;</b>
+<i class="no-highlight">161</i>&nbsp;
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        } catch (SOAPException e) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            throw new ExecutionException(e, SOAP_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                    .withReason(SOAP_EXCEPTION_REASON)</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                    .withResolution(SOAP_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;            throw new ExecutionException(e, XML_SERIALIZATION_FAILED)</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">169</i>&nbsp;        }
+<i class="no-highlight">170</i>&nbsp;    }
+<i class="no-highlight">171</i>&nbsp;
+<i class="no-highlight">172</i>&nbsp;    private void fetchResults(Object data, Document inputDocument) {
+<i class="no-highlight">173</i>&nbsp;        try {
+<i class="no-highlight">174</i>&nbsp;            // done, we have the file id.
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            String fileId = jsonPathUtil.nullableRead(EXPORT_FILE_ID_PATH, data);</b>
+<i class="no-highlight">176</i>&nbsp;            String url;
+<b class="nc"><i class="no-highlight">177</i>&nbsp;            if (account.isProduction()) {</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                url = String.format(PRODUCTION_GET_FILE_URI, fileId);</b>
+<i class="no-highlight">179</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                url = String.format(SANDBOX_GET_FILE_URI, fileId);</b>
+<i class="no-highlight">181</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            HttpGet httpGet = new HttpGet(url);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            httpGet.setHeader(account.createAuth());</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;            HttpResponse httpResponse = httpUtils.executeRequest(httpClient, httpGet);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            try (InputStream is = httpUtils.getInputStreamFromResponse(httpResponse,</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                    httpGet.getURI())) {</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                Reader in = new InputStreamReader(is);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                CSVParser parser = CSVFormat.RFC4180.parse(in);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                List&lt;String&gt; headers = null;</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                Iterator&lt;CSVRecord&gt; iterator = parser.iterator();</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                while (iterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                    CSVRecord record = iterator.next();</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                    if (headers == null) {</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                        headers = createHeaders(record);</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                        continue;</b>
+<i class="no-highlight">196</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                    Map&lt;String, Object&gt; outputDocumentData = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                    int i = 0;</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                    for (String header : headers) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                        Object value = record.get(i++);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                        outputDocumentData.put(header, value);</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                    outputViews.write(documentUtility.newDocumentFor(inputDocument, outputDocumentData),</b>
+<i class="no-highlight">204</i>&nbsp;                            inputDocument);
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        } catch (ClientProtocolException e) {</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;            throw new ExecutionException(e, CLIENT_PROTOCOL_EXCEPTION_OCCURRED)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;            String message = e.getMessage();</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            if (message.contains(UNAUTHORIZED)) {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                LOG.error(NOT_AUTHORIZED_REASON, e);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                throw new ExecutionException(NOT_AUTHORIZED_REASON)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                        .withReason(NOT_AUTHORIZED_REASON)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        .withResolution(NOT_AUTHORIZED_RESOLUTION);</b>
+<i class="no-highlight">218</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            throw new ExecutionException(e, IO_EXCEPTION_OCCURRED)</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                    .withReason(message)</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        }</b>
+<i class="no-highlight">223</i>&nbsp;    }
+<i class="no-highlight">224</i>&nbsp;
+<i class="no-highlight">225</i>&nbsp;    @Override
+<i class="no-highlight">226</i>&nbsp;    protected Map&lt;String, Object&gt; getExpressionProperties(Document document) {
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        Map&lt;String, Object&gt; evaluatedQuery = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        evaluatedQuery.put(QUERY, queryProperty.eval(document));</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        return evaluatedQuery;</b>
+<i class="no-highlight">230</i>&nbsp;    }
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;    private List&lt;String&gt; createHeaders(CSVRecord headerRecord) {
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        Iterator&lt;String&gt; header = headerRecord.iterator();</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        List&lt;String&gt; headers = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        while (header.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            headers.add(header.next());</b>
+<i class="no-highlight">237</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        return headers;</b>
+<i class="no-highlight">239</i>&nbsp;    }
+<i class="no-highlight">240</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

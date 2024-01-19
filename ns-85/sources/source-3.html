@@ -1,0 +1,689 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AnaplanBase</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.anaplan</a>
+</div>
+
+<h1>Coverage Summary for Class: AnaplanBase (com.snaplogic.snaps.anaplan)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AnaplanBase</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/283)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.anaplan;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.anaplan.client.CellReader;
+<i class="no-highlight">14</i>&nbsp;import com.anaplan.client.ServerFile;
+<i class="no-highlight">15</i>&nbsp;import com.anaplan.client.Service;
+<i class="no-highlight">16</i>&nbsp;import com.anaplan.client.Task;
+<i class="no-highlight">17</i>&nbsp;import com.anaplan.client.TaskResult;
+<i class="no-highlight">18</i>&nbsp;import com.anaplan.client.TaskResultDetail;
+<i class="no-highlight">19</i>&nbsp;import com.anaplan.client.TaskStatus;
+<i class="no-highlight">20</i>&nbsp;import com.anaplan.client.ex.AnaplanAPIException;
+<i class="no-highlight">21</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">22</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">23</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.PropertyCategory;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">39</i>&nbsp;import org.apache.commons.csv.CSVFormat;
+<i class="no-highlight">40</i>&nbsp;import org.apache.commons.csv.CSVParser;
+<i class="no-highlight">41</i>&nbsp;import org.apache.commons.csv.CSVRecord;
+<i class="no-highlight">42</i>&nbsp;import org.apache.commons.lang3.ArrayUtils;
+<i class="no-highlight">43</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">44</i>&nbsp;import org.apache.commons.lang3.math.NumberUtils;
+<i class="no-highlight">45</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">46</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">49</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">50</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">51</i>&nbsp;import java.util.Date;
+<i class="no-highlight">52</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">53</i>&nbsp;import java.util.List;
+<i class="no-highlight">54</i>&nbsp;import java.util.Map;
+<i class="no-highlight">55</i>&nbsp;import java.util.Set;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snap.Utils.evalIntProperty;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snaps.anaplan.Messages.*;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;/**
+<i class="no-highlight">61</i>&nbsp; * Holds properties and operations common to snaps
+<i class="no-highlight">62</i>&nbsp; *
+<i class="no-highlight">63</i>&nbsp; * @author kgade, jim
+<i class="no-highlight">64</i>&nbsp; */
+<i class="no-highlight">65</i>&nbsp;@Accounts(provides = AnaplanAccount.class)
+<i class="no-highlight">66</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<b class="nc"><i class="no-highlight">67</i>&nbsp;public abstract class AnaplanBase extends SimpleSnap {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(AnaplanBase.class);</b>
+<i class="no-highlight">69</i>&nbsp;    static final String PROP_RETRY_LIMIT_KEY = &quot;retryLimit&quot;;
+<i class="no-highlight">70</i>&nbsp;    static final String PROP_RETRY_INTERVAL_KEY = &quot;retryInterval&quot;;
+<i class="no-highlight">71</i>&nbsp;    static final String PROP_HTTP_TIMEOUT_KEY = &quot;httpTimeout&quot;;
+<i class="no-highlight">72</i>&nbsp;    static final String PROP_WORKSPACE_KEY = &quot;Workspace&quot;;
+<i class="no-highlight">73</i>&nbsp;    static final String PROP_MODEL_KEY = &quot;Model&quot;;
+<i class="no-highlight">74</i>&nbsp;    static final String SERVER_FILENAME_PROP = &quot;serverFilename&quot;;
+<i class="no-highlight">75</i>&nbsp;    static final String OVERWRITE_FILE_PROP = &quot;overwriteFile&quot;;
+<i class="no-highlight">76</i>&nbsp;    static final String UPLOAD_ONLY_PROP = &quot;uploadOnly&quot;;
+<i class="no-highlight">77</i>&nbsp;    private static final int SERVER_TASK_POLL_INTERVAL = 1000;
+<i class="no-highlight">78</i>&nbsp;    static final int DEFAULT_RETRY_LIMIT = 3;
+<i class="no-highlight">79</i>&nbsp;    static final int DEFAULT_RETRY_INTERVAL = 3;
+<i class="no-highlight">80</i>&nbsp;    static final int DEFAULT_HTTP_TIMEOUT = 60;
+<i class="no-highlight">81</i>&nbsp;    static final String TASK_ID = &quot;TaskID&quot;;
+<i class="no-highlight">82</i>&nbsp;    static final String TASK_NAME = &quot;TaskName&quot;;
+<i class="no-highlight">83</i>&nbsp;    protected static final String ERRORS = &quot;Errors&quot;;
+<i class="no-highlight">84</i>&nbsp;    protected static final String DATA_ERROR_WARNINGS_KEY = &quot;DataErrorsOrWarnings&quot;;
+<i class="no-highlight">85</i>&nbsp;    protected static final String DATA_ERROR_WARNINGS = &quot;Data errors/warnings&quot;;
+<i class="no-highlight">86</i>&nbsp;    protected static final String COLUMN_D = &quot;Column %d&quot;;
+<i class="no-highlight">87</i>&nbsp;    private static final String RESULTS = &quot;Results&quot;;
+<i class="no-highlight">88</i>&nbsp;    private static final String ERROR = &quot;error&quot;;
+<i class="no-highlight">89</i>&nbsp;    private static final String REASON = &quot;reason&quot;;
+<b class="nc"><i class="no-highlight">90</i>&nbsp;    private static final Set&lt;String&gt; ANAPLAN_FAILURES = ImmutableSet.of(&quot;actionFailed&quot;,</b>
+<i class="no-highlight">91</i>&nbsp;            &quot;connectorError&quot;, &quot;versionImportPropertyChangeFailed&quot;, &quot;versionsImportFailed&quot;,
+<i class="no-highlight">92</i>&nbsp;            &quot;crossCustomerImport&quot;, &quot;deleteFromSelectionFailed&quot;, &quot;failedToCreateRevision&quot;,
+<i class="no-highlight">93</i>&nbsp;            &quot;failedToLocateEntity&quot;, &quot;failedToLocateHierarchy&quot;, &quot;failedToLocateModel&quot;,
+<i class="no-highlight">94</i>&nbsp;            &quot;failedToLocateModule&quot;, &quot;failedToLocateSavedView&quot;, &quot;hierarchyImportBombed&quot;,
+<i class="no-highlight">95</i>&nbsp;            &quot;hierarchyImportDuplicateSourceKey&quot;, &quot;hierarchyImportDuplicateTargetKey&quot;,
+<i class="no-highlight">96</i>&nbsp;            &quot;hierarchyImportFailed&quot;, &quot;hierarchyImportFailedToUpdateProperties&quot;,
+<i class="no-highlight">97</i>&nbsp;            &quot;hierarchyImportInconsistentRenaming&quot;, &quot;hierarchyImportNameAndCodeUnmapped&quot;,
+<i class="no-highlight">98</i>&nbsp;            &quot;hierarchyImportNameOrCodeSameAsParent&quot;, &quot;hierarchyImportNoSelectiveEditing&quot;,
+<i class="no-highlight">99</i>&nbsp;            &quot;hierarchyImportPropertyKeyCalculated&quot;, &quot;hierarchyImportPropertyKeyInvalidMissing&quot;,
+<i class="no-highlight">100</i>&nbsp;            &quot;hierarchyImportPropertyKeyInvalidNoDefintion&quot;, &quot;hierarchyImportUniqueness&quot;,
+<i class="no-highlight">101</i>&nbsp;            &quot;hierarchyImportPropertyKeyInvalidSystem&quot;, &quot;hierarchyImportPropertyKeyUnmapped&quot;,
+<i class="no-highlight">102</i>&nbsp;            &quot;importFailedGeneralError&quot;, &quot;internalError&quot;, &quot;missingFields&quot;, &quot;modelObjectNotLocated&quot;,
+<i class="no-highlight">103</i>&nbsp;            &quot;modelObjectNotSupported&quot;, &quot;moduleImportFailed&quot;, &quot;moduleImportNoWriteAccess&quot;,
+<i class="no-highlight">104</i>&nbsp;            &quot;msgExportCancelled&quot;, &quot;msgImportCancelled&quot;, &quot;msgTooManyColumns&quot;, &quot;msgTooManyRows&quot;,
+<i class="no-highlight">105</i>&nbsp;            &quot;noAccessToModule&quot;, &quot;notAuthorised&quot;, &quot;sourceModelArchived&quot;, &quot;sourceWorkspaceNoAccess&quot;,
+<i class="no-highlight">106</i>&nbsp;            &quot;sourceWorkspaceNotLocated&quot;, &quot;taskElementFailed&quot;, &quot;usersImportBombed&quot;,
+<i class="no-highlight">107</i>&nbsp;            &quot;uploadedFileNoLongerAvailable&quot;, &quot;usersImportFailed&quot;, &quot;versionsImportBombed&quot;);
+<i class="no-highlight">108</i>&nbsp;    public static final int CHUNK_SIZE = 1024 * 1024 * 10;      // 10MB chunk size
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    protected Service service;
+<i class="no-highlight">111</i>&nbsp;    protected String workspace;
+<i class="no-highlight">112</i>&nbsp;    protected String model;
+<i class="no-highlight">113</i>&nbsp;    protected boolean isStreamErrors;
+<i class="no-highlight">114</i>&nbsp;    protected boolean isDataErrorWarning;
+<i class="no-highlight">115</i>&nbsp;    protected boolean isFailErrorBehaviour;
+<i class="no-highlight">116</i>&nbsp;    protected int maxRetries;
+<i class="no-highlight">117</i>&nbsp;    protected int retryInterval;
+<i class="no-highlight">118</i>&nbsp;    @Inject
+<i class="no-highlight">119</i>&nbsp;    protected AnaplanAccount anaplanAccount;
+<i class="no-highlight">120</i>&nbsp;    @Inject
+<i class="no-highlight">121</i>&nbsp;    protected AnaplanUtil anaplanUtil;
+<i class="no-highlight">122</i>&nbsp;
+<i class="no-highlight">123</i>&nbsp;    protected ExpressionProperty workspaceExpression;
+<i class="no-highlight">124</i>&nbsp;    protected ExpressionProperty modelExpression;
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    private String statusDateString; // This is only set for some unit tests.
+<i class="no-highlight">127</i>&nbsp;
+<i class="no-highlight">128</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">129</i>&nbsp;    void initStatusDate(String value) {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        statusDateString = value;</b>
+<i class="no-highlight">131</i>&nbsp;    }
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;    private String getStatusDateString() {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        return statusDateString != null ? statusDateString : new Date().toString();</b>
+<i class="no-highlight">135</i>&nbsp;    }
+<i class="no-highlight">136</i>&nbsp;
+<i class="no-highlight">137</i>&nbsp;    @Override
+<i class="no-highlight">138</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning defineProperties&quot;);</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        defineAnaplanAPIRequiredProperties(service, anaplanAccount, propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        defineAdditionalProperties(propertyBuilder);</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    static void defineRetryProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning defineRetryProperites&quot;);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        propertyBuilder.describe(PROP_RETRY_LIMIT_KEY, RETRY_ATTEMPTS_LABEL,</b>
+<i class="no-highlight">147</i>&nbsp;                RETRY_ATTEMPTS_DESC)
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                .defaultValue(DEFAULT_RETRY_LIMIT)</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                .withMaxValue(256)</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        propertyBuilder.describe(PROP_RETRY_INTERVAL_KEY, RETRY_INTERVAL_LABEL,</b>
+<i class="no-highlight">156</i>&nbsp;                RETRY_INTERVAL_DESC)
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .defaultValue(DEFAULT_RETRY_INTERVAL)</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                .withMaxValue(3600)</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        propertyBuilder.describe(PROP_HTTP_TIMEOUT_KEY, HTTP_TIMEOUT_LABEL,</b>
+<i class="no-highlight">165</i>&nbsp;                HTTP_TIMEOUT_DESCRIPTION)
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                .defaultValue(DEFAULT_HTTP_TIMEOUT)</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                .withMaxValue(3600)</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                .add();</b>
+<i class="no-highlight">173</i>&nbsp;    }
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;    static void defineAnaplanAPIRequiredProperties(Service service, AnaplanAccount anaplanAccount,
+<i class="no-highlight">176</i>&nbsp;            PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning defineAnaplanAPIRequiredProperties&quot;);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        propertyBuilder.describe(PROP_WORKSPACE_KEY, PROP_WORKSPACE_LABEL,</b>
+<i class="no-highlight">179</i>&nbsp;                PROP_WORKSPACE_DESC)
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .withSuggestions(new AnaplanSuggestions(PROP_WORKSPACE_KEY, service,</b>
+<i class="no-highlight">184</i>&nbsp;                        anaplanAccount))
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        propertyBuilder.describe(PROP_MODEL_KEY, PROP_MODEL_LABEL, PROP_MODEL_DESC)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                .withSuggestions(new AnaplanModelSuggestions(PROP_MODEL_KEY, service,</b>
+<i class="no-highlight">191</i>&nbsp;                        anaplanAccount))
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .add();</b>
+<i class="no-highlight">193</i>&nbsp;    }
+<i class="no-highlight">194</i>&nbsp;
+<i class="no-highlight">195</i>&nbsp;    static void defineServerFileProperties(Service service, AnaplanAccount anaplanAccount,
+<i class="no-highlight">196</i>&nbsp;            PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning defineServerFileProperties&quot;);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        propertyBuilder.describe(SERVER_FILENAME_PROP, SERVER_FILENAME_PROP_LABEL,</b>
+<i class="no-highlight">199</i>&nbsp;                SERVER_FILENAME_PROP_DESC)
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .withSuggestions(new AnaplanServerFileSuggestions(</b>
+<i class="no-highlight">203</i>&nbsp;                        SERVER_FILENAME_PROP, service, anaplanAccount))
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .describe(OVERWRITE_FILE_PROP, OVERWRITE_FILE_PROP_LABEL,</b>
+<i class="no-highlight">207</i>&nbsp;                        OVERWRITE_FILE_PROP_DESC)
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .defaultValue(true)</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .add();</b>
+<i class="no-highlight">211</i>&nbsp;    }
+<i class="no-highlight">212</i>&nbsp;
+<i class="no-highlight">213</i>&nbsp;    /**
+<i class="no-highlight">214</i>&nbsp;     * The snap must override this method to define properties specific to snap.
+<i class="no-highlight">215</i>&nbsp;     *
+<i class="no-highlight">216</i>&nbsp;     * @param propertyBuilder the property builder
+<i class="no-highlight">217</i>&nbsp;     */
+<i class="no-highlight">218</i>&nbsp;    protected abstract void defineAdditionalProperties(final PropertyBuilder propertyBuilder);
+<i class="no-highlight">219</i>&nbsp;
+<i class="no-highlight">220</i>&nbsp;    @Override
+<i class="no-highlight">221</i>&nbsp;    public final void configure(PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning configure&quot;);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        if (anaplanAccount == null) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            throw new ConfigurationException(ERROR_ACCOUNT_NOT_DEFINED)</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                    .withReason(REASON_ACCOUNT_NOT_DEFINED)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                    .withResolution(RESOLUTION_ACCOUNT_NOT_DEFINED);</b>
+<i class="no-highlight">227</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        workspaceExpression = propertyValues.getAsExpression(PROP_WORKSPACE_KEY);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        modelExpression = propertyValues.getAsExpression(PROP_MODEL_KEY);</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        configureAdditionalProperties(propertyValues);</b>
+<i class="no-highlight">231</i>&nbsp;        // check the error behaviour
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        isFailErrorBehaviour = PropertyCategory.ErrorBehaviourType.FAIL.equals(</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                errorViews.getErrorBehaviour());</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        configureRetryParameters(propertyValues, anaplanAccount);</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        service = anaplanAccount.connect();</b>
+<i class="no-highlight">236</i>&nbsp;    }
+<i class="no-highlight">237</i>&nbsp;
+<i class="no-highlight">238</i>&nbsp;    /**
+<i class="no-highlight">239</i>&nbsp;     * The snap must override this method to configure additional properties values.
+<i class="no-highlight">240</i>&nbsp;     *
+<i class="no-highlight">241</i>&nbsp;     * @param propertyValues the property values
+<i class="no-highlight">242</i>&nbsp;     */
+<i class="no-highlight">243</i>&nbsp;    protected abstract void configureAdditionalProperties(final PropertyValues propertyValues);
+<i class="no-highlight">244</i>&nbsp;
+<i class="no-highlight">245</i>&nbsp;    /**
+<i class="no-highlight">246</i>&nbsp;     * get and validate String expression property value
+<i class="no-highlight">247</i>&nbsp;     *
+<i class="no-highlight">248</i>&nbsp;     * @param property snap property
+<i class="no-highlight">249</i>&nbsp;     * @param value property value
+<i class="no-highlight">250</i>&nbsp;     * @throws SnapDataException if invalid
+<i class="no-highlight">251</i>&nbsp;     * @return String value
+<i class="no-highlight">252</i>&nbsp;     */
+<i class="no-highlight">253</i>&nbsp;    static String getValidStringExpressionProperty(String property, Object value) throws
+<i class="no-highlight">254</i>&nbsp;            SnapDataException {
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning getValidStringExpressionProperty&quot;);</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        if (value != null &amp;&amp; !(value instanceof String)) {</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            String error = String.format(ERR_EMPTY_PROPERTY, property, value);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            throw new SnapDataException(error).withReason(REASON_INVALID_PROPERTY)</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                    .withResolution(RESOLUTION_PROPERTY);</b>
+<i class="no-highlight">260</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        return StringUtils.defaultString((String) value);</b>
+<i class="no-highlight">262</i>&nbsp;    }
+<i class="no-highlight">263</i>&nbsp;
+<i class="no-highlight">264</i>&nbsp;    /**
+<i class="no-highlight">265</i>&nbsp;     * set Anaplan workspace model from expressions
+<i class="no-highlight">266</i>&nbsp;     *
+<i class="no-highlight">267</i>&nbsp;     * @param document document to to evaluate expressions
+<i class="no-highlight">268</i>&nbsp;     */
+<i class="no-highlight">269</i>&nbsp;    protected void setWorkspaceModelFromExpressions(Document document) {
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning setWorkspaceModelFromExpression&quot;);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        workspace = getValidStringExpressionProperty(PROP_WORKSPACE_LABEL,</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                workspaceExpression.eval(document));</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        model = getValidStringExpressionProperty(PROP_MODEL_LABEL,</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                modelExpression.eval(document));</b>
+<i class="no-highlight">275</i>&nbsp;    }
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;    /**
+<i class="no-highlight">278</i>&nbsp;     * run Server Task
+<i class="no-highlight">279</i>&nbsp;     *
+<i class="no-highlight">280</i>&nbsp;     * @param task Anaplan task
+<i class="no-highlight">281</i>&nbsp;     * @param desc description
+<i class="no-highlight">282</i>&nbsp;     * @return  Task output messages
+<i class="no-highlight">283</i>&nbsp;     * @throws SnapDataException
+<i class="no-highlight">284</i>&nbsp;     */
+<i class="no-highlight">285</i>&nbsp;    protected void processServerTask(Map&lt;String, Object&gt; messages, Task task, String desc)
+<i class="no-highlight">286</i>&nbsp;            throws SnapDataException {
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning processServerTask&quot;);</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        TaskStatus status = runTilFinished(task);</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        messages.put(desc, constructStatusLineMessage(desc, status));</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        TaskResult taskResult = status.getResult();</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        if (taskResult == null) {</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;            LOGGER.debug(&quot;AnaplanBase: taskResult is null&quot;);</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;            throw new SnapDataException(ANAPLAN_ERROR)</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                    .withReason(INVALID_SERVER_TASK_RESULT)</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                    .withResolution(INVALID_SERVER_TASK_RESULT_RESOLUTION);</b>
+<i class="no-highlight">296</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        messages.put(TASK_ID, taskResult.getObjectId());</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        messages.put(TASK_NAME, taskResult.getObjectName());</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        List&lt;String&gt; details = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        for (TaskResultDetail detail : taskResult.getDetails()) {</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;            String[] detailedResult = StringUtils.split(detail.toString(), &quot;\n&quot;);</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;            if ((detailedResult != null) &amp;&amp; (detailedResult.length != 0)) {</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                details.addAll(Arrays.asList(detailedResult));</b>
+<i class="no-highlight">304</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                details.add(detail.toString());</b>
+<i class="no-highlight">306</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        messages.put(DETAILS, details);</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        if (isStreamErrors) {</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;            streamErrors(status);</b>
+<i class="no-highlight">311</i>&nbsp;            return;
+<i class="no-highlight">312</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; listMessages = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        boolean hadDumpFile = false;</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        String firstErrorMsg = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        for (TaskResult nestedResult : taskResult.getNestedResults()) {</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;            Map&lt;String, Object&gt; nestedMessages = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            nestedMessages.put(TASK_ID, nestedResult.getObjectId());</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            nestedMessages.put(TASK_NAME, nestedResult.getObjectName());</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;            ServerFile nestedDumpServerFile = nestedResult.getFailureDump();</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;            if (nestedDumpServerFile != null) {</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                readErrorInformation(nestedMessages, nestedDumpServerFile);</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                hadDumpFile = true;</b>
+<i class="no-highlight">324</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">325</i>&nbsp;            List&lt;String&gt; nestedDetails = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;            List&lt;String&gt; errors = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;            for (TaskResultDetail detail : nestedResult.getDetails()) {</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                if (ANAPLAN_FAILURES.contains(detail.getType())) {</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                    errors.add(detail.toString());</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                    if (details.size() == 0 &amp;&amp; StringUtils.isEmpty(firstErrorMsg)) {</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                        firstErrorMsg = detail.toString();</b>
+<i class="no-highlight">332</i>&nbsp;                    }
+<i class="no-highlight">333</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                nestedDetails.add(detail.toString());</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;            if (isDataErrorWarning &amp;&amp; errors.size() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                nestedMessages.put(ERRORS, errors);</b>
+<i class="no-highlight">338</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">339</i>&nbsp;            nestedMessages.put(DETAILS, nestedDetails);</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;            listMessages.add(nestedMessages);</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;        messages.put(RESULTS, listMessages);</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;        if (StringUtils.isEmpty(firstErrorMsg) &amp;&amp; details.size() == 0) {</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;            firstErrorMsg = DATA_ERROR_WARNING_REASON;</b>
+<i class="no-highlight">345</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">346</i>&nbsp;        ServerFile serverDumpFile = taskResult.getFailureDump();</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;        if (serverDumpFile != null) {</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;            LOGGER.debug(&quot;AnaplanBase: serverDumpFile exists&quot;);</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;            readErrorInformation(messages, serverDumpFile);</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;            Document errorDocument = documentUtility.newDocument(messages);</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;            throw new SnapDataException(errorDocument, ANAPLAN_ERROR)</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                    .withReason(details.size() == 0 ? firstErrorMsg : details.toString())</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                    .withResolution(PLEASE_REVIEW_ERROR_OUTPUT_AND_CORRECT);</b>
+<i class="no-highlight">354</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">355</i>&nbsp;        if (hadDumpFile) {</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            LOGGER.debug(&quot;AnaplanBase: hadDumpFile is true&quot;);</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;            Document errorDocument = documentUtility.newDocument(messages);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;            throw new SnapDataException(errorDocument, ANAPLAN_ERROR)</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                    .withReason(details.size() == 0 ? firstErrorMsg : details.toString())</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                    .withResolution(PLEASE_REVIEW_ERROR_OUTPUT_AND_CORRECT);</b>
+<i class="no-highlight">361</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        if (status.getCurrentStep().contains(FAIL)) {</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;            LOGGER.debug(&quot;AnaplanBase: getCurrentStep contains FAIL&quot;);</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            Document errorDocument = documentUtility.newDocument(messages);</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;            throw new SnapDataException(errorDocument, ANAPLAN_ERROR)</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                    .withReason(details.size() == 0 ? firstErrorMsg : details.toString())</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                    .withResolution(PLEASE_REVIEW_ERROR_OUTPUT_AND_CORRECT);</b>
+<i class="no-highlight">368</i>&nbsp;        }
+<i class="no-highlight">369</i>&nbsp;    }
+<i class="no-highlight">370</i>&nbsp;
+<i class="no-highlight">371</i>&nbsp;    private void readErrorInformation(Map&lt;String, Object&gt; messages, ServerFile serverDumpFile)
+<i class="no-highlight">372</i>&nbsp;            throws SnapDataException {
+<b class="nc"><i class="no-highlight">373</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning readErrorInformation&quot;);</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;        CellReader cellReader = null;</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        if (serverDumpFile == null) {</b>
+<i class="no-highlight">376</i>&nbsp;            return;
+<i class="no-highlight">377</i>&nbsp;        }
+<i class="no-highlight">378</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            cellReader = serverDumpFile.getDownloadCellReader();</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            if (cellReader == null) {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                throw new SnapDataException(ANAPLAN_ERROR).withReason(messages.toString())</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                        .withResolution(PLEASE_REVIEW_ERROR_OUTPUT_AND_CORRECT);</b>
+<i class="no-highlight">383</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">384</i>&nbsp;            List&lt;Map&gt; errorRows = readErrors(cellReader);</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;            if (isDataErrorWarning) {</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                messages.put(DATA_ERROR_WARNINGS_KEY, errorRows);</b>
+<i class="no-highlight">387</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                messages.put(ERRORS, errorRows);</b>
+<i class="no-highlight">389</i>&nbsp;            }
+<i class="no-highlight">390</i>&nbsp;
+<b class="nc"><i class="no-highlight">391</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            Document errorDocument = documentUtility.newDocument(messages);</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;            throw new SnapDataException(errorDocument, ANAPLAN_ERROR)</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                    .withResolution(PLEASE_REVIEW_AND_RESOLVE_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;        } catch (AnaplanAPIException e) {</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;            Document errorDocument = documentUtility.newDocument(messages);</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;            throw new SnapDataException(errorDocument, ANAPLAN_API_ERROR)</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;                    .withReason(String.format(ANAPLAN_API_EXCEPTION_MESSAGE, e.getMessage()))</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                    .withResolution(PLEASE_REVIEW_AND_RESOLVE_MESSAGE);</b>
+<i class="no-highlight">401</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">402</i>&nbsp;            if (cellReader != null) {</b>
+<i class="no-highlight">403</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                    cellReader.close();</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                } catch (AnaplanAPIException | IOException e) {</b>
+<i class="no-highlight">406</i>&nbsp;                    // close quietly
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                }</b>
+<i class="no-highlight">408</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">409</i>&nbsp;        }</b>
+<i class="no-highlight">410</i>&nbsp;    }
+<i class="no-highlight">411</i>&nbsp;
+<i class="no-highlight">412</i>&nbsp;    private List&lt;Map&gt; readErrors(CellReader cellReader) throws AnaplanAPIException, IOException {
+<b class="nc"><i class="no-highlight">413</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning readErrors&quot;);</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;        String[] headerRow = cellReader.getHeaderRow();</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;        String[] dataRow = cellReader.readDataRow();</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;        List&lt;Map&gt; errorRows = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;        while (dataRow != null &amp;&amp; dataRow.length &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            Map&lt;String, Object&gt; errorRowMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            for (int i = 0; i &lt; dataRow.length; i++) {</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                String fieldValue = StringUtils.defaultString(dataRow[i]);</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                if (StringUtils.isNotBlank(headerRow[i])) {</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                    errorRowMap.put(headerRow[i], fieldValue);</b>
+<i class="no-highlight">423</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                    errorRowMap.put(String.format(COLUMN_D, i), fieldValue);</b>
+<i class="no-highlight">425</i>&nbsp;                }
+<i class="no-highlight">426</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">427</i>&nbsp;            errorRows.add(errorRowMap);</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;            dataRow = cellReader.readDataRow();</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;        return errorRows;</b>
+<i class="no-highlight">431</i>&nbsp;    }
+<i class="no-highlight">432</i>&nbsp;
+<i class="no-highlight">433</i>&nbsp;    private void streamErrors(TaskStatus status) {
+<b class="nc"><i class="no-highlight">434</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning streamErrors&quot;);</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;        TaskResult taskResult = status.getResult();</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;        processTaskResult(taskResult);</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;        for (TaskResult nestedResult : taskResult.getNestedResults()) {</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;            processTaskResult(nestedResult);</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;        }</b>
+<i class="no-highlight">440</i>&nbsp;    }
+<i class="no-highlight">441</i>&nbsp;
+<i class="no-highlight">442</i>&nbsp;    private void processTaskResult(TaskResult taskResult) {
+<b class="nc"><i class="no-highlight">443</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning processTaskResult&quot;);</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;        ServerFile serverDumpFile = taskResult.getFailureDump();</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;        if (serverDumpFile != null) {</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;            CellReader cellReader = null;</b>
+<i class="no-highlight">447</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                cellReader = serverDumpFile.getDownloadCellReader();</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                if (cellReader == null) {</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                    throw new SnapDataException(ANAPLAN_ERROR)</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                            .withReason(INVALID_CELLREADER_OBJECT_RETURNED)</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                            .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">453</i>&nbsp;                }
+<i class="no-highlight">454</i>&nbsp;                // prepare error and reason messages
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                String error = String.format(ERR_ANAPLAN_TASK, taskResult.getObjectName(),</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                        taskResult.getObjectId());</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                List&lt;String&gt; details = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                for (TaskResultDetail detail : taskResult.getDetails()) {</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                    details.add(detail.toString());</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                String reason = details.toString();</b>
+<i class="no-highlight">462</i>&nbsp;                // parse error CSV records
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                String[] header = parseCsvRows(cellReader.getHeaderRow());</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                if (ArrayUtils.isNotEmpty(header)) {</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                    int headerSize = header.length;</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                    String[] errorValues = parseCsvRows(cellReader.readDataRow());</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                    while (ArrayUtils.isNotEmpty(errorValues)) {</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                        int size = NumberUtils.min(headerSize, errorValues.length);</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                        Map&lt;String, Object&gt; errorMap = new LinkedHashMap&lt;&gt;(size + 2);</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                        errorMap.put(ERROR, error);</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;                        errorMap.put(REASON, reason);</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                        for (int i = 0; i &lt; size; i++) {</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                            errorMap.put(header[i], errorValues[i]);</b>
+<i class="no-highlight">474</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                        if (isFailErrorBehaviour) {</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;                            throw new SnapDataException(error)</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;                                    .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;                                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">479</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                        errorViews.write(documentUtility.newDocument(errorMap));</b>
+<i class="no-highlight">481</i>&nbsp;                        // get the next error record
+<b class="nc"><i class="no-highlight">482</i>&nbsp;                        errorValues = parseCsvRows(cellReader.readDataRow());</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;                    }</b>
+<i class="no-highlight">484</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">485</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                throw new SnapDataException(e, ANAPLAN_ERROR)</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;            } catch (AnaplanAPIException e) {</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                throw new SnapDataException(e, ANAPLAN_API_ERROR)</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                        .withReason(String.format(ANAPLAN_API_EXCEPTION_MESSAGE, e.getMessage()))</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">493</i>&nbsp;            } finally {
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                if (cellReader != null) {</b>
+<i class="no-highlight">495</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">496</i>&nbsp;                        cellReader.close();</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                    } catch (AnaplanAPIException | IOException e) {</b>
+<i class="no-highlight">498</i>&nbsp;                        // close quietly
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                    }</b>
+<i class="no-highlight">500</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">501</i>&nbsp;            }</b>
+<i class="no-highlight">502</i>&nbsp;        }
+<i class="no-highlight">503</i>&nbsp;    }
+<i class="no-highlight">504</i>&nbsp;
+<i class="no-highlight">505</i>&nbsp;    private String[] parseCsvRows(String[] rows) throws IOException {
+<b class="nc"><i class="no-highlight">506</i>&nbsp;        if (ArrayUtils.isNotEmpty(rows)) {</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;            List&lt;String&gt; items = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;            for (String row : rows) {</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;                CSVParser csvParser = CSVParser.parse(row, CSVFormat.DEFAULT);</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;                List&lt;CSVRecord&gt; csvRecords = csvParser.getRecords();</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                if (CollectionUtils.isNotEmpty(csvRecords)) {</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                    for (String item : csvRecords.get(0)) {</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                        items.add(item);</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;                    }</b>
+<i class="no-highlight">515</i>&nbsp;                }
+<i class="no-highlight">516</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">517</i>&nbsp;            return items.toArray(new String[items.size()]);</b>
+<i class="no-highlight">518</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">519</i>&nbsp;        return new String[0];</b>
+<i class="no-highlight">520</i>&nbsp;    }
+<i class="no-highlight">521</i>&nbsp;
+<i class="no-highlight">522</i>&nbsp;    private String constructStatusLineMessage(String desc, TaskStatus status) {
+<b class="nc"><i class="no-highlight">523</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning constructStatusLineMessage&quot;);</b>
+<i class="no-highlight">524</i>&nbsp;        String statusLineMessage;
+<b class="nc"><i class="no-highlight">525</i>&nbsp;        if (status.getTaskState() == TaskStatus.State.CANCELLED) {</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;            statusLineMessage = String.format(CANCELLED_MESSAGE, desc);</b>
+<i class="no-highlight">527</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">528</i>&nbsp;            if (status.getResult() != null) {</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                statusLineMessage = String.format(COMPLETED_MESSAGE, desc,</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                        (status.getResult().isSuccessful() ? COMPLETED : FAILED));</b>
+<i class="no-highlight">531</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                statusLineMessage = NO_RESULT_MESSAGE;</b>
+<i class="no-highlight">533</i>&nbsp;            }
+<i class="no-highlight">534</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">535</i>&nbsp;        return String.format(STATUS_LOG_MESSAGE, statusLineMessage, getStatusDateString());</b>
+<i class="no-highlight">536</i>&nbsp;    }
+<i class="no-highlight">537</i>&nbsp;
+<i class="no-highlight">538</i>&nbsp;    private TaskStatus runTilFinished(Task task) {
+<b class="nc"><i class="no-highlight">539</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning runTilFinished&quot;);</b>
+<i class="no-highlight">540</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">541</i>&nbsp;            TaskStatus status = task.getStatus();</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;            while (status.getTaskState() != TaskStatus.State.COMPLETE &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                    status.getTaskState() != TaskStatus.State.CANCELLED) {</b>
+<i class="no-highlight">544</i>&nbsp;                // if busy, nap and check again after
+<i class="no-highlight">545</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                    Thread.sleep(SERVER_TASK_POLL_INTERVAL);</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;                } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;                    LOGGER.warn(&quot;Interrupted!&quot;, e);</b>
+<i class="no-highlight">549</i>&nbsp;                    // Restore interrupted state...
+<b class="nc"><i class="no-highlight">550</i>&nbsp;                    Thread.currentThread().interrupt();</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;                status = task.getStatus();</b>
+<i class="no-highlight">553</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">554</i>&nbsp;            return status;</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;        } catch (AnaplanAPIException e) {</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;            throw new ExecutionException(e, ANAPLAN_API_ERROR)</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;                    .withReason(String.format(ANAPLAN_API_EXCEPTION_MESSAGE, e.getMessage()))</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;                    .withResolution(PLEASE_REVIEW_AND_RESOLVE_MESSAGE);</b>
+<i class="no-highlight">559</i>&nbsp;        }
+<i class="no-highlight">560</i>&nbsp;    }
+<i class="no-highlight">561</i>&nbsp;
+<i class="no-highlight">562</i>&nbsp;    @Override
+<i class="no-highlight">563</i>&nbsp;    public void cleanup() throws ExecutionException {
+<b class="nc"><i class="no-highlight">564</i>&nbsp;        LOGGER.trace(&quot;AnaplanBase: Beginning cleanup&quot;);</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;        anaplanAccount.disconnect();</b>
+<i class="no-highlight">566</i>&nbsp;    }
+<i class="no-highlight">567</i>&nbsp;
+<i class="no-highlight">568</i>&nbsp;    /**
+<i class="no-highlight">569</i>&nbsp;     * Configures retry property and timeout values to Anaplan account.
+<i class="no-highlight">570</i>&nbsp;     *
+<i class="no-highlight">571</i>&nbsp;     * @param propertyValues - PropertyValues object
+<i class="no-highlight">572</i>&nbsp;     * @param anaplanAccount - Anaplan account
+<i class="no-highlight">573</i>&nbsp;     */
+<i class="no-highlight">574</i>&nbsp;    public static void configureRetryParameters(PropertyValues propertyValues,
+<i class="no-highlight">575</i>&nbsp;                                                   AnaplanAccount anaplanAccount) {
+<b class="nc"><i class="no-highlight">576</i>&nbsp;        int maxRetries = evalIntProperty(propertyValues.getAsExpression(PROP_RETRY_LIMIT_KEY),</b>
+<i class="no-highlight">577</i>&nbsp;                null, DEFAULT_RETRY_LIMIT, 0);
+<b class="nc"><i class="no-highlight">578</i>&nbsp;        int retryInterval = evalIntProperty(propertyValues.getAsExpression(PROP_RETRY_INTERVAL_KEY),</b>
+<i class="no-highlight">579</i>&nbsp;                null, DEFAULT_RETRY_INTERVAL, 0);
+<b class="nc"><i class="no-highlight">580</i>&nbsp;        int httpTimeout = evalIntProperty(propertyValues.getAsExpression(PROP_HTTP_TIMEOUT_KEY),</b>
+<i class="no-highlight">581</i>&nbsp;                null, DEFAULT_HTTP_TIMEOUT, 0);
+<b class="nc"><i class="no-highlight">582</i>&nbsp;        anaplanAccount.configureConnectionProperties(maxRetries, retryInterval, httpTimeout);</b>
+<i class="no-highlight">583</i>&nbsp;    }
+<i class="no-highlight">584</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

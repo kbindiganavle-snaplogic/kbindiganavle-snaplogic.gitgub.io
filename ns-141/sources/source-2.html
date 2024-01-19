@@ -1,0 +1,251 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkReadRequest</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.request</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkReadRequest (com.snaplogic.snaps.salesforce.request)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkReadRequest</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.request;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.xml.SnapXMLInputFactory;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.xml.XmlUtils;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snaps.salesforce.SalesforceCommon;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.BatchInfo;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.ResultList;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snaps.salesforce.bulk.output.XMLHandler;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Options.ContentType;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snaps.salesforce.response.BulkReadResponse;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">27</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">28</i>&nbsp;import org.apache.http.client.methods.HttpGet;
+<i class="no-highlight">29</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">30</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">31</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">34</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">35</i>&nbsp;import java.util.List;
+<i class="no-highlight">36</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import javax.xml.stream.XMLInputFactory;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import de.odysseus.staxon.json.JsonXMLConfig;
+<i class="no-highlight">41</i>&nbsp;import de.odysseus.staxon.json.JsonXMLConfigBuilder;
+<i class="no-highlight">42</i>&nbsp;import de.odysseus.staxon.json.JsonXMLOutputFactory;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceCommon.LIST_STRING_REF;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.salesforce.SalesforceCommon.OBJECT_MAPPER;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.ERR_BULK_READ_RESPONSE;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.salesforce.request.Messages.*;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;/**
+<i class="no-highlight">50</i>&nbsp; * Abstract class for Bulk API read type of http request execution.
+<i class="no-highlight">51</i>&nbsp; *
+<i class="no-highlight">52</i>&nbsp; * @author psung, terry
+<i class="no-highlight">53</i>&nbsp; */
+<i class="no-highlight">54</i>&nbsp;public abstract class BulkReadRequest extends BulkRequest&lt;Iterator&lt;Object&gt;, Void&gt; {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(BulkReadRequest.class);</b>
+<i class="no-highlight">56</i>&nbsp;    protected static final String FORMAT_BATCH_RESULT = &quot;%s/%s/batch/%s/result&quot;;
+<i class="no-highlight">57</i>&nbsp;    protected static final String FORMAT_BATCH_RESULT_ID =
+<i class="no-highlight">58</i>&nbsp;            &quot;%s/%s/batch/%s/result/%s&quot;;
+<i class="no-highlight">59</i>&nbsp;    protected boolean dataFetched;
+<i class="no-highlight">60</i>&nbsp;    protected XmlUtils xmlUtils;
+<b class="nc"><i class="no-highlight">61</i>&nbsp;    protected final JsonXMLConfig config = new JsonXMLConfigBuilder()</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;            .autoArray(true)</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;            .multiplePI(true)</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;    protected final XMLInputFactory xmlInputFactory = SnapXMLInputFactory.newInstance();</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    protected final JsonXMLOutputFactory jsonOutputFactory = new JsonXMLOutputFactory(config);</b>
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    @Inject
+<i class="no-highlight">69</i>&nbsp;    public BulkReadRequest(HttpRequestHandler httpRequestHandler) {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        super(httpRequestHandler);</b>
+<i class="no-highlight">71</i>&nbsp;    }
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;    public BulkReadRequest initialize(Options options, Login login, XmlUtils xmlUtils) {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        super.initialize(options.withServiceUrl(options.getServiceUrl()), login);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        bulkResponse = injector.getInstance(BulkReadResponse.class);</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        bulkResponse.initialize(options, login);</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        errMessage = ERR_BULK_READ_RESPONSE;</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        this.xmlUtils = xmlUtils;</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        return this;</b>
+<i class="no-highlight">80</i>&nbsp;    }
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;    @Override
+<i class="no-highlight">83</i>&nbsp;    public Iterator&lt;Object&gt; execute(final Void param) throws IOException {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        return execute();</b>
+<i class="no-highlight">85</i>&nbsp;    }
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;    @Override
+<i class="no-highlight">88</i>&nbsp;    public abstract Iterator&lt;Object&gt; execute() throws IOException;
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;    /**
+<i class="no-highlight">91</i>&nbsp;     * Adds a new batch to a job.
+<i class="no-highlight">92</i>&nbsp;     *
+<i class="no-highlight">93</i>&nbsp;     * @param url  - URL to add a batch to a Bulk API job in Force.com
+<i class="no-highlight">94</i>&nbsp;     * @param soql - SOQL statement to be executed in Force.com
+<i class="no-highlight">95</i>&nbsp;     *
+<i class="no-highlight">96</i>&nbsp;     * @return information on the batch added to the job
+<i class="no-highlight">97</i>&nbsp;     * @throws IOException if an error occurs while adding the batch to the job
+<i class="no-highlight">98</i>&nbsp;     */
+<i class="no-highlight">99</i>&nbsp;    protected BatchInfo addBatch(String url, String soql) throws IOException {
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        LOG.debug(&quot;Adding batch&quot;);</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        String result = getBulkResponse(url, soql, HttpPost.METHOD_NAME);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        if (contentType == ContentType.JSON) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            return BatchInfo.getInstance(result);</b>
+<i class="no-highlight">104</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        return (BatchInfo) XMLHandler.deserialize(result, BatchInfo.class);</b>
+<i class="no-highlight">106</i>&nbsp;    }
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    /**
+<i class="no-highlight">109</i>&nbsp;     * Retrieves the list of result ID&#39;s for the batch job.
+<i class="no-highlight">110</i>&nbsp;     *
+<i class="no-highlight">111</i>&nbsp;     * @param url     - URL to retrieve the list of result ID&#39;s for the batch job
+<i class="no-highlight">112</i>&nbsp;     * @param jobId   - job ID
+<i class="no-highlight">113</i>&nbsp;     * @param batchId - batch ID
+<i class="no-highlight">114</i>&nbsp;     *
+<i class="no-highlight">115</i>&nbsp;     * @return the list of result ID&#39;s
+<i class="no-highlight">116</i>&nbsp;     * @throws IOException if an error occurs while retrieving the result ID list
+<i class="no-highlight">117</i>&nbsp;     */
+<i class="no-highlight">118</i>&nbsp;    protected ResultList retrieveBatchResultIds(String url, String jobId, String batchId)
+<i class="no-highlight">119</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        String checkBatchUrl = String.format(FORMAT_BATCH_RESULT, url, jobId, batchId);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        String result = getBulkResponse(checkBatchUrl, StringUtils.EMPTY, HttpGet.METHOD_NAME);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        return (ResultList) XMLHandler.deserialize(result, ResultList.class);</b>
+<i class="no-highlight">123</i>&nbsp;    }
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;    protected List&lt;String&gt; retrieveBatchResultIdsJson(String url, String jobId, String batchId)
+<i class="no-highlight">126</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        String checkBatchUrl = String.format(FORMAT_BATCH_RESULT, url, jobId, batchId);</b>
+<i class="no-highlight">128</i>&nbsp;        String result;
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        int retry = 3;</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        while (retry-- &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            result = getBulkResponse(checkBatchUrl, StringUtils.EMPTY, HttpGet.METHOD_NAME);</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            if (StringUtils.isNotBlank(result)) {</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                List&lt;String&gt; resultIds = OBJECT_MAPPER.readValue(result, LIST_STRING_REF);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                if (CollectionUtils.isNotEmpty(resultIds)) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                    return resultIds;</b>
+<i class="no-highlight">136</i>&nbsp;                }
+<i class="no-highlight">137</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            SalesforceCommon.sleep(100, TimeUnit.MILLISECONDS);</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            LOG.info(&quot;Failed to retrieve result ID, remaining retry attempts: {}&quot;, retry);</b>
+<i class="no-highlight">140</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        throw new SnapDataException(ERR_RETRIEVE_RESULT_ID)</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                .formatWith(checkBatchUrl)</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                .withReason(REASON_UNSTABLE_NETWORK)</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">145</i>&nbsp;    }
+<i class="no-highlight">146</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

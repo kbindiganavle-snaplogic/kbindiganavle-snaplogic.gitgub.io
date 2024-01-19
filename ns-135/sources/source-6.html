@@ -1,0 +1,199 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RestRequestExecutorExtended</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.reltiosnapconnector.util</a>
+</div>
+
+<h1>Coverage Summary for Class: RestRequestExecutorExtended (com.snaplogic.snaps.reltiosnapconnector.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RestRequestExecutorExtended</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package com.snaplogic.snaps.reltiosnapconnector.util;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">4</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">5</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">6</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">7</i>&nbsp;import com.snaplogic.snap.api.rest.RequestDataHandler;
+<i class="no-highlight">8</i>&nbsp;import com.snaplogic.snap.api.rest.RestHttpClient;
+<i class="no-highlight">9</i>&nbsp;import com.snaplogic.snap.api.rest.RestRequestExecutor;
+<i class="no-highlight">10</i>&nbsp;import com.snaplogic.snap.api.rest.URLResolver;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">13</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">14</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">15</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">18</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import javax.annotation.Nullable;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">23</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import static com.snaplogic.snaps.reltiosnapconnector.messages.ReltioSnapConnectorMessages.DELAY;
+<i class="no-highlight">26</i>&nbsp;import static com.snaplogic.snaps.reltiosnapconnector.messages.ReltioSnapConnectorMessages.EXPONENTIAL_FAILED_STATUS_CODE_LIST;
+<i class="no-highlight">27</i>&nbsp;import static com.snaplogic.snaps.reltiosnapconnector.messages.ReltioSnapConnectorMessages.MAX_DELAY;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.snaps.reltiosnapconnector.messages.ReltioSnapConnectorMessages.UNAUTHORIZED_STATUS_CODE;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;public class RestRequestExecutorExtended extends RestRequestExecutor {
+<i class="no-highlight">31</i>&nbsp;
+<b class="nc"><i class="no-highlight">32</i>&nbsp;    private final Logger logger = LoggerFactory.getLogger(getClass());</b>
+<i class="no-highlight">33</i>&nbsp;    protected ReltioSnapConnectorCommon reltioSnapConnectorCommon;
+<b class="nc"><i class="no-highlight">34</i>&nbsp;    protected HttpResponse httpResponse = null;</b>
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;    public RestRequestExecutorExtended(final RestHttpClient restHttpClient,
+<i class="no-highlight">37</i>&nbsp;            final ErrorViews errorViews, ReltioSnapConnectorCommon reltioSnapConnectorCommon) {
+<b class="nc"><i class="no-highlight">38</i>&nbsp;        super(restHttpClient, errorViews);</b>
+<b class="nc"><i class="no-highlight">39</i>&nbsp;        this.reltioSnapConnectorCommon = reltioSnapConnectorCommon;</b>
+<i class="no-highlight">40</i>&nbsp;    }
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;    public Object execute(Document document, Document payloadDocument, URLResolver urlResolver,
+<i class="no-highlight">43</i>&nbsp;            @Nullable RequestDataHandler&lt;? extends HttpEntity&gt; dataHandler) {
+<i class="no-highlight">44</i>&nbsp;        String url;
+<i class="no-highlight">45</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">46</i>&nbsp;            url = urlResolver.resolveUrl(document);</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;        } catch (SnapDataException ex) {</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;            errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">49</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;        HttpEntity entity = null;</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;        if (dataHandler != null) {</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;            entity = dataHandler.createEntity(payloadDocument);</b>
+<i class="no-highlight">54</i>&nbsp;        }
+<i class="no-highlight">55</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">56</i>&nbsp;            RetryPolicy retryPolicy = new RetryPolicy().retryOn(IOException.class,</b>
+<i class="no-highlight">57</i>&nbsp;                    SnapDataException.class)
+<b class="nc"><i class="no-highlight">58</i>&nbsp;                    .retryIf(result -&gt; {</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;                        if (result != null) {</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;                            return EXPONENTIAL_FAILED_STATUS_CODE_LIST.contains((</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;                                    (HttpResponse) result).getStatusLine().getStatusCode());</b>
+<i class="no-highlight">62</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">63</i>&nbsp;                            return false;</b>
+<i class="no-highlight">64</i>&nbsp;                        }
+<i class="no-highlight">65</i>&nbsp;                    })
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                    .withMaxRetries(maxRetries)</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;                    .withBackoff(DELAY, MAX_DELAY, TimeUnit.SECONDS);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            HttpEntity finalEntity = entity;</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;            Failsafe.with(retryPolicy).get(() -&gt;</b>
+<i class="no-highlight">70</i>&nbsp;            {
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                return getHttpResponse(url, finalEntity);</b>
+<i class="no-highlight">72</i>&nbsp;            });
+<b class="nc"><i class="no-highlight">73</i>&nbsp;            return execute(url, httpResponse, document);</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        } catch (ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;            throw new SnapDataException(e, e.getMessage())</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                    .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                    .withResolution(e.getResolution());</b>
+<i class="no-highlight">78</i>&nbsp;        }
+<i class="no-highlight">79</i>&nbsp;    }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    private HttpResponse getHttpResponse(String url, HttpEntity finalEntity) {
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        reltioSnapConnectorCommon.validateAccessTokenAndBuildHeaders();</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        headers = reltioSnapConnectorCommon.headers;</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        HttpResponse httpResponse1 = request(url, finalEntity);</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        if (httpResponse1.getStatusLine().getStatusCode() == UNAUTHORIZED_STATUS_CODE) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;            logger.debug(&quot;Getting a new access token for 401 Status Code and then executing the request again.&quot;);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            reltioSnapConnectorCommon.refreshTokenAndBuildHeaders();</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            headers = reltioSnapConnectorCommon.headers;</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            httpResponse1 = request(url, finalEntity);</b>
+<i class="no-highlight">90</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        httpResponse = httpResponse1;</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        return httpResponse1;</b>
+<i class="no-highlight">93</i>&nbsp;    }
+<i class="no-highlight">94</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

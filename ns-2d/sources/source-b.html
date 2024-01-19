@@ -1,0 +1,565 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > TemplateEvaluatorImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.editor</a>
+</div>
+
+<h1>Coverage Summary for Class: TemplateEvaluatorImpl (com.snaplogic.snap.api.editor)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TemplateEvaluatorImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/160)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">TemplateEvaluatorImpl$TemplateFieldNameExtractor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/171)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.editor;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.Sets;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.expressions.Scope;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.expression.JsonPathExpressionService;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.jsonpath.JsonPaths;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.jsonpath.PathExpressionService;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.jsonpath.PathParser;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.TemplateEvaluator;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.xml.XmlUtilsImpl;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">31</i>&nbsp;import org.apache.velocity.VelocityContext;
+<i class="no-highlight">32</i>&nbsp;import org.apache.velocity.app.VelocityEngine;
+<i class="no-highlight">33</i>&nbsp;import org.apache.velocity.app.event.EventCartridge;
+<i class="no-highlight">34</i>&nbsp;import org.apache.velocity.app.event.ReferenceInsertionEventHandler;
+<i class="no-highlight">35</i>&nbsp;import org.apache.velocity.runtime.RuntimeInstance;
+<i class="no-highlight">36</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">37</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import java.io.StringWriter;
+<i class="no-highlight">40</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">41</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">42</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">43</i>&nbsp;import java.util.Map;
+<i class="no-highlight">44</i>&nbsp;import java.util.Properties;
+<i class="no-highlight">45</i>&nbsp;import java.util.Set;
+<i class="no-highlight">46</i>&nbsp;import java.util.Stack;
+<i class="no-highlight">47</i>&nbsp;import java.util.regex.Matcher;
+<i class="no-highlight">48</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;import javax.annotation.Nullable;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snap.api.editor.Messages.ERR_WRITE_JSON_PATH_MSG;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snap.api.editor.Messages.ERR_WRITE_JSON_PATH_RESOLUTION;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snap.api.editor.Messages.ERR_WRITE_MESSAGE;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snap.api.editor.Messages.INVALID_JSON_PATH;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snap.api.editor.Messages.INVALID_VARIABLE_IN_ENVELOPE;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snap.api.editor.Messages.ONLY_MAP_DATA_EXPECTED;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snap.api.editor.Messages.PROVIDE_CORRECT_PATH_MAPPINGS;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;/**
+<i class="no-highlight">61</i>&nbsp; * Provides functionality to evaluate a velocity template
+<i class="no-highlight">62</i>&nbsp; *
+<i class="no-highlight">63</i>&nbsp; * @author mklumpp
+<i class="no-highlight">64</i>&nbsp; */
+<b class="nc"><i class="no-highlight">65</i>&nbsp;public abstract class TemplateEvaluatorImpl implements TemplateEvaluator {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    private static final Logger logger = LoggerFactory.getLogger(TemplateEvaluatorImpl.class);</b>
+<i class="no-highlight">67</i>&nbsp;    private static final String REGEX_SPLIT_BY_DOT = &quot;\\.&quot;;
+<i class="no-highlight">68</i>&nbsp;    private static final String JSON_PATH_REF = &quot;${__json_path_%d}&quot;;
+<i class="no-highlight">69</i>&nbsp;    private static final String JSON_PATH_VAR_NAME = &quot;__json_path_%d&quot;;
+<i class="no-highlight">70</i>&nbsp;    private static final String NO_DATA_PATTERN = &quot;\\*\\*\\*NO DATA\\*\\*\\*&quot;;
+<b class="nc"><i class="no-highlight">71</i>&nbsp;    private static final PathExpressionService EMPTY_EXPR_HANDLER =</b>
+<i class="no-highlight">72</i>&nbsp;            new JsonPathExpressionService();
+<i class="no-highlight">73</i>&nbsp;    private static final String LOG_LABEL = &quot;TemplateParser&quot;;
+<i class="no-highlight">74</i>&nbsp;    protected static final String LOG_KEY = &quot;runtime.log.logsystem.class&quot;;
+<i class="no-highlight">75</i>&nbsp;    protected static final String LOG_VALUE = &quot;com.snaplogic.snap.api.editor.Slf4jLogChute&quot;;
+<i class="no-highlight">76</i>&nbsp;    protected static final String REFERENCE_INSERTION_CLASS = &quot;eventhandler.referenceinsertion&quot; +
+<i class="no-highlight">77</i>&nbsp;            &quot;.class&quot;;
+<i class="no-highlight">78</i>&nbsp;    /**
+<i class="no-highlight">79</i>&nbsp;     * Detects the start of a json-path in a template.  As an initial restriction, we require a more
+<i class="no-highlight">80</i>&nbsp;     * strictly-formatted path, so it must start with &#39;$.&#39; or &#39;$[&#39;.  The abbreviated version that
+<i class="no-highlight">81</i>&nbsp;     * leaves out the dot will still be considered a velocity reference.
+<i class="no-highlight">82</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">83</i>&nbsp;    private static final Pattern JSON_PATH_START = Pattern.compile(&quot;\\$[\\.\\[]&quot;);</b>
+<i class="no-highlight">84</i>&nbsp;    /**
+<i class="no-highlight">85</i>&nbsp;     * Detects the end of a json-path in a template.
+<i class="no-highlight">86</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">87</i>&nbsp;    private static final PathParser.TerminatorDetector PATH_TERMINATOR =</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            ch -&gt; !(Character.isAlphabetic(ch) ||</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    Character.isDigit(ch) ||</b>
+<i class="no-highlight">90</i>&nbsp;                    ch == &#39;_&#39; ||
+<i class="no-highlight">91</i>&nbsp;                    ch == &#39;.&#39; ||
+<i class="no-highlight">92</i>&nbsp;                    ch == &#39;(&#39; ||
+<i class="no-highlight">93</i>&nbsp;                    ch == &#39;[&#39;);
+<i class="no-highlight">94</i>&nbsp;    /**
+<i class="no-highlight">95</i>&nbsp;     * Extractor call back
+<i class="no-highlight">96</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">97</i>&nbsp;    public static final class TemplateFieldNameExtractor implements</b>
+<i class="no-highlight">98</i>&nbsp;            ReferenceInsertionEventHandler {
+<i class="no-highlight">99</i>&nbsp;        /**
+<i class="no-highlight">100</i>&nbsp;         * This pattern tries to extract the first part of a reference, not including any following
+<i class="no-highlight">101</i>&nbsp;         * method calls that need to be handled by velocity.
+<i class="no-highlight">102</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        private static final Pattern REF_VALUE = Pattern.compile(</b>
+<i class="no-highlight">104</i>&nbsp;                &quot;^\\$\\{([^\\.]+(?:\\.[^\\.\\(]+)*).*?}$|&quot; +
+<i class="no-highlight">105</i>&nbsp;                        &quot;^\\$([^\\.]+(?:\\.[^\\.\\(]+)*)(?:\\..+?)?$&quot;);
+<i class="no-highlight">106</i>&nbsp;
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        final Set&lt;String&gt; fields = Sets.newLinkedHashSet();</b>
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;        @Override
+<i class="no-highlight">110</i>&nbsp;        public Object referenceInsert(final String reference, final Object value) {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            if (!StringUtils.isBlank(reference)) {</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                Matcher matcher = REF_VALUE.matcher(reference);</b>
+<i class="no-highlight">113</i>&nbsp;
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                if (matcher.matches()) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                    String fieldName = matcher.group(1);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                    if (fieldName == null) {</b>
+<i class="no-highlight">117</i>&nbsp;                        // The form with curly braces did not match, so we need to get the other.
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                        fieldName = matcher.group(2);</b>
+<i class="no-highlight">119</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                    fields.add(fieldName);</b>
+<i class="no-highlight">121</i>&nbsp;                }
+<i class="no-highlight">122</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">123</i>&nbsp;            return value;</b>
+<i class="no-highlight">124</i>&nbsp;        }
+<i class="no-highlight">125</i>&nbsp;    }
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;    private Map&lt;String, Object&gt; environmentData;
+<i class="no-highlight">128</i>&nbsp;    private Stack&lt;Scope&gt; scopes;
+<i class="no-highlight">129</i>&nbsp;    private JsonPathExpressionService jsonPathExpressionService;
+<b class="nc"><i class="no-highlight">130</i>&nbsp;    private boolean escapeSpecialChars = true;</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;    protected Object emptyReference = StringUtils.EMPTY;</b>
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;    /**
+<i class="no-highlight">134</i>&nbsp;     * The value to use for undefined references with no data.  Defaults to null, which tells
+<i class="no-highlight">135</i>&nbsp;     * velocity to just leave the reference in the text.
+<i class="no-highlight">136</i>&nbsp;     */
+<i class="no-highlight">137</i>&nbsp;    protected Object noDataUndefinedReference;
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;    @Override
+<i class="no-highlight">140</i>&nbsp;    public String evaluate(final String templateContent) {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        return evaluate(templateContent, null);</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    @Override
+<i class="no-highlight">145</i>&nbsp;    public void setEnvironmentData(final Map&lt;String, Object&gt; environmentData) {
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        this.environmentData = environmentData;</b>
+<i class="no-highlight">147</i>&nbsp;    }
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;    @Override
+<i class="no-highlight">150</i>&nbsp;    public void setScopes(Stack&lt;Scope&gt; scopes) {
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        this.scopes = scopes;</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        jsonPathExpressionService = new JsonPathExpressionService();</b>
+<i class="no-highlight">153</i>&nbsp;    }
+<i class="no-highlight">154</i>&nbsp;
+<i class="no-highlight">155</i>&nbsp;    @Override
+<i class="no-highlight">156</i>&nbsp;    public String evaluate(String editorContent, Object data) {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        return evaluate(editorContent, data, null);</b>
+<i class="no-highlight">158</i>&nbsp;    }
+<i class="no-highlight">159</i>&nbsp;
+<i class="no-highlight">160</i>&nbsp;    @Override
+<i class="no-highlight">161</i>&nbsp;    public String evaluate(String editorContent, final Object data,
+<i class="no-highlight">162</i>&nbsp;            @Nullable final Map&lt;String, Object&gt; additionalProperties) {
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        if (editorContent == null) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            editorContent = StringUtils.EMPTY;</b>
+<i class="no-highlight">165</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        Properties properties = createProperties();</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        Map&lt;String, String&gt; pathMap = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        editorContent = preprocess(editorContent, pathMap);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        VelocityContext context = createVelocityContext(data, editorContent, additionalProperties,</b>
+<i class="no-highlight">170</i>&nbsp;                pathMap);
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        return evaluateWithContext(editorContent, context, properties);</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    @Override
+<i class="no-highlight">175</i>&nbsp;    public String initializeFor(String editorContent,
+<i class="no-highlight">176</i>&nbsp;            @Nullable final Map&lt;String, Object&gt; snapProperties) {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        Properties properties = createProperties();</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        Map&lt;String, String&gt; pathMap = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        editorContent = preprocess(editorContent, pathMap);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        VelocityContext context = new VelocityContext(snapProperties);</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        return evaluateWithContext(editorContent, context, properties);</b>
+<i class="no-highlight">182</i>&nbsp;    }
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;    @Override
+<i class="no-highlight">185</i>&nbsp;    public Set&lt;String&gt; getKeysFor(final String templateContent) {
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        Properties properties = new Properties();</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        properties.setProperty(LOG_KEY, LOG_VALUE);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        properties.setProperty(REFERENCE_INSERTION_CLASS,</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                TemplateFieldNameExtractor.class.getName());</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        RuntimeInstance instance = new RuntimeInstance();</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        instance.init(properties);</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        VelocityContext context = new VelocityContext();</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        StringWriter writer = new StringWriter();</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        instance.evaluate(context, writer, LOG_LABEL, templateContent);</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        EventCartridge eventCartridge = instance.getApplicationEventCartridge();</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        Iterator it = eventCartridge.getReferenceInsertionEventHandlers();</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        while (it.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            ReferenceInsertionEventHandler handler =</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                    (ReferenceInsertionEventHandler) it.next();</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            if (handler instanceof TemplateFieldNameExtractor) {</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                TemplateFieldNameExtractor templateFieldNameExtractor =</b>
+<i class="no-highlight">202</i>&nbsp;                        (TemplateFieldNameExtractor) handler;
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                return ImmutableSet.copyOf(templateFieldNameExtractor.fields);</b>
+<i class="no-highlight">204</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        return Collections.emptySet();</b>
+<i class="no-highlight">207</i>&nbsp;    }
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;    /**
+<i class="no-highlight">210</i>&nbsp;     * Allows to group keys by their object type, such as Account.Name or BillToContact.City. The
+<i class="no-highlight">211</i>&nbsp;     * object type would be account and the child would be Name.
+<i class="no-highlight">212</i>&nbsp;     *
+<i class="no-highlight">213</i>&nbsp;     * @return the grouped map by object type, each type providing a set of field names
+<i class="no-highlight">214</i>&nbsp;     */
+<i class="no-highlight">215</i>&nbsp;    @Override
+<i class="no-highlight">216</i>&nbsp;    public Map&lt;String, Set&lt;String&gt;&gt; getGroupedKeysFor(final String templateContent,
+<i class="no-highlight">217</i>&nbsp;            @Nullable String objectName) {
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        Set&lt;String&gt; variableNames = getKeysFor(templateContent);</b>
+<i class="no-highlight">219</i>&nbsp;        // TODO - MK: For now we only expect at the maximum one level deep
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        Map&lt;String, Set&lt;String&gt;&gt; typeMappings = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        for (String fieldName : variableNames) {</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;            String[] parts = fieldName.split(REGEX_SPLIT_BY_DOT);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            switch (parts.length) {</b>
+<i class="no-highlight">224</i>&nbsp;                case 1:
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                    addMapping(typeMappings, objectName, fieldName);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                    break;</b>
+<i class="no-highlight">227</i>&nbsp;                case 2:
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    addMapping(typeMappings, parts[0], parts[1]);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                    break;</b>
+<i class="no-highlight">230</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    throw new UnsupportedOperationException(INVALID_VARIABLE_IN_ENVELOPE);</b>
+<i class="no-highlight">232</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        return typeMappings;</b>
+<i class="no-highlight">235</i>&nbsp;    }
+<i class="no-highlight">236</i>&nbsp;
+<i class="no-highlight">237</i>&nbsp;    private void addMapping(Map&lt;String, Set&lt;String&gt;&gt; typeMappings, String objectType,
+<i class="no-highlight">238</i>&nbsp;            String fieldName) {
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        Set&lt;String&gt; mappings = typeMappings.get(objectType);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        if (mappings == null) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            mappings = Sets.newHashSet();</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;            typeMappings.put(objectType, mappings);</b>
+<i class="no-highlight">243</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        mappings.add(fieldName);</b>
+<i class="no-highlight">245</i>&nbsp;    }
+<i class="no-highlight">246</i>&nbsp;
+<i class="no-highlight">247</i>&nbsp;    /**
+<i class="no-highlight">248</i>&nbsp;     * Rewrite a template converting json-path references into references that can be handled by
+<i class="no-highlight">249</i>&nbsp;     * velocity.
+<i class="no-highlight">250</i>&nbsp;     *
+<i class="no-highlight">251</i>&nbsp;     * @param content The template to process.
+<i class="no-highlight">252</i>&nbsp;     * @param pathMap This map will be filled out with the mapping of velocity template keys to
+<i class="no-highlight">253</i>&nbsp;     *                their json-paths.
+<i class="no-highlight">254</i>&nbsp;     * @return The translated template.
+<i class="no-highlight">255</i>&nbsp;     */
+<i class="no-highlight">256</i>&nbsp;    protected String preprocess(String content, Map&lt;String, String&gt; pathMap) {
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        StringBuilder stringBuilder = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        Matcher matcher = JSON_PATH_START.matcher(content);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        int lastIndex = 0;</b>
+<i class="no-highlight">260</i>&nbsp;
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        while (matcher.find(lastIndex)) {</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;            int start = matcher.start();</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;            stringBuilder.append(content, lastIndex, start);</b>
+<i class="no-highlight">264</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                int pathEnd = PathParser.parseUpTo(content.substring(start), EMPTY_EXPR_HANDLER,</b>
+<i class="no-highlight">266</i>&nbsp;                        PATH_TERMINATOR);
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                String pathString = content.substring(start, start + pathEnd);</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                stringBuilder.append(String.format(JSON_PATH_REF, pathMap.size()));</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                pathMap.put(String.format(JSON_PATH_VAR_NAME, pathMap.size()), pathString);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                lastIndex = start + pathEnd;</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                stringBuilder.append(&#39;$&#39;);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                lastIndex += 1;</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        if (stringBuilder.length() == 0) {</b>
+<i class="no-highlight">277</i>&nbsp;            // No paths found, just return the original content.
+<b class="nc"><i class="no-highlight">278</i>&nbsp;            return content;</b>
+<i class="no-highlight">279</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        stringBuilder.append(content, lastIndex, content.length());</b>
+<i class="no-highlight">281</i>&nbsp;
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        return stringBuilder.toString();</b>
+<i class="no-highlight">283</i>&nbsp;    }
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;    /**
+<i class="no-highlight">286</i>&nbsp;     * Creates the velocity context using a predefined table property (created through
+<i class="no-highlight">287</i>&nbsp;     * TablePropertyFactory)
+<i class="no-highlight">288</i>&nbsp;     *
+<i class="no-highlight">289</i>&nbsp;     * @param data                 as the incoming data (can be a document)
+<i class="no-highlight">290</i>&nbsp;     * @param editorContent        as the content of the editor
+<i class="no-highlight">291</i>&nbsp;     * @param additionalProperties as additional key value pairs to substitute template variables
+<i class="no-highlight">292</i>&nbsp;     *                             using property values
+<i class="no-highlight">293</i>&nbsp;     * @return the context
+<i class="no-highlight">294</i>&nbsp;     */
+<i class="no-highlight">295</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">296</i>&nbsp;    protected VelocityContext createVelocityContext(Object data, String editorContent,
+<i class="no-highlight">297</i>&nbsp;            @Nullable final Map&lt;String, Object&gt; additionalProperties,
+<i class="no-highlight">298</i>&nbsp;            Map&lt;String, String&gt; pathMap) {
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        Map&lt;String, Object&gt; allValues = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        Map mapData = getAsMap(data);</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        allValues.putAll(mapData);</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        for (Map.Entry&lt;String, String&gt; entry : pathMap.entrySet()) {</b>
+<i class="no-highlight">303</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                allValues.put(entry.getKey(), findValue(entry.getValue(), allValues));</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;            } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                throw new SnapDataException(e, INVALID_JSON_PATH)</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                        .withResolution(e.getResolution());</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        Set&lt;String&gt; keys = getKeysFor(editorContent);</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        for (String templateKey : keys) {</b>
+<i class="no-highlight">313</i>&nbsp;            Object pathVal;
+<i class="no-highlight">314</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                findValue(templateKey, allValues);</b>
+<i class="no-highlight">316</i>&nbsp;                // document data takes precedence over additional properties
+<b class="nc"><i class="no-highlight">317</i>&nbsp;            } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                JsonPath jsonPath = JsonPaths.compileStatic(templateKey);</b>
+<i class="no-highlight">319</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                    if (environmentData != null &amp;&amp; templateKey.startsWith(&quot;_&quot;)) {</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                        int index = 0;</b>
+<i class="no-highlight">322</i>&nbsp;
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                        while (index &lt; templateKey.length() &amp;&amp; templateKey.charAt(index) == &#39;_&#39;) {</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                            index += 1;</b>
+<i class="no-highlight">325</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                        String paramName = templateKey.substring(index);</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;                        if (environmentData.containsKey(paramName)) {</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                            jsonPath.write(allValues, environmentData.get(paramName));</b>
+<i class="no-highlight">329</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                            jsonPath.write(allValues, emptyReference);</b>
+<i class="no-highlight">331</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                        continue;</b>
+<i class="no-highlight">333</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                    if (additionalProperties != null) {</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                        pathVal = jsonPath.read(additionalProperties);</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                        if (pathVal == null) {</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                            jsonPath.write(allValues, emptyReference);</b>
+<i class="no-highlight">338</i>&nbsp;                        } else {
+<i class="no-highlight">339</i>&nbsp;                            // add the value from the properties
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                            jsonPath.write(allValues, pathVal);</b>
+<i class="no-highlight">341</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                    } else if (data != null) {</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                        jsonPath.write(allValues, emptyReference);</b>
+<i class="no-highlight">344</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                        jsonPath.write(allValues, noDataUndefinedReference);</b>
+<i class="no-highlight">346</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                } catch (ClassCastException e1) {</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                    String message = String.format(ERR_WRITE_MESSAGE, templateKey);</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                    throw new ExecutionException(e, message)</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                            .withResolution(PROVIDE_CORRECT_PATH_MAPPINGS);</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                } catch (InvalidPathException e2) {</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                    throw new ExecutionException(e2, ERR_WRITE_JSON_PATH_MSG)</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                            .formatWith(templateKey)</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                            .withReason(e2.getMessage())</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                            .withResolution(ERR_WRITE_JSON_PATH_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        return new VelocityContext(allValues);</b>
+<i class="no-highlight">360</i>&nbsp;    }
+<i class="no-highlight">361</i>&nbsp;
+<i class="no-highlight">362</i>&nbsp;    /**
+<i class="no-highlight">363</i>&nbsp;     * Finds and returns the value for the given template key
+<i class="no-highlight">364</i>&nbsp;     *
+<i class="no-highlight">365</i>&nbsp;     * @param templateKey a VTL reference
+<i class="no-highlight">366</i>&nbsp;     * @param allValues   a map of VTL references and their values
+<i class="no-highlight">367</i>&nbsp;     * @return the value
+<i class="no-highlight">368</i>&nbsp;     */
+<i class="no-highlight">369</i>&nbsp;    protected Object findValue(String templateKey, Map&lt;String, Object&gt; allValues) throws
+<i class="no-highlight">370</i>&nbsp;            InvalidPathException {
+<b class="nc"><i class="no-highlight">371</i>&nbsp;        JsonPath jsonPath = JsonPathImpl.compile(templateKey, jsonPathExpressionService)</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                .withScopes(scopes);</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;        return jsonPath.read(allValues);</b>
+<i class="no-highlight">374</i>&nbsp;    }
+<i class="no-highlight">375</i>&nbsp;
+<i class="no-highlight">376</i>&nbsp;    private Properties createProperties() {
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        Properties customProperties = getSerializationProperties();</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        if (customProperties != null) {</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            return customProperties;</b>
+<i class="no-highlight">380</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">381</i>&nbsp;        return new Properties();</b>
+<i class="no-highlight">382</i>&nbsp;    }
+<i class="no-highlight">383</i>&nbsp;
+<i class="no-highlight">384</i>&nbsp;    protected Map getAsMap(Object data) {
+<b class="nc"><i class="no-highlight">385</i>&nbsp;        Map retval = null;</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        if (data instanceof Document) {</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            retval = ((Document) data).get(Map.class);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        } else if (data instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;            retval = (Map) data;</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        } else if (data != null) {</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            throw new UnsupportedOperationException(ONLY_MAP_DATA_EXPECTED);</b>
+<i class="no-highlight">392</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">393</i>&nbsp;        if (retval == null) {</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;            return Collections.emptyMap();</b>
+<i class="no-highlight">395</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">396</i>&nbsp;        return retval;</b>
+<i class="no-highlight">397</i>&nbsp;    }
+<i class="no-highlight">398</i>&nbsp;
+<i class="no-highlight">399</i>&nbsp;    private String evaluateWithContext(String editorContent, final VelocityContext context,
+<i class="no-highlight">400</i>&nbsp;            final Properties properties) {
+<b class="nc"><i class="no-highlight">401</i>&nbsp;        if (context == null) {</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;            return editorContent;</b>
+<i class="no-highlight">403</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">404</i>&nbsp;        VelocityEngine velocityEngine = new VelocityEngine();</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;        velocityEngine.init(properties);</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        StringWriter writer = new StringWriter();</b>
+<i class="no-highlight">407</i>&nbsp;        // the context is merged with the template, and the output goes into the StringWriter
+<b class="nc"><i class="no-highlight">408</i>&nbsp;        velocityEngine.evaluate(context, writer, LOG_LABEL, editorContent);</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;        String evaluatedEnvelope = writer.toString();</b>
+<i class="no-highlight">410</i>&nbsp;        /*
+<i class="no-highlight">411</i>&nbsp;        If the velocity template contains parameters within directives then those parameters
+<i class="no-highlight">412</i>&nbsp;        are being ignored by the present API.
+<i class="no-highlight">413</i>&nbsp;        Those parameters may hold ***NO DATA*** value.  We need to replace this value
+<i class="no-highlight">414</i>&nbsp;        with the default value (is specified by the user)
+<i class="no-highlight">415</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">416</i>&nbsp;        if (emptyReference != null) {</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;            String emptyReferenceStr = emptyReference.toString();</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            if (!StringUtils.equals(emptyReferenceStr, XmlUtilsImpl.NO_DATA)) {</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                evaluatedEnvelope = evaluatedEnvelope.replaceAll(NO_DATA_PATTERN,</b>
+<i class="no-highlight">420</i>&nbsp;                        emptyReferenceStr);
+<i class="no-highlight">421</i>&nbsp;            }
+<i class="no-highlight">422</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        return evaluatedEnvelope;</b>
+<i class="no-highlight">424</i>&nbsp;    }
+<i class="no-highlight">425</i>&nbsp;
+<i class="no-highlight">426</i>&nbsp;    public boolean escapeSpecialChars() {
+<b class="nc"><i class="no-highlight">427</i>&nbsp;        return escapeSpecialChars;</b>
+<i class="no-highlight">428</i>&nbsp;    }
+<i class="no-highlight">429</i>&nbsp;
+<i class="no-highlight">430</i>&nbsp;    public TemplateEvaluatorImpl withEscapeSpecialChars(boolean escapeSpecialChars) {
+<b class="nc"><i class="no-highlight">431</i>&nbsp;        this.escapeSpecialChars = escapeSpecialChars;</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;        return this;</b>
+<i class="no-highlight">433</i>&nbsp;    }
+<i class="no-highlight">434</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

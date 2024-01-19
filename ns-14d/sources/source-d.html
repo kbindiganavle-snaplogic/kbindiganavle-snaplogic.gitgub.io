@@ -1,0 +1,456 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SlackUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.slack</a>
+</div>
+
+<h1>Coverage Summary for Class: SlackUtils (com.snaplogic.snaps.slack)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SlackUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/174)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.slack;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.slack.api.Slack;
+<i class="no-highlight">14</i>&nbsp;import com.slack.api.methods.MethodsClient;
+<i class="no-highlight">15</i>&nbsp;import com.slack.api.methods.SlackApiException;
+<i class="no-highlight">16</i>&nbsp;import com.slack.api.methods.request.admin.teams.AdminTeamsListRequest;
+<i class="no-highlight">17</i>&nbsp;import com.slack.api.methods.request.auth.AuthTestRequest;
+<i class="no-highlight">18</i>&nbsp;import com.slack.api.methods.request.conversations.ConversationsListRequest;
+<i class="no-highlight">19</i>&nbsp;import com.slack.api.methods.request.conversations.ConversationsOpenRequest;
+<i class="no-highlight">20</i>&nbsp;import com.slack.api.methods.request.users.UsersListRequest;
+<i class="no-highlight">21</i>&nbsp;import com.slack.api.methods.request.users.UsersLookupByEmailRequest;
+<i class="no-highlight">22</i>&nbsp;import com.slack.api.methods.response.admin.teams.AdminTeamsListResponse;
+<i class="no-highlight">23</i>&nbsp;import com.slack.api.methods.response.auth.AuthTestResponse;
+<i class="no-highlight">24</i>&nbsp;import com.slack.api.methods.response.conversations.ConversationsListResponse;
+<i class="no-highlight">25</i>&nbsp;import com.slack.api.methods.response.conversations.ConversationsOpenResponse;
+<i class="no-highlight">26</i>&nbsp;import com.slack.api.methods.response.users.UsersListResponse;
+<i class="no-highlight">27</i>&nbsp;import com.slack.api.methods.response.users.UsersLookupByEmailResponse;
+<i class="no-highlight">28</i>&nbsp;import com.slack.api.model.Conversation;
+<i class="no-highlight">29</i>&nbsp;import com.slack.api.model.ConversationType;
+<i class="no-highlight">30</i>&nbsp;import com.slack.api.model.User;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">34</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">35</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">38</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">39</i>&nbsp;import java.util.List;
+<i class="no-highlight">40</i>&nbsp;import java.util.Map;
+<i class="no-highlight">41</i>&nbsp;import java.util.Set;
+<i class="no-highlight">42</i>&nbsp;import java.util.TreeSet;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.slack.Constants.COLON;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.slack.Constants.COMMA;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.slack.Constants.EMPTY_EMAIL;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.slack.Constants.SUGGEST_CHANNEL_FORMAT;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.slack.Constants.SUGGEST_USER_FORMAT;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_API_VALIDATE_TOKEN_MSG;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_FETCH_USERS;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_FETCH_USER_PROFILE;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_FETCH_USER_EMAIL;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_LOOKUP_USER_BY_EMAIL;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.REASON_OAUTH_SCOPE_MISSING;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.REASON_LOOKUP_USER_BY_EMAIL;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.RESOLUTION_FETCH_USER;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.RESOLUTION_FETCH_USER_EMAIL;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.RESOLUTION_LOOKUP_USER_BY_EMAIL;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_COMMON_RESOLUTION;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_FETCHING_USERS_ID;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_FIND_USERID_RESOLUTION;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_FINDING_USERS_ID;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_FINDING_USERS_ID_REASON;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_IO_VALIDATE_TOKEN_MSG;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_VALIDATE_TOKEN_MSG;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_VALIDATE_TOKEN_RESOLUTION;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.ERR_UNABLE_TO_CREATE_IM_CHANNEL;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.RESOLUTION_FETCH_USER_PROFILE;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.NO_SUGGESTIONS;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.slack.Messages.TRY_AGAIN;
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;/**
+<i class="no-highlight">73</i>&nbsp; * For performing common operations across various accounts or snaps
+<i class="no-highlight">74</i>&nbsp; */
+<b class="nc"><i class="no-highlight">75</i>&nbsp;public class SlackUtils {</b>
+<i class="no-highlight">76</i>&nbsp;    /**
+<i class="no-highlight">77</i>&nbsp;     * Validates the given OAuth2 token
+<i class="no-highlight">78</i>&nbsp;     *
+<i class="no-highlight">79</i>&nbsp;     * @param token
+<i class="no-highlight">80</i>&nbsp;     * @return An instance of {@link MethodsClient} if token is valid; error otherwise
+<i class="no-highlight">81</i>&nbsp;     */
+<i class="no-highlight">82</i>&nbsp;    public MethodsClient validateToken(String token) {
+<i class="no-highlight">83</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;            Slack slack = Slack.getInstance();</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;            MethodsClient client = slack.methods();</b>
+<i class="no-highlight">86</i>&nbsp;            AuthTestRequest request = AuthTestRequest
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                    .builder()</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                    .token(token)</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            AuthTestResponse response = client.authTest(request);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            if (response.isOk()) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                return slack.methods(token);</b>
+<i class="no-highlight">93</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                throw new SnapDataException(ERR_VALIDATE_TOKEN_MSG)</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                        .withReason(response.getError())</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                        .withResolution(ERR_VALIDATE_TOKEN_RESOLUTION);</b>
+<i class="no-highlight">97</i>&nbsp;            }
+<i class="no-highlight">98</i>&nbsp;
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        } catch (IOException e1) {</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            throw new SnapDataException(e1, ERR_IO_VALIDATE_TOKEN_MSG)</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                    .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                    .withResolution(TRY_AGAIN);</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        } catch (SlackApiException e2) {</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;            throw new SnapDataException(e2, ERR_API_VALIDATE_TOKEN_MSG)</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                    .withReason(e2.getError().getError())</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                    .withResolution(TRY_AGAIN);</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        } catch (SnapDataException e3) {</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            throw e3;</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        } catch (Throwable t1) {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            throw new SnapDataException(t1, ERR_VALIDATE_TOKEN_MSG)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                    .withReason(t1.getMessage())</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                    .withResolution(TRY_AGAIN);</b>
+<i class="no-highlight">113</i>&nbsp;        }
+<i class="no-highlight">114</i>&nbsp;    }
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;    public String[] fetchChannels(MethodsClient methodsClient, boolean excludeArchived,
+<i class="no-highlight">117</i>&nbsp;            List&lt;ConversationType&gt; types) throws IOException, SlackApiException {
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        Set&lt;String&gt; channels = new TreeSet();</b>
+<i class="no-highlight">119</i>&nbsp;        ConversationsListRequest request;
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        String nextCursor = null;</b>
+<i class="no-highlight">121</i>&nbsp;
+<i class="no-highlight">122</i>&nbsp;        do {
+<i class="no-highlight">123</i>&nbsp;            request = ConversationsListRequest
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                    .builder()</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                    .excludeArchived(excludeArchived)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                    .limit(1000)</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                    .cursor(nextCursor)</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                    .types(types)</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            ConversationsListResponse response = methodsClient.conversationsList(request);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            List&lt;Conversation&gt; conversations = response.getChannels();</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            for (Conversation conversation : conversations) {</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                channels.add(String.format(SUGGEST_CHANNEL_FORMAT,</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                        conversation.getName(), conversation.getId()));</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            nextCursor = response.getResponseMetadata().getNextCursor();</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        } while (StringUtils.isNotBlank(nextCursor));</b>
+<i class="no-highlight">138</i>&nbsp;
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        return channels.isEmpty() ?</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                new String[] { NO_SUGGESTIONS } :</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                channels.toArray(new String[0]);</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    public String[] fetchUsers(MethodsClient methodsClient) throws IOException, SlackApiException {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        Set&lt;String&gt; users = new TreeSet();</b>
+<i class="no-highlight">146</i>&nbsp;        UsersListRequest request;
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        String nextCursor = null;</b>
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;        do {
+<i class="no-highlight">150</i>&nbsp;            request = UsersListRequest
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                    .builder()</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                    .limit(1000)</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                    .cursor(nextCursor)</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;            UsersListResponse response = methodsClient.usersList(request);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            List&lt;User&gt; members = response.getMembers();</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            for (User member : members) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                users.add(String.format(SUGGEST_USER_FORMAT, member.getName(), member.getId()));</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            nextCursor = response.getResponseMetadata().getNextCursor();</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        } while (StringUtils.isNotBlank(nextCursor));</b>
+<i class="no-highlight">162</i>&nbsp;
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        return users.isEmpty() ?</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                new String[] { NO_SUGGESTIONS } :</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                users.toArray(new String[0]);</b>
+<i class="no-highlight">166</i>&nbsp;    }
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;    public String lookupUserIDByEmail(MethodsClient methodsClient, String email) throws IOException, SlackApiException,
+<i class="no-highlight">169</i>&nbsp;            SnapDataException {
+<i class="no-highlight">170</i>&nbsp;        UsersLookupByEmailRequest request;
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        request = UsersLookupByEmailRequest.builder().email(email).build();</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        UsersLookupByEmailResponse response = methodsClient.usersLookupByEmail(request);</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        User user = response.getUser();</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        if (user == null) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            throw new SnapDataException(ERR_LOOKUP_USER_BY_EMAIL)</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                    .withReason(String.format(REASON_LOOKUP_USER_BY_EMAIL, email))</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                    .withResolution(String.format(RESOLUTION_LOOKUP_USER_BY_EMAIL, email));</b>
+<i class="no-highlight">178</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        return user.getId();</b>
+<i class="no-highlight">180</i>&nbsp;    }
+<i class="no-highlight">181</i>&nbsp;
+<i class="no-highlight">182</i>&nbsp;    public String[] fetchUserEmails(MethodsClient methodsClient) throws IOException, SlackApiException {
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        Set&lt;String&gt; users = new TreeSet&lt;&gt;();</b>
+<i class="no-highlight">184</i>&nbsp;        UsersListRequest request;
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        String nextCursor = null;</b>
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;        do {
+<i class="no-highlight">188</i>&nbsp;            request = UsersListRequest
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                    .builder()</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                    .limit(1000)</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    .cursor(nextCursor)</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            UsersListResponse response = methodsClient.usersList(request);</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;            List&lt;User&gt; members = response.getMembers();</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            if (members.size() == 0) {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                throw new SnapDataException(ERR_FETCH_USERS)</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                        .withReason(REASON_OAUTH_SCOPE_MISSING)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                        .withResolution(RESOLUTION_FETCH_USER);</b>
+<i class="no-highlight">199</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            boolean canFetchProfile = false;</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            boolean canFetchEmail = false;</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            for (User member : members) {</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                if (member != null &amp;&amp; member.getProfile() != null ) {</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                    canFetchProfile = true;</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                    String email = member.getProfile().getEmail();</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                    if (email == null) {</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                        email = EMPTY_EMAIL;</b>
+<i class="no-highlight">208</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                        canFetchEmail = true;</b>
+<i class="no-highlight">210</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                    users.add(String.format(SUGGEST_USER_FORMAT, member.getName(), email ));</b>
+<i class="no-highlight">212</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            if (!canFetchProfile) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                throw new SnapDataException(ERR_FETCH_USER_PROFILE)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                        .withReason(REASON_OAUTH_SCOPE_MISSING)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        .withResolution(RESOLUTION_FETCH_USER_PROFILE);</b>
+<i class="no-highlight">218</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            if (!canFetchEmail) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                throw new SnapDataException(ERR_FETCH_USER_EMAIL)</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                        .withReason(REASON_OAUTH_SCOPE_MISSING)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                        .withResolution(RESOLUTION_FETCH_USER_EMAIL);</b>
+<i class="no-highlight">223</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            nextCursor = response.getResponseMetadata().getNextCursor();</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        } while (StringUtils.isNotBlank(nextCursor));</b>
+<i class="no-highlight">226</i>&nbsp;
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        return users.isEmpty() ?</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                new String[]{NO_SUGGESTIONS} :</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                users.toArray(new String[0]);</b>
+<i class="no-highlight">230</i>&nbsp;    }
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;    public List&lt;String&gt; convertCommaSeparatedStringIntoListForUsers(String commaSeparatedValue,
+<i class="no-highlight">233</i>&nbsp;            Map&lt;String, String&gt; usersMap, MethodsClient methodsClient) {
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        List&lt;String&gt; list = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">235</i>&nbsp;
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        String[] array = commaSeparatedValue.split(COMMA);</b>
+<i class="no-highlight">237</i>&nbsp;
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        for (String item : array) {</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;            String userID = getUserID(item.trim(), usersMap, methodsClient);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;            list.add(userID);</b>
+<i class="no-highlight">241</i>&nbsp;        }
+<i class="no-highlight">242</i>&nbsp;
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        return list;</b>
+<i class="no-highlight">244</i>&nbsp;    }
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;    public List&lt;String&gt; convertCommaSeparatedStringIntoList(String commaSeparatedValue) {
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        List&lt;String&gt; list = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">248</i>&nbsp;
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        String[] array = commaSeparatedValue.split(COMMA);</b>
+<i class="no-highlight">250</i>&nbsp;
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        for (String item : array) {</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;            int colonIndex = item.indexOf(COLON);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            if (colonIndex != -1) {</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                item = item.substring(colonIndex + 1);</b>
+<i class="no-highlight">255</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">256</i>&nbsp;            list.add(item.trim());</b>
+<i class="no-highlight">257</i>&nbsp;        }
+<i class="no-highlight">258</i>&nbsp;
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        return list;</b>
+<i class="no-highlight">260</i>&nbsp;    }
+<i class="no-highlight">261</i>&nbsp;
+<i class="no-highlight">262</i>&nbsp;    public String createInstantMessageChannel(MethodsClient methodsClient, List&lt;String&gt; users,
+<i class="no-highlight">263</i>&nbsp;            Logger logger) throws IOException, SlackApiException {
+<i class="no-highlight">264</i>&nbsp;        ConversationsOpenRequest request = ConversationsOpenRequest
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                .builder()</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                .users(users)</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        ConversationsOpenResponse response = methodsClient.conversationsOpen(request);</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        if (response.isOk()) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            return response.getChannel().getId();</b>
+<i class="no-highlight">271</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            logger.error(&quot;Unable to create interim channel {}&quot;, response.getError());</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            throw new SnapDataException(ERR_UNABLE_TO_CREATE_IM_CHANNEL)</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                    .withReason(response.getError())</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                    .withResolution(ERR_COMMON_RESOLUTION);</b>
+<i class="no-highlight">276</i>&nbsp;        }
+<i class="no-highlight">277</i>&nbsp;    }
+<i class="no-highlight">278</i>&nbsp;
+<i class="no-highlight">279</i>&nbsp;    protected AdminTeamsListResponse makeGetWorkspacesRequest(MethodsClient methodsClient,
+<i class="no-highlight">280</i>&nbsp;            String nextCursor)
+<i class="no-highlight">281</i>&nbsp;            throws IOException, SlackApiException {
+<i class="no-highlight">282</i>&nbsp;        AdminTeamsListRequest request = AdminTeamsListRequest
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                .builder()</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                .cursor(nextCursor)</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                .limit(100)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        return methodsClient.adminTeamsList(request);</b>
+<i class="no-highlight">288</i>&nbsp;    }
+<i class="no-highlight">289</i>&nbsp;
+<i class="no-highlight">290</i>&nbsp;    protected UsersListResponse getUsersInWorkspace(MethodsClient methodsClient, String nextCursor,
+<i class="no-highlight">291</i>&nbsp;            boolean includeLocale) throws IOException, SlackApiException {
+<i class="no-highlight">292</i>&nbsp;        UsersListRequest request = UsersListRequest
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                .builder()</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                .cursor(nextCursor)</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                .limit(1000)</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                .includeLocale(includeLocale)</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        return methodsClient.usersList(request);</b>
+<i class="no-highlight">299</i>&nbsp;    }
+<i class="no-highlight">300</i>&nbsp;
+<i class="no-highlight">301</i>&nbsp;    public String getUserID(String userId, Map&lt;String, String&gt; usersMap,
+<i class="no-highlight">302</i>&nbsp;            MethodsClient methodsClient) {
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        int colonIndex = userId.indexOf(COLON);</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        if (colonIndex &gt; -1) {</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;            userId = userId.substring(colonIndex + 1);</b>
+<i class="no-highlight">306</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        if (userId.startsWith(&quot;@&quot;)) {</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;            final String name = userId.replaceFirst(&quot;@&quot;, &quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;            if (MapUtils.isEmpty(usersMap)) {</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                usersMap = getWorkspaceUsersMap(usersMap, methodsClient);</b>
+<i class="no-highlight">311</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">312</i>&nbsp;            if (usersMap.containsValue(name)) {</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                userId = usersMap.entrySet().stream()</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                        .filter(entry -&gt; StringUtils.equals(entry.getValue(), name))</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                        .map(Map.Entry::getKey).findFirst().get();</b>
+<i class="no-highlight">316</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                throw new SnapDataException(ERR_FINDING_USERS_ID)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                        .withReason(String.format(ERR_FINDING_USERS_ID_REASON, name))</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                        .withResolution(ERR_FIND_USERID_RESOLUTION);</b>
+<i class="no-highlight">320</i>&nbsp;            }
+<i class="no-highlight">321</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        return userId;</b>
+<i class="no-highlight">323</i>&nbsp;    }
+<i class="no-highlight">324</i>&nbsp;
+<i class="no-highlight">325</i>&nbsp;    private Map&lt;String, String&gt; getWorkspaceUsersMap(Map&lt;String, String&gt; usersMap,
+<i class="no-highlight">326</i>&nbsp;            MethodsClient methodsClient)  {
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        String nextCursor = null;</b>
+<i class="no-highlight">328</i>&nbsp;
+<i class="no-highlight">329</i>&nbsp;        try {
+<i class="no-highlight">330</i>&nbsp;            do {
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                UsersListResponse response = getUsersInWorkspace(methodsClient, nextCursor, true);</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                if (response.isOk()) {</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                    List&lt;User&gt; userList = response.getMembers();</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                    for (User user : userList) {</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                        usersMap.put(user.getId(), user.getName());</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                    nextCursor = response.getResponseMetadata().getNextCursor();</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                    throw new SnapDataException(ERR_FETCHING_USERS_ID)</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                            .withReason(response.getError())</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                            .withResolution(ERR_VALIDATE_TOKEN_RESOLUTION);</b>
+<i class="no-highlight">342</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            } while (StringUtils.isNotBlank(nextCursor));</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;        } catch (IOException | SlackApiException e1) {</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;            throw new SnapDataException(e1, ERR_FETCHING_USERS_ID)</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                    .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                    .withResolution(ERR_VALIDATE_TOKEN_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;        return usersMap;</b>
+<i class="no-highlight">350</i>&nbsp;    }
+<i class="no-highlight">351</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

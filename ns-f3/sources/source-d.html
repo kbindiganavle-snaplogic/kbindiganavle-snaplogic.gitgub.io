@@ -1,0 +1,384 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OldSldbJarClassloader</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.jms</a>
+</div>
+
+<h1>Coverage Summary for Class: OldSldbJarClassloader (com.snaplogic.snaps.jms)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OldSldbJarClassloader</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/123)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014-2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.jms;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.common.url.protocol.sldb.SldbUrlConnection;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.util.ThreadUtils;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">19</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">20</i>&nbsp;import org.apache.http.HttpStatus;
+<i class="no-highlight">21</i>&nbsp;import org.apache.http.util.EntityUtils;
+<i class="no-highlight">22</i>&nbsp;import org.mortbay.jetty.webapp.WebAppClassLoader;
+<i class="no-highlight">23</i>&nbsp;import org.mortbay.jetty.webapp.WebAppContext;
+<i class="no-highlight">24</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">25</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">28</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">29</i>&nbsp;import javax.naming.Context;
+<i class="no-highlight">30</i>&nbsp;import java.net.URISyntaxException;
+<i class="no-highlight">31</i>&nbsp;import java.net.URL;
+<i class="no-highlight">32</i>&nbsp;import java.net.URLClassLoader;
+<i class="no-highlight">33</i>&nbsp;import java.net.URLConnection;
+<i class="no-highlight">34</i>&nbsp;import java.nio.file.FileAlreadyExistsException;
+<i class="no-highlight">35</i>&nbsp;import java.nio.file.Files;
+<i class="no-highlight">36</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">37</i>&nbsp;import java.nio.file.StandardCopyOption;
+<i class="no-highlight">38</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">39</i>&nbsp;import java.util.List;
+<i class="no-highlight">40</i>&nbsp;import java.util.Properties;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;/**
+<i class="no-highlight">43</i>&nbsp; * Provides a class loader that guarantees an uncorrupted jar download from SLDB.
+<i class="no-highlight">44</i>&nbsp; * Will cache the jars in the local directory: run/jcc/snapjars
+<i class="no-highlight">45</i>&nbsp; *
+<i class="no-highlight">46</i>&nbsp; * @author mklumpp
+<i class="no-highlight">47</i>&nbsp; */
+<i class="no-highlight">48</i>&nbsp;public class OldSldbJarClassloader extends ClassLoader {
+<i class="no-highlight">49</i>&nbsp;    private static final String URLS_MUST_BE_SET = &quot;Urls must be set.&quot;;
+<i class="no-highlight">50</i>&nbsp;    private static final String ERR_INVALID_URL = &quot;Only sldb files are permitted&quot;;
+<i class="no-highlight">51</i>&nbsp;    private static final String RESOLUTION_INVALID_URL = &quot;Please define a sldb uri, &quot; +
+<i class="no-highlight">52</i>&nbsp;            &quot;such as sldb:/// or a relative path such as shared/a.jar&quot;;
+<i class="no-highlight">53</i>&nbsp;    private static final String ERR_DOWNLOADING_JAR = &quot;Error downloading jar file %s&quot;;
+<i class="no-highlight">54</i>&nbsp;    private static final String JAR_DOWNLOAD_FAILED = &quot;Jar file download failed : %s.&quot;;
+<i class="no-highlight">55</i>&nbsp;    private static final String INTERRUPTED_WHILE_SLEEPING = &quot;Interrupted while sleeping&quot;;
+<i class="no-highlight">56</i>&nbsp;    private static final String RESOLUTION_ERR_DOWNLOADING_JAR = &quot;Possible network error, &quot; +
+<i class="no-highlight">57</i>&nbsp;            &quot;please retry in a couple of seconds&quot;;
+<i class="no-highlight">58</i>&nbsp;    private static final String ERROR_CREATING_WEB_CONTEXT = &quot;Error creating web context&quot;;
+<i class="no-highlight">59</i>&nbsp;
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(OldSldbJarClassloader.class);</b>
+<i class="no-highlight">61</i>&nbsp;    private static final String JAR_CLASS_LOADER = &quot;JarClassLoader&quot;;
+<i class="no-highlight">62</i>&nbsp;    private static final String E_TAG = &quot;ETag&quot;;
+<i class="no-highlight">63</i>&nbsp;    private static final String RUN_DIR = &quot;run&quot;;
+<i class="no-highlight">64</i>&nbsp;    private static final String JCC_DIR = &quot;jcc&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String SNAPJARS_DIR = &quot;snapjars&quot;;
+<i class="no-highlight">66</i>&nbsp;    private static final String MARKER_NAME = &quot;.download-complete&quot;;
+<i class="no-highlight">67</i>&nbsp;    private static final String DOT_TMP = &quot;.tmp&quot;;
+<i class="no-highlight">68</i>&nbsp;    private static final String SLDB_PROTOCOL = &quot;sldb&quot;;
+<i class="no-highlight">69</i>&nbsp;    private static final int SEC_1 = 1000;
+<i class="no-highlight">70</i>&nbsp;    //&lt;home&gt;/run/jcc/snapjars
+<i class="no-highlight">71</i>&nbsp;    protected static final String DIR_PATH = com.snaplogic.util.IOUtils.buildPath(
+<b class="nc"><i class="no-highlight">72</i>&nbsp;            com.snaplogic.util.IOUtils.getSnapHome(), RUN_DIR, JCC_DIR, SNAPJARS_DIR).toString();</b>
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;    private static final String ORACLE_AQ_JMS_CTX_FACTORY = &quot;oracle.jms.AQjmsInitialContextFactory&quot;;
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    private final URLClassLoader classLoader;
+<i class="no-highlight">77</i>&nbsp;    private String localStore;
+<i class="no-highlight">78</i>&nbsp;    private final Properties jndiProps;
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;    public OldSldbJarClassloader(URL[] urls, ClassLoader parent, Properties jndiProps) {
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        super(parent);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        if (urls == null) {</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;            throw new ExecutionException(URLS_MUST_BE_SET)</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">85</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        this.jndiProps = jndiProps != null ? jndiProps : new Properties();</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        this.classLoader = getClassLoaderDelegate(urls, parent);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        this.localStore = DIR_PATH;</b>
+<i class="no-highlight">89</i>&nbsp;    }
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;    public OldSldbJarClassloader(URL[] urls, ClassLoader parent, String localStore) {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        this(urls, parent, (Properties)null);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        this.localStore = localStore;</b>
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    protected URLClassLoader getClassLoaderDelegate(URL[] urls, ClassLoader parent) {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        List&lt;URL&gt; jarUrls = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        for (URL url : urls) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            int retry = 3;</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            IOException ioException = null;</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            while (--retry &gt;= 0) {</b>
+<i class="no-highlight">102</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                    if (!SLDB_PROTOCOL.equals(url.getProtocol())) {</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                        throw new ExecutionException(ERR_INVALID_URL)</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                                .withReason(ERR_INVALID_URL)</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                                .withResolution(RESOLUTION_INVALID_URL);</b>
+<i class="no-highlight">107</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                    SldbUrlConnection headUrlConnection = (SldbUrlConnection) url</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                            .openConnection();</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                    headUrlConnection.setUseCaches(true);</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                    HttpResponse httpResponse = headUrlConnection.head(url);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                    if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                        String md5Hash = headUrlConnection.getHeaderField(E_TAG);</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                        if (localStore == null) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                            localStore = DIR_PATH;</b>
+<i class="no-highlight">116</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                        LOG.info(&quot;Mapping URL to ETAG: {} -&gt; {}&quot;, url, md5Hash);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                        Path snapPath = com.snaplogic.util.IOUtils.buildPath(localStore,</b>
+<i class="no-highlight">119</i>&nbsp;                                md5Hash);
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                        Path versionPath = Files.createDirectories(snapPath);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                        Path markerFile = versionPath.resolve(MARKER_NAME);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                        EntityUtils.consume(httpResponse.getEntity());</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                        String jarName = url.getPath();</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                        int ridx = jarName.lastIndexOf(&quot;/&quot;);</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                        if (ridx &gt;= 0) {</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                            jarName = jarName.substring(ridx + 1, jarName.length());</b>
+<i class="no-highlight">127</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                        Path jarFile = com.snaplogic.util.IOUtils.buildPath(snapPath.toString(),</b>
+<i class="no-highlight">129</i>&nbsp;                                jarName);
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                        if (!Files.exists(markerFile) || !Files.exists(jarFile)) {</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                            URLConnection urlConnection = url.openConnection();</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                            urlConnection.setUseCaches(true);</b>
+<i class="no-highlight">133</i>&nbsp;
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                            try (InputStream fileStream = urlConnection.getInputStream()) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                                jarFile = downloadJarFile(versionPath, fileStream, markerFile,</b>
+<i class="no-highlight">136</i>&nbsp;                                        jarName);
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                            }</b>
+<i class="no-highlight">138</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                        jarUrls.add(jarFile.toUri().toURL());</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                        retry = -1;</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                        ioException = null;</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                    } else {</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                        HttpEntity entity = httpResponse.getEntity();</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                        String reason = String.format(JAR_DOWNLOAD_FAILED,</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                                httpResponse.getStatusLine().getReasonPhrase());</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                        if (entity != null) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                            reason += EntityUtils.toString(entity);</b>
+<i class="no-highlight">148</i>&nbsp;                        }
+<i class="no-highlight">149</i>&nbsp;
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                        throw new ExecutionException(reason);</b>
+<i class="no-highlight">151</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                } catch (IOException e) {</b>
+<i class="no-highlight">153</i>&nbsp;                    // ignore until we exceed the retries
+<i class="no-highlight">154</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                        Thread.sleep(SEC_1);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                    } catch (InterruptedException ex) {</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                        LOG.warn(INTERRUPTED_WHILE_SLEEPING, e);</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                    ioException = e;</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                    LOG.warn(String.format(ERR_DOWNLOADING_JAR, url.toString()), e);</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                }</b>
+<i class="no-highlight">162</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            if (ioException != null) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                String msg = String.format(ERR_DOWNLOADING_JAR, url.toString());</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                throw new ExecutionException(ioException, msg)</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                        .withReason(msg)</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                        .withResolution(RESOLUTION_ERR_DOWNLOADING_JAR);</b>
+<i class="no-highlight">168</i>&nbsp;            }
+<i class="no-highlight">169</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        if (isOracleAQJmsProvider()) {</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            return new JmsParentLastClassLoader(jarUrls.toArray(new URL[jarUrls.size()]), parent);</b>
+<i class="no-highlight">172</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        return newWebAppClassLoader(jarUrls, parent);</b>
+<i class="no-highlight">174</i>&nbsp;    }
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">177</i>&nbsp;    protected boolean isOracleAQJmsProvider() {
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        if (jndiProps != null) {</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;            return (ORACLE_AQ_JMS_CTX_FACTORY.equals(jndiProps.get(Context.INITIAL_CONTEXT_FACTORY)));</b>
+<i class="no-highlight">180</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        return false;</b>
+<i class="no-highlight">182</i>&nbsp;    }
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">185</i>&nbsp;    protected URLClassLoader newWebAppClassLoader(List&lt;URL&gt; classpath, ClassLoader parent) {
+<i class="no-highlight">186</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            WebAppContext context = new WebAppContext();</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;            context.setAttribute(JAR_CLASS_LOADER, this);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            context.setParentLoaderPriority(false);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;            WebAppClassLoader webAppClassLoader = new WebAppClassLoader(parent, context);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;            for (URL url : classpath) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                webAppClassLoader.addClassPath(String.valueOf(url.toURI()));</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;            return webAppClassLoader;</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        } catch (IOException|URISyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            throw new ExecutionException(ERROR_CREATING_WEB_CONTEXT)</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                .withResolutionAsDefect();</b>
+<i class="no-highlight">198</i>&nbsp;        }
+<i class="no-highlight">199</i>&nbsp;    }
+<i class="no-highlight">200</i>&nbsp;
+<i class="no-highlight">201</i>&nbsp;    /**
+<i class="no-highlight">202</i>&nbsp;     * @see OldSldbJarClassloader#loadClass(java.lang.String)
+<i class="no-highlight">203</i>&nbsp;     */
+<i class="no-highlight">204</i>&nbsp;    @Override
+<i class="no-highlight">205</i>&nbsp;    protected synchronized Class&lt;?&gt; loadClass(String name, boolean resolve)
+<i class="no-highlight">206</i>&nbsp;            throws ClassNotFoundException {
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        return this.classLoader.loadClass(name);</b>
+<i class="no-highlight">208</i>&nbsp;    }
+<i class="no-highlight">209</i>&nbsp;
+<i class="no-highlight">210</i>&nbsp;    /**
+<i class="no-highlight">211</i>&nbsp;     * Get the URLs of the downloaded jars.
+<i class="no-highlight">212</i>&nbsp;     */
+<i class="no-highlight">213</i>&nbsp;    public URL[] getDownloadedURLs() {
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        return this.classLoader.getURLs();</b>
+<i class="no-highlight">215</i>&nbsp;    }
+<i class="no-highlight">216</i>&nbsp;
+<i class="no-highlight">217</i>&nbsp;    private Path downloadJarFile(Path snapDirPath, InputStream inputStream, final Path markerFile,
+<i class="no-highlight">218</i>&nbsp;            final String jarName) throws IOException {
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        Path tmpJarFilePath = Files.createTempFile(snapDirPath, jarName, DOT_TMP);</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        Path jarFilePath = snapDirPath.resolve(jarName);</b>
+<i class="no-highlight">221</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">222</i>&nbsp;            LOG.info(&quot;Downloading JAR file: {}&quot;, tmpJarFilePath);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            Files.copy(inputStream, tmpJarFilePath, StandardCopyOption.REPLACE_EXISTING);</b>
+<i class="no-highlight">224</i>&nbsp;            // In case there are multiple threads downloading the same JAR file, we need to make
+<i class="no-highlight">225</i>&nbsp;            // sure only one of them will actually do the final install.  Creating the marker file
+<i class="no-highlight">226</i>&nbsp;            // using createFile is atomic and it should throw an exception if the file already
+<i class="no-highlight">227</i>&nbsp;            // exists.
+<b class="nc"><i class="no-highlight">228</i>&nbsp;            Files.createFile(markerFile);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;            LOG.info(&quot;Installing JAR for use: {}&quot;, jarFilePath);</b>
+<i class="no-highlight">230</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                Files.move(tmpJarFilePath, jarFilePath, StandardCopyOption.ATOMIC_MOVE);</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                LOG.error(&quot;Unable to install JAR file: {}&quot;, jarFilePath, e);</b>
+<i class="no-highlight">234</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                    Files.delete(markerFile);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                } catch (IOException e2) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                    LOG.trace(&quot;Unable to delete marker: {}&quot;, tmpJarFilePath, e2);</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                }</b>
+<i class="no-highlight">239</i>&nbsp;                // Throw the exception so the caller will do a retry.
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                throw e;</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        } catch (FileAlreadyExistsException e) {</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            LOG.info(&quot;Another thread is installing the JAR, waiting: {}&quot;, jarFilePath);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            for (int attempt = 0; attempt &lt; 5; attempt++) {</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                if (!Files.exists(jarFilePath)) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                    break;</b>
+<i class="no-highlight">247</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                    ThreadUtils.sleep(100);</b>
+<i class="no-highlight">249</i>&nbsp;                }
+<i class="no-highlight">250</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">251</i>&nbsp;            if (!Files.exists(jarFilePath)) {</b>
+<i class="no-highlight">252</i>&nbsp;                // If it&#39;s not there yet, it&#39;s probably never going to be, so we delete the marker
+<i class="no-highlight">253</i>&nbsp;                // file.
+<i class="no-highlight">254</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                    LOG.warn(&quot;Deleting old marker file to try and recover from broken download: &quot; +</b>
+<i class="no-highlight">256</i>&nbsp;                            &quot;{}&quot;, markerFile);
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                    Files.delete(markerFile);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                } catch (IOException e2) {</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                    LOG.trace(&quot;Unable to delete marker file: {}&quot;, markerFile, e2);</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                }</b>
+<i class="no-highlight">261</i>&nbsp;                // Throw the exception so the caller will do a retry
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                throw e;</b>
+<i class="no-highlight">263</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            LOG.info(&quot;The JAR has been installed and is ready for use: {}&quot;, jarFilePath);</b>
+<i class="no-highlight">265</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                Files.delete(tmpJarFilePath);</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                LOG.trace(&quot;Unable to delete temporary: {}&quot;, tmpJarFilePath, e);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        return jarFilePath;</b>
+<i class="no-highlight">273</i>&nbsp;    }
+<i class="no-highlight">274</i>&nbsp;
+<i class="no-highlight">275</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">276</i>&nbsp;    URLClassLoader getClassLoaderDelegate() {
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        return this.classLoader;</b>
+<i class="no-highlight">278</i>&nbsp;    }
+<i class="no-highlight">279</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

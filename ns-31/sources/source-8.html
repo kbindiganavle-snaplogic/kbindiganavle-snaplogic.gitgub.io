@@ -1,0 +1,415 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > FtpUrlConnection</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.fs.ftp</a>
+</div>
+
+<h1>Coverage Summary for Class: FtpUrlConnection (com.snaplogic.snap.api.fs.ftp)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FtpUrlConnection</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/93)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">FtpUrlConnection$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/95)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.fs.ftp;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.common.services.Disconnectable;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">18</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">19</i>&nbsp;import org.apache.commons.net.ftp.FTP;
+<i class="no-highlight">20</i>&nbsp;import org.apache.commons.net.ftp.FTPClient;
+<i class="no-highlight">21</i>&nbsp;import org.apache.commons.net.ftp.FTPReply;
+<i class="no-highlight">22</i>&nbsp;import org.apache.commons.net.ftp.FTPSClient;
+<i class="no-highlight">23</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">24</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import java.io.BufferedInputStream;
+<i class="no-highlight">27</i>&nbsp;import java.io.BufferedOutputStream;
+<i class="no-highlight">28</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">29</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">30</i>&nbsp;import java.io.OutputStream;
+<i class="no-highlight">31</i>&nbsp;import java.net.URI;
+<i class="no-highlight">32</i>&nbsp;import java.net.URISyntaxException;
+<i class="no-highlight">33</i>&nbsp;import java.net.URL;
+<i class="no-highlight">34</i>&nbsp;import java.net.URLConnection;
+<i class="no-highlight">35</i>&nbsp;import java.security.GeneralSecurityException;
+<i class="no-highlight">36</i>&nbsp;import java.security.cert.X509Certificate;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import javax.net.ssl.KeyManager;
+<i class="no-highlight">39</i>&nbsp;import javax.net.ssl.KeyManagerFactory;
+<i class="no-highlight">40</i>&nbsp;import javax.net.ssl.TrustManager;
+<i class="no-highlight">41</i>&nbsp;import javax.net.ssl.X509TrustManager;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.PROTOCOL_FTPIS;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.getAppendQuery;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_CANNOT_CONNECT;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_CANNOT_CONNECT_RESOLUTION;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_HOST;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_HOST_REASON;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_HOST_RESOLUTION;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_LOGIN;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_TRUST_ALL_CERTIFICATES;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_URI_SYNTAX;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;/**
+<i class="no-highlight">56</i>&nbsp; * Handles FTP URL connection.
+<i class="no-highlight">57</i>&nbsp; */
+<i class="no-highlight">58</i>&nbsp;public class FtpUrlConnection extends URLConnection implements Disconnectable {
+<b class="nc"><i class="no-highlight">59</i>&nbsp;    private static final Logger logger = LoggerFactory.getLogger(FtpUrlConnection.class);</b>
+<i class="no-highlight">60</i>&nbsp;    private static final String FORMAT_NO_AUTH_URL = &quot;%s://%s:%d%s&quot;;
+<i class="no-highlight">61</i>&nbsp;    private static final String ANONYMOUS = &quot;anonymous&quot;;
+<i class="no-highlight">62</i>&nbsp;    private static final String INFO_CONNECTED = &quot;Successfully connected to %s&quot;;
+<i class="no-highlight">63</i>&nbsp;    private static final String INFO_LOGIN = &quot;Successfully logged in as %s&quot;;
+<i class="no-highlight">64</i>&nbsp;    private static final String INFO_INPUTSTREAM = &quot;Successfully opened input stream for %s&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String INFO_OUTPUTSTREAM = &quot;Successfully opened output stream for %s&quot;;
+<i class="no-highlight">66</i>&nbsp;    private static final String INFO_DISCONNECTED = &quot;Successfully disconnected from %s&quot;;
+<i class="no-highlight">67</i>&nbsp;    private static final String INFO_CANNOT_CLOSE = &quot;Cannot close the connection for %s, &quot; +
+<i class="no-highlight">68</i>&nbsp;            &quot;detail: %s&quot;;
+<i class="no-highlight">69</i>&nbsp;    private static final String INFO_CANNOT_LOGOUT = &quot;Cannot logout for %s&quot;;
+<i class="no-highlight">70</i>&nbsp;    private static final String COLON = &quot;:&quot;;
+<i class="no-highlight">71</i>&nbsp;    private static final int FTPIS_DEFAULT_PORT = 990;
+<i class="no-highlight">72</i>&nbsp;    // FRPClient buffer size: 1MB
+<i class="no-highlight">73</i>&nbsp;    private static final int BUFFER_SIZE = 1048576;
+<b class="nc"><i class="no-highlight">74</i>&nbsp;    private String username;</b>
+<i class="no-highlight">75</i>&nbsp;    private String password = StringUtils.EMPTY;
+<i class="no-highlight">76</i>&nbsp;    private String host;
+<i class="no-highlight">77</i>&nbsp;    private int port;
+<i class="no-highlight">78</i>&nbsp;    private String path;
+<i class="no-highlight">79</i>&nbsp;    private String noAuthUrl;
+<i class="no-highlight">80</i>&nbsp;    private final FTPClient client;
+<i class="no-highlight">81</i>&nbsp;    private InputStream inputStream;
+<b class="nc"><i class="no-highlight">82</i>&nbsp;    private OutputStream outputStream;</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;    private boolean append = false;</b>
+<i class="no-highlight">84</i>&nbsp;    private boolean isConnected = false;
+<i class="no-highlight">85</i>&nbsp;
+<b class="nc"><i class="no-highlight">86</i>&nbsp;    public FtpUrlConnection(URL url) {</b>
+<i class="no-highlight">87</i>&nbsp;        this(url, new FTPClient());
+<i class="no-highlight">88</i>&nbsp;    }
+<i class="no-highlight">89</i>&nbsp;
+<b class="nc"><i class="no-highlight">90</i>&nbsp;    public FtpUrlConnection(URL url, final FTPClient client) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        super(url);</b>
+<i class="no-highlight">92</i>&nbsp;        this.client = client;
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        // increase FTPClient buffer size (default: 1024 bytes)</b>
+<i class="no-highlight">94</i>&nbsp;        client.setBufferSize(BUFFER_SIZE);
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        // validate the host name syntax</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        host = url.getHost();</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        if (StringUtils.isBlank(host)) {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            throw new SnapException(ERR_HOST)</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                    .withReason(ERR_HOST_REASON)</b>
+<i class="no-highlight">100</i>&nbsp;                    .withResolution(ERR_HOST_RESOLUTION);
+<i class="no-highlight">101</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        // get port number</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        port = url.getPort();</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        if (port &lt; 0) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            if (PROTOCOL_FTPIS.equalsIgnoreCase(url.getProtocol())) {</b>
+<i class="no-highlight">106</i>&nbsp;                port = FTPIS_DEFAULT_PORT;
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            } else {</b>
+<i class="no-highlight">108</i>&nbsp;                port = FTPClient.DEFAULT_PORT;
+<i class="no-highlight">109</i>&nbsp;            }
+<i class="no-highlight">110</i>&nbsp;        }
+<i class="no-highlight">111</i>&nbsp;        String userInfo;
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        try {</b>
+<i class="no-highlight">113</i>&nbsp;            URI uri = url.toURI();
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            // We have to do &#39;uri.getPath() here to support &#39;+&#39; character in the file path</b>
+<i class="no-highlight">115</i>&nbsp;            path = uri.getPath();
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            // format URL string without user info</b>
+<i class="no-highlight">117</i>&nbsp;            noAuthUrl = String.format(FORMAT_NO_AUTH_URL, url.getProtocol(), host, port, path);
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            // parse username and password from URL</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            userInfo = uri.getUserInfo();</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        } catch (URISyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            throw new SnapDataException(e, ERR_URI_SYNTAX).formatWith(noAuthUrl)</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        if (StringUtils.isBlank(userInfo)) {</b>
+<i class="no-highlight">126</i>&nbsp;            username = ANONYMOUS;
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;            String[] strings = userInfo.split(COLON, 2);</b>
+<i class="no-highlight">129</i>&nbsp;            switch (strings.length) {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                case 2:</b>
+<i class="no-highlight">131</i>&nbsp;                    password = strings[1];
+<i class="no-highlight">132</i>&nbsp;                    // fall through
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                case 1:</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                    username = strings[0];</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                    if (StringUtils.isBlank(username)) {</b>
+<i class="no-highlight">136</i>&nbsp;                        username = ANONYMOUS;
+<i class="no-highlight">137</i>&nbsp;                    }
+<i class="no-highlight">138</i>&nbsp;            }
+<i class="no-highlight">139</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        // parse query for &quot;fileAction=append&quot;</b>
+<i class="no-highlight">141</i>&nbsp;        append = getAppendQuery(url);
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        // if FTPS, register a trust manager so that all certificates are trusted</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        if (client instanceof FTPSClient) {</b>
+<i class="no-highlight">144</i>&nbsp;            trustAllCertificates((FTPSClient) client);
+<i class="no-highlight">145</i>&nbsp;        }
+<i class="no-highlight">146</i>&nbsp;    }
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;    @Override
+<i class="no-highlight">149</i>&nbsp;    public void connect() throws IOException {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        // connect to FTP server</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        client.connect(host, port);</b>
+<i class="no-highlight">152</i>&nbsp;        logger.info(String.format(INFO_CONNECTED, host));
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        // check the reply code to verify successful connection</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;            logger.error(client.getReplyString());</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            client.disconnect();</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            throw new SnapException(ERR_CANNOT_CONNECT, client.getReplyString())</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                    .formatWith(noAuthUrl)</b>
+<i class="no-highlight">159</i>&nbsp;                    .withResolution(ERR_CANNOT_CONNECT_RESOLUTION);
+<i class="no-highlight">160</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        // login</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        if (!client.login(username, password)) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            logger.error(client.getReplyString());</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            client.disconnect();</b>
+<i class="no-highlight">165</i>&nbsp;            throw new IOException(String.format(ERR_LOGIN, username));
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        logger.info(String.format(INFO_LOGIN, username));</b>
+<i class="no-highlight">168</i>&nbsp;        configureClient(client);
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        // Enter local passive mode</b>
+<i class="no-highlight">170</i>&nbsp;        client.enterLocalPassiveMode();
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        // set binary file type as default, it will also work for ASCII file type</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        client.setFileType(FTP.BINARY_FILE_TYPE);</b>
+<i class="no-highlight">173</i>&nbsp;        isConnected = true;
+<i class="no-highlight">174</i>&nbsp;    }
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">177</i>&nbsp;    public InputStream getInputStream() throws IOException {</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        inputStream = client.retrieveFileStream(path);</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        if (inputStream == null) {</b>
+<i class="no-highlight">180</i>&nbsp;            throw new IOException(client.getReplyString());
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        logger.info(String.format(INFO_INPUTSTREAM, noAuthUrl));</b>
+<i class="no-highlight">183</i>&nbsp;        return new BufferedInputStream(inputStream);
+<i class="no-highlight">184</i>&nbsp;    }
+<i class="no-highlight">185</i>&nbsp;
+<i class="no-highlight">186</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">187</i>&nbsp;    public OutputStream getOutputStream() throws IOException {</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        if (append) {</b>
+<i class="no-highlight">189</i>&nbsp;            outputStream = client.appendFileStream(path);
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        } else {</b>
+<i class="no-highlight">191</i>&nbsp;            outputStream = client.storeFileStream(path);
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        if (outputStream == null) {</b>
+<i class="no-highlight">194</i>&nbsp;            throw new IOException(client.getReplyString());
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        logger.info(String.format(INFO_OUTPUTSTREAM, noAuthUrl));</b>
+<i class="no-highlight">197</i>&nbsp;        return new BufferedOutputStream(outputStream);
+<i class="no-highlight">198</i>&nbsp;    }
+<i class="no-highlight">199</i>&nbsp;
+<i class="no-highlight">200</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">201</i>&nbsp;    public void disconnect() {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        isConnected = false;</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        if (!client.isConnected()) {</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;            IOUtils.closeQuietly(inputStream);</b>
+<i class="no-highlight">205</i>&nbsp;            IOUtils.closeQuietly(outputStream);
+<i class="no-highlight">206</i>&nbsp;            return;
+<i class="no-highlight">207</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;            client.logout();</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;            logger.info(String.format(INFO_CANNOT_LOGOUT, e.getMessage()));</b>
+<i class="no-highlight">212</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            client.disconnect();</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            logger.info(String.format(INFO_DISCONNECTED, host));</b>
+<i class="no-highlight">216</i>&nbsp;        } catch (Exception e) {
+<i class="no-highlight">217</i>&nbsp;            logger.info(String.format(INFO_CANNOT_CLOSE, noAuthUrl, e.getMessage()), e);
+<i class="no-highlight">218</i>&nbsp;        } finally {
+<i class="no-highlight">219</i>&nbsp;            IOUtils.closeQuietly(inputStream);
+<i class="no-highlight">220</i>&nbsp;            IOUtils.closeQuietly(outputStream);
+<i class="no-highlight">221</i>&nbsp;        }
+<i class="no-highlight">222</i>&nbsp;    }
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;    /**
+<i class="no-highlight">225</i>&nbsp;     * Configures FTP client for connection.
+<i class="no-highlight">226</i>&nbsp;     *
+<i class="no-highlight">227</i>&nbsp;     * @param client - FTP client object
+<i class="no-highlight">228</i>&nbsp;     * @throws IOException if configuration fails
+<i class="no-highlight">229</i>&nbsp;     */
+<i class="no-highlight">230</i>&nbsp;    protected void configureClient(FTPClient client) throws IOException {
+<i class="no-highlight">231</i>&nbsp;        // override this method for additional actions on connection
+<i class="no-highlight">232</i>&nbsp;    }
+<i class="no-highlight">233</i>&nbsp;
+<b class="nc"><i class="no-highlight">234</i>&nbsp;    /**</b>
+<i class="no-highlight">235</i>&nbsp;     * Checks if FtpUrlConnection object is connected to FTP server.
+<i class="no-highlight">236</i>&nbsp;     *
+<i class="no-highlight">237</i>&nbsp;     * @return true if connected
+<i class="no-highlight">238</i>&nbsp;     */
+<i class="no-highlight">239</i>&nbsp;    protected boolean isConnected() {
+<i class="no-highlight">240</i>&nbsp;        return isConnected;
+<i class="no-highlight">241</i>&nbsp;    }
+<i class="no-highlight">242</i>&nbsp;
+<b class="nc"><i class="no-highlight">243</i>&nbsp;    /**</b>
+<i class="no-highlight">244</i>&nbsp;     * Returns FTPClient object.
+<i class="no-highlight">245</i>&nbsp;     *
+<i class="no-highlight">246</i>&nbsp;     * @return FTPClient object
+<b class="nc"><i class="no-highlight">247</i>&nbsp;     */</b>
+<i class="no-highlight">248</i>&nbsp;    protected FTPClient getFTPClient() {
+<i class="no-highlight">249</i>&nbsp;        return client;
+<i class="no-highlight">250</i>&nbsp;    }
+<i class="no-highlight">251</i>&nbsp;
+<b class="nc"><i class="no-highlight">252</i>&nbsp;    protected String getPath() {</b>
+<i class="no-highlight">253</i>&nbsp;        return path;
+<i class="no-highlight">254</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">255</i>&nbsp;</b>
+<i class="no-highlight">256</i>&nbsp;    private void trustAllCertificates(FTPSClient ftpsClient) {
+<i class="no-highlight">257</i>&nbsp;        try {
+<i class="no-highlight">258</i>&nbsp;            TrustManager[] trustManager = new TrustManager[]{new X509TrustManager() {
+<i class="no-highlight">259</i>&nbsp;                @Override
+<i class="no-highlight">260</i>&nbsp;                public X509Certificate[] getAcceptedIssuers() {
+<i class="no-highlight">261</i>&nbsp;                    return null;
+<i class="no-highlight">262</i>&nbsp;                }
+<i class="no-highlight">263</i>&nbsp;
+<i class="no-highlight">264</i>&nbsp;                @Override
+<i class="no-highlight">265</i>&nbsp;                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                @Override</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                public void checkServerTrusted(X509Certificate[] certs, String authType) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            }};</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            ftpsClient.setTrustManager(trustManager[0]);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            KeyManagerFactory kmf = KeyManagerFactory.getInstance(</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                    KeyManagerFactory.getDefaultAlgorithm());</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;            kmf.init(null, null);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            KeyManager km = kmf.getKeyManagers()[0];</b>
+<i class="no-highlight">277</i>&nbsp;            ftpsClient.setKeyManager(km);
+<i class="no-highlight">278</i>&nbsp;        } catch (GeneralSecurityException e) {
+<i class="no-highlight">279</i>&nbsp;            throw new SnapDataException(e, ERR_TRUST_ALL_CERTIFICATES)
+<i class="no-highlight">280</i>&nbsp;                    .withReason(e.getMessage())
+<i class="no-highlight">281</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">282</i>&nbsp;        }
+<i class="no-highlight">283</i>&nbsp;    }
+<i class="no-highlight">284</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

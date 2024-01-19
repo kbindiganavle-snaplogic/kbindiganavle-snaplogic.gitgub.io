@@ -1,0 +1,276 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BinaryAzureAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.hadoop</a>
+</div>
+
+<h1>Coverage Summary for Class: BinaryAzureAccount (com.snaplogic.snaps.hadoop)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BinaryAzureAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/49)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.hadoop;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.binary.BinaryAzureAccountBase;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snaps.hadoop.parquet.FileConfig;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snaps.hadoop.parquet.FileSystemAccount;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">23</i>&nbsp;import org.apache.hadoop.conf.Configuration;
+<i class="no-highlight">24</i>&nbsp;import org.apache.hadoop.fs.azure.NativeAzureFileSystem;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.snap.api.binary.Messages.AZURE_ACCOUNT_TITLE;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snap.api.binary.Messages.WASB_URL_BAD_FORMAT;
+<i class="no-highlight">30</i>&nbsp;import static com.snaplogic.snap.api.binary.Messages.WASB_URL_BAD_FORMAT_REA;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snap.api.binary.Messages.WASB_URL_BAD_FORMAT_RES;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.PROTOCOL_SEPARATOR;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.URL_SEPARATOR;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snap.api.fs.hadoop.Constants.DISABLE_CACHE_WASB;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snap.api.fs.hadoop.Constants.DISABLE_CACHE_WASBS;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snap.api.fs.hadoop.Constants.WASBS_FS_IMPL;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snap.api.fs.hadoop.Constants.WASB_ACCOUNT_KEY;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snap.api.fs.hadoop.Constants.WASB_CREDS;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snap.api.fs.hadoop.Constants.WASB_FS_IMPL;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snaps.hadoop.Messages.AZURE_STORAGE_ACCOUNT_DOC_LINK;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snaps.hadoop.Messages.ERR_INVALID_SCHEME;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.hadoop.Messages.ERR_INVALID_SCHEME_REA;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.hadoop.Messages.ERR_INVALID_SCHEME_RES;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;/**
+<i class="no-highlight">46</i>&nbsp; * Represents a Microsoft Azure Blob account which provides an account name and
+<i class="no-highlight">47</i>&nbsp; * a primary access key properties.
+<i class="no-highlight">48</i>&nbsp; *
+<i class="no-highlight">49</i>&nbsp; * The implementation is shared between snap packs through the parent class because of
+<i class="no-highlight">50</i>&nbsp; * the limitation that an account can only exist in one snap pack.
+<i class="no-highlight">51</i>&nbsp; *
+<i class="no-highlight">52</i>&nbsp; * @author psung
+<i class="no-highlight">53</i>&nbsp; */
+<i class="no-highlight">54</i>&nbsp;@General(title = AZURE_ACCOUNT_TITLE, docLink = AZURE_STORAGE_ACCOUNT_DOC_LINK)
+<i class="no-highlight">55</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">56</i>&nbsp;@AccountCategory(type = AccountType.CUSTOM)
+<b class="nc"><i class="no-highlight">57</i>&nbsp;public class BinaryAzureAccount extends BinaryAzureAccountBase implements FileSystemAccount {</b>
+<i class="no-highlight">58</i>&nbsp;    private static final String SL_SCHEME_DELIMITER = &quot;:///&quot;;
+<i class="no-highlight">59</i>&nbsp;    private static final String AZURE_HOSTNAME = &quot;blob.core.windows.net&quot;;
+<i class="no-highlight">60</i>&nbsp;    public static final String FS_CLASS = &quot;org.apache.hadoop.fs.azure.NativeAzureFileSystem&quot;;
+<b class="nc"><i class="no-highlight">61</i>&nbsp;    private static final Pattern SCHEME_PATTERN = Pattern.compile(&quot;^wasbs?:.*&quot;,</b>
+<i class="no-highlight">62</i>&nbsp;        Pattern.CASE_INSENSITIVE);
+<i class="no-highlight">63</i>&nbsp;    private String hostname;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    @Override
+<i class="no-highlight">66</i>&nbsp;    public FileConfig buildFileConfig(String filepath, Configuration config) {
+<i class="no-highlight">67</i>&nbsp;        // Do not modify the original object
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        config = new Configuration(config);</b>
+<i class="no-highlight">69</i>&nbsp;        // check for non-default blob endpoint
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        if (StringUtils.isNotBlank(blobEndpoint)) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;            hostname = blobEndpoint.substring(</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                    blobEndpoint.indexOf(PROTOCOL_SEPARATOR) + PROTOCOL_SEPARATOR.length());</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;            if (hostname.endsWith(URL_SEPARATOR)) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                hostname = hostname.substring(0, hostname.length() - 1);</b>
+<i class="no-highlight">75</i>&nbsp;            }
+<i class="no-highlight">76</i>&nbsp;        }
+<i class="no-highlight">77</i>&nbsp;        // Add authority to file path
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        filepath = addAuthority(filepath, null);</b>
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;        // Add file system implementation to hadoop config
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        config.set(WASB_FS_IMPL, FS_CLASS);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        config.set(WASBS_FS_IMPL, FS_CLASS);</b>
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;        // Disable file system caching
+<i class="no-highlight">85</i>&nbsp;        // The file system is cached with a uri key. This means if two accounts write to the same
+<i class="no-highlight">86</i>&nbsp;        // file then it will reuse the first accounts object and access key. The cache also means
+<i class="no-highlight">87</i>&nbsp;        // an account access key cannot be changed for a blob until the cache is cleared.
+<i class="no-highlight">88</i>&nbsp;        // Disabling the cache avoids these problems.
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        config.set(DISABLE_CACHE_WASB, Boolean.TRUE.toString());</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        config.set(DISABLE_CACHE_WASBS, Boolean.TRUE.toString());</b>
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;        // Do not instrument azure file systems
+<i class="no-highlight">93</i>&nbsp;        // There is a bug where the metrics objects accumulate in a cache and are not removed.
+<i class="no-highlight">94</i>&nbsp;        // When a new snap pack version is uploaded the snap execution will fail until it is
+<i class="no-highlight">95</i>&nbsp;        // using a metric object id &gt; used previously (i.e. AzureFileSystemMetrics3).
+<i class="no-highlight">96</i>&nbsp;        // This can also lead to a memory leak. It claims to be fixed in hadoop-azure 2.7, but
+<i class="no-highlight">97</i>&nbsp;        // we see it with that version.
+<i class="no-highlight">98</i>&nbsp;        // see https://issues.apache.org/jira/browse/HADOOP-10840
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        config.set(NativeAzureFileSystem.SKIP_AZURE_METRICS_PROPERTY_NAME, Boolean.TRUE.toString());</b>
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;        // Add credentials to hadoop config
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        if (StringUtils.isNotBlank(primaryAccessKey)) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            String key = StringUtils.isBlank(hostname) ? String.format(WASB_CREDS, getAccountName()) :</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                    String.format(WASB_ACCOUNT_KEY, hostname);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            config.set(key, getPrimaryAccessKey());</b>
+<i class="no-highlight">106</i>&nbsp;        }
+<i class="no-highlight">107</i>&nbsp;
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        return new FileConfig(filepath, config);</b>
+<i class="no-highlight">109</i>&nbsp;    }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    /**
+<i class="no-highlight">112</i>&nbsp;     * Adds the authority to the file path. For example wasb:///container/path/to/file
+<i class="no-highlight">113</i>&nbsp;     * becomes wasb://container@account.blob.core.windows.net/path/to/file
+<i class="no-highlight">114</i>&nbsp;     * @param filepath
+<i class="no-highlight">115</i>&nbsp;     * @return
+<i class="no-highlight">116</i>&nbsp;     */
+<i class="no-highlight">117</i>&nbsp;    public String addAuthority(String filepath, String accountName) {
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        validateScheme(filepath);</b>
+<i class="no-highlight">119</i>&nbsp;
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        int schemeIndex = filepath.indexOf(SL_SCHEME_DELIMITER);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        if (schemeIndex == -1) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            throw new SnapDataException(WASB_URL_BAD_FORMAT)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                .withReason(WASB_URL_BAD_FORMAT_REA)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .withResolution(WASB_URL_BAD_FORMAT_RES);</b>
+<i class="no-highlight">125</i>&nbsp;        }
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;        // Add scheme
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        StringBuilder filepathNew = new StringBuilder(filepath.substring(0, schemeIndex));</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        filepathNew.append(PROTOCOL_SEPARATOR);</b>
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;        // Get container
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        filepath = filepath.substring(schemeIndex + SL_SCHEME_DELIMITER.length());</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        int contIndex = filepath.indexOf(&#39;/&#39;);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        if (contIndex &lt; 1) { //0 means a missing container name</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            throw new SnapDataException(WASB_URL_BAD_FORMAT)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                .withReason(WASB_URL_BAD_FORMAT_REA)</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                .withResolution(WASB_URL_BAD_FORMAT_RES);</b>
+<i class="no-highlight">138</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        String container = filepath.substring(0, contIndex);</b>
+<i class="no-highlight">140</i>&nbsp;
+<i class="no-highlight">141</i>&nbsp;        // Add authority
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        filepathNew.append(container);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        filepathNew.append(&#39;@&#39;);</b>
+<i class="no-highlight">144</i>&nbsp;        // Add hostname
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        if (StringUtils.isBlank(hostname)) {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            filepathNew.append(StringUtils.isBlank(accountName) ? getAccountName() : accountName);</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            filepathNew.append(&#39;.&#39;);</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            filepathNew.append(AZURE_HOSTNAME);</b>
+<i class="no-highlight">149</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            filepathNew.append(hostname);</b>
+<i class="no-highlight">151</i>&nbsp;        }
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;        // Add the rest of the path
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        filepathNew.append(filepath.substring(contIndex));</b>
+<i class="no-highlight">155</i>&nbsp;
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        return filepathNew.toString();</b>
+<i class="no-highlight">157</i>&nbsp;    }
+<i class="no-highlight">158</i>&nbsp;
+<i class="no-highlight">159</i>&nbsp;    private static void validateScheme(String filePath) {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        if (!SCHEME_PATTERN.matcher(filePath).matches()) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            throw new SnapDataException(ERR_INVALID_SCHEME)</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                .withReason(</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                    String.format(ERR_INVALID_SCHEME_REA, &quot;wasb&quot;, AZURE_ACCOUNT_TITLE))</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                .withResolution(String.format(ERR_INVALID_SCHEME_RES, &quot;wasb&quot;));</b>
+<i class="no-highlight">165</i>&nbsp;        }
+<i class="no-highlight">166</i>&nbsp;    }
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;    public String getHostname() {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        return hostname;</b>
+<i class="no-highlight">170</i>&nbsp;    }
+<i class="no-highlight">171</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

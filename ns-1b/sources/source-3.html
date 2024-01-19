@@ -1,0 +1,214 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OffsetTrackerRegistryImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.kafka.offsettracker</a>
+</div>
+
+<h1>Coverage Summary for Class: OffsetTrackerRegistryImpl (com.snaplogic.kafka.offsettracker)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OffsetTrackerRegistryImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2019, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">7</i>&nbsp; *
+<i class="no-highlight">8</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">9</i>&nbsp; */
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.kafka.offsettracker;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">16</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">19</i>&nbsp;import java.util.List;
+<i class="no-highlight">20</i>&nbsp;import java.util.Map;
+<i class="no-highlight">21</i>&nbsp;import java.util.Set;
+<i class="no-highlight">22</i>&nbsp;import java.util.concurrent.ConcurrentHashMap;
+<i class="no-highlight">23</i>&nbsp;import java.util.concurrent.CopyOnWriteArrayList;
+<i class="no-highlight">24</i>&nbsp;import java.util.concurrent.CopyOnWriteArraySet;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import javax.inject.Singleton;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;@Singleton
+<b class="nc"><i class="no-highlight">29</i>&nbsp;public class OffsetTrackerRegistryImpl implements OffsetTrackerRegistry {</b>
+<i class="no-highlight">30</i>&nbsp;
+<b class="nc"><i class="no-highlight">31</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(OffsetTrackerRegistryImpl.class);</b>
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;    // maps clientId to a list of trackers
+<b class="nc"><i class="no-highlight">34</i>&nbsp;    private final Map&lt;String, List&lt;OffsetTracker&gt;&gt; trackerMap = new ConcurrentHashMap&lt;&gt;();</b>
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;    // maps clientId to the set of snap ids that should be empty before removing mappings from either map
+<i class="no-highlight">37</i>&nbsp;    // snap ids include both:
+<i class="no-highlight">38</i>&nbsp;    //   the Consumer snap&#39;s clientId   (added by put, removed by removeClientId)
+<i class="no-highlight">39</i>&nbsp;    //   the Acknowledge snap&#39;s ackerId (added by get, removed by removeAckerId)
+<b class="nc"><i class="no-highlight">40</i>&nbsp;    private final Map&lt;String, Set&lt;String&gt;&gt; snapIdsMap = new ConcurrentHashMap&lt;&gt;();</b>
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;    @Override
+<i class="no-highlight">43</i>&nbsp;    public int put(String clientId, OffsetTracker tracker) {
+<b class="nc"><i class="no-highlight">44</i>&nbsp;        List&lt;OffsetTracker&gt; list = trackerMap.computeIfAbsent(clientId, (key) -&gt; new CopyOnWriteArrayList&lt;&gt;());</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;        int index = list.size();</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;        list.add(tracker);</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;        snapIdsMap.computeIfAbsent(clientId, (key) -&gt; new CopyOnWriteArraySet&lt;&gt;(Collections.singleton(key)));</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;        return index;</b>
+<i class="no-highlight">49</i>&nbsp;    }
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;    @Override
+<i class="no-highlight">52</i>&nbsp;    public OffsetTracker get(String clientId, int index, String ackerId) {
+<b class="nc"><i class="no-highlight">53</i>&nbsp;        List&lt;OffsetTracker&gt; list = trackerMap.get(clientId);</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;        if (list == null) {</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;            throw new IllegalArgumentException(&quot;no trackers found for clientId=&quot; + clientId);</b>
+<i class="no-highlight">56</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        if (snapIdsMap.get(clientId).add(ackerId)) {</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;            LOG.debug(&quot;added ackerId={} to snapIds for clientId={}&quot;, ackerId, clientId);</b>
+<i class="no-highlight">59</i>&nbsp;        }
+<i class="no-highlight">60</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">61</i>&nbsp;            return list.get(index);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        } catch (IndexOutOfBoundsException e) {</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;            throw new IllegalArgumentException(index + &quot; is in invalid index for the tracker&quot; +</b>
+<i class="no-highlight">64</i>&nbsp;                    &quot; list associated with clientId=&quot; + clientId);
+<i class="no-highlight">65</i>&nbsp;        }
+<i class="no-highlight">66</i>&nbsp;    }
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    @Override
+<i class="no-highlight">69</i>&nbsp;    public void removeClientId(String clientId) {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        LOG.debug(&quot;removeClientId: {}&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        removeSnapId(clientId, clientId);</b>
+<i class="no-highlight">72</i>&nbsp;    }
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;    @Override
+<i class="no-highlight">75</i>&nbsp;    public void removeAckerId(String ackerId) {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        LOG.debug(&quot;removeAckerId: {}&quot;, ackerId);</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        if (snapIdsMap.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;            LOG.debug(&quot;snapIdsMap is empty&quot;);</b>
+<i class="no-highlight">79</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">80</i>&nbsp;            for (String clientId : snapIdsMap.keySet()) {</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                removeSnapId(clientId, ackerId);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;            }</b>
+<i class="no-highlight">83</i>&nbsp;        }
+<i class="no-highlight">84</i>&nbsp;    }
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;    private void removeSnapId(String clientId, String snapId) {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        Set&lt;String&gt; snapIds = snapIdsMap.get(clientId);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        if (snapIds != null) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            if (snapIds.remove(snapId)) {</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                if (snapIds.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                    LOG.debug(&quot;removed snapId={} from snapIds for clientId={}; removing mappings&quot;, snapId, clientId);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                    snapIdsMap.remove(clientId);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                    trackerMap.remove(clientId);</b>
+<i class="no-highlight">94</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                    LOG.debug(&quot;removed snapId={} from snapIds for clientId={}; remaining={}&quot;, snapId, clientId, snapIds);</b>
+<i class="no-highlight">96</i>&nbsp;                }
+<i class="no-highlight">97</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                LOG.debug(&quot;snapIds for clientId={} did not contain snapId={}&quot;, clientId, snapId);</b>
+<i class="no-highlight">99</i>&nbsp;            }
+<i class="no-highlight">100</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            LOG.debug(&quot;no snapIds mapped to clientId={}&quot;, clientId);</b>
+<i class="no-highlight">102</i>&nbsp;        }
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">106</i>&nbsp;    boolean isUnmapped(String clientId) {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        return trackerMap.get(clientId) == null &amp;&amp; snapIdsMap.get(clientId) == null;</b>
+<i class="no-highlight">108</i>&nbsp;    }
+<i class="no-highlight">109</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

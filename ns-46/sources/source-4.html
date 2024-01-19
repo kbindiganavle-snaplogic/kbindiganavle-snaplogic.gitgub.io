@@ -1,0 +1,330 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Download</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.s3</a>
+</div>
+
+<h1>Coverage Summary for Class: Download (com.snaplogic.snap.api.s3)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Download</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/63)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Download$S3InputStream</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/67)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.s3;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.services.s3.model.GetObjectRequest;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.services.s3.model.ObjectMetadata;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.s3.model.S3Object;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.Utils;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">20</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import java.io.Closeable;
+<i class="no-highlight">23</i>&nbsp;import java.io.File;
+<i class="no-highlight">24</i>&nbsp;import java.io.FileInputStream;
+<i class="no-highlight">25</i>&nbsp;import java.io.FileNotFoundException;
+<i class="no-highlight">26</i>&nbsp;import java.io.FileOutputStream;
+<i class="no-highlight">27</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">28</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">29</i>&nbsp;import java.io.OutputStream;
+<i class="no-highlight">30</i>&nbsp;import java.util.concurrent.CompletionException;
+<i class="no-highlight">31</i>&nbsp;import java.util.function.Supplier;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import net.jodah.failsafe.event.ContextualResultListener;
+<i class="no-highlight">34</i>&nbsp;import net.jodah.failsafe.function.CheckedConsumer;
+<i class="no-highlight">35</i>&nbsp;import net.jodah.failsafe.function.ContextualCallable;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snap.Utils.failsafeExecute;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snap.api.s3.Messages.ERR_DOWNLOAD_FILE;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.S3_RETRY_SIGNATURE;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import static org.apache.commons.io.FileUtils.ONE_MB;
+<i class="no-highlight">42</i>&nbsp;import static org.apache.commons.io.IOUtils.copyLarge;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;/**
+<i class="no-highlight">45</i>&nbsp; * Downloads S3 object.
+<i class="no-highlight">46</i>&nbsp; */
+<i class="no-highlight">47</i>&nbsp;public class Download implements Supplier, Closeable {
+<b class="nc"><i class="no-highlight">48</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(Download.class);</b>
+<i class="no-highlight">49</i>&nbsp;    private static final long RANGE_SIZE = 10 * ONE_MB; // 10 MB
+<i class="no-highlight">50</i>&nbsp;    private final S3Service s3Service;
+<i class="no-highlight">51</i>&nbsp;    private GetObjectRequest getObjectRequest;
+<i class="no-highlight">52</i>&nbsp;    private File tempFile;
+<i class="no-highlight">53</i>&nbsp;    private ObjectMetadata objectMetadata;
+<i class="no-highlight">54</i>&nbsp;    private boolean isMultipart;
+<i class="no-highlight">55</i>&nbsp;    private long rangeSize;
+<i class="no-highlight">56</i>&nbsp;    private final long downloadId;
+<i class="no-highlight">57</i>&nbsp;    private InputStream inputStream;
+<i class="no-highlight">58</i>&nbsp;    private S3Object s3Object;
+<i class="no-highlight">59</i>&nbsp;
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    public Download(S3Service s3Service, GetObjectRequest getObjectRequest, long downloadId) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;        this.s3Service = s3Service;</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        rangeSize = s3Service.getMultipartSize() == null ? RANGE_SIZE :</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;                s3Service.getMultipartSize();</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        this.getObjectRequest = getObjectRequest;</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        this.downloadId = downloadId;</b>
+<i class="no-highlight">66</i>&nbsp;    }
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    @Override
+<i class="no-highlight">69</i>&nbsp;    public Download get() {
+<i class="no-highlight">70</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">71</i>&nbsp;            tempFile = File.createTempFile(this.getClass().getSimpleName(), null,</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                    s3Service.getTempDir());</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;            s3Object = s3Service.getAmazonS3().getObject(getObjectRequest);</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            isMultipart = checkFileType(s3Object);</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;            if (!isMultipart || s3Service.isStaging()) {</b>
+<i class="no-highlight">76</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                    downloadObject(s3Object);</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                } catch (IOException e) {</b>
+<i class="no-highlight">79</i>&nbsp;                    // if downloadPart(s3Object) fails, s3Object cannot be reused for retries
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                    if (s3Service.getMaxRetries() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                        downloadFailSafe(context -&gt; downloadObject(getObjectRequest),</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                                s3Service.getMaxRetries() - 1);</b>
+<i class="no-highlight">83</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                        throw e;</b>
+<i class="no-highlight">85</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                }</b>
+<i class="no-highlight">87</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        } catch (Throwable t) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            s3Service.getFailedDownloads().putIfAbsent(downloadId, t);</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            throw new CompletionException(String.format(ERR_DOWNLOAD_FILE,</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                    getObjectRequest.getBucketName(), getObjectRequest.getKey()), t);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        return this;</b>
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    public ObjectMetadata getObjectMetadata() {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        return objectMetadata;</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    public String getBucket() {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        return getObjectRequest.getBucketName();</b>
+<i class="no-highlight">102</i>&nbsp;    }
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;    public String getObjectKey() {
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        return getObjectRequest.getKey();</b>
+<i class="no-highlight">106</i>&nbsp;    }
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    public InputStream getInputStream() throws IOException {
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        if (isMultipart &amp;&amp; !s3Service.isStaging()) {</b>
+<i class="no-highlight">110</i>&nbsp;            // multipart file without staging
+<i class="no-highlight">111</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                inputStream = s3Object.getObjectContent();</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            } catch (Exception e) {</b>
+<i class="no-highlight">114</i>&nbsp;                // s3Object may have become stale if this thread had to wait in the queue too long
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            if (inputStream == null) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                s3Object = s3Service.getAmazonS3().getObject(getObjectRequest);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                inputStream = s3Object.getObjectContent();</b>
+<i class="no-highlight">119</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        } else if (inputStream == null &amp;&amp; tempFile != null) {</b>
+<i class="no-highlight">121</i>&nbsp;            // multipart file with staging or small file
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            inputStream = new S3InputStream(tempFile);</b>
+<i class="no-highlight">123</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            throw new SnapDataException(&quot;Unexpected error while opening input stream&quot;)</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                    .withReason(&quot;Unknown reason&quot;)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">127</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        return inputStream;</b>
+<i class="no-highlight">129</i>&nbsp;    }
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;    public long getDownloadId() {
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        return downloadId;</b>
+<i class="no-highlight">133</i>&nbsp;    }
+<i class="no-highlight">134</i>&nbsp;
+<i class="no-highlight">135</i>&nbsp;    public boolean isMultipart() {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        return isMultipart;</b>
+<i class="no-highlight">137</i>&nbsp;    }
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;    @Override
+<i class="no-highlight">140</i>&nbsp;    public void close() throws IOException {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        if (tempFile != null) {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            tempFile.delete();</b>
+<i class="no-highlight">143</i>&nbsp;        }
+<i class="no-highlight">144</i>&nbsp;    }
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;    /**
+<i class="no-highlight">147</i>&nbsp;     * Deletes the associated temporary file when this input stream is closed.
+<i class="no-highlight">148</i>&nbsp;     */
+<i class="no-highlight">149</i>&nbsp;    public static class S3InputStream extends FileInputStream {
+<i class="no-highlight">150</i>&nbsp;        private final File file;
+<i class="no-highlight">151</i>&nbsp;
+<i class="no-highlight">152</i>&nbsp;        private S3InputStream(File file) throws FileNotFoundException {
+<b class="nc"><i class="no-highlight">153</i>&nbsp;            super(file);</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            this.file = file;</b>
+<i class="no-highlight">155</i>&nbsp;        }
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;        @Override
+<i class="no-highlight">158</i>&nbsp;        public void close() throws IOException {
+<b class="nc"><i class="no-highlight">159</i>&nbsp;            super.close();</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            file.delete();</b>
+<i class="no-highlight">161</i>&nbsp;        }
+<i class="no-highlight">162</i>&nbsp;    }
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;    //------------------------------------ Private Methods ---------------------------------------//
+<i class="no-highlight">165</i>&nbsp;
+<i class="no-highlight">166</i>&nbsp;    private boolean checkFileType(S3Object s3Object) {
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        objectMetadata = s3Object.getObjectMetadata();</b>
+<i class="no-highlight">168</i>&nbsp;        // define it as multipart file if etag is larger than 32 characters or
+<i class="no-highlight">169</i>&nbsp;        // file size is larger than range size
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        return objectMetadata.getETag().length() &gt; 32 ||</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                objectMetadata.getContentLength() &gt; rangeSize;</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    private Object downloadFailSafe(ContextualCallable callable, int maxRetries) throws Throwable {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        CheckedConsumer&lt;Throwable&gt; failedAttemptListener = e -&gt; LOG.warn(</b>
+<i class="no-highlight">176</i>&nbsp;                &quot;{} - Failed to download file: s3:///{}/{}, {}&quot;, S3_RETRY_SIGNATURE,
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                getObjectRequest.getBucketName(), getObjectRequest.getKey(), e.getMessage());</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        ContextualResultListener&lt;Object, Throwable&gt; retryLogListener =</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                Utils.retryLogListener(S3_RETRY_SIGNATURE);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        return failsafeExecute(callable, failedAttemptListener, retryLogListener,</b>
+<i class="no-highlight">181</i>&nbsp;                maxRetries, 1);
+<i class="no-highlight">182</i>&nbsp;    }
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;    private long downloadObject(GetObjectRequest getObjectRequest) throws IOException {
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        try (S3Object s3Object = s3Service.getAmazonS3().getObject(getObjectRequest)) {</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            return downloadObject(s3Object);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        }</b>
+<i class="no-highlight">188</i>&nbsp;    }
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;    private long downloadObject(S3Object s3Object) throws IOException {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        try (InputStream inputStream = s3Object.getObjectContent()) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            try (OutputStream outputStream = new FileOutputStream(tempFile)) {</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                return copyLarge(inputStream, outputStream);</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        } finally {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            s3Object.close();</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        }</b>
+<i class="no-highlight">198</i>&nbsp;    }
+<i class="no-highlight">199</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

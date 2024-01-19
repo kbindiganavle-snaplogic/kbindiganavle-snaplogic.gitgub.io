@@ -1,0 +1,285 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AdlFileSystemProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.fs.adl</a>
+</div>
+
+<h1>Coverage Summary for Class: AdlFileSystemProvider (com.snaplogic.snap.api.fs.adl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AdlFileSystemProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.fs.adl;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snap.api.fs.Messages;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import java.io.FileNotFoundException;
+<i class="no-highlight">16</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">17</i>&nbsp;import java.net.URI;
+<i class="no-highlight">18</i>&nbsp;import java.nio.channels.SeekableByteChannel;
+<i class="no-highlight">19</i>&nbsp;import java.nio.file.AccessMode;
+<i class="no-highlight">20</i>&nbsp;import java.nio.file.CopyOption;
+<i class="no-highlight">21</i>&nbsp;import java.nio.file.DirectoryStream;
+<i class="no-highlight">22</i>&nbsp;import java.nio.file.FileStore;
+<i class="no-highlight">23</i>&nbsp;import java.nio.file.FileSystem;
+<i class="no-highlight">24</i>&nbsp;import java.nio.file.FileSystemNotFoundException;
+<i class="no-highlight">25</i>&nbsp;import java.nio.file.LinkOption;
+<i class="no-highlight">26</i>&nbsp;import java.nio.file.OpenOption;
+<i class="no-highlight">27</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">28</i>&nbsp;import java.nio.file.attribute.BasicFileAttributes;
+<i class="no-highlight">29</i>&nbsp;import java.nio.file.attribute.FileAttribute;
+<i class="no-highlight">30</i>&nbsp;import java.nio.file.attribute.FileAttributeView;
+<i class="no-highlight">31</i>&nbsp;import java.nio.file.spi.FileSystemProvider;
+<i class="no-highlight">32</i>&nbsp;import java.util.Map;
+<i class="no-highlight">33</i>&nbsp;import java.util.Set;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;/**
+<i class="no-highlight">36</i>&nbsp; * Azure Data Lake File System Provider
+<i class="no-highlight">37</i>&nbsp; */
+<i class="no-highlight">38</i>&nbsp;public class AdlFileSystemProvider extends FileSystemProvider {
+<i class="no-highlight">39</i>&nbsp;    private static final String URL_PROTOCOL_ADL = &quot;adl&quot;;
+<i class="no-highlight">40</i>&nbsp;    private AdlFileSystem adlFileSystem;
+<i class="no-highlight">41</i>&nbsp;    private AdlClientBuilder adlClientBuilder;
+<i class="no-highlight">42</i>&nbsp;
+<b class="nc"><i class="no-highlight">43</i>&nbsp;    public AdlFileSystemProvider() {</b>
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;    }
+<i class="no-highlight">46</i>&nbsp;
+<b class="nc"><i class="no-highlight">47</i>&nbsp;    public AdlFileSystemProvider(AdlClientBuilder adlClientBuilder) {</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;        this.adlClientBuilder = adlClientBuilder;</b>
+<i class="no-highlight">49</i>&nbsp;    }
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;    @Override
+<i class="no-highlight">52</i>&nbsp;    public String getScheme() {
+<b class="nc"><i class="no-highlight">53</i>&nbsp;        return URL_PROTOCOL_ADL;</b>
+<i class="no-highlight">54</i>&nbsp;    }
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;    @Override
+<i class="no-highlight">57</i>&nbsp;    public FileSystem newFileSystem(URI uri, Map&lt;String, ?&gt; env) throws IOException {
+<b class="nc"><i class="no-highlight">58</i>&nbsp;        if (adlClientBuilder == null) {</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;            adlClientBuilder = new AdlClientBuilderImpl();</b>
+<i class="no-highlight">60</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">61</i>&nbsp;        String tenantId = (String) env.get(AdlUrlConnection.TENANT_ID_PROP);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        String accessId = (String) env.get(AdlUrlConnection.ACCESS_ID_PROP);</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        String secretKey = (String) env.get(AdlUrlConnection.SECRET_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        if (org.apache.commons.lang3.StringUtils.isBlank(accessId) ||</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;                org.apache.commons.lang3.StringUtils.isBlank(tenantId) ||</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                org.apache.commons.lang3.StringUtils.isBlank(secretKey)) {</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;            throw new IOException(Messages.MISSING_REQUIRED_AUTHENTICATION_PROPERTIES);</b>
+<i class="no-highlight">68</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        adlFileSystem = adlClientBuilder.withCredentials(env)</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                .withProvider(this)</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                .withURI(uri)</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        return adlFileSystem;</b>
+<i class="no-highlight">74</i>&nbsp;    }
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    @Override
+<i class="no-highlight">77</i>&nbsp;    public FileSystem getFileSystem(URI uri) {
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        if (adlFileSystem.getUri().equals(uri)) {</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;            return adlFileSystem;</b>
+<i class="no-highlight">80</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        throw new FileSystemNotFoundException(Messages.ERR_FILESYSTEM_NOT_FOUND);</b>
+<i class="no-highlight">82</i>&nbsp;    }
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;    @Override
+<i class="no-highlight">85</i>&nbsp;    public Path getPath(URI uri) {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        return new AdlPath(adlFileSystem, uri);</b>
+<i class="no-highlight">87</i>&nbsp;    }
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;    @Override
+<i class="no-highlight">90</i>&nbsp;    public SeekableByteChannel newByteChannel(Path path, Set&lt;? extends OpenOption&gt; options,
+<i class="no-highlight">91</i>&nbsp;                                              FileAttribute&lt;?&gt;... attrs) throws IOException {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">93</i>&nbsp;    }
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;    @Override
+<i class="no-highlight">96</i>&nbsp;    public DirectoryStream&lt;Path&gt; newDirectoryStream(Path dir,
+<i class="no-highlight">97</i>&nbsp;                                                    DirectoryStream.Filter&lt;? super Path&gt; filter)
+<i class="no-highlight">98</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        return new AdlDirectoryStream(dir, filter);</b>
+<i class="no-highlight">100</i>&nbsp;    }
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;    @Override
+<i class="no-highlight">103</i>&nbsp;    public void createDirectory(Path dir, FileAttribute&lt;?&gt;... attrs) throws IOException {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        AdlPath adlPath = (AdlPath) dir;</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        adlPath.createDirectory();</b>
+<i class="no-highlight">106</i>&nbsp;    }
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    @Override
+<i class="no-highlight">109</i>&nbsp;    public void delete(Path path) throws IOException {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        AdlPath adlPath = (AdlPath) path;</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        adlPath.delete();</b>
+<i class="no-highlight">112</i>&nbsp;    }
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    @Override
+<i class="no-highlight">115</i>&nbsp;    public void copy(Path source, Path target, CopyOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">117</i>&nbsp;    }
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;    @Override
+<i class="no-highlight">120</i>&nbsp;    public void move(Path source, Path target, CopyOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">122</i>&nbsp;    }
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;    @Override
+<i class="no-highlight">125</i>&nbsp;    public boolean isSameFile(Path path, Path path2) throws IOException {
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        return path.equals(path2);</b>
+<i class="no-highlight">127</i>&nbsp;    }
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    @Override
+<i class="no-highlight">130</i>&nbsp;    public boolean isHidden(Path path) throws IOException {
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">132</i>&nbsp;    }
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    @Override
+<i class="no-highlight">135</i>&nbsp;    public FileStore getFileStore(Path path) throws IOException {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">137</i>&nbsp;    }
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;    @Override
+<i class="no-highlight">140</i>&nbsp;    public void checkAccess(Path path, AccessMode... modes) throws IOException {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        readAttributes(path, AdlFileAttributes.class, null);</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    @Override
+<i class="no-highlight">145</i>&nbsp;    public &lt;V extends FileAttributeView&gt; V getFileAttributeView(Path path, Class&lt;V&gt; type,
+<i class="no-highlight">146</i>&nbsp;                                                                LinkOption... options) {
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        AdlPath adlPath = (AdlPath) path;</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        return (V) new AdlFileAttributeView(adlPath);</b>
+<i class="no-highlight">149</i>&nbsp;    }
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    @Override
+<i class="no-highlight">152</i>&nbsp;    public &lt;A extends BasicFileAttributes&gt; A readAttributes(Path path, Class&lt;A&gt; type,
+<i class="no-highlight">153</i>&nbsp;                                                            LinkOption... options) throws
+<i class="no-highlight">154</i>&nbsp;            IOException {
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        AdlPath adlPath = (AdlPath) path;</b>
+<i class="no-highlight">156</i>&nbsp;        AdlFileAttributes adlFileAttributes;
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        if (adlPath.getFileAttributes() != null) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            adlFileAttributes = adlPath.getFileAttributes();</b>
+<i class="no-highlight">159</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            adlFileAttributes = new AdlFileAttributes(adlPath);</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            adlPath.setFileAttributes(adlFileAttributes);</b>
+<i class="no-highlight">162</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        if (adlFileAttributes == null) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            throw new FileNotFoundException(String.format(Messages.ERR_FILESYSTEM_NOT_FOUND));</b>
+<i class="no-highlight">165</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        return (A) adlFileAttributes;</b>
+<i class="no-highlight">167</i>&nbsp;    }
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;    @Override
+<i class="no-highlight">170</i>&nbsp;    public Map&lt;String, Object&gt; readAttributes(Path path, String attributes,
+<i class="no-highlight">171</i>&nbsp;                                              LinkOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">173</i>&nbsp;    }
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;    @Override
+<i class="no-highlight">176</i>&nbsp;    public void setAttribute(Path path, String attribute, Object value,
+<i class="no-highlight">177</i>&nbsp;                             LinkOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">179</i>&nbsp;    }
+<i class="no-highlight">180</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

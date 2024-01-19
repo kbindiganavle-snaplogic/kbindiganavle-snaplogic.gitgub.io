@@ -1,0 +1,339 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SqlServereCallableStatementWrapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.procedure</a>
+</div>
+
+<h1>Coverage Summary for Class: SqlServereCallableStatementWrapper (com.snaplogic.snap.api.sql.procedure)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SqlServereCallableStatementWrapper</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/96)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql.procedure;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.sql.ConverterRegistry;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.sql.ParameterMetaData;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.sql.ParameterMetaDataImpl;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.sql.converters.CustomTypeConverter;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.sql.converters.registry.AzureSynapseConverterRegistry;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.sql.converters.registry.SqlServerConverterRegistry;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.view.DocumentOutputView;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">28</i>&nbsp;import org.jooq.DataType;
+<i class="no-highlight">29</i>&nbsp;import org.jooq.SQLDialect;
+<i class="no-highlight">30</i>&nbsp;import org.jooq.impl.DefaultDataType;
+<i class="no-highlight">31</i>&nbsp;import org.jooq.tools.jdbc.JDBCUtils;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import java.sql.Array;
+<i class="no-highlight">34</i>&nbsp;import java.sql.CallableStatement;
+<i class="no-highlight">35</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">36</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">37</i>&nbsp;import java.sql.ResultSetMetaData;
+<i class="no-highlight">38</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">39</i>&nbsp;import java.sql.Struct;
+<i class="no-highlight">40</i>&nbsp;import java.sql.Types;
+<i class="no-highlight">41</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">42</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">43</i>&nbsp;import java.util.List;
+<i class="no-highlight">44</i>&nbsp;import java.util.Map;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snap.api.sql.procedure.Messages.PROCESS_RESULT_SET_FAILED;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snap.api.sql.procedure.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snap.api.sql.procedure.SqlServerCallableStatementBuilder.trimAtSign;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;/**
+<i class="no-highlight">51</i>&nbsp; * {@link CallableStatementWrapperImpl} for SQL Server
+<i class="no-highlight">52</i>&nbsp; *
+<i class="no-highlight">53</i>&nbsp; * @author psung
+<i class="no-highlight">54</i>&nbsp; */
+<i class="no-highlight">55</i>&nbsp;public class SqlServereCallableStatementWrapper extends CallableStatementWrapperImpl {
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;    private static final String SMALLINT = &quot;smallint&quot;;
+<i class="no-highlight">58</i>&nbsp;    private static final String INT = &quot;int&quot;;
+<i class="no-highlight">59</i>&nbsp;    private static final String TINYINT = &quot;tinyint&quot;;
+<i class="no-highlight">60</i>&nbsp;    private static final String NVARCHAR = &quot;nvarchar&quot;;
+<i class="no-highlight">61</i>&nbsp;    private static final String VARCHAR = &quot;varchar&quot;;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;    public SqlServereCallableStatementWrapper(final Connection conn, final CallableStatement stmt,
+<i class="no-highlight">64</i>&nbsp;            final List&lt;ParameterMetaData&gt; outColumns, final String resultSetColumnName,
+<i class="no-highlight">65</i>&nbsp;            final ConverterRegistry converterRegistry,
+<i class="no-highlight">66</i>&nbsp;            final CustomTypeConverter customTypeConverter, final JdbcOperations jdbcOperations) {
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        super(conn, stmt, outColumns, resultSetColumnName, converterRegistry,</b>
+<i class="no-highlight">68</i>&nbsp;                customTypeConverter, jdbcOperations);
+<i class="no-highlight">69</i>&nbsp;    }
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    private Object processValue(final ResultSet rs, final String columnName,
+<i class="no-highlight">72</i>&nbsp;            final DataType dataType) throws SQLException {
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        if (converterRegistry instanceof AzureSynapseConverterRegistry) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            return ((AzureSynapseConverterRegistry) converterRegistry).from(columnName, dataType,</b>
+<i class="no-highlight">75</i>&nbsp;                    rs, customTypeConverter);
+<i class="no-highlight">76</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        return ((SqlServerConverterRegistry) converterRegistry).from(columnName, dataType, rs,</b>
+<i class="no-highlight">78</i>&nbsp;                customTypeConverter);
+<i class="no-highlight">79</i>&nbsp;    }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    public Map&lt;String, Object&gt; getOutputValues() throws SQLException {
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        Map&lt;String, Object&gt; outValues = new LinkedHashMap&lt;&gt;(outColumns.size());</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        for (ParameterMetaData outColumn : outColumns) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;            int sqlType = outColumn.getSqlType();</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;            String columnName = outColumn.getColumnName();</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;            columnName = trimAtSign(columnName);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            switch (sqlType) {</b>
+<i class="no-highlight">88</i>&nbsp;                case Types.OTHER:
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    Object object = stmt.getObject(columnName);</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                    if (object == null) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                        outValues.put(columnName, object);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                        break;</b>
+<i class="no-highlight">93</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    if (((ParameterMetaDataImpl) outColumn).isTableType()) {</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                        List&lt;Object&gt; list = customTypeConverter.fromArray((Array) object,</b>
+<i class="no-highlight">96</i>&nbsp;                                jdbcOperations);
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                        Map&lt;String, Object&gt; valuesMap = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                        valuesMap.put(VALUES, list);</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                        outValues.put(columnName, valuesMap);</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                    } else {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                        Map&lt;String, Object&gt; map = customTypeConverter.fromStruct((Struct) object,</b>
+<i class="no-highlight">102</i>&nbsp;                                jdbcOperations);
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                        Map&lt;String, Object&gt; valueMap = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                        valueMap.put(VALUE, map);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                        outValues.put(columnName, valueMap);</b>
+<i class="no-highlight">106</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                    break;</b>
+<i class="no-highlight">108</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                    DataType dataType = null;</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                    if (converterRegistry instanceof AzureSynapseConverterRegistry) {</b>
+<i class="no-highlight">111</i>&nbsp;                        // Azure Synapse INT datatype not supported with Default dialect.
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                        dataType = DefaultDataType.getDataType(</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                                SQLDialect.SQLSERVER, outColumn.getTypeName());</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                        Object value2 = ((AzureSynapseConverterRegistry) converterRegistry)</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                                .from(columnName, dataType, stmt, customTypeConverter);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                        outValues.put(columnName, value2);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                        break;</b>
+<i class="no-highlight">118</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                    dataType = DefaultDataType.getDataType(</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                            converterRegistry.getDialect(), outColumn.getTypeName());</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                    Object value2 = ((SqlServerConverterRegistry) converterRegistry)</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                            .from(columnName, dataType, stmt, customTypeConverter);</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                    outValues.put(columnName, value2);</b>
+<i class="no-highlight">124</i>&nbsp;                    break;
+<i class="no-highlight">125</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        return outValues;</b>
+<i class="no-highlight">128</i>&nbsp;    }
+<i class="no-highlight">129</i>&nbsp;
+<i class="no-highlight">130</i>&nbsp;    @Override
+<i class="no-highlight">131</i>&nbsp;    public void processResultSet(DocumentOutputView documentOutputView,
+<i class="no-highlight">132</i>&nbsp;            DocumentUtility documentUtility, final Document originalDocument,
+<i class="no-highlight">133</i>&nbsp;            final Boolean passThrough) {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        ResultSet rs = null;</b>
+<i class="no-highlight">135</i>&nbsp;        try {
+<i class="no-highlight">136</i>&nbsp;            while (true) {
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                rs = stmt.getResultSet();</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                if (rs == null) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    if (stmt.getMoreResults()) {</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                        continue;</b>
+<i class="no-highlight">141</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                    outputGeneratedKeysResult(documentOutputView, documentUtility,</b>
+<i class="no-highlight">143</i>&nbsp;                            originalDocument, passThrough);
+<i class="no-highlight">144</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                    ResultSetMetaData resultSetMetaData = rs.getMetaData();</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                    int columnCount = resultSetMetaData.getColumnCount();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                    while (rs.next()) {</b>
+<i class="no-highlight">148</i>&nbsp;                        // An instance of LinkedHashMap is used to preserve the column
+<i class="no-highlight">149</i>&nbsp;                        //  ordering as that of in the table used
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                        Map&lt;String, Object&gt; row = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                        for (int idx = 1; idx &lt;= columnCount; idx++) {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                            String columnName = resultSetMetaData.getColumnName(idx);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                            Object value = processValue(rs, columnName, null);</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                            row.put(columnName, value);</b>
+<i class="no-highlight">155</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                        Document resultDocument = documentUtility.newDocumentFor(originalDocument,</b>
+<i class="no-highlight">157</i>&nbsp;                                row);
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                        if (Boolean.TRUE.equals(passThrough)) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                            documentOutputView.write(documentUtility.newDocument(resultDocument,</b>
+<i class="no-highlight">160</i>&nbsp;                                    originalDocument));
+<i class="no-highlight">161</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                            documentOutputView.write(resultDocument);</b>
+<i class="no-highlight">163</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                    }</b>
+<i class="no-highlight">165</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                if (stmt.getMoreResults()) {</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                    continue;</b>
+<i class="no-highlight">168</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                    if (-1 == stmt.getUpdateCount()) {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                        break;</b>
+<i class="no-highlight">171</i>&nbsp;                    }
+<i class="no-highlight">172</i>&nbsp;                }
+<i class="no-highlight">173</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">174</i>&nbsp;            if (rs != null) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                rs.close();</b>
+<i class="no-highlight">176</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            if (rs != null) {</b>
+<i class="no-highlight">179</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                    rs.close();</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                } catch (SQLException e1) {</b>
+<i class="no-highlight">182</i>&nbsp;                    // no op
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                }</b>
+<i class="no-highlight">184</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            JDBCUtils.safeClose(this);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            throw new SnapDataException(e, PROCESS_RESULT_SET_FAILED)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        }</b>
+<i class="no-highlight">191</i>&nbsp;    }
+<i class="no-highlight">192</i>&nbsp;
+<i class="no-highlight">193</i>&nbsp;    /**
+<i class="no-highlight">194</i>&nbsp;     * Some JDBC db tools put SQL Server generatedKeys into output windows, and customer
+<i class="no-highlight">195</i>&nbsp;     * Adobe wants same behavior for snap result view, regular field conversion does not work
+<i class="no-highlight">196</i>&nbsp;     */
+<i class="no-highlight">197</i>&nbsp;    private void outputGeneratedKeysResult(DocumentOutputView documentOutputView,
+<i class="no-highlight">198</i>&nbsp;            DocumentUtility documentUtility, Document originalDocument, Boolean passThrough)
+<i class="no-highlight">199</i>&nbsp;            throws SQLException {
+<i class="no-highlight">200</i>&nbsp;        ResultSet generatedKeysResultSet;
+<i class="no-highlight">201</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            generatedKeysResultSet = stmt.getGeneratedKeys();</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        } catch (SQLException e) {</b>
+<i class="no-highlight">204</i>&nbsp;            /* stored procs are platform specific, throw in special syntax
+<i class="no-highlight">205</i>&nbsp;             like sql server&#39;s scope_identity into batch mode: will work normally in some cases and
+<i class="no-highlight">206</i>&nbsp;             throw sql exceptions: statement must be executed before any results can be obtained
+<i class="no-highlight">207</i>&nbsp;             in other cases. Since this is a bad message and it is not a real error continue */
+<i class="no-highlight">208</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        if (generatedKeysResultSet != null) {</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;            ResultSetMetaData resultSetMetaData = generatedKeysResultSet.getMetaData();</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;            int columnCount = resultSetMetaData.getColumnCount();</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            while (generatedKeysResultSet.next()) {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                Map&lt;String, Object&gt; row = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                for (int idx = 1; idx &lt;= columnCount; idx++) {</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                    String columnName = resultSetMetaData.getColumnName(idx);</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                    if (columnName == null) {</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                        columnName = StringUtils.EMPTY;</b>
+<i class="no-highlight">219</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                    Object value = processValue(generatedKeysResultSet, columnName, null);</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                    row.put(columnName, value);</b>
+<i class="no-highlight">222</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                Document keyResultsDoc = documentUtility.newDocumentFor(originalDocument, row);</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                if (Boolean.TRUE.equals(passThrough)) {</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                    documentOutputView.write(documentUtility.newDocument(keyResultsDoc,</b>
+<i class="no-highlight">226</i>&nbsp;                            originalDocument));
+<i class="no-highlight">227</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    documentOutputView.write(keyResultsDoc);</b>
+<i class="no-highlight">229</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            generatedKeysResultSet.close();</b>
+<i class="no-highlight">232</i>&nbsp;        }
+<i class="no-highlight">233</i>&nbsp;    }
+<i class="no-highlight">234</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

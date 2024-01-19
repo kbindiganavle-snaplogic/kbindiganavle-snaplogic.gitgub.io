@@ -1,0 +1,302 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EjmlPCA</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.mldatapreparation.principalcomponentanalysis</a>
+</div>
+
+<h1>Coverage Summary for Class: EjmlPCA (com.snaplogic.snaps.mldatapreparation.principalcomponentanalysis)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EjmlPCA</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/51)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package com.snaplogic.snaps.mldatapreparation.principalcomponentanalysis;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">4</i>&nbsp;import org.ejml.data.DMatrixRMaj;
+<i class="no-highlight">5</i>&nbsp;import org.ejml.dense.row.CommonOps_DDRM;
+<i class="no-highlight">6</i>&nbsp;import org.ejml.dense.row.SingularOps_DDRM;
+<i class="no-highlight">7</i>&nbsp;import org.ejml.dense.row.factory.DecompositionFactory_DDRM;
+<i class="no-highlight">8</i>&nbsp;import org.ejml.interfaces.decomposition.SingularValueDecomposition;
+<i class="no-highlight">9</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_BUILD_PCA;
+<i class="no-highlight">10</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;/**
+<i class="no-highlight">13</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">14</i>&nbsp; * The following is a simple example of how to perform basic principal component analysis in EJML.
+<i class="no-highlight">15</i>&nbsp; * &lt;/p&gt;
+<i class="no-highlight">16</i>&nbsp; *
+<i class="no-highlight">17</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">18</i>&nbsp; * Principal Component Analysis (PCA) is typically used to develop a linear model for a set of data
+<i class="no-highlight">19</i>&nbsp; * (e.g. face images) which can then be used to test for membership.  PCA works by converting the
+<i class="no-highlight">20</i>&nbsp; * set of data to a new basis that is a subspace of the original set.  The subspace is selected
+<i class="no-highlight">21</i>&nbsp; * to maximize information.
+<i class="no-highlight">22</i>&nbsp; * &lt;/p&gt;
+<i class="no-highlight">23</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">24</i>&nbsp; * PCA is typically derived as an eigenvalue problem.  However in this implementation {@link org.ejml.interfaces.decomposition.SingularValueDecomposition SVD}
+<i class="no-highlight">25</i>&nbsp; * is used instead because it will produce a more numerically stable solution.  Computation using EVD requires explicitly
+<i class="no-highlight">26</i>&nbsp; * computing the variance of each sample set. The variance is computed by squaring the residual, which can
+<i class="no-highlight">27</i>&nbsp; * cause loss of precision.
+<i class="no-highlight">28</i>&nbsp; * &lt;/p&gt;
+<i class="no-highlight">29</i>&nbsp; *
+<i class="no-highlight">30</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">31</i>&nbsp; * Usage:&lt;br&gt;
+<i class="no-highlight">32</i>&nbsp; * 1) call setup()&lt;br&gt;
+<i class="no-highlight">33</i>&nbsp; * 2) For each sample (e.g. an image ) call addSample()&lt;br&gt;
+<i class="no-highlight">34</i>&nbsp; * 3) After all the samples have been added call computeBasis()&lt;br&gt;
+<i class="no-highlight">35</i>&nbsp; * 4) Call  sampleToEigenSpace() , eigenToSampleSpace() , errorMembership() , response()
+<i class="no-highlight">36</i>&nbsp; * &lt;/p&gt;
+<i class="no-highlight">37</i>&nbsp; *
+<i class="no-highlight">38</i>&nbsp; * @author Peter Abeles
+<i class="no-highlight">39</i>&nbsp; */
+<i class="no-highlight">40</i>&nbsp;public class EjmlPCA {
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;    // principal component subspace is stored in the rows
+<i class="no-highlight">43</i>&nbsp;    private DMatrixRMaj vectorMatrix;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;    // how many principal components are used
+<i class="no-highlight">46</i>&nbsp;    private int numComponents;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;    // where the data is stored
+<b class="nc"><i class="no-highlight">49</i>&nbsp;    private DMatrixRMaj dataMatrix = new DMatrixRMaj(1, 1);</b>
+<i class="no-highlight">50</i>&nbsp;    private int sampleIndex;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;    // mean values of each element across all the samples
+<i class="no-highlight">53</i>&nbsp;    double mean[];
+<i class="no-highlight">54</i>&nbsp;
+<b class="nc"><i class="no-highlight">55</i>&nbsp;    double totalVariance = 0;</b>
+<i class="no-highlight">56</i>&nbsp;    double[] variance;
+<b class="nc"><i class="no-highlight">57</i>&nbsp;    double varianceCoverage = 0;</b>
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    public EjmlPCA() {</b>
+<i class="no-highlight">61</i>&nbsp;    }
+<i class="no-highlight">62</i>&nbsp;
+<b class="nc"><i class="no-highlight">63</i>&nbsp;    public EjmlPCA(DMatrixRMaj vectorMatrix, double[] mean, int sampleSize, int numComponents) {</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        this.vectorMatrix = vectorMatrix;</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        this.mean = mean;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        dataMatrix.reshape(1, sampleSize, false);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        this.numComponents = numComponents;</b>
+<i class="no-highlight">68</i>&nbsp;    }
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    /**
+<i class="no-highlight">72</i>&nbsp;     * Must be called before any other functions. Declares and sets up internal data structures.
+<i class="no-highlight">73</i>&nbsp;     *
+<i class="no-highlight">74</i>&nbsp;     * @param numSamples Number of samples that will be processed.
+<i class="no-highlight">75</i>&nbsp;     * @param sampleSize Number of elements in each sample.
+<i class="no-highlight">76</i>&nbsp;     */
+<i class="no-highlight">77</i>&nbsp;    public void setup(int numSamples, int sampleSize) {
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        mean = new double[sampleSize];</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        dataMatrix.reshape(numSamples, sampleSize, false);</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        sampleIndex = 0;</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        numComponents = -1;</b>
+<i class="no-highlight">82</i>&nbsp;    }
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;    /**
+<i class="no-highlight">85</i>&nbsp;     * Adds a new sample of the raw data to internal data structure for later processing.  All the samples
+<i class="no-highlight">86</i>&nbsp;     * must be added before computeBasis is called.
+<i class="no-highlight">87</i>&nbsp;     *
+<i class="no-highlight">88</i>&nbsp;     * @param sampleData Sample from original raw data.
+<i class="no-highlight">89</i>&nbsp;     */
+<i class="no-highlight">90</i>&nbsp;    public void addSample(double[] sampleData) {
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        for (int i = 0; i &lt; sampleData.length; i++) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            dataMatrix.set(sampleIndex, i, sampleData[i]);</b>
+<i class="no-highlight">93</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        sampleIndex++;</b>
+<i class="no-highlight">95</i>&nbsp;    }
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;    /**
+<i class="no-highlight">98</i>&nbsp;     * Computes a basis (the principal components) from the most dominant eigenvectors.
+<i class="no-highlight">99</i>&nbsp;     *
+<i class="no-highlight">100</i>&nbsp;     * @param numComponents Number of vectors it will use to describe the data.  Typically much
+<i class="no-highlight">101</i>&nbsp;     *                      smaller than the number of elements in the input vector.
+<i class="no-highlight">102</i>&nbsp;     */
+<i class="no-highlight">103</i>&nbsp;    public void computeBasis(int numComponents) {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        this.numComponents = numComponents;</b>
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;        // compute the mean of all the samples
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        for (int i = 0; i &lt; dataMatrix.getNumRows(); i++) {</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            for (int j = 0; j &lt; mean.length; j++) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                mean[j] += dataMatrix.get(i, j);</b>
+<i class="no-highlight">110</i>&nbsp;            }
+<i class="no-highlight">111</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        for (int j = 0; j &lt; mean.length; j++) {</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            mean[j] /= dataMatrix.getNumRows();</b>
+<i class="no-highlight">114</i>&nbsp;        }
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;        // subtract the mean from the original data
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        for (int i = 0; i &lt; dataMatrix.getNumRows(); i++) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            for (int j = 0; j &lt; mean.length; j++) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                dataMatrix.set(i, j, dataMatrix.get(i, j) - mean[j]);</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                totalVariance += dataMatrix.get(i, j) * dataMatrix.get(i, j);</b>
+<i class="no-highlight">121</i>&nbsp;            }
+<i class="no-highlight">122</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        totalVariance /= dataMatrix.getNumRows();</b>
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;        // Compute SVD and save time by not computing U
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        SingularValueDecomposition&lt;DMatrixRMaj&gt; svd =</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                DecompositionFactory_DDRM.svd(dataMatrix.numRows, dataMatrix.numCols, false, true, false);</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        if (!svd.decompose(dataMatrix)) {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;            throw new SnapDataException(ERR_BUILD_PCA)</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                    .withReason(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">131</i>&nbsp;        }
+<i class="no-highlight">132</i>&nbsp;
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        vectorMatrix = svd.getV(null, true);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        DMatrixRMaj W = svd.getW(null);</b>
+<i class="no-highlight">135</i>&nbsp;
+<i class="no-highlight">136</i>&nbsp;        // Singular values are in an arbitrary order initially
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        SingularOps_DDRM.descendingOrder(null, false, W, vectorMatrix, true);</b>
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;        // strip off unneeded components and find the basis
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        vectorMatrix.reshape(numComponents, mean.length, true);</b>
+<i class="no-highlight">141</i>&nbsp;    }
+<i class="no-highlight">142</i>&nbsp;
+<i class="no-highlight">143</i>&nbsp;    /**
+<i class="no-highlight">144</i>&nbsp;     * Converts a vector from sample space into eigen space.
+<i class="no-highlight">145</i>&nbsp;     *
+<i class="no-highlight">146</i>&nbsp;     * @param sampleData Sample space data.
+<i class="no-highlight">147</i>&nbsp;     * @return Eigen space projection.
+<i class="no-highlight">148</i>&nbsp;     */
+<i class="no-highlight">149</i>&nbsp;    public double[] sampleToEigenSpace(double[] sampleData) {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        DMatrixRMaj mean = DMatrixRMaj.wrap(dataMatrix.getNumCols(), 1, this.mean);</b>
+<i class="no-highlight">151</i>&nbsp;
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        DMatrixRMaj s = new DMatrixRMaj(dataMatrix.getNumCols(), 1, true, sampleData);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        DMatrixRMaj r = new DMatrixRMaj(numComponents, 1);</b>
+<i class="no-highlight">154</i>&nbsp;
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        CommonOps_DDRM.subtract(s, mean, s);</b>
+<i class="no-highlight">156</i>&nbsp;
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        CommonOps_DDRM.mult(vectorMatrix, s, r);</b>
+<i class="no-highlight">158</i>&nbsp;
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        return r.data;</b>
+<i class="no-highlight">160</i>&nbsp;    }
+<i class="no-highlight">161</i>&nbsp;
+<i class="no-highlight">162</i>&nbsp;    public DMatrixRMaj getVt() {
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        return this.vectorMatrix;</b>
+<i class="no-highlight">164</i>&nbsp;    }
+<i class="no-highlight">165</i>&nbsp;
+<i class="no-highlight">166</i>&nbsp;    public double[] getMean() {
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        return this.mean;</b>
+<i class="no-highlight">168</i>&nbsp;    }
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;    public double getTotalVariance() {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        return this.totalVariance;</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    public void setVariance(double[] variance) {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        this.variance = variance;</b>
+<i class="no-highlight">176</i>&nbsp;    }
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;    public double[] getVariance() {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        return this.variance;</b>
+<i class="no-highlight">180</i>&nbsp;    }
+<i class="no-highlight">181</i>&nbsp;
+<i class="no-highlight">182</i>&nbsp;    public int getNumComponents() {
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        return this.numComponents;</b>
+<i class="no-highlight">184</i>&nbsp;    }
+<i class="no-highlight">185</i>&nbsp;
+<i class="no-highlight">186</i>&nbsp;    public void setNumComponents(int numComponents) {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        this.numComponents = numComponents;</b>
+<i class="no-highlight">188</i>&nbsp;    }
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;    public double getVarianceCoverage() {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        return this.varianceCoverage;</b>
+<i class="no-highlight">192</i>&nbsp;    }
+<i class="no-highlight">193</i>&nbsp;
+<i class="no-highlight">194</i>&nbsp;    public void setVarianceCoverage(double varianceCoverage) {
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        this.varianceCoverage = varianceCoverage;</b>
+<i class="no-highlight">196</i>&nbsp;    }
+<i class="no-highlight">197</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

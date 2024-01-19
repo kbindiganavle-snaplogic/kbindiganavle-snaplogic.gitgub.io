@@ -1,0 +1,251 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MemoryUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform.util</a>
+</div>
+
+<h1>Coverage Summary for Class: MemoryUtil (com.snaplogic.snaps.transform.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MemoryUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/49)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">7</i>&nbsp; *
+<i class="no-highlight">8</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">9</i>&nbsp; */
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.transform.util;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.api.FeatureFlag;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.StatusMessage;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.StatusReporter;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.system.RuntimeWrapper;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.time.SystemTimeSupplier;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">25</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">26</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import java.io.File;
+<i class="no-highlight">29</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import javax.inject.Inject;
+<i class="no-highlight">32</i>&nbsp;import javax.inject.Singleton;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snap.Utils.BYTES_PER_MB;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snap.Utils.evalIntProperty;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snap.Utils.getAvailableMemory;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snap.Utils.sleepNoInterrupt;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snaps.transform.util.Messages.*;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import static java.lang.Math.min;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;/**
+<i class="no-highlight">45</i>&nbsp; * Utility class to measure available heap memory and trigger the garbage collector.
+<i class="no-highlight">46</i>&nbsp; */
+<i class="no-highlight">47</i>&nbsp;@Singleton
+<i class="no-highlight">48</i>&nbsp;public class MemoryUtil {
+<b class="nc"><i class="no-highlight">49</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(MemoryUtil.class);</b>
+<i class="no-highlight">50</i>&nbsp;    public static final int CHECK_MEMORY_INTERVAL = 10000;
+<b class="nc"><i class="no-highlight">51</i>&nbsp;    public static final Runtime RUNTIME = Runtime.getRuntime();</b>
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;    @FeatureFlag(description = &quot;Minimum number of seconds between garbage collections.&quot;)
+<b class="nc"><i class="no-highlight">54</i>&nbsp;    private static int MIN_SECS_BETWEEN_GCS = 10;</b>
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;    @FeatureFlag(description = &quot;Percent drop in available memory to trigger garbage collection.&quot;)
+<b class="nc"><i class="no-highlight">57</i>&nbsp;    private static int PERCENT_DROP_FOR_GC = 20;</b>
+<i class="no-highlight">58</i>&nbsp;
+<b class="nc"><i class="no-highlight">59</i>&nbsp;    private final Object lockForRequestGC = new Object();</b>
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;    private long timeMillisLastGC; // guarded by lockForRequestGC
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;    private final SystemTimeSupplier systemTimeSupplier;
+<i class="no-highlight">64</i>&nbsp;    private final RuntimeWrapper rt;
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;    private Double availMemThresholdForNextGC;
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    @Inject
+<i class="no-highlight">69</i>&nbsp;    public MemoryUtil(SystemTimeSupplier systemTimeSupplier,
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                      RuntimeWrapper runtimeWrapper) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        this.systemTimeSupplier = systemTimeSupplier;</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;        this.rt = runtimeWrapper;</b>
+<i class="no-highlight">73</i>&nbsp;    }
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;    private double calcAvailMemThreshold(double availMem) {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        return availMem * (100 - PERCENT_DROP_FOR_GC) / 100.0;</b>
+<i class="no-highlight">77</i>&nbsp;    }
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;    /**
+<i class="no-highlight">80</i>&nbsp;     * Returns the fraction of maximum heap memory that is currently available.
+<i class="no-highlight">81</i>&nbsp;     * @return a number between 0 (none available) and 1 (all available)
+<i class="no-highlight">82</i>&nbsp;     */
+<i class="no-highlight">83</i>&nbsp;    public double availableMemoryFraction() {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        long max = rt.maxMemory();      // max heap size; doesn&#39;t change</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        long total = rt.totalMemory();  // current heap size; total &lt;= max</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        long free = rt.freeMemory();    // size of current heap free</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        long used = total - free;       // size of current heap used</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        long avail = max - used;        // available</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        double availFraction = avail / (double) max;</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        if (LOG.isTraceEnabled()) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            LOG.trace(String.format(&quot;free = %5dmb, used = %5dmb, total = %5dmb, max = %5dmb, &quot; +</b>
+<i class="no-highlight">92</i>&nbsp;                            &quot;avail = %5dmb (fraction = %.3f)&quot;,
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                    free / BYTES_PER_MB,</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    used / BYTES_PER_MB,</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                    total / BYTES_PER_MB,</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                    max / BYTES_PER_MB,</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                    avail / BYTES_PER_MB,</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                    availFraction));</b>
+<i class="no-highlight">99</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        return availFraction;</b>
+<i class="no-highlight">101</i>&nbsp;    }
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;    /**
+<i class="no-highlight">104</i>&nbsp;     * Requests garbage collection. For a GC to occur, two conditions must be met:
+<i class="no-highlight">105</i>&nbsp;     * &lt;ul&gt;
+<i class="no-highlight">106</i>&nbsp;     *     &lt;li&gt;The value of availMem is lower than availMemThresholdForNextGC, which is set
+<i class="no-highlight">107</i>&nbsp;     *     after every garbage collection (or on the first call) based on PERCENT_DROP_FOR_GC.&lt;/li&gt;
+<i class="no-highlight">108</i>&nbsp;     *     &lt;li&gt;At least MIN_SECS_BETWEEN_GCS have passed since the last GC.&lt;/li&gt;
+<i class="no-highlight">109</i>&nbsp;     * &lt;/ul&gt;
+<i class="no-highlight">110</i>&nbsp;     * @param availMem The most recent value the caller obtained from
+<i class="no-highlight">111</i>&nbsp;     *         {@link #availableMemoryFraction()}.
+<i class="no-highlight">112</i>&nbsp;     * @return True if GC ran.
+<i class="no-highlight">113</i>&nbsp;     */
+<i class="no-highlight">114</i>&nbsp;    public boolean requestGC(final double availMem) {
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        boolean ranGC = false;</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        synchronized (lockForRequestGC) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            if (availMemThresholdForNextGC == null) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                availMemThresholdForNextGC = calcAvailMemThreshold(availMem);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                LOG.trace(&quot;requestGC: first call; availMem={} next={}&quot;,</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                        availMem, availMemThresholdForNextGC);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            } else if (availMem &lt; availMemThresholdForNextGC) {</b>
+<i class="no-highlight">122</i>&nbsp;                // The current availMem is lower than the threshold, so maybe we should GC.
+<i class="no-highlight">123</i>&nbsp;                // Check whether sufficient time has passed since the last GC.
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                long now = systemTimeSupplier.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                long millisSinceLastGC = (now - timeMillisLastGC);</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                if (millisSinceLastGC &gt;= MIN_SECS_BETWEEN_GCS * 1000L) {</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                    timeMillisLastGC = now;</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                    rt.gc();</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                    double availMemAfter = availableMemoryFraction();</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                    availMemThresholdForNextGC = calcAvailMemThreshold(availMemAfter);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                    ranGC = true;</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                    LOG.debug(&quot;requestGC: ran GC; {}ms since last; availMem before={} after={}&quot; +</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                            &quot; next={}&quot;, millisSinceLastGC, availMem, availMemAfter,</b>
+<i class="no-highlight">134</i>&nbsp;                            availMemThresholdForNextGC);
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    LOG.trace(&quot;requestGC: {} below threshold {} but too soon since last GC: {}ms&quot;,</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                            availMem, availMemThresholdForNextGC, millisSinceLastGC);</b>
+<i class="no-highlight">138</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                LOG.trace(&quot;requestGC: availMem {} not below threshold for next GC {}&quot;,</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                        availMem, availMemThresholdForNextGC);</b>
+<i class="no-highlight">142</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        return ranGC;</b>
+<i class="no-highlight">145</i>&nbsp;    }
+<i class="no-highlight">146</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

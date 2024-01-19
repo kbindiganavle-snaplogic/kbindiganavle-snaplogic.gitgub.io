@@ -1,0 +1,972 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > S3Upsert</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.redshift</a>
+</div>
+
+<h1>Coverage Summary for Class: S3Upsert (com.snaplogic.snaps.redshift)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">S3Upsert</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/418)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">S3Upsert$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/25)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/434)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.redshift;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.services.s3.model.AmazonS3Exception;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.services.securitytoken.model.Credentials;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.collect.Sets;
+<i class="no-highlight">19</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.common.properties.Suggestions;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.sql.TableMetaData;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftCrossAccountIAMRoleAccount;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftCrossAccountIAMRoleSSLAccount;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftDatabaseAccount;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftSSLDatabaseAccount;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snaps.sql.bulkloadutils.BulkLoadFromS3Wrapper;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">50</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">51</i>&nbsp;import org.joda.time.DateTime;
+<i class="no-highlight">52</i>&nbsp;import org.joda.time.DateTimeZone;
+<i class="no-highlight">53</i>&nbsp;import org.jooq.tools.jdbc.JDBCUtils;
+<i class="no-highlight">54</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">55</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">58</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">59</i>&nbsp;import java.sql.PreparedStatement;
+<i class="no-highlight">60</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">61</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">62</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">63</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">64</i>&nbsp;import java.util.List;
+<i class="no-highlight">65</i>&nbsp;import java.util.Map;
+<i class="no-highlight">66</i>&nbsp;import java.util.Set;
+<i class="no-highlight">67</i>&nbsp;import java.util.UUID;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.redshift.LoadUnloadUtils.checkAndThrowDiffRegionException;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.redshift.Messages.*;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Constants.CSV;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Constants.FILE_TYPES;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Constants.UNCOMPRESSED;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.DISABLE_SSE_FOR_KMS;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.DISABLE_SSE_FOR_KMS_REASON;
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;/**
+<i class="no-highlight">78</i>&nbsp; * Bulk update into Redshift with existing S3 file(s).
+<i class="no-highlight">79</i>&nbsp; *
+<i class="no-highlight">80</i>&nbsp; * &lt;p&gt;Copied from BulkUpdate, will need to merge one to the other depending on pm&#39;s decision
+<i class="no-highlight">81</i>&nbsp; *
+<i class="no-highlight">82</i>&nbsp; */
+<i class="no-highlight">83</i>&nbsp;@General(title = S3_UPSERT_TITLE, purpose = S3_UPSERT_PURPOSE)
+<i class="no-highlight">84</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">85</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">86</i>&nbsp;@Inputs(min = 0, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">87</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">88</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">89</i>&nbsp;@Accounts(provides = {
+<i class="no-highlight">90</i>&nbsp;        RedshiftDatabaseAccount.class,
+<i class="no-highlight">91</i>&nbsp;        RedshiftSSLDatabaseAccount.class,
+<i class="no-highlight">92</i>&nbsp;        RedshiftCrossAccountIAMRoleAccount.class,
+<i class="no-highlight">93</i>&nbsp;        RedshiftCrossAccountIAMRoleSSLAccount.class})
+<b class="nc"><i class="no-highlight">94</i>&nbsp;public class S3Upsert extends AbstractS3Encryption {</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;    private static final Logger log = LoggerFactory.getLogger(S3Upsert.class);</b>
+<i class="no-highlight">96</i>&nbsp;    private static final String COLUMN_PROP = &quot;columns&quot;;
+<i class="no-highlight">97</i>&nbsp;    private static final String COLUMN_NAMES_PROP = &quot;columnList&quot;;
+<i class="no-highlight">98</i>&nbsp;    private static final String KEY_UPDATED_RECORDS = &quot;updated_records&quot;;
+<i class="no-highlight">99</i>&nbsp;    private static final String KEY_INSERTED_RECORDS = &quot;inserted_records&quot;;
+<i class="no-highlight">100</i>&nbsp;    private static final String TEMP_TABLE_FORMAT = &quot;update_temp_table_%s_%s&quot;;
+<i class="no-highlight">101</i>&nbsp;    private static final String CREATE_TEMP_TABLE_COMMAND =
+<i class="no-highlight">102</i>&nbsp;        &quot;CREATE TEMPORARY TABLE %s (LIKE %s INCLUDING DEFAULTS)&quot;;
+<i class="no-highlight">103</i>&nbsp;    private static final String DELETE_COMMAND =
+<i class="no-highlight">104</i>&nbsp;        &quot;DELETE FROM %s &quot; +
+<i class="no-highlight">105</i>&nbsp;            &quot;USING %s &quot; +
+<i class="no-highlight">106</i>&nbsp;            &quot;WHERE %s&quot;;
+<i class="no-highlight">107</i>&nbsp;    private static final String INSERT_ALL_COMMAND =
+<i class="no-highlight">108</i>&nbsp;        &quot;INSERT INTO %s SELECT * FROM %s&quot;;
+<i class="no-highlight">109</i>&nbsp;    private static final String PREDICATE_ENTRY = &quot;%s.\&quot;%s\&quot; = %s.\&quot;%s\&quot;&quot;;
+<i class="no-highlight">110</i>&nbsp;    private static final String AND_DELIMITER = &quot; AND &quot;;
+<i class="no-highlight">111</i>&nbsp;    private static final String UNDERSCORE = &quot;_&quot;;
+<i class="no-highlight">112</i>&nbsp;    private static final String HYPHEN = &quot;-&quot;;
+<i class="no-highlight">113</i>&nbsp;    private static final String S3_FILE_PREFIX = &quot;s3://&quot;;
+<i class="no-highlight">114</i>&nbsp;    private static final String S3_FILE_PREFIX_WITH_EXTRA_SLASH = &quot;s3:///&quot;;
+<i class="no-highlight">115</i>&nbsp;    private static final String SERVER_SIDE_ENCRYPTION_PROP = &quot;serverSideEncryption&quot;;
+<i class="no-highlight">116</i>&nbsp;    private static final String IAM_ROLE_PROP = &quot;iamRole&quot;;
+<i class="no-highlight">117</i>&nbsp;    private static final String S3_FILE_PROP = &quot;s3File&quot;;
+<i class="no-highlight">118</i>&nbsp;    private static final String S3_FILE_LIST_PROP = &quot;s3FileList&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String VACUUM_PROP = &quot;vacuum&quot;;
+<i class="no-highlight">120</i>&nbsp;    private static final String UPDATE_STATS_PROP = &quot;updateStats&quot;;
+<i class="no-highlight">121</i>&nbsp;    private static final String TRUNCATE_PROP = &quot;truncate&quot;;
+<i class="no-highlight">122</i>&nbsp;    private static final String ACCEPT_INVALID_CHARS_PROP = &quot;invalidChars&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String MAX_ERROR_PROP = &quot;maxError&quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String TRUNCATE_COLUMNS_PROP = &quot;truncateColumns&quot;;
+<i class="no-highlight">125</i>&nbsp;    private static final String ADDITIONAL_OPTIONS_PROP = &quot;additionalOptions&quot;;
+<i class="no-highlight">126</i>&nbsp;    private static final String COMPRESSION_FORMAT_PROP = &quot;compressionFormat&quot;;
+<i class="no-highlight">127</i>&nbsp;    private static final String LOAD_EMPTY_STRINGS_PROP = &quot;loadEmptyStrings&quot;;
+<i class="no-highlight">128</i>&nbsp;    private static final String DELIMITER_PROP = &quot;delimiter&quot;;
+<i class="no-highlight">129</i>&nbsp;    private static final String IGNORE_HEADER_PROP = &quot;ignoreHeader&quot;;
+<i class="no-highlight">130</i>&nbsp;    private static final String ACCEPT_INVALID_CHARS = &quot;ACCEPTINVCHARS&quot;;
+<i class="no-highlight">131</i>&nbsp;    private static final String TRUNCATE_COLUMNS = &quot;TRUNCATECOLUMNS&quot;;
+<i class="no-highlight">132</i>&nbsp;    static final String DELIMITER_DEFAULT = &quot;|&quot;;
+<i class="no-highlight">133</i>&nbsp;    private static final int DEFAULT_MAX_ERRORS = 100;
+<i class="no-highlight">134</i>&nbsp;    private static final int ERROR_MESSAGE_ENTRY_COUNT = 5;
+<i class="no-highlight">135</i>&nbsp;    private static final int MIN_MAX_ERRORS = 0;
+<i class="no-highlight">136</i>&nbsp;    private static final int MAXIMUM_MAX_ERRORS = 100000;
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;    // Output view keys
+<i class="no-highlight">139</i>&nbsp;    private static final String KEY_TABLE = &quot;table&quot;;
+<i class="no-highlight">140</i>&nbsp;    private static final String KEY_FAILED_RECORDS = &quot;failed_records&quot;;
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;    // Error view keys
+<i class="no-highlight">143</i>&nbsp;    private static final String KEY_FILE_NAME = &quot;file_name&quot;;
+<i class="no-highlight">144</i>&nbsp;    private static final String KEY_LINE_NUMBER = &quot;line_number&quot;;
+<i class="no-highlight">145</i>&nbsp;    private static final String KEY_COLUMN_NAME = &quot;column_name&quot;;
+<i class="no-highlight">146</i>&nbsp;    private static final String KEY_ERROR_CODE = &quot;error_code&quot;;
+<i class="no-highlight">147</i>&nbsp;    private static final String KEY_ERROR_MESSAGE = &quot;error_message&quot;;
+<i class="no-highlight">148</i>&nbsp;    private static final String KEY_COLUMN_VALUE = &quot;column_value&quot;;
+<i class="no-highlight">149</i>&nbsp;    private static final String KEY_ROW_VALUE = &quot;row_value&quot;;
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    private static final String COPY_DATE_FORMAT = &quot; DATEFORMAT AS &#39;auto&#39;&quot;;
+<i class="no-highlight">152</i>&nbsp;    private static final String COPY_TIME_FORMAT = &quot; TIMEFORMAT AS &#39;auto&#39;&quot;;
+<i class="no-highlight">153</i>&nbsp;    private static final String DATE_FORMAT = &quot;DATEFORMAT&quot;;
+<i class="no-highlight">154</i>&nbsp;    private static final String TIME_FORMAT = &quot;TIMEFORMAT&quot;;
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;    private static final String UPDATE_STATS_COMMAND = &quot;ANALYZE %s&quot;;
+<i class="no-highlight">157</i>&nbsp;    private static final String TRUNCATE_COMMAND = &quot;TRUNCATE TABLE %s&quot;;
+<i class="no-highlight">158</i>&nbsp;
+<i class="no-highlight">159</i>&nbsp;    private static final String NULL = &quot;NULL &quot;;
+<i class="no-highlight">160</i>&nbsp;    private static final String EMPTY_AS_NULL = &quot;EMPTYASNULL BLANKSASNULL &quot;;
+<i class="no-highlight">161</i>&nbsp;    private static final String NULL_AS = &quot;NULL AS &#39;\\0&#39; &quot;;
+<b class="nc"><i class="no-highlight">162</i>&nbsp;    private static final String S3_FILE_LIST_PATH = new JsonPathBuilder(S3_FILE_LIST_PROP)</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        .appendAllListElements().build();</b>
+<i class="no-highlight">164</i>&nbsp;    private static final Set&lt;String&gt; COMPRESSION_FORMATS =
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        ImmutableSet.of(UNCOMPRESSED, &quot;GZIP&quot;, &quot;BZIP2&quot;, &quot;LZOP&quot;);</b>
+<i class="no-highlight">166</i>&nbsp;    private static final String FILE_TYPE_PROP = &quot;fileType&quot;;
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;    protected String awsAccessId;
+<i class="no-highlight">169</i>&nbsp;    protected String awsSecretKey;
+<i class="no-highlight">170</i>&nbsp;    protected String awsSecurityToken;
+<i class="no-highlight">171</i>&nbsp;    private Connection redshiftConnection;
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    protected String s3Bucket;
+<i class="no-highlight">174</i>&nbsp;    protected String s3Folder;
+<i class="no-highlight">175</i>&nbsp;    private boolean truncate;
+<i class="no-highlight">176</i>&nbsp;    private boolean vacuum;
+<i class="no-highlight">177</i>&nbsp;    private String vacuumType;
+<i class="no-highlight">178</i>&nbsp;    private BigInteger vacuumThreshold;
+<i class="no-highlight">179</i>&nbsp;    private boolean updateStats;
+<i class="no-highlight">180</i>&nbsp;    private boolean acceptInvalidChars;
+<i class="no-highlight">181</i>&nbsp;    protected BulkLoadFromS3Wrapper bulkLoadWrapper;
+<i class="no-highlight">182</i>&nbsp;    private int maxErrors;
+<i class="no-highlight">183</i>&nbsp;    private boolean truncateColumns;
+<i class="no-highlight">184</i>&nbsp;    private String additionalOptions;
+<i class="no-highlight">185</i>&nbsp;    protected String compressionFormat;
+<i class="no-highlight">186</i>&nbsp;    private String delimiter;
+<i class="no-highlight">187</i>&nbsp;    protected List&lt;String&gt; S3FilePaths;
+<i class="no-highlight">188</i>&nbsp;    private String startTime;
+<i class="no-highlight">189</i>&nbsp;    private String fileType;
+<i class="no-highlight">190</i>&nbsp;    private List&lt;String&gt; keyColumnNames;
+<i class="no-highlight">191</i>&nbsp;    private long deleteCount;
+<i class="no-highlight">192</i>&nbsp;    private long insertCount;
+<i class="no-highlight">193</i>&nbsp;    private int ignoreHeader;
+<i class="no-highlight">194</i>&nbsp;    private List&lt;ExpressionProperty&gt; keyColumnExpressions;
+<i class="no-highlight">195</i>&nbsp;    private List&lt;ExpressionProperty&gt; s3FilePathExpressions;
+<i class="no-highlight">196</i>&nbsp;    protected boolean serverSideEncryption;
+<i class="no-highlight">197</i>&nbsp;    protected boolean iamRole;
+<i class="no-highlight">198</i>&nbsp;    protected String iamRoleName;
+<i class="no-highlight">199</i>&nbsp;    protected String awsAccountID;
+<i class="no-highlight">200</i>&nbsp;    protected String regionName;
+<i class="no-highlight">201</i>&nbsp;    protected boolean serverless;
+<b class="nc"><i class="no-highlight">202</i>&nbsp;    private volatile boolean firstRecord = true;</b>
+<i class="no-highlight">203</i>&nbsp;    private boolean crossAccountIamRoleAccount;
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;    @Inject
+<i class="no-highlight">206</i>&nbsp;    private LoadUnloadUtils loadUnloadUtils;
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;    @Override
+<i class="no-highlight">209</i>&nbsp;    protected String getName() {
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        return JdbcOperations.REDSHIFT;</b>
+<i class="no-highlight">211</i>&nbsp;    }
+<i class="no-highlight">212</i>&nbsp;
+<i class="no-highlight">213</i>&nbsp;    @Override
+<i class="no-highlight">214</i>&nbsp;    protected boolean supportsAutoTableCreate() {
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        return false;</b>
+<i class="no-highlight">216</i>&nbsp;    }
+<i class="no-highlight">217</i>&nbsp;
+<i class="no-highlight">218</i>&nbsp;    @Override
+<i class="no-highlight">219</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        super.createSnapProperties(builder);</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        SnapProperty columnProperty = builder</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;            .describe(COLUMN_PROP, COLUMN_LABEL, COLUMN_DESC)</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            .expression()</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            .withSuggestions(new Suggestions() {</b>
+<i class="no-highlight">225</i>&nbsp;                @Override
+<i class="no-highlight">226</i>&nbsp;                public void suggest(final SuggestionBuilder suggestionBuilder,
+<i class="no-highlight">227</i>&nbsp;                                    final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    initOperations();</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                    tableName = jdbcOperations.normalizeAndEscape((String)</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                        propertyValues.get(TABLE_NAME_PROP));</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    if (StringUtils.isBlank(tableName)) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                        suggestionBuilder.node(COLUMN_NAMES_PROP)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                            .over(COLUMN_PROP)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                            .suggestions(TABLE_NAME_MUST_BE_DEFINED_FIRST);</b>
+<i class="no-highlight">235</i>&nbsp;                        return;
+<i class="no-highlight">236</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                    Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                    TableMetaData tableMetaData = jdbcOperations.getTableMetaData(conn,</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                            account.getDatabaseConfig().getDatabaseName(), tableName);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                    String[] fieldNames = tableMetaData.keySet().toArray(new</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                        String[tableMetaData.keySet().size()]);</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                    suggestionBuilder.node(COLUMN_NAMES_PROP)</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                        .over(COLUMN_PROP)</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                        .suggestions(fieldNames);</b>
+<i class="no-highlight">245</i>&nbsp;                }
+<i class="no-highlight">246</i>&nbsp;            })
+<b class="nc"><i class="no-highlight">247</i>&nbsp;            .required()</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        builder.describe(COLUMN_NAMES_PROP, COLUMN_NAMES_LABEL, COLUMN_NAMES_DESC)</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;            .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;            .withEntry(columnProperty)</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;            .required()</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            .dataLocationIdentifier(&quot;redshift.column_names&quot;)</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        SnapProperty S3File = builder.describe(S3_FILE_PROP, S3_FILE_LABEL, S3_FILE_DESC)</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;            .expression()</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            .required()</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        builder.describe(S3_FILE_LIST_PROP,</b>
+<i class="no-highlight">260</i>&nbsp;            S3_FILE_LIST_LABEL, S3_FILE_LIST_DESC)
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;            .withEntry(S3File)</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;            .required()</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            .dataLocationIdentifier(&quot;redshift.s3_files&quot;)</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        builder.describe(IAM_ROLE_PROP, BULK_LOAD_UNLOAD_IAM_ROLE_LABEL,</b>
+<i class="no-highlight">267</i>&nbsp;            BULK_LOAD_UNLOAD_IAM_ROLE_DESC)
+<b class="nc"><i class="no-highlight">268</i>&nbsp;            .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        builder.describe(SERVER_SIDE_ENCRYPTION_PROP, BULK_LOAD_SERVER_SIDE_ENCRYPTION_LABEL,</b>
+<i class="no-highlight">271</i>&nbsp;            BULK_LOAD_SERVER_SIDE_ENCRYPTION_DESC)
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        addEncryptionProps(builder);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        builder.describe(TRUNCATE_PROP, TRUNCATE_LABEL, TRUNCATE_DESC)</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        builder.describe(VACUUM_PROP, VACUUM_LABEL, VACUUM_DESC)</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;            .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;            .hide() // this property is hidden on purpose for backward compatibility</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;            .add(); // please do not remove</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        builder.describe(UPDATE_STATS_PROP, UPDATE_STATS_LABEL, UPDATE_STATS_DESC)</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        builder.describe(ACCEPT_INVALID_CHARS_PROP, INVALID_CHARS_LABEL, INVALID_CHARS_DESC)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            .defaultValue(true)</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        builder.describe(MAX_ERROR_PROP, MAX_ERROR_LABEL, MAX_ERROR_DESC)</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;            .required()</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;            .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;            .defaultValue(DEFAULT_MAX_ERRORS)</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;            .withMinValue(MIN_MAX_ERRORS)</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;            .withMaxValue(MAXIMUM_MAX_ERRORS)</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        builder.describe(TRUNCATE_COLUMNS_PROP, TRUNCATE_COLUMNS_LABEL, TRUNCATE_COLUMNS_DESC)</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;            .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            .defaultValue(true)</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        builder.describe(LOAD_EMPTY_STRINGS_PROP, LOAD_EMPTY_STRINGS_LABEL, LOAD_EMPTY_STRINGS_DESC)</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;            .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        builder.describe(COMPRESSION_FORMAT_PROP, COMPRESSION_FORMAT_LABEL, COMPRESSION_FORMAT_DESC)</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;            .withAllowedValues(COMPRESSION_FORMATS)</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;            .defaultValue(UNCOMPRESSED)</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        builder.describe(FILE_TYPE_PROP, FILE_TYPE_LABEL, FILE_TYPE_DESC)</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;            .withAllowedValues(FILE_TYPES)</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;            .defaultValue(CSV)</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        builder.describe(IGNORE_HEADER_PROP, IGNORE_HEADER_LABEL, IGNORE_HEADER_DESC)</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;            .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;            .defaultValue(0)</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;            .required()</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        builder.describe(DELIMITER_PROP, DELIMITER_LABEL, S3_UPSERT_DELIMITER_DESC)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            .defaultValue(DELIMITER_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        builder.describe(ADDITIONAL_OPTIONS_PROP, ADDITIONAL_OPTIONS_LABEL,</b>
+<i class="no-highlight">321</i>&nbsp;            ADDITIONAL_OPTIONS_DESC)
+<b class="nc"><i class="no-highlight">322</i>&nbsp;            .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;            .add();</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;        RedshiftUtils.defineVacuumProperties(builder);</b>
+<i class="no-highlight">325</i>&nbsp;    }
+<i class="no-highlight">326</i>&nbsp;
+<i class="no-highlight">327</i>&nbsp;    @Override
+<i class="no-highlight">328</i>&nbsp;    protected void configureSnap(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;        configureSnapSettings(propertyValues);</b>
+<i class="no-highlight">331</i>&nbsp;    }
+<i class="no-highlight">332</i>&nbsp;
+<i class="no-highlight">333</i>&nbsp;    protected void configureSnapSettings(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">334</i>&nbsp;        crossAccountIamRoleAccount = (account instanceof RedshiftCrossAccountIAMRoleAccount);</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        awsAccessId = ((RedshiftDatabaseAccount) account).getAWSAccessId();</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        awsSecretKey = ((RedshiftDatabaseAccount) account).getAWSSecretKey();</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;        awsSecurityToken = ((RedshiftDatabaseAccount) account).getAwsSecurityToken();</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        s3Bucket = ((RedshiftDatabaseAccount) account).getBucketName();</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;        s3Folder = ((RedshiftDatabaseAccount) account).getFolderPath();</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;        regionName = ((RedshiftDatabaseAccount) account).getRegionName();</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        serverless = ((RedshiftDatabaseAccount) account).isServerless();</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;        if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            ((RedshiftDatabaseAccount) account).setStaging(true);</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;            ((RedshiftCrossAccountIAMRoleAccount) account).validateAccountCustom();</b>
+<i class="no-highlight">345</i>&nbsp;        } else {
+<i class="no-highlight">346</i>&nbsp;            // if Access ID and Secret key are empty, EC2 IAM credential can be used in EC2 Groundplex
+<b class="nc"><i class="no-highlight">347</i>&nbsp;            if (StringUtils.isEmpty(s3Bucket)) {</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                throw new ConfigurationException(ERROR_MISSING_S3_BUCKET)</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                        .withReason(ERROR_S3_BUCKET_REQUIRED)</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                        .withResolution(ERROR_PROVIDE_S3_BUCKET);</b>
+<i class="no-highlight">351</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">352</i>&nbsp;            iamRole = Boolean.TRUE.equals(propertyValues.get(IAM_ROLE_PROP));</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;            serverSideEncryption = Boolean.TRUE.equals(</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                    propertyValues.get(SERVER_SIDE_ENCRYPTION_PROP));</b>
+<i class="no-highlight">355</i>&nbsp;
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            iamRoleName = ((RedshiftDatabaseAccount) account).getIAMRoleNameForRedshiftType();</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;            awsAccountID = ((RedshiftDatabaseAccount) account).getAwsAccountID();</b>
+<i class="no-highlight">358</i>&nbsp;            // check for invalid configuration where IAM role is given along with Access-Key ID and
+<i class="no-highlight">359</i>&nbsp;            // Secret-Key
+<b class="nc"><i class="no-highlight">360</i>&nbsp;            loadUnloadUtils.performInvalidIamConfigurationCheckOne(iamRole, awsAccessId,</b>
+<i class="no-highlight">361</i>&nbsp;                    awsSecretKey, awsSecurityToken);
+<i class="no-highlight">362</i>&nbsp;            // check for invalid configuration where IAM role is given but one of the properties
+<i class="no-highlight">363</i>&nbsp;            // (role name, AWS account ID) is missing
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            loadUnloadUtils.performInvalidIamConfigurationCheckTwo(iamRole, awsAccountID,</b>
+<i class="no-highlight">365</i>&nbsp;                    iamRoleName);
+<i class="no-highlight">366</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        truncate = propertyValues.get(TRUNCATE_PROP);</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        vacuum = Boolean.TRUE.equals(propertyValues.get(VACUUM_PROP));</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        vacuumType = propertyValues.get(RedshiftUtils.VACUUM_TYPE_PROP);</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;        vacuumThreshold =  propertyValues.get(RedshiftUtils.VACUUM_THRESHOLD_PROP);</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;        updateStats = propertyValues.get(UPDATE_STATS_PROP);</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        acceptInvalidChars = propertyValues.get(ACCEPT_INVALID_CHARS_PROP);</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; s3FileList = propertyValues.get(S3_FILE_LIST_PATH);</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;        s3FilePathExpressions = new ArrayList&lt;&gt;(s3FileList.size());</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        for (Map&lt;String, String&gt; item : s3FileList) {</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;            ExpressionProperty pathExpression = propertyValues.getExpressionPropertyFor(item,</b>
+<i class="no-highlight">377</i>&nbsp;                S3_FILE_PROP);
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            s3FilePathExpressions.add(pathExpression);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;        if (!StringUtils.isEmpty(tableName) &amp;&amp; CollectionUtils.isEmpty(s3FilePathExpressions)) {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;            throw new ConfigurationException(ERR_NO_FILE)</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                .withReason(ERR_NO_FILE_REASON)</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                .withResolution(ERR_NO_FILE_RESOLUTION);</b>
+<i class="no-highlight">384</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">385</i>&nbsp;        maxErrors = ((BigInteger) propertyValues.get(MAX_ERROR_PROP)).intValue();</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        truncateColumns = propertyValues.get(TRUNCATE_COLUMNS_PROP);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;        delimiter = propertyValues.get(DELIMITER_PROP);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        fileType = propertyValues.get(FILE_TYPE_PROP);</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;        ignoreHeader = ((BigInteger) propertyValues.get(IGNORE_HEADER_PROP)).intValue();</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        additionalOptions = propertyValues.get(ADDITIONAL_OPTIONS_PROP);</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;        final boolean nullAsInAdditionalOptions = StringUtils.containsIgnoreCase(additionalOptions, NULL);</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;        final boolean loadEmptyStrings = Boolean.TRUE.equals(propertyValues.get(LOAD_EMPTY_STRINGS_PROP));</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;        String emptyNullOptions = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;        if (!loadEmptyStrings) {</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            emptyNullOptions = EMPTY_AS_NULL;</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;        } else if (!nullAsInAdditionalOptions) {</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;            emptyNullOptions = NULL_AS;</b>
+<i class="no-highlight">398</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">399</i>&nbsp;        additionalOptions = additionalOptions == null ? emptyNullOptions :</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;            emptyNullOptions.concat(additionalOptions);</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;        compressionFormat = propertyValues.get(COMPRESSION_FORMAT_PROP);</b>
+<i class="no-highlight">402</i>&nbsp;        // TODO tstack - look into adding a migration script to change existing view names to be
+<i class="no-highlight">403</i>&nbsp;        // row/schema.
+<b class="nc"><i class="no-highlight">404</i>&nbsp;        List&lt;String&gt; viewOrder = viewNameUtil.sortViewNames(inputViews.names(),</b>
+<i class="no-highlight">405</i>&nbsp;            INPUT_ROWS_VIEW_NAME);
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        if (!viewOrder.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;            rowViewName = viewOrder.get(0);</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;            if (viewOrder.size() &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                schemaViewName = viewOrder.get(1);</b>
+<i class="no-highlight">410</i>&nbsp;            }
+<i class="no-highlight">411</i>&nbsp;        }
+<i class="no-highlight">412</i>&nbsp;
+<i class="no-highlight">413</i>&nbsp;        // evaluate Key columns property from pipeline parameters
+<b class="nc"><i class="no-highlight">414</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; columnMaps = propertyValues.get(COLUMN_NAMES_PROP);</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;        keyColumnExpressions = new ArrayList&lt;&gt;(columnMaps.size());</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;        for (Map&lt;String, Object&gt; columnMap : columnMaps) {</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;            ExpressionProperty columnExpression = propertyValues</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                .getExpressionPropertyFor(columnMap, COLUMN_PROP);</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            keyColumnExpressions.add(columnExpression);</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;        if (!StringUtils.isEmpty(tableName) &amp;&amp; CollectionUtils.isEmpty(keyColumnExpressions)) {</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;            throw new ConfigurationException(ERR_NO_COLUMN)</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;                .withReason(ERR_NO_COLUMN_REASON)</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                .withResolution(ERR_NO_COLUMN_RESOLUTION);</b>
+<i class="no-highlight">425</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">426</i>&nbsp;        if (serverSideEncryption &amp;&amp; encryptionType.isKms()) {</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;            throw new ConfigurationException(DISABLE_SSE_FOR_KMS)</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                .withReason(DISABLE_SSE_FOR_KMS_REASON);</b>
+<i class="no-highlight">429</i>&nbsp;        }
+<i class="no-highlight">430</i>&nbsp;    }
+<i class="no-highlight">431</i>&nbsp;
+<i class="no-highlight">432</i>&nbsp;    @Override
+<i class="no-highlight">433</i>&nbsp;    protected void processDocument(final Document document, final String inputViewName) {
+<i class="no-highlight">434</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">435</i>&nbsp;            if(firstRecord) {</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;                tableMetaData = jdbcOperations.getTableMetaData(conn,</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;                        account.getDatabaseConfig().getDatabaseName(), tableName);</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                firstRecord = false;</b>
+<i class="no-highlight">440</i>&nbsp;            }
+<i class="no-highlight">441</i>&nbsp;            // Evaluate key columns
+<b class="nc"><i class="no-highlight">442</i>&nbsp;            keyColumnNames = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;            for (ExpressionProperty columnExpression : keyColumnExpressions) {</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                String column = columnExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                keyColumnNames.add(column);</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;            List&lt;String&gt; normalizeKeyColumnNames = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;            for (String column : keyColumnNames) {</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                String normalizedColumn = jdbcOperations.normalize(column);</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                if (StringUtils.isBlank(normalizedColumn)) {</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                    continue;</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                } else if (!tableMetaData.containsKey(normalizedColumn)) {</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;                    SnapDataException exception = new SnapDataException(</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                        String.format(ERR_INVALID_COLUMN, normalizedColumn))</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                        .withReason(ERR_INVALID_COLUMN_REASON)</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                        .withResolution(ERR_INVALID_COLUMN_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                    errorViews.write(exception);</b>
+<i class="no-highlight">458</i>&nbsp;                    return;
+<i class="no-highlight">459</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                normalizeKeyColumnNames.add(normalizedColumn);</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;            keyColumnNames = normalizeKeyColumnNames;</b>
+<i class="no-highlight">463</i>&nbsp;
+<i class="no-highlight">464</i>&nbsp;            // Evaluate s3 file paths
+<b class="nc"><i class="no-highlight">465</i>&nbsp;            S3FilePaths = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;            for (ExpressionProperty pathExpression : s3FilePathExpressions) {</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                String path = pathExpression.eval(document);</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                if (StringUtils.isBlank(path)) {</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                    continue;</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                } else if (StringUtils.startsWith(path, S3_FILE_PREFIX_WITH_EXTRA_SLASH)) {</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;                    path = S3_FILE_PREFIX.concat(</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                        path.substring(S3_FILE_PREFIX_WITH_EXTRA_SLASH.length()));</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                } else if (!StringUtils.startsWith(path, S3_FILE_PREFIX)) {</b>
+<i class="no-highlight">474</i>&nbsp;                    // Add S3 file path prefix if absent.
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                    path = S3_FILE_PREFIX.concat(path);</b>
+<i class="no-highlight">476</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">477</i>&nbsp;                S3FilePaths.add(path);</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;            }</b>
+<i class="no-highlight">479</i>&nbsp;
+<b class="nc"><i class="no-highlight">480</i>&nbsp;            bulkLoadWrapper = createBulkLoadFromS3WrapperInstance();</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;            bulkLoadWrapper.close();</b>
+<i class="no-highlight">482</i>&nbsp;
+<i class="no-highlight">483</i>&nbsp;            // set temp table name
+<b class="nc"><i class="no-highlight">484</i>&nbsp;            String[] parts = quotationHandler.splitFullyQualifiedName(tableName, 0);</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;            String unescapedTableName = quotationHandler.unescape(parts[parts.length - 1]);</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;            String tempTable = quotationHandler.escape(String.format(TEMP_TABLE_FORMAT,</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                unescapedTableName, UUID.randomUUID().toString().replaceAll(HYPHEN, UNDERSCORE)));</b>
+<i class="no-highlight">488</i>&nbsp;
+<b class="nc"><i class="no-highlight">489</i>&nbsp;            preLoadAction();</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            loadAction(tableName, tempTable);</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;            postLoadAction();</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;            writeOutputView();</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;        } catch (SQLException se) {</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;            throw new ExecutionException(se, ERROR_COPYING_S3_REDSHIFT)</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                .withReason(se.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;                .withResolution(ERROR_FIX_COPY_ISSUE);</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;        } catch (AmazonS3Exception e) {</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;            S3Utils.handleS3Error(e);</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;        } catch (SnapDataException | ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;            throw new ExecutionException(e, ERROR_PERFORMING_LOAD)</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;                .withReason(e.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;                .withResolutionAsDefect();</b>
+<i class="no-highlight">505</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">506</i>&nbsp;            if (bulkLoadWrapper != null) {</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                bulkLoadWrapper.close();</b>
+<i class="no-highlight">508</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">509</i>&nbsp;        }</b>
+<i class="no-highlight">510</i>&nbsp;    }
+<i class="no-highlight">511</i>&nbsp;
+<i class="no-highlight">512</i>&nbsp;    @Override
+<i class="no-highlight">513</i>&nbsp;    public void cleanup() throws ExecutionException {
+<b class="nc"><i class="no-highlight">514</i>&nbsp;        JDBCUtils.safeClose(redshiftConnection);</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;        if (account != null) {</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;            account.disconnect();</b>
+<i class="no-highlight">517</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">518</i>&nbsp;        if (jdbcOperations != null) {</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;            jdbcOperations.cleanup();</b>
+<i class="no-highlight">520</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">521</i>&nbsp;        if (bulkLoadWrapper != null) {</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;            bulkLoadWrapper.cleanup();</b>
+<i class="no-highlight">523</i>&nbsp;        }
+<i class="no-highlight">524</i>&nbsp;    }
+<i class="no-highlight">525</i>&nbsp;
+<i class="no-highlight">526</i>&nbsp;    /**
+<i class="no-highlight">527</i>&nbsp;     * Operations done before load happens.
+<i class="no-highlight">528</i>&nbsp;     */
+<i class="no-highlight">529</i>&nbsp;    protected void preLoadAction() throws SQLException {
+<b class="nc"><i class="no-highlight">530</i>&nbsp;        if (truncate) {</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;            redshiftConnection = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;            try (Statement stmt = redshiftConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;                log.debug(LOG_TRUNCATING_TABLE);</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;                stmt.execute(String.format(</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                        RedshiftUtils.addApnTaggingPrefix(TRUNCATE_COMMAND), tableName));</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;            }</b>
+<i class="no-highlight">537</i>&nbsp;        }
+<i class="no-highlight">538</i>&nbsp;    }
+<i class="no-highlight">539</i>&nbsp;
+<i class="no-highlight">540</i>&nbsp;    protected void loadAction(String targetTable, String tempTable) throws SQLException {
+<b class="nc"><i class="no-highlight">541</i>&nbsp;        if (redshiftConnection == null) {</b>
+<i class="no-highlight">542</i>&nbsp;            // Connection might have been created already if truncate was done
+<b class="nc"><i class="no-highlight">543</i>&nbsp;            redshiftConnection = jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">544</i>&nbsp;        }
+<i class="no-highlight">545</i>&nbsp;        // The steps followed are as documented at
+<i class="no-highlight">546</i>&nbsp;        // http://docs.aws.amazon.com/redshift/latest/dg/
+<i class="no-highlight">547</i>&nbsp;        //  t_updating-inserting-using-staging-tables-.html#merge-method-replace-existing-rows
+<b class="nc"><i class="no-highlight">548</i>&nbsp;        try (Statement stmt = redshiftConnection.createStatement()) {</b>
+<i class="no-highlight">549</i>&nbsp;            try {
+<i class="no-highlight">550</i>&nbsp;                // Create temp table
+<b class="nc"><i class="no-highlight">551</i>&nbsp;                createTempTable(stmt, tempTable, targetTable);</b>
+<i class="no-highlight">552</i>&nbsp;                // Run the copy from S3 to Redshift
+<b class="nc"><i class="no-highlight">553</i>&nbsp;                copyToTempTable(tempTable);</b>
+<i class="no-highlight">554</i>&nbsp;                // Delete the records that will be updated from target table
+<b class="nc"><i class="no-highlight">555</i>&nbsp;                String deleteStmt = createDeleteStmt(targetTable, tempTable);</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                log.debug(LOG_RUNNING_DELETE, deleteStmt);</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;                stmt.execute(RedshiftUtils.addApnTaggingPrefix(deleteStmt));</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;                deleteCount = stmt.getUpdateCount();</b>
+<i class="no-highlight">559</i>&nbsp;
+<i class="no-highlight">560</i>&nbsp;                // Insert from temp table to target table
+<b class="nc"><i class="no-highlight">561</i>&nbsp;                String insertStmt = String.format(INSERT_ALL_COMMAND, targetTable, tempTable);</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;                log.debug(LOG_RUNNING_INSERT, insertStmt);</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;                stmt.execute(RedshiftUtils.addApnTaggingPrefix(insertStmt));</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;                insertCount = stmt.getUpdateCount();</b>
+<i class="no-highlight">565</i>&nbsp;            } finally {
+<i class="no-highlight">566</i>&nbsp;                // No reason to attempt to delete the table, temporary tables
+<i class="no-highlight">567</i>&nbsp;                //  are deleted when the session goes away
+<i class="no-highlight">568</i>&nbsp;                //  see https://docs.aws.amazon.com/redshift/latest/dg/r_CREATE_TABLE_NEW.html
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                log.debug(&quot;loadAction completed target = {} temp = {}.&quot;, targetTable, tempTable);</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;        }</b>
+<i class="no-highlight">572</i>&nbsp;    }
+<i class="no-highlight">573</i>&nbsp;
+<i class="no-highlight">574</i>&nbsp;    /**
+<i class="no-highlight">575</i>&nbsp;     * Operations done after the load has been done.
+<i class="no-highlight">576</i>&nbsp;     */
+<i class="no-highlight">577</i>&nbsp;    private void postLoadAction() throws SQLException {
+<i class="no-highlight">578</i>&nbsp;        // Redshift does not support the &quot;VACUUM ANALYZE table&quot; command, which would
+<i class="no-highlight">579</i>&nbsp;        // have been ideal if both options are set
+<b class="nc"><i class="no-highlight">580</i>&nbsp;        try (Statement stmt = redshiftConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;            RedshiftUtils.vacuumTable(vacuum, tableName, vacuumType, vacuumThreshold, stmt);</b>
+<b class="nc"><i class="no-highlight">582</i>&nbsp;            if (updateStats) {</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                log.debug(LOG_RUNNING_ANALYZE);</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;                stmt.execute(String.format(RedshiftUtils.addApnTaggingPrefix(UPDATE_STATS_COMMAND), tableName));</b>
+<i class="no-highlight">585</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">586</i>&nbsp;        }</b>
+<i class="no-highlight">587</i>&nbsp;    }
+<i class="no-highlight">588</i>&nbsp;
+<i class="no-highlight">589</i>&nbsp;    private void copyToTempTable(final String targetTable) throws SQLException {
+<b class="nc"><i class="no-highlight">590</i>&nbsp;        if (redshiftConnection == null) {</b>
+<i class="no-highlight">591</i>&nbsp;            // Connection might have been created already if truncate was done
+<b class="nc"><i class="no-highlight">592</i>&nbsp;            redshiftConnection = jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">593</i>&nbsp;        }
+<i class="no-highlight">594</i>&nbsp;
+<b class="nc"><i class="no-highlight">595</i>&nbsp;        String acceptInvalidCharStr = ACCEPT_INVALID_CHARS;</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;        if (!acceptInvalidChars) {</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;            acceptInvalidCharStr = StringUtils.EMPTY;</b>
+<i class="no-highlight">598</i>&nbsp;        }
+<i class="no-highlight">599</i>&nbsp;
+<b class="nc"><i class="no-highlight">600</i>&nbsp;        String truncateColumnsStr = TRUNCATE_COLUMNS;</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;        if (!truncateColumns) {</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;            truncateColumnsStr = StringUtils.EMPTY;</b>
+<i class="no-highlight">603</i>&nbsp;        }
+<i class="no-highlight">604</i>&nbsp;
+<b class="nc"><i class="no-highlight">605</i>&nbsp;        String additionalOptionsStr = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;        if (!StringUtils.isEmpty(additionalOptions)) {</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;            additionalOptionsStr = additionalOptions;</b>
+<i class="no-highlight">608</i>&nbsp;        }
+<i class="no-highlight">609</i>&nbsp;
+<b class="nc"><i class="no-highlight">610</i>&nbsp;        final String explictIds = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">611</i>&nbsp;        String copyCommand = bulkLoadWrapper.createCopyCommand(targetTable,</b>
+<i class="no-highlight">612</i>&nbsp;            acceptInvalidCharStr, maxErrors, explictIds, truncateColumnsStr,
+<i class="no-highlight">613</i>&nbsp;            delimiter, fileType, ignoreHeader, additionalOptionsStr, false);
+<b class="nc"><i class="no-highlight">614</i>&nbsp;        String copyCommandObfuscated = bulkLoadWrapper.createCopyCommand(targetTable,</b>
+<i class="no-highlight">615</i>&nbsp;            acceptInvalidCharStr, maxErrors, explictIds,
+<i class="no-highlight">616</i>&nbsp;            truncateColumnsStr, delimiter, fileType, ignoreHeader, additionalOptionsStr, true);
+<b class="nc"><i class="no-highlight">617</i>&nbsp;        if (!additionalOptionsStr.toUpperCase().contains(DATE_FORMAT)) {</b>
+<b class="nc"><i class="no-highlight">618</i>&nbsp;            copyCommand = copyCommand.concat(COPY_DATE_FORMAT);</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;            copyCommandObfuscated = copyCommandObfuscated.concat(COPY_DATE_FORMAT);</b>
+<i class="no-highlight">620</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">621</i>&nbsp;        if (!additionalOptionsStr.toUpperCase().contains(TIME_FORMAT)) {</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;            copyCommand = copyCommand.concat(COPY_TIME_FORMAT);</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;            copyCommandObfuscated = copyCommandObfuscated.concat(COPY_TIME_FORMAT);</b>
+<i class="no-highlight">624</i>&nbsp;        }
+<i class="no-highlight">625</i>&nbsp;
+<b class="nc"><i class="no-highlight">626</i>&nbsp;        startTime = DateTime.now(DateTimeZone.UTC).toString();</b>
+<b class="nc"><i class="no-highlight">627</i>&nbsp;        try (Statement stmt = redshiftConnection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;            log.debug(LOG_RUNNING_COPY, copyCommandObfuscated);</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;            stmt.execute(RedshiftUtils.addApnTaggingPrefix(copyCommand));</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;            log.debug(LOG_COPY_DONE);</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;        } catch (SQLException se) {</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;            checkAndThrowDiffRegionException(se, se.getMessage());</b>
+<b class="nc"><i class="no-highlight">633</i>&nbsp;            handleException(se);</b>
+<i class="no-highlight">634</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">635</i>&nbsp;            writeErrorView();</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;        }</b>
+<i class="no-highlight">637</i>&nbsp;    }
+<i class="no-highlight">638</i>&nbsp;
+<i class="no-highlight">639</i>&nbsp;    private StringBuilder getPredicateList(final String targetTable, final String tempTable,
+<i class="no-highlight">640</i>&nbsp;                                           final List&lt;String&gt; columnNames) {
+<b class="nc"><i class="no-highlight">641</i>&nbsp;        boolean firstColumn = true;</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;        StringBuilder predicateList = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;        for (String column : columnNames) {</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;            if (!firstColumn) {</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                predicateList.append(AND_DELIMITER);</b>
+<i class="no-highlight">646</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">647</i>&nbsp;            firstColumn = false;</b>
+<b class="nc"><i class="no-highlight">648</i>&nbsp;            predicateList.append(String.format(PREDICATE_ENTRY, targetTable, column, tempTable,</b>
+<i class="no-highlight">649</i>&nbsp;                column));
+<b class="nc"><i class="no-highlight">650</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;        return predicateList;</b>
+<i class="no-highlight">652</i>&nbsp;    }
+<i class="no-highlight">653</i>&nbsp;
+<i class="no-highlight">654</i>&nbsp;    private String createDeleteStmt(final String targetTable, final String tempTable) {
+<b class="nc"><i class="no-highlight">655</i>&nbsp;        StringBuilder predicateList = getPredicateList(targetTable, tempTable, keyColumnNames);</b>
+<b class="nc"><i class="no-highlight">656</i>&nbsp;        return String.format(DELETE_COMMAND, targetTable, tempTable, predicateList);</b>
+<i class="no-highlight">657</i>&nbsp;    }
+<i class="no-highlight">658</i>&nbsp;
+<i class="no-highlight">659</i>&nbsp;    private Map&lt;String, Object&gt; getOutputViewInfo() throws SQLException {
+<b class="nc"><i class="no-highlight">660</i>&nbsp;        String endTime = DateTime.now(DateTimeZone.UTC).toString();</b>
+<b class="nc"><i class="no-highlight">661</i>&nbsp;        Map&lt;String, Object&gt; outputInfo = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">662</i>&nbsp;        outputInfo.put(KEY_TABLE, tableName);</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;        outputInfo.put(KEY_FAILED_RECORDS, BigInteger.valueOf(getLoadErrorCount(endTime)));</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;        outputInfo.put(KEY_UPDATED_RECORDS, BigInteger.valueOf(deleteCount));</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;        insertCount = insertCount &gt; deleteCount ? insertCount - deleteCount : 0;</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;        outputInfo.put(KEY_INSERTED_RECORDS, BigInteger.valueOf(insertCount));</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;        return outputInfo;</b>
+<i class="no-highlight">668</i>&nbsp;    }
+<i class="no-highlight">669</i>&nbsp;
+<i class="no-highlight">670</i>&nbsp;    /**
+<i class="no-highlight">671</i>&nbsp;     * Write status information to the output view.
+<i class="no-highlight">672</i>&nbsp;     */
+<i class="no-highlight">673</i>&nbsp;    private void writeOutputView() throws SQLException {
+<b class="nc"><i class="no-highlight">674</i>&nbsp;        if (outputViews.isEmpty()) {</b>
+<i class="no-highlight">675</i>&nbsp;            // Avoid query to get error count if no output view
+<i class="no-highlight">676</i>&nbsp;            return;
+<i class="no-highlight">677</i>&nbsp;        }
+<i class="no-highlight">678</i>&nbsp;
+<b class="nc"><i class="no-highlight">679</i>&nbsp;        Map&lt;String, Object&gt; outputViewInfo = getOutputViewInfo();</b>
+<b class="nc"><i class="no-highlight">680</i>&nbsp;        outputViews.write(documentUtility.newDocument(outputViewInfo));</b>
+<i class="no-highlight">681</i>&nbsp;    }
+<i class="no-highlight">682</i>&nbsp;
+<i class="no-highlight">683</i>&nbsp;    /**
+<i class="no-highlight">684</i>&nbsp;     * Write all error entries from the the stl_load_errors table into the error view.
+<i class="no-highlight">685</i>&nbsp;     */
+<i class="no-highlight">686</i>&nbsp;    private void writeErrorView() throws SQLException {
+<b class="nc"><i class="no-highlight">687</i>&nbsp;        String endTime = DateTime.now(DateTimeZone.UTC).toString();</b>
+<b class="nc"><i class="no-highlight">688</i>&nbsp;        if (errorViews.isEmpty()) {</b>
+<i class="no-highlight">689</i>&nbsp;            return;
+<i class="no-highlight">690</i>&nbsp;        }
+<i class="no-highlight">691</i>&nbsp;
+<b class="nc"><i class="no-highlight">692</i>&nbsp;        for (String path : S3FilePaths) {</b>
+<b class="nc"><i class="no-highlight">693</i>&nbsp;            Set&lt;Integer&gt; lineSet = Sets.newHashSet();</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;            try (PreparedStatement stmt = redshiftConnection.prepareStatement(</b>
+<b class="nc"><i class="no-highlight">695</i>&nbsp;                    getLoadErrorSql(serverless, true))) {</b>
+<b class="nc"><i class="no-highlight">696</i>&nbsp;                stmt.setString(1, path);</b>
+<b class="nc"><i class="no-highlight">697</i>&nbsp;                stmt.setTimestamp(2, parseTimestamp(startTime));</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                stmt.setTimestamp(3, parseTimestamp(endTime));</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;                try (ResultSet rs = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">700</i>&nbsp;                    while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">701</i>&nbsp;                        int lineNumber = rs.getInt(1);</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;                        if (lineSet.contains(lineNumber)) {</b>
+<i class="no-highlight">703</i>&nbsp;                            // Only one error view entry per input record even if multiple
+<i class="no-highlight">704</i>&nbsp;                            // errors encountered on that record
+<b class="nc"><i class="no-highlight">705</i>&nbsp;                            continue;</b>
+<i class="no-highlight">706</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">707</i>&nbsp;                        lineSet.add(lineNumber);</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;                        String colName = StringUtils.trim(rs.getString(2));</b>
+<b class="nc"><i class="no-highlight">709</i>&nbsp;                        int errorCode = rs.getInt(3);</b>
+<b class="nc"><i class="no-highlight">710</i>&nbsp;                        String errorMessage = StringUtils.trim(rs.getString(4));</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;                        String fileName = StringUtils.trim(rs.getString(5));</b>
+<i class="no-highlight">712</i>&nbsp;
+<b class="nc"><i class="no-highlight">713</i>&nbsp;                        Map&lt;String, Object&gt; errorInfo = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;                        errorInfo.put(KEY_FILE_NAME, fileName);</b>
+<b class="nc"><i class="no-highlight">715</i>&nbsp;                        errorInfo.put(KEY_LINE_NUMBER, lineNumber);</b>
+<b class="nc"><i class="no-highlight">716</i>&nbsp;                        errorInfo.put(KEY_COLUMN_NAME, colName);</b>
+<b class="nc"><i class="no-highlight">717</i>&nbsp;                        errorInfo.put(KEY_ERROR_CODE, errorCode);</b>
+<b class="nc"><i class="no-highlight">718</i>&nbsp;                        errorInfo.put(KEY_ERROR_MESSAGE, errorMessage);</b>
+<i class="no-highlight">719</i>&nbsp;
+<b class="nc"><i class="no-highlight">720</i>&nbsp;                        String reason = null;</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;                        if (serverless) {</b>
+<b class="nc"><i class="no-highlight">722</i>&nbsp;                            reason = String.format(SERVERLESS_ERROR_LOAD_DATA_ROW, lineNumber,</b>
+<b class="nc"><i class="no-highlight">723</i>&nbsp;                                colName, errorCode, errorMessage);</b>
+<i class="no-highlight">724</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">725</i>&nbsp;                            String column_value = StringUtils.trim(rs.getString(6));</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;                            String row_value = StringUtils.trim(rs.getString(7));</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;                            errorInfo.put(KEY_COLUMN_VALUE, column_value);</b>
+<b class="nc"><i class="no-highlight">728</i>&nbsp;                            errorInfo.put(KEY_ROW_VALUE, row_value);</b>
+<b class="nc"><i class="no-highlight">729</i>&nbsp;                            reason = String.format(ERROR_LOAD_DATA_ROW, lineNumber, colName,</b>
+<b class="nc"><i class="no-highlight">730</i>&nbsp;                                column_value, row_value, errorCode, errorMessage);</b>
+<i class="no-highlight">731</i>&nbsp;                        }
+<i class="no-highlight">732</i>&nbsp;
+<b class="nc"><i class="no-highlight">733</i>&nbsp;                        Document doc = documentUtility.newDocument(errorInfo);</b>
+<i class="no-highlight">734</i>&nbsp;                        // Unlike regular error views, the complete input document is not
+<i class="no-highlight">735</i>&nbsp;                        // available, just whatever is provided by Redshift
+<b class="nc"><i class="no-highlight">736</i>&nbsp;                        SnapDataException exception = new SnapDataException(doc, errorMessage)</b>
+<b class="nc"><i class="no-highlight">737</i>&nbsp;                            .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">738</i>&nbsp;                            .withResolution(ERR_DATA_LOAD_ROW_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">739</i>&nbsp;                        errorViews.write(exception);</b>
+<b class="nc"><i class="no-highlight">740</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">742</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">743</i>&nbsp;        }</b>
+<i class="no-highlight">744</i>&nbsp;    }
+<i class="no-highlight">745</i>&nbsp;
+<i class="no-highlight">746</i>&nbsp;    protected int getLoadErrorCount(final String endTime) throws SQLException {
+<b class="nc"><i class="no-highlight">747</i>&nbsp;        for (String path : S3FilePaths) {</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;            try (PreparedStatement stmt = redshiftConnection.prepareStatement(</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;                    getLoadErrorCountSql(serverless, true))) {</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;                stmt.setString(1, path);</b>
+<b class="nc"><i class="no-highlight">751</i>&nbsp;                stmt.setTimestamp(2, parseTimestamp(startTime));</b>
+<b class="nc"><i class="no-highlight">752</i>&nbsp;                stmt.setTimestamp(3, parseTimestamp(endTime));</b>
+<b class="nc"><i class="no-highlight">753</i>&nbsp;                try (ResultSet rs = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">754</i>&nbsp;                    while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">755</i>&nbsp;                        return rs.getInt(1);</b>
+<i class="no-highlight">756</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">757</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">758</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">760</i>&nbsp;        return 0;</b>
+<i class="no-highlight">761</i>&nbsp;    }
+<i class="no-highlight">762</i>&nbsp;
+<i class="no-highlight">763</i>&nbsp;    private void handleException(Exception se) throws ExecutionException, SQLException {
+<b class="nc"><i class="no-highlight">764</i>&nbsp;        String endTime = DateTime.now(DateTimeZone.UTC).toString();</b>
+<b class="nc"><i class="no-highlight">765</i>&nbsp;        StringBuilder error = new StringBuilder();</b>
+<i class="no-highlight">766</i>&nbsp;
+<b class="nc"><i class="no-highlight">767</i>&nbsp;        for (String path : S3FilePaths) {</b>
+<b class="nc"><i class="no-highlight">768</i>&nbsp;            try (PreparedStatement stmt = redshiftConnection.prepareStatement(</b>
+<b class="nc"><i class="no-highlight">769</i>&nbsp;                    getLoadErrorSql(serverless, true))) {</b>
+<b class="nc"><i class="no-highlight">770</i>&nbsp;                stmt.setString(1, path);</b>
+<b class="nc"><i class="no-highlight">771</i>&nbsp;                stmt.setTimestamp(2, parseTimestamp(startTime));</b>
+<b class="nc"><i class="no-highlight">772</i>&nbsp;                stmt.setTimestamp(3, parseTimestamp(endTime));</b>
+<b class="nc"><i class="no-highlight">773</i>&nbsp;                try (ResultSet rs = stmt.executeQuery()) {</b>
+<b class="nc"><i class="no-highlight">774</i>&nbsp;                    int count = 0;</b>
+<b class="nc"><i class="no-highlight">775</i>&nbsp;                    while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">776</i>&nbsp;                        error.append(String.format(ERROR_COPY_S3_FILE,</b>
+<b class="nc"><i class="no-highlight">777</i>&nbsp;                            StringUtils.trim(rs.getString(5)), rs.getInt(1),</b>
+<b class="nc"><i class="no-highlight">778</i>&nbsp;                            StringUtils.trim(rs.getString(2)), rs.getInt(3),</b>
+<b class="nc"><i class="no-highlight">779</i>&nbsp;                            StringUtils.trim(rs.getString(4))));</b>
+<b class="nc"><i class="no-highlight">780</i>&nbsp;                        count++;</b>
+<b class="nc"><i class="no-highlight">781</i>&nbsp;                        if (count &gt;= ERROR_MESSAGE_ENTRY_COUNT) {</b>
+<i class="no-highlight">782</i>&nbsp;                            // Just put first five errors in error message, more
+<i class="no-highlight">783</i>&nbsp;                            // can go to error view if created
+<b class="nc"><i class="no-highlight">784</i>&nbsp;                            break;</b>
+<i class="no-highlight">785</i>&nbsp;                        }
+<i class="no-highlight">786</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">787</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">788</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">789</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">790</i>&nbsp;        String errorStr = error.toString();</b>
+<b class="nc"><i class="no-highlight">791</i>&nbsp;        if (errorStr.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">792</i>&nbsp;            errorStr = se.getMessage();</b>
+<i class="no-highlight">793</i>&nbsp;        }
+<i class="no-highlight">794</i>&nbsp;        String resolutionStr;
+<b class="nc"><i class="no-highlight">795</i>&nbsp;        if (StringUtils.containsIgnoreCase(errorStr, MANDATORY_URL_IS_NOT_PRESENT)) {</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;            resolutionStr = ERROR_CHECK_S3_FILE;</b>
+<i class="no-highlight">797</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">798</i>&nbsp;            resolutionStr = ERROR_FIX_DATA_ISSUES;</b>
+<i class="no-highlight">799</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">800</i>&nbsp;        throw new ExecutionException(se, ERROR_COPYING_S3_REDSHIFT)</b>
+<b class="nc"><i class="no-highlight">801</i>&nbsp;            .withReason(errorStr)</b>
+<b class="nc"><i class="no-highlight">802</i>&nbsp;            .withResolution(resolutionStr);</b>
+<i class="no-highlight">803</i>&nbsp;    }
+<i class="no-highlight">804</i>&nbsp;
+<i class="no-highlight">805</i>&nbsp;    protected BulkLoadFromS3Wrapper createBulkLoadFromS3WrapperInstance() {
+<b class="nc"><i class="no-highlight">806</i>&nbsp;        if (crossAccountIamRoleAccount) {</b>
+<b class="nc"><i class="no-highlight">807</i>&nbsp;            if (S3FilePaths.size() == 1) {</b>
+<b class="nc"><i class="no-highlight">808</i>&nbsp;                return new BulkLoadFromS3Wrapper(((RedshiftDatabaseAccount) account),</b>
+<b class="nc"><i class="no-highlight">809</i>&nbsp;                        compressionFormat, S3FilePaths.get(0), serverSideEncryption,</b>
+<b class="nc"><i class="no-highlight">810</i>&nbsp;                        encryptionType, kmsKey, regionName, getName());</b>
+<i class="no-highlight">811</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">812</i>&nbsp;                Credentials credentials = ((RedshiftCrossAccountIAMRoleAccount) account)</b>
+<b class="nc"><i class="no-highlight">813</i>&nbsp;                        .getCredentialFromCrossAccountIamRoleForBucketWrite();</b>
+<b class="nc"><i class="no-highlight">814</i>&nbsp;                return new BulkLoadFromS3Wrapper(((RedshiftDatabaseAccount) account),</b>
+<b class="nc"><i class="no-highlight">815</i>&nbsp;                        credentials == null ? null : credentials.getAccessKeyId(),</b>
+<b class="nc"><i class="no-highlight">816</i>&nbsp;                        credentials == null ? null : credentials.getSecretAccessKey(),</b>
+<b class="nc"><i class="no-highlight">817</i>&nbsp;                        credentials == null ? null : credentials.getSessionToken(),</b>
+<i class="no-highlight">818</i>&nbsp;                        s3Bucket, s3Folder, compressionFormat, S3FilePaths, iamRole, serverSideEncryption,
+<b class="nc"><i class="no-highlight">819</i>&nbsp;                        encryptionType, kmsKey, regionName, getName());</b>
+<i class="no-highlight">820</i>&nbsp;            }
+<i class="no-highlight">821</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">822</i>&nbsp;        if (StringUtils.isNotBlank(awsSecurityToken)) {</b>
+<b class="nc"><i class="no-highlight">823</i>&nbsp;            return new BulkLoadFromS3Wrapper((RedshiftDatabaseAccount) account, awsAccessId, awsSecretKey, awsSecurityToken,</b>
+<i class="no-highlight">824</i>&nbsp;                    s3Bucket, s3Folder, compressionFormat, S3FilePaths, iamRole, serverSideEncryption,
+<b class="nc"><i class="no-highlight">825</i>&nbsp;                    encryptionType, kmsKey, regionName, getName());</b>
+<i class="no-highlight">826</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">827</i>&nbsp;            return new BulkLoadFromS3Wrapper(awsAccessId, awsSecretKey, s3Bucket, s3Folder,</b>
+<i class="no-highlight">828</i>&nbsp;                    compressionFormat, S3FilePaths, iamRole, serverSideEncryption, encryptionType,
+<b class="nc"><i class="no-highlight">829</i>&nbsp;                    kmsKey, awsAccountID, iamRoleName, regionName, getName());</b>
+<i class="no-highlight">830</i>&nbsp;        }
+<i class="no-highlight">831</i>&nbsp;
+<i class="no-highlight">832</i>&nbsp;    }
+<i class="no-highlight">833</i>&nbsp;
+<i class="no-highlight">834</i>&nbsp;    protected void createTempTable(Statement stmt, String tempTable, String targetTable)
+<i class="no-highlight">835</i>&nbsp;        throws SQLException {
+<b class="nc"><i class="no-highlight">836</i>&nbsp;        String createTempTableCommand = String.format(CREATE_TEMP_TABLE_COMMAND, tempTable,</b>
+<i class="no-highlight">837</i>&nbsp;            targetTable);
+<b class="nc"><i class="no-highlight">838</i>&nbsp;        log.debug(LOG_CREATING_TEMP_TABLE, createTempTableCommand);</b>
+<b class="nc"><i class="no-highlight">839</i>&nbsp;        stmt.execute(RedshiftUtils.addApnTaggingPrefix(createTempTableCommand));</b>
+<i class="no-highlight">840</i>&nbsp;    }
+<i class="no-highlight">841</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

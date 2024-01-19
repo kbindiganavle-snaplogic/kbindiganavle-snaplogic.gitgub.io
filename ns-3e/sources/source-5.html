@@ -1,0 +1,834 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > HttpSnapService</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.http</a>
+</div>
+
+<h1>Coverage Summary for Class: HttpSnapService (com.snaplogic.snap.api.http)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HttpSnapService</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/138)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">HttpSnapService$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">HttpSnapService$Builder</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/131)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">HttpSnapService$RetryCondition</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/276)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.http;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.http.auth.AuthData;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.http.auth.HttpSnapAuthentication;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.http.exceptions.HttpCoreConnectionException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.http.exceptions.HttpCoreDataException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.http.requests.HttpSnapRequest;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import org.apache.commons.lang.StringUtils;
+<i class="no-highlight">22</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">23</i>&nbsp;import org.apache.http.HttpHeaders;
+<i class="no-highlight">24</i>&nbsp;import org.apache.http.HttpRequestInterceptor;
+<i class="no-highlight">25</i>&nbsp;import org.apache.http.HttpResponseInterceptor;
+<i class="no-highlight">26</i>&nbsp;import org.apache.http.HttpStatus;
+<i class="no-highlight">27</i>&nbsp;import org.apache.http.client.CookieStore;
+<i class="no-highlight">28</i>&nbsp;import org.apache.http.client.RedirectException;
+<i class="no-highlight">29</i>&nbsp;import org.apache.http.client.config.CookieSpecs;
+<i class="no-highlight">30</i>&nbsp;import org.apache.http.client.config.RequestConfig;
+<i class="no-highlight">31</i>&nbsp;import org.apache.http.client.protocol.HttpClientContext;
+<i class="no-highlight">32</i>&nbsp;import org.apache.http.client.utils.DateUtils;
+<i class="no-highlight">33</i>&nbsp;import org.apache.http.config.Registry;
+<i class="no-highlight">34</i>&nbsp;import org.apache.http.config.RegistryBuilder;
+<i class="no-highlight">35</i>&nbsp;import org.apache.http.conn.socket.ConnectionSocketFactory;
+<i class="no-highlight">36</i>&nbsp;import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+<i class="no-highlight">37</i>&nbsp;import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+<i class="no-highlight">38</i>&nbsp;import org.apache.http.conn.ssl.NoopHostnameVerifier;
+<i class="no-highlight">39</i>&nbsp;import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+<i class="no-highlight">40</i>&nbsp;import org.apache.http.conn.ssl.TrustStrategy;
+<i class="no-highlight">41</i>&nbsp;import org.apache.http.cookie.Cookie;
+<i class="no-highlight">42</i>&nbsp;import org.apache.http.impl.DefaultConnectionReuseStrategy;
+<i class="no-highlight">43</i>&nbsp;import org.apache.http.impl.client.BasicCookieStore;
+<i class="no-highlight">44</i>&nbsp;import org.apache.http.impl.client.CloseableHttpClient;
+<i class="no-highlight">45</i>&nbsp;import org.apache.http.impl.client.HttpClients;
+<i class="no-highlight">46</i>&nbsp;import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+<i class="no-highlight">47</i>&nbsp;import org.apache.http.ssl.SSLContexts;
+<i class="no-highlight">48</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">49</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;import java.io.Closeable;
+<i class="no-highlight">52</i>&nbsp;import java.security.KeyManagementException;
+<i class="no-highlight">53</i>&nbsp;import java.security.KeyStoreException;
+<i class="no-highlight">54</i>&nbsp;import java.security.NoSuchAlgorithmException;
+<i class="no-highlight">55</i>&nbsp;import java.security.SecureRandom;
+<i class="no-highlight">56</i>&nbsp;import java.time.Duration;
+<i class="no-highlight">57</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">58</i>&nbsp;import java.util.Date;
+<i class="no-highlight">59</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">60</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">61</i>&nbsp;import java.util.LinkedList;
+<i class="no-highlight">62</i>&nbsp;import java.util.List;
+<i class="no-highlight">63</i>&nbsp;import java.util.Map;
+<i class="no-highlight">64</i>&nbsp;import java.util.Set;
+<i class="no-highlight">65</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;import javax.net.ssl.KeyManager;
+<i class="no-highlight">68</i>&nbsp;import javax.net.ssl.SSLContext;
+<i class="no-highlight">69</i>&nbsp;import javax.net.ssl.TrustManager;
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">72</i>&nbsp;import net.jodah.failsafe.FailsafeException;
+<i class="no-highlight">73</i>&nbsp;import net.jodah.failsafe.Fallback;
+<i class="no-highlight">74</i>&nbsp;import net.jodah.failsafe.Policy;
+<i class="no-highlight">75</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">76</i>&nbsp;import net.jodah.failsafe.event.ExecutionAttemptedEvent;
+<i class="no-highlight">77</i>&nbsp;import net.jodah.failsafe.function.CheckedConsumer;
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;import static com.snaplogic.snap.api.http.Constants.*;
+<i class="no-highlight">80</i>&nbsp;import static com.snaplogic.snap.api.http.Version.BUILD;
+<i class="no-highlight">81</i>&nbsp;import static com.snaplogic.snap.api.http.Version.COMPANY_NAME;
+<i class="no-highlight">82</i>&nbsp;import static com.snaplogic.snap.api.http.Version.PROJECT_NAME;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snap.api.http.Version.VERSION;
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;/**
+<i class="no-highlight">87</i>&nbsp; * A Service class that handles HTTP operations (mainly REST calls) for Snaps.
+<i class="no-highlight">88</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">89</i>&nbsp; * This is NOT thread safe. We need to keep the service used in a single thread to keep its
+<i class="no-highlight">90</i>&nbsp; * history records consistent without much performance overhead.
+<i class="no-highlight">91</i>&nbsp; */
+<i class="no-highlight">92</i>&nbsp;public class HttpSnapService implements Closeable {
+<i class="no-highlight">93</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(HttpSnapService.class);
+<i class="no-highlight">94</i>&nbsp;    private static final RequestConfig DEFAULT_REQUEST_CONFIG = RequestConfig.custom()
+<b class="nc"><i class="no-highlight">95</i>&nbsp;            .setRedirectsEnabled(false)</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;            .setMaxRedirects(3)</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;            .setCircularRedirectsAllowed(false)</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            .setRelativeRedirectsAllowed(false)</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;    private static final String USER_AGENT_FMT = &quot;%s/%s %s/%s (%s)&quot;;</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;    private static final String SOCKET_FACTORY_REGISTRY = &quot;http.socket-factory-registry&quot;;</b>
+<i class="no-highlight">102</i>&nbsp;    private static final long MAX_WAIT_TIME_FOR_RETRY_AFTER_SEC = 5 * 60;
+<i class="no-highlight">103</i>&nbsp;    private static final CloseableHttpClient client;
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    static {
+<i class="no-highlight">106</i>&nbsp;        // The format is following the one from VersionInfo#getUserAgent method.
+<i class="no-highlight">107</i>&nbsp;        // Something like: snaplogic/4.29 http-core/1.0 (11.0.8)
+<i class="no-highlight">108</i>&nbsp;        String defaultUserAgent = String.format(USER_AGENT_FMT, COMPANY_NAME, BUILD, PROJECT_NAME,
+<i class="no-highlight">109</i>&nbsp;                VERSION, System.getProperty(&quot;java.version&quot;));
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        PoolingHttpClientConnectionManager connectionManager =</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                new PoolingHttpClientConnectionManager(</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                        RegistryBuilder.&lt;ConnectionSocketFactory&gt;create()</b>
+<i class="no-highlight">113</i>&nbsp;                                .register(&quot;http&quot;, PlainConnectionSocketFactory.getSocketFactory())
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                                .register(&quot;https&quot;, new SSLConnectionSocketFactory(</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                                        SSLContexts.createSystemDefault(),</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                                        SSLConnectionSocketFactory.getDefaultHostnameVerifier()))</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                                .build()</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                );</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        // The following settings following the existing settings in the ProxyConnectionManager</b>
+<i class="no-highlight">120</i>&nbsp;        // Allows 50 concurrent connections per route, and 500 connections in total in the pool
+<i class="no-highlight">121</i>&nbsp;        connectionManager.setMaxTotal(500);
+<i class="no-highlight">122</i>&nbsp;        connectionManager.setDefaultMaxPerRoute(50);
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        client = HttpClients.custom()</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .setDefaultRequestConfig(DEFAULT_REQUEST_CONFIG)</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                // by default it will use the poolConnectionManager</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .setConnectionManager(connectionManager)</b>
+<i class="no-highlight">127</i>&nbsp;                .setConnectionReuseStrategy(new DefaultConnectionReuseStrategy())
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                .addInterceptorLast((HttpRequestInterceptor) (request, context) -&gt; {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                    Set&lt;String&gt; headers = (Set&lt;String&gt;) context.getAttribute(ACCOUNT_HEADERS);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                    String password = (String) context.getAttribute(ACCOUNT_PASSWORD);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                    Object recordListObj = context.getAttribute(HISTORY_RECORD_CTX_KEY);</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                    if (recordListObj instanceof List) {</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                        RequestHistory historyRecord;</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                        if (StringUtils.isNotBlank(password)) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                             historyRecord = new</b>
+<i class="no-highlight">136</i>&nbsp;                                    RequestHistory(request, headers, password);
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                        } else {</b>
+<i class="no-highlight">138</i>&nbsp;                            historyRecord = new RequestHistory(request, headers);
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                        LOG.debug(&quot;[*] Request sent: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                                historyRecord.toMap().get(SNAPSHOT_REQUEST_STR_KEY));</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                        ((List) recordListObj).add(historyRecord);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                })</b>
+<i class="no-highlight">145</i>&nbsp;                .addInterceptorFirst((HttpResponseInterceptor) (response, context) -&gt; {
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                    Object recordListObj = context.getAttribute(HISTORY_RECORD_CTX_KEY);</b>
+<i class="no-highlight">147</i>&nbsp;                    if (recordListObj instanceof List &amp;&amp; !((List&lt;?&gt;) recordListObj).isEmpty()
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                            &amp;&amp; (((List&lt;?&gt;) recordListObj).get(0) instanceof RequestHistory)) {</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                        List&lt;RequestHistory&gt; histories = (List&lt;RequestHistory&gt;) recordListObj;</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                        histories.get(histories.size() - 1).setResponse(response);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                    LOG.debug(&quot;[*] Response received: {}&quot;, response);</b>
+<i class="no-highlight">153</i>&nbsp;                })
+<i class="no-highlight">154</i>&nbsp;                .useSystemProperties()
+<i class="no-highlight">155</i>&nbsp;                .setUserAgent(defaultUserAgent)
+<i class="no-highlight">156</i>&nbsp;                .disableAutomaticRetries()
+<i class="no-highlight">157</i>&nbsp;                .setRedirectStrategy(new HttpSnapRedirectStrategy())
+<i class="no-highlight">158</i>&nbsp;                .build();
+<b class="nc"><i class="no-highlight">159</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;    }</b>
+<i class="no-highlight">161</i>&nbsp;
+<i class="no-highlight">162</i>&nbsp;    // Use a request ID to identify a history record. The request ID would be passed in the
+<i class="no-highlight">163</i>&nbsp;    // HttpContext. Use a HashTable to keep the mapping, and use an arraylist to keep the order
+<i class="no-highlight">164</i>&nbsp;    // of the history and expose to the caller
+<i class="no-highlight">165</i>&nbsp;    private final List&lt;RequestHistory&gt; historyList = Lists.newArrayList();
+<i class="no-highlight">166</i>&nbsp;    private volatile int nextRead = 0;
+<i class="no-highlight">167</i>&nbsp;    private boolean recordHistory;
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;    private HttpSnapResponse.ResponseType responseType;
+<i class="no-highlight">170</i>&nbsp;    private HttpSnapResponse.ResponseHandler customResponseHandler;
+<i class="no-highlight">171</i>&nbsp;    private boolean trustAllCerts;
+<i class="no-highlight">172</i>&nbsp;    private AuthData authorization;
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;    private boolean treatErrorResponseAsException;
+<i class="no-highlight">176</i>&nbsp;
+<i class="no-highlight">177</i>&nbsp;    private int readTimeoutSec;
+<i class="no-highlight">178</i>&nbsp;    private int connectionTimeoutSec;
+<i class="no-highlight">179</i>&nbsp;    private boolean followRedirects;
+<b class="nc"><i class="no-highlight">180</i>&nbsp;    private boolean followOriginalMethod;</b>
+<i class="no-highlight">181</i>&nbsp;    private int maxRedirects;
+<i class="no-highlight">182</i>&nbsp;    private boolean allowRelativeRedirects;
+<i class="no-highlight">183</i>&nbsp;    private boolean allowCircularRedirects;
+<i class="no-highlight">184</i>&nbsp;    private List&lt;Policy&lt;HttpSnapResponse&gt;&gt; retryPolicies;
+<i class="no-highlight">185</i>&nbsp;
+<i class="no-highlight">186</i>&nbsp;    private CookieStore cookieStore = new BasicCookieStore();
+<i class="no-highlight">187</i>&nbsp;    private String cookieSpec;
+<i class="no-highlight">188</i>&nbsp;
+<i class="no-highlight">189</i>&nbsp;
+<b class="nc"><i class="no-highlight">190</i>&nbsp;    HttpSnapService(AuthData authorization, HttpSnapResponse.ResponseType responseType,</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    HttpSnapResponse.ResponseHandler customResponseHandler, String cookieSpec,</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                    int connectionTimeoutSec, int readTimeoutSec,</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                    List&lt;Policy&lt;HttpSnapResponse&gt;&gt; retryPolicies, boolean trustAllCerts,</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                    boolean followRedirects, boolean followOriginalMethod, int maxRedirects,</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                    boolean allowRelativeRedirects, boolean allowCircularRedirects,</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                    boolean enableHistory, boolean treatErrorResponseAsException) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        this.authorization = authorization;</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        this.responseType = responseType;</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        this.cookieSpec = cookieSpec;</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        this.connectionTimeoutSec = connectionTimeoutSec;</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        this.readTimeoutSec = readTimeoutSec;</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        this.retryPolicies = retryPolicies;</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        this.trustAllCerts = trustAllCerts;</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        this.followRedirects = followRedirects;</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        this.followOriginalMethod = followOriginalMethod;</b>
+<i class="no-highlight">206</i>&nbsp;        this.maxRedirects = maxRedirects;
+<i class="no-highlight">207</i>&nbsp;        this.allowCircularRedirects = allowCircularRedirects;
+<i class="no-highlight">208</i>&nbsp;        this.allowRelativeRedirects = allowRelativeRedirects;
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        this.recordHistory = enableHistory;</b>
+<i class="no-highlight">210</i>&nbsp;        this.treatErrorResponseAsException = treatErrorResponseAsException;
+<i class="no-highlight">211</i>&nbsp;        this.customResponseHandler = customResponseHandler;
+<i class="no-highlight">212</i>&nbsp;    }
+<i class="no-highlight">213</i>&nbsp;
+<b class="nc"><i class="no-highlight">214</i>&nbsp;    public static Builder builder() {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        return new Builder();</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;    public HttpSnapResponse request(HttpSnapRequest request) throws HttpCoreDataException,</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            HttpCoreConnectionException {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        HttpClientContext clientContext = initClientContext();</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        request.withResponseType(responseType);</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        if ((authorization != null) &amp;&amp; (authorization.getCredentials() != null)) {</b>
+<i class="no-highlight">223</i>&nbsp;            clientContext.setAttribute(ACCOUNT_PASSWORD,
+<i class="no-highlight">224</i>&nbsp;                    authorization.getCredentials().getPassword());
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        if ((authorization != null) &amp;&amp; (authorization.getAuthHeader() != null)) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;            List&lt;Pair&lt;String, String&gt;&gt; headers = authorization.getAuthHeader();</b>
+<i class="no-highlight">228</i>&nbsp;            Set&lt;String&gt; accountHeaders = new HashSet&lt;&gt;();
+<b class="nc"><i class="no-highlight">229</i>&nbsp;            for (Pair&lt;String, String&gt; header : headers) {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                accountHeaders.add(header.getKey());</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            }</b>
+<i class="no-highlight">232</i>&nbsp;            clientContext.setAttribute(ACCOUNT_HEADERS, accountHeaders);
+<i class="no-highlight">233</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;            HttpSnapResponse response =</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                    Failsafe.with(retryPolicies)</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                            .get(() -&gt; request.executeOn(client, authorization, clientContext,</b>
+<i class="no-highlight">238</i>&nbsp;                                    customResponseHandler));
+<b class="nc"><i class="no-highlight">239</i>&nbsp;            if (treatErrorResponseAsException &amp;&amp; !isSuccessful(response)) {</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                throw new HttpCoreConnectionException(String.format(&quot;Got response %d - %s from &quot; +</b>
+<i class="no-highlight">241</i>&nbsp;                        &quot;the endpoint&quot;, response.getHttpStatusCode(), response.getHttpStatusText()),
+<i class="no-highlight">242</i>&nbsp;                        response);
+<i class="no-highlight">243</i>&nbsp;            }
+<i class="no-highlight">244</i>&nbsp;            return response;
+<i class="no-highlight">245</i>&nbsp;        } catch (FailsafeException fse) {
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            if (fse.getCause() != null &amp;&amp; fse.getCause() instanceof HttpCoreConnectionException) {</b>
+<i class="no-highlight">247</i>&nbsp;                throw (HttpCoreConnectionException) fse.getCause();
+<i class="no-highlight">248</i>&nbsp;            }
+<i class="no-highlight">249</i>&nbsp;            throw new HttpCoreDataException(&quot;Exception encountered when requesting the endpoint&quot;,
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                    fse.getCause());</b>
+<i class="no-highlight">251</i>&nbsp;        }
+<i class="no-highlight">252</i>&nbsp;
+<i class="no-highlight">253</i>&nbsp;    }
+<i class="no-highlight">254</i>&nbsp;
+<b class="nc"><i class="no-highlight">255</i>&nbsp;    public void updateAuth(AuthData newData) {</b>
+<i class="no-highlight">256</i>&nbsp;        authorization.update(newData);
+<b class="nc"><i class="no-highlight">257</i>&nbsp;    }</b>
+<i class="no-highlight">258</i>&nbsp;
+<b class="nc"><i class="no-highlight">259</i>&nbsp;    private boolean isSuccessful(HttpSnapResponse response) {</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        return response.getHttpStatusCode() &lt;= HttpStatus.SC_TEMPORARY_REDIRECT;</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;    private HttpClientContext initClientContext() throws HttpCoreDataException {</b>
+<i class="no-highlight">264</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            HttpClientContext context = HttpClientContext.create();</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            SSLConnectionSocketFactory sslConnectionSocketFactory;</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;            if (trustAllCerts) {</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                // client for trust all certificates</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                TrustStrategy trustAllStrategy = (cert, authType) -&gt; true;</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                SSLContext sslContext = SSLContexts.custom()</b>
+<i class="no-highlight">271</i>&nbsp;                        .loadTrustMaterial(trustAllStrategy)
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                sslConnectionSocketFactory =</b>
+<i class="no-highlight">274</i>&nbsp;                        new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+<i class="no-highlight">275</i>&nbsp;            } else {
+<i class="no-highlight">276</i>&nbsp;                SSLContext sslContext = SSLContext.getInstance(SSLConnectionSocketFactory.TLS);
+<i class="no-highlight">277</i>&nbsp;                KeyManager[] keyManagers = authorization == null ? null :
+<i class="no-highlight">278</i>&nbsp;                        authorization.getKeyManagers();
+<i class="no-highlight">279</i>&nbsp;                TrustManager[] trustManagers = authorization == null ? null :
+<i class="no-highlight">280</i>&nbsp;                        authorization.getTrustManagers();
+<i class="no-highlight">281</i>&nbsp;                ;
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                sslContext.init(keyManagers, trustManagers, new SecureRandom());</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                sslConnectionSocketFactory =</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                        new SSLConnectionSocketFactory(sslContext, new DefaultHostnameVerifier());</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            // This is a undocumented feature from the Apache HttpClient to configure ssl socket</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            // factory for each route.</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;            // ref: https://stackoverflow.com/a/36540658</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;            // If this is not working in the future, we will have to create a new client for each</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;            // KeyManager/TrustManager settings</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;            Registry&lt;ConnectionSocketFactory&gt; socketFactoryRegistry =</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                    RegistryBuilder.&lt;ConnectionSocketFactory&gt;create()</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                            .register(&quot;https&quot;, sslConnectionSocketFactory)</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                            .register(&quot;http&quot;, PlainConnectionSocketFactory.getSocketFactory())</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                            .build();</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;            context.setAttribute(SOCKET_FACTORY_REGISTRY, socketFactoryRegistry);</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;            RequestConfig requestConfig = RequestConfig.copy(DEFAULT_REQUEST_CONFIG)</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                    .setRedirectsEnabled(followRedirects)</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                    .setRelativeRedirectsAllowed(allowRelativeRedirects)</b>
+<i class="no-highlight">300</i>&nbsp;                    .setCircularRedirectsAllowed(allowCircularRedirects)
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                    .setMaxRedirects(maxRedirects)</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                    .setConnectTimeout(connectionTimeoutSec * 1000)</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                    .setSocketTimeout(readTimeoutSec * 1000)</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                    .setCookieSpec(cookieSpec)</b>
+<i class="no-highlight">305</i>&nbsp;                    .build();
+<i class="no-highlight">306</i>&nbsp;            context.setRequestConfig(requestConfig);
+<i class="no-highlight">307</i>&nbsp;            context.setCookieStore(cookieStore);
+<i class="no-highlight">308</i>&nbsp;            if (recordHistory) {
+<i class="no-highlight">309</i>&nbsp;                context.setAttribute(HISTORY_RECORD_CTX_KEY, historyList);
+<b class="nc"><i class="no-highlight">310</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;            context.setAttribute(FOLLOW_ORIGINAL_METHOD_CTX_KEY, followOriginalMethod);</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;            return context;</b>
+<i class="no-highlight">313</i>&nbsp;        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+<i class="no-highlight">314</i>&nbsp;            throw new HttpCoreDataException(&quot;Error initializing http clients&quot;, e);
+<i class="no-highlight">315</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">316</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;    public Iterable&lt;RequestHistory&gt; recentRequests() {</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        int start = nextRead;</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        nextRead = historyList.size();</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        return historyList.subList(start, nextRead);</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;    public List&lt;Map&lt;String, Object&gt;&gt; getCurrentCookies() {</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; cookieMapList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        for (Cookie cookie : cookieStore.getCookies()) {</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;            Map&lt;String, Object&gt; cookieMap = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">329</i>&nbsp;            cookieMap.put(&quot;name&quot;, cookie.getName());
+<i class="no-highlight">330</i>&nbsp;            cookieMap.put(&quot;value&quot;, cookie.getValue());
+<i class="no-highlight">331</i>&nbsp;            cookieMap.put(&quot;domain&quot;, cookie.getDomain());
+<b class="nc"><i class="no-highlight">332</i>&nbsp;            cookieMap.put(&quot;path&quot;, cookie.getPath());</b>
+<i class="no-highlight">333</i>&nbsp;            cookieMap.put(&quot;expireDate&quot;, cookie.getExpiryDate());
+<i class="no-highlight">334</i>&nbsp;            cookieMap.put(&quot;isPersistent&quot;, cookie.isPersistent());
+<i class="no-highlight">335</i>&nbsp;            cookieMap.put(&quot;isSecure&quot;, cookie.isSecure());
+<i class="no-highlight">336</i>&nbsp;            cookieMapList.add(cookieMap);
+<i class="no-highlight">337</i>&nbsp;        }
+<i class="no-highlight">338</i>&nbsp;        return cookieMapList;
+<i class="no-highlight">339</i>&nbsp;    }
+<i class="no-highlight">340</i>&nbsp;
+<i class="no-highlight">341</i>&nbsp;    public Iterable&lt;RequestHistory&gt; fullRequestHistory() {
+<i class="no-highlight">342</i>&nbsp;        return historyList;
+<i class="no-highlight">343</i>&nbsp;    }
+<i class="no-highlight">344</i>&nbsp;
+<b class="nc"><i class="no-highlight">345</i>&nbsp;    @Override</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;    public void close() {</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;        // NO-ops since the services shared a singleton http client.</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        // all resources are supposed to be closed when the HttpResponse object is closed.</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;</b>
+<i class="no-highlight">351</i>&nbsp;
+<i class="no-highlight">352</i>&nbsp;    /**
+<i class="no-highlight">353</i>&nbsp;     * Defines the the condition to perform retry
+<i class="no-highlight">354</i>&nbsp;     */
+<i class="no-highlight">355</i>&nbsp;    public enum RetryCondition {
+<i class="no-highlight">356</i>&nbsp;        CONNECTION_ERROR,
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        CONNECTION_AND_AUTH_ERROR_401_AND_403,</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        CONNECTION_AND_4XX_ERROR,</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        CONNECTION_AND_5XX_ERROR,</b>
+<i class="no-highlight">360</i>&nbsp;        CONNECTION_AND_4XX_AND_5XX_ERROR
+<b class="nc"><i class="no-highlight">361</i>&nbsp;    }</b>
+<i class="no-highlight">362</i>&nbsp;
+<i class="no-highlight">363</i>&nbsp;    /**
+<i class="no-highlight">364</i>&nbsp;     * Builder class for the service in order to keep the service immutable and also maintain
+<b class="nc"><i class="no-highlight">365</i>&nbsp;     * some optional properties</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;    public static class Builder {</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        private HttpSnapResponse.ResponseType responseType = HttpSnapResponse.ResponseType.DEFAULT;</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        private String cookieSpec = CookieSpecs.DEFAULT;</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;        private HttpSnapResponse.ResponseHandler responseHandler;</b>
+<i class="no-highlight">371</i>&nbsp;        private boolean trustAllCerts = false;
+<i class="no-highlight">372</i>&nbsp;        private AuthData authorization;
+<b class="nc"><i class="no-highlight">373</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        private RetryCondition retryCondition = RetryCondition.CONNECTION_ERROR;</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;        private int retry = 3;</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        private int retryIntervalSec = 3;</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        private boolean autoRetry429 = true;</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        private boolean useRetryAfterHeader = true;</b>
+<i class="no-highlight">380</i>&nbsp;        private boolean treatErrorResponseAsException = true;
+<b class="nc"><i class="no-highlight">381</i>&nbsp;        private List&lt;Policy&lt;HttpSnapResponse&gt;&gt; additionalRetryPolicies;</b>
+<i class="no-highlight">382</i>&nbsp;
+<i class="no-highlight">383</i>&nbsp;        private int readTimeoutSec = 60;
+<i class="no-highlight">384</i>&nbsp;        private int connectionTimeoutSec = 30;
+<i class="no-highlight">385</i>&nbsp;        private boolean followRedirects = true;
+<i class="no-highlight">386</i>&nbsp;        private boolean followOriginalMethod = false;
+<i class="no-highlight">387</i>&nbsp;        private boolean allowRelativeRedirects = true;
+<i class="no-highlight">388</i>&nbsp;        private boolean allowCircularRedirects = false;
+<b class="nc"><i class="no-highlight">389</i>&nbsp;        private int maxRedirects = 10;</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;</b>
+<i class="no-highlight">391</i>&nbsp;        private boolean enableHistory = false;
+<b class="nc"><i class="no-highlight">392</i>&nbsp;</b>
+<i class="no-highlight">393</i>&nbsp;        /**
+<i class="no-highlight">394</i>&nbsp;         * Set the credentials of the requests
+<i class="no-highlight">395</i>&nbsp;         *
+<i class="no-highlight">396</i>&nbsp;         * @return
+<i class="no-highlight">397</i>&nbsp;         */
+<i class="no-highlight">398</i>&nbsp;        public Builder withAuthorization(HttpSnapAuthentication auth) throws HttpCoreDataException {
+<i class="no-highlight">399</i>&nbsp;            if (auth != null) {
+<i class="no-highlight">400</i>&nbsp;                this.authorization = auth.generateAuthInfo();
+<i class="no-highlight">401</i>&nbsp;            }
+<i class="no-highlight">402</i>&nbsp;            return this;
+<b class="nc"><i class="no-highlight">403</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;</b>
+<i class="no-highlight">405</i>&nbsp;        /**
+<i class="no-highlight">406</i>&nbsp;         * Set the format the service deliver the response entity.
+<i class="no-highlight">407</i>&nbsp;         * DEFAULT - The default entity type. Convert the json typed entity to Java Map/List,
+<b class="nc"><i class="no-highlight">408</i>&nbsp;         * otherwise return String</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;         * TEXT    - Convert all the entities into String</b>
+<i class="no-highlight">410</i>&nbsp;         * RAW     - Deliver the entity as an inputStream.
+<i class="no-highlight">411</i>&nbsp;         */
+<i class="no-highlight">412</i>&nbsp;        public Builder withResponseType(HttpSnapResponse.ResponseType type) {
+<b class="nc"><i class="no-highlight">413</i>&nbsp;            this.responseType = type;</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;            return this;</b>
+<i class="no-highlight">415</i>&nbsp;        }
+<i class="no-highlight">416</i>&nbsp;
+<i class="no-highlight">417</i>&nbsp;        public Builder withResponseHandler(HttpSnapResponse.ResponseHandler handler) {
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            this.responseHandler = handler;</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            return this;</b>
+<i class="no-highlight">420</i>&nbsp;        }
+<i class="no-highlight">421</i>&nbsp;
+<i class="no-highlight">422</i>&nbsp;        public Builder withRetryCondition(RetryCondition condition) {
+<b class="nc"><i class="no-highlight">423</i>&nbsp;            this.retryCondition = condition;</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;            return this;</b>
+<i class="no-highlight">425</i>&nbsp;        }
+<i class="no-highlight">426</i>&nbsp;
+<i class="no-highlight">427</i>&nbsp;        public Builder withMaxRetry(int maxRetry) {
+<b class="nc"><i class="no-highlight">428</i>&nbsp;            this.retry = maxRetry;</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;            return this;</b>
+<i class="no-highlight">430</i>&nbsp;        }
+<i class="no-highlight">431</i>&nbsp;
+<i class="no-highlight">432</i>&nbsp;        public Builder withRetryInterval(int retryIntervalSec) {
+<b class="nc"><i class="no-highlight">433</i>&nbsp;            this.retryIntervalSec = retryIntervalSec;</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;            return this;</b>
+<i class="no-highlight">435</i>&nbsp;        }
+<i class="no-highlight">436</i>&nbsp;
+<i class="no-highlight">437</i>&nbsp;        public Builder autoRetry429(boolean autoRetry429) {
+<i class="no-highlight">438</i>&nbsp;            this.autoRetry429 = autoRetry429;
+<i class="no-highlight">439</i>&nbsp;            return this;
+<i class="no-highlight">440</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">441</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;        public Builder useRetryAfterHeader(boolean useRetryAfterHeader) {</b>
+<i class="no-highlight">443</i>&nbsp;            this.useRetryAfterHeader = useRetryAfterHeader;
+<i class="no-highlight">444</i>&nbsp;            return this;
+<i class="no-highlight">445</i>&nbsp;        }
+<i class="no-highlight">446</i>&nbsp;
+<i class="no-highlight">447</i>&nbsp;        /**
+<i class="no-highlight">448</i>&nbsp;         * Whether the service should trust all certificates, like self-signed certificates
+<i class="no-highlight">449</i>&nbsp;         */
+<i class="no-highlight">450</i>&nbsp;        public Builder trustAllCertificates(boolean trustAllCerts) {
+<i class="no-highlight">451</i>&nbsp;            this.trustAllCerts = trustAllCerts;
+<b class="nc"><i class="no-highlight">452</i>&nbsp;            return this;</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;        }</b>
+<i class="no-highlight">454</i>&nbsp;
+<i class="no-highlight">455</i>&nbsp;        /**
+<i class="no-highlight">456</i>&nbsp;         * Whether the service should follow 3xx responses as redirects
+<i class="no-highlight">457</i>&nbsp;         *
+<i class="no-highlight">458</i>&nbsp;         * @param followRedirects
+<i class="no-highlight">459</i>&nbsp;         * @return
+<i class="no-highlight">460</i>&nbsp;         */
+<i class="no-highlight">461</i>&nbsp;        public Builder followRedirect(boolean followRedirects) {
+<i class="no-highlight">462</i>&nbsp;            this.followRedirects = followRedirects;
+<i class="no-highlight">463</i>&nbsp;            return this;
+<b class="nc"><i class="no-highlight">464</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;</b>
+<i class="no-highlight">466</i>&nbsp;        /**
+<i class="no-highlight">467</i>&nbsp;         * Whether the redirect request should use the original http method. It will be using GET
+<i class="no-highlight">468</i>&nbsp;         * otherwise
+<b class="nc"><i class="no-highlight">469</i>&nbsp;         *</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;         * @param followOriginalMethod</b>
+<i class="no-highlight">471</i>&nbsp;         * @return
+<i class="no-highlight">472</i>&nbsp;         */
+<i class="no-highlight">473</i>&nbsp;        public Builder followOriginalMethod(boolean followOriginalMethod) {
+<b class="nc"><i class="no-highlight">474</i>&nbsp;            this.followOriginalMethod = followOriginalMethod;</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;            return this;</b>
+<i class="no-highlight">476</i>&nbsp;        }
+<i class="no-highlight">477</i>&nbsp;
+<i class="no-highlight">478</i>&nbsp;        public Builder allowRelativeRedirects(boolean allowRelativeRedirects) {
+<b class="nc"><i class="no-highlight">479</i>&nbsp;            this.allowRelativeRedirects = allowRelativeRedirects;</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;            return this;</b>
+<i class="no-highlight">481</i>&nbsp;        }
+<i class="no-highlight">482</i>&nbsp;
+<i class="no-highlight">483</i>&nbsp;        public Builder allowCircularRedirects(boolean allowCircularRedirects) {
+<b class="nc"><i class="no-highlight">484</i>&nbsp;            this.allowCircularRedirects = allowCircularRedirects;</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;            return this;</b>
+<i class="no-highlight">486</i>&nbsp;        }
+<i class="no-highlight">487</i>&nbsp;
+<i class="no-highlight">488</i>&nbsp;        public Builder withMaxRedirects(int maxRedirects) {
+<b class="nc"><i class="no-highlight">489</i>&nbsp;            this.maxRedirects = maxRedirects;</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            return this;</b>
+<i class="no-highlight">491</i>&nbsp;        }
+<i class="no-highlight">492</i>&nbsp;
+<i class="no-highlight">493</i>&nbsp;        public Builder enableHistory(boolean enableHistory) {
+<b class="nc"><i class="no-highlight">494</i>&nbsp;            this.enableHistory = enableHistory;</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;            return this;</b>
+<i class="no-highlight">496</i>&nbsp;        }
+<i class="no-highlight">497</i>&nbsp;
+<i class="no-highlight">498</i>&nbsp;        public Builder withConnectionTimeout(int connectionTimeoutSec) {
+<b class="nc"><i class="no-highlight">499</i>&nbsp;            this.connectionTimeoutSec = connectionTimeoutSec;</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;            return this;</b>
+<i class="no-highlight">501</i>&nbsp;        }
+<i class="no-highlight">502</i>&nbsp;
+<i class="no-highlight">503</i>&nbsp;        public Builder withSocketTimeout(int socketTimeoutSec) {
+<i class="no-highlight">504</i>&nbsp;            this.readTimeoutSec = socketTimeoutSec;
+<i class="no-highlight">505</i>&nbsp;            return this;
+<i class="no-highlight">506</i>&nbsp;        }
+<i class="no-highlight">507</i>&nbsp;
+<i class="no-highlight">508</i>&nbsp;        public Builder withAdditionalPolicies(List&lt;Policy&lt;HttpSnapResponse&gt;&gt; policies) {
+<i class="no-highlight">509</i>&nbsp;            this.additionalRetryPolicies = policies;
+<b class="nc"><i class="no-highlight">510</i>&nbsp;            return this;</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;        }</b>
+<i class="no-highlight">512</i>&nbsp;
+<i class="no-highlight">513</i>&nbsp;        /**
+<i class="no-highlight">514</i>&nbsp;         * Whether the service should treat non-200 response as connection exception
+<i class="no-highlight">515</i>&nbsp;         *
+<i class="no-highlight">516</i>&nbsp;         * @param treatErrorResponseAsException
+<i class="no-highlight">517</i>&nbsp;         * @return
+<i class="no-highlight">518</i>&nbsp;         */
+<i class="no-highlight">519</i>&nbsp;        public Builder throwErrorResponseAsException(boolean treatErrorResponseAsException) {
+<i class="no-highlight">520</i>&nbsp;            this.treatErrorResponseAsException = treatErrorResponseAsException;
+<i class="no-highlight">521</i>&nbsp;            return this;
+<i class="no-highlight">522</i>&nbsp;        }
+<i class="no-highlight">523</i>&nbsp;
+<i class="no-highlight">524</i>&nbsp;        /**
+<i class="no-highlight">525</i>&nbsp;         * Specify the name of the cookie spec used by the client.
+<i class="no-highlight">526</i>&nbsp;         *
+<b class="nc"><i class="no-highlight">527</i>&nbsp;         * @param cookieSpec The name of the cookie specification.</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;         *                   It follows the definitions in the Apache HttpComponent.</b>
+<i class="no-highlight">529</i>&nbsp;         *                   The followings are a few examples:
+<i class="no-highlight">530</i>&nbsp;         *                   &#39;standard&#39; (aka. CookieSpecs.STANDARD),
+<i class="no-highlight">531</i>&nbsp;         *                   &#39;standard-strict&#39; (aka. CookieSpecs.STANDARD_STRICT)
+<i class="no-highlight">532</i>&nbsp;         *                   &#39;default&#39; (aka. CookieSpecs.DEFAULT)
+<b class="nc"><i class="no-highlight">533</i>&nbsp;         *                   &#39;ignoreCookies&#39; (aka. CookieSpecs.IGNORE_COOKIES)</b>
+<i class="no-highlight">534</i>&nbsp;         * @return The current builder object.
+<b class="nc"><i class="no-highlight">535</i>&nbsp;         */</b>
+<i class="no-highlight">536</i>&nbsp;        public Builder withCookiePolicySpec(String cookieSpec) {
+<i class="no-highlight">537</i>&nbsp;            this.cookieSpec = cookieSpec;
+<i class="no-highlight">538</i>&nbsp;            return this;
+<i class="no-highlight">539</i>&nbsp;        }
+<i class="no-highlight">540</i>&nbsp;
+<i class="no-highlight">541</i>&nbsp;        public HttpSnapService build() {
+<b class="nc"><i class="no-highlight">542</i>&nbsp;</b>
+<i class="no-highlight">543</i>&nbsp;            return new HttpSnapService(authorization, responseType, responseHandler, cookieSpec,
+<i class="no-highlight">544</i>&nbsp;                    connectionTimeoutSec,
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                    readTimeoutSec, buildRetryPolicies(), trustAllCerts, followRedirects,</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                    followOriginalMethod,</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;                    maxRedirects, allowRelativeRedirects, allowCircularRedirects, enableHistory,</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;                    treatErrorResponseAsException);</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;        private List&lt;Policy&lt;HttpSnapResponse&gt;&gt; buildRetryPolicies() {</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;            LinkedList&lt;Policy&lt;HttpSnapResponse&gt;&gt; retryPolicies = new LinkedList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;            // The order failsafe evaluate the policies is reversed:</b>
+<i class="no-highlight">554</i>&nbsp;            // 429 -&gt; other responses -&gt; fallback for exceptions
+<b class="nc"><i class="no-highlight">555</i>&nbsp;            RetryPolicy&lt;HttpSnapResponse&gt; retry429Policy = new RetryPolicy&lt;HttpSnapResponse&gt;()</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                    .handleResultIf(response -&gt; autoRetry429 &amp;&amp; response.getHttpStatusCode() == 429)</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;                    .handleIf(exception -&gt; false) // All exception retry will not be handled here</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;                    .withDelay((result, failure, context) -&gt; {</b>
+<i class="no-highlight">559</i>&nbsp;                        if (result != null &amp;&amp; useRetryAfterHeader) {
+<i class="no-highlight">560</i>&nbsp;                            List&lt;Pair&lt;String, String&gt;&gt; headers = result.getHeaders();
+<i class="no-highlight">561</i>&nbsp;                            for (Pair&lt;String, String&gt; header : headers) {
+<b class="nc"><i class="no-highlight">562</i>&nbsp;                                if (StringUtils.equalsIgnoreCase(</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;                                        HttpHeaders.RETRY_AFTER, header.getKey())) {</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;                                    // We wait for 5 mins maximum</b>
+<i class="no-highlight">565</i>&nbsp;                                    long timeout = MAX_WAIT_TIME_FOR_RETRY_AFTER_SEC;
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                                    if (StringUtils.isNumeric(header.getValue())) {</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;                                        timeout = Math.min(timeout,</b>
+<i class="no-highlight">568</i>&nbsp;                                                Integer.parseInt(header.getValue()));
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                                    } else {</b>
+<i class="no-highlight">570</i>&nbsp;                                        // If the Retry-After header is in Date format, we
+<b class="nc"><i class="no-highlight">571</i>&nbsp;                                        // calculate the delay second according to the current time</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;                                        Date retryAfter = DateUtils.parseDate(header.getValue());</b>
+<i class="no-highlight">573</i>&nbsp;                                        timeout = Math.min(timeout,
+<b class="nc"><i class="no-highlight">574</i>&nbsp;                                                retryAfter.getTime() - new Date().getTime());</b>
+<i class="no-highlight">575</i>&nbsp;                                    }
+<b class="nc"><i class="no-highlight">576</i>&nbsp;                                    LOG.debug(&quot;[*] 429 retry delays: {}s&quot;, timeout);</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                                    return Duration.ofSeconds(TimeUnit.SECONDS.toSeconds(timeout));</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;                                }</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                            }</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;                        LOG.debug(&quot;[*] 429 retry delays: {}s&quot;, retryIntervalSec);</b>
+<b class="nc"><i class="no-highlight">582</i>&nbsp;                        return Duration.ofSeconds(retryIntervalSec);</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                    })</b>
+<i class="no-highlight">584</i>&nbsp;                    .onRetry(event -&gt; LOG.warn(
+<i class="no-highlight">585</i>&nbsp;                            &quot;[*] Retrying for 429 response. Details {} - {} - {}&quot;,
+<b class="nc"><i class="no-highlight">586</i>&nbsp;                            event.getLastResult().getHttpStatusCode(),</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                            event.getLastResult().getHttpStatusText(),</b>
+<i class="no-highlight">588</i>&nbsp;                            event.getLastResult().getEntity()))
+<i class="no-highlight">589</i>&nbsp;                    .withMaxRetries(retry);
+<b class="nc"><i class="no-highlight">590</i>&nbsp;            retryPolicies.addFirst(retry429Policy);</b>
+<i class="no-highlight">591</i>&nbsp;            RetryPolicy&lt;HttpSnapResponse&gt; retryPolicy = new RetryPolicy&lt;HttpSnapResponse&gt;()
+<b class="nc"><i class="no-highlight">592</i>&nbsp;                    .handleResultIf(this::shouldRetry)</b>
+<b class="nc"><i class="no-highlight">593</i>&nbsp;                    .handleIf(exception -&gt; {</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                        // Handle all HttpCoreconnectionException except for those caused by</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;                        // redirect violation</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;                        Throwable rootCause = Throwables.getRootCause(exception);</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;                        return exception instanceof HttpCoreConnectionException</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                                &amp;&amp; !(rootCause instanceof RedirectException)</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;                                &amp;&amp; !(StringUtils</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;                                .contains(rootCause.getMessage(), &quot;Relative redirect location&quot;));</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;                    })</b>
+<i class="no-highlight">602</i>&nbsp;                    .onRetry(event -&gt; {
+<i class="no-highlight">603</i>&nbsp;                        if (event.getLastResult() != null) {
+<b class="nc"><i class="no-highlight">604</i>&nbsp;                            HttpSnapResponse response = event.getLastResult();</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;                            LOG.info(&quot;Got response {} {}. Details: {}. Will retry...&quot;,</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;                                    response.getHttpStatusCode(), response.getHttpStatusText(),</b>
+<i class="no-highlight">607</i>&nbsp;                                    response.getEntity());
+<b class="nc"><i class="no-highlight">608</i>&nbsp;                        } else if (event.getLastFailure() != null) {</b>
+<b class="nc"><i class="no-highlight">609</i>&nbsp;                            LOG.info(&quot;Encountered error {}. Will retry...&quot;,</b>
+<i class="no-highlight">610</i>&nbsp;                                    event.getLastFailure().getMessage());
+<i class="no-highlight">611</i>&nbsp;                            LOG.debug(&quot;ERROR&quot;, event.getLastFailure());
+<b class="nc"><i class="no-highlight">612</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;                    })</b>
+<b class="nc"><i class="no-highlight">614</i>&nbsp;                    .withMaxRetries(retry);</b>
+<i class="no-highlight">615</i>&nbsp;            if (retryIntervalSec &gt; 0) {
+<i class="no-highlight">616</i>&nbsp;                retryPolicy.withDelay(Duration.ofSeconds(retryIntervalSec));
+<b class="nc"><i class="no-highlight">617</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">618</i>&nbsp;            retryPolicies.addFirst(retryPolicy);</b>
+<i class="no-highlight">619</i>&nbsp;            Fallback&lt;HttpSnapResponse&gt; fallback = Fallback.of(
+<b class="nc"><i class="no-highlight">620</i>&nbsp;                    (CheckedConsumer&lt;ExecutionAttemptedEvent&lt;? extends HttpSnapResponse&gt;&gt;) event</b>
+<i class="no-highlight">621</i>&nbsp;                            -&gt; {
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                        HttpSnapResponse lastResp = event.getLastResult();</b>
+<i class="no-highlight">623</i>&nbsp;                        if (lastResp != null) {
+<i class="no-highlight">624</i>&nbsp;                            throw new HttpCoreConnectionException(
+<i class="no-highlight">625</i>&nbsp;                                    &quot;Error making HTTP call to the endpoint&quot;,
+<b class="nc"><i class="no-highlight">626</i>&nbsp;                                    lastResp);</b>
+<b class="nc"><i class="no-highlight">627</i>&nbsp;                        } else if (event.getLastFailure() != null) {</b>
+<i class="no-highlight">628</i>&nbsp;                            throw new HttpCoreConnectionException(
+<b class="nc"><i class="no-highlight">629</i>&nbsp;                                    &quot;Error making HTTP call to the endpoint&quot;,</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;                                    event.getLastFailure());</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                        } else {</b>
+<i class="no-highlight">632</i>&nbsp;                            throw new HttpCoreConnectionException(
+<b class="nc"><i class="no-highlight">633</i>&nbsp;                                    &quot;Error making HTTP call to the endpoint&quot;);</b>
+<i class="no-highlight">634</i>&nbsp;                        }
+<i class="no-highlight">635</i>&nbsp;                    })
+<i class="no-highlight">636</i>&nbsp;                    .handle(HttpCoreConnectionException.class)
+<b class="nc"><i class="no-highlight">637</i>&nbsp;                    .handleResultIf(response -&gt; shouldRetry(response)</b>
+<i class="no-highlight">638</i>&nbsp;                            &amp;&amp; treatErrorResponseAsException);
+<b class="nc"><i class="no-highlight">639</i>&nbsp;            retryPolicies.addFirst(fallback);</b>
+<i class="no-highlight">640</i>&nbsp;            if (additionalRetryPolicies != null) {
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                retryPolicies.addAll(additionalRetryPolicies);</b>
+<i class="no-highlight">642</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">643</i>&nbsp;            return retryPolicies;</b>
+<i class="no-highlight">644</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">645</i>&nbsp;</b>
+<i class="no-highlight">646</i>&nbsp;        private boolean shouldRetry(HttpSnapResponse resp) {
+<b class="nc"><i class="no-highlight">647</i>&nbsp;            if (resp.getHttpStatusCode() == 429) {</b>
+<i class="no-highlight">648</i>&nbsp;                // The 429 response has been handled by another policy
+<b class="nc"><i class="no-highlight">649</i>&nbsp;                return false;</b>
+<i class="no-highlight">650</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">651</i>&nbsp;            switch (retryCondition) {</b>
+<i class="no-highlight">652</i>&nbsp;                case CONNECTION_AND_AUTH_ERROR_401_AND_403:
+<i class="no-highlight">653</i>&nbsp;                    return resp.getHttpStatusCode() == 401 || resp.getHttpStatusCode() == 403;
+<i class="no-highlight">654</i>&nbsp;                case CONNECTION_AND_4XX_ERROR:
+<i class="no-highlight">655</i>&nbsp;                    return resp.getHttpStatusCode() &gt;= 400 &amp;&amp; resp.getHttpStatusCode() &lt; 500;
+<i class="no-highlight">656</i>&nbsp;                case CONNECTION_AND_5XX_ERROR:
+<i class="no-highlight">657</i>&nbsp;                    return resp.getHttpStatusCode() &gt;= 500;
+<i class="no-highlight">658</i>&nbsp;                case CONNECTION_AND_4XX_AND_5XX_ERROR:
+<i class="no-highlight">659</i>&nbsp;                    return resp.getHttpStatusCode() &gt;= 400;
+<i class="no-highlight">660</i>&nbsp;            }
+<i class="no-highlight">661</i>&nbsp;            return false;
+<i class="no-highlight">662</i>&nbsp;        }
+<i class="no-highlight">663</i>&nbsp;    }
+<i class="no-highlight">664</i>&nbsp;
+<i class="no-highlight">665</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

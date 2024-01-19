@@ -1,0 +1,259 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MessageUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce</a>
+</div>
+
+<h1>Coverage Summary for Class: MessageUtils (com.snaplogic.snaps.salesforce)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MessageUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">7</i>&nbsp; *
+<i class="no-highlight">8</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">9</i>&nbsp; */
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.api.client.util.Lists;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.base.Joiner;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import org.cometd.bayeux.Message;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">20</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">21</i>&nbsp;import java.util.List;
+<i class="no-highlight">22</i>&nbsp;import java.util.Map;
+<i class="no-highlight">23</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">24</i>&nbsp;import java.util.function.Supplier;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import static com.snaplogic.snaps.salesforce.Messages.UNKNOWN_CAUSE;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;/**
+<i class="no-highlight">29</i>&nbsp; * Message utility methods used by the {@link Subscriber} snap.
+<i class="no-highlight">30</i>&nbsp; */
+<b class="nc"><i class="no-highlight">31</i>&nbsp;class MessageUtils {</b>
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;    static final String PAYLOAD_KEY = &quot;payload&quot;;
+<i class="no-highlight">34</i>&nbsp;    static final String EVENT_KEY = &quot;event&quot;;
+<i class="no-highlight">35</i>&nbsp;    static final String SCHEMA_KEY = &quot;schema&quot;;
+<i class="no-highlight">36</i>&nbsp;    static final String REPLAY_ID_KEY = &quot;replayId&quot;;
+<i class="no-highlight">37</i>&nbsp;    static final String SFDC_KEY = &quot;sfdc&quot;;
+<i class="no-highlight">38</i>&nbsp;    static final String FAILURE_KEY = &quot;failure&quot;;
+<i class="no-highlight">39</i>&nbsp;    static final String FAILURE_REASON_KEY = &quot;failureReason&quot;;
+<i class="no-highlight">40</i>&nbsp;    static final String EXCEPTION_KEY = &quot;exception&quot;;
+<i class="no-highlight">41</i>&nbsp;
+<b class="nc"><i class="no-highlight">42</i>&nbsp;    private static final Joiner JOINER = Joiner.on(&quot;; &quot;).skipNulls();</b>
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;    /**
+<i class="no-highlight">45</i>&nbsp;     * Returns the &quot;error&quot; of the given message, or null if none.
+<i class="no-highlight">46</i>&nbsp;     */
+<i class="no-highlight">47</i>&nbsp;    public static String getError(Message message) {
+<b class="nc"><i class="no-highlight">48</i>&nbsp;        return (String) message.get(Message.ERROR_FIELD);</b>
+<i class="no-highlight">49</i>&nbsp;    }
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;    /**
+<i class="no-highlight">52</i>&nbsp;     * Returns the &quot;failureReason&quot; (ext.sfdc.failureReason) of the given message, or null if none.
+<i class="no-highlight">53</i>&nbsp;     */
+<i class="no-highlight">54</i>&nbsp;    public static String getFailureReason(Message message) {
+<i class="no-highlight">55</i>&nbsp;        @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc"><i class="no-highlight">56</i>&nbsp;        Optional&lt;String&gt; optional = resolve(() -&gt;</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;                (String) ((Map&lt;String, Object&gt;) message.getExt().get(SFDC_KEY)).get(FAILURE_REASON_KEY));</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;        return optional.orElse(null);</b>
+<i class="no-highlight">59</i>&nbsp;    }
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;    /**
+<i class="no-highlight">62</i>&nbsp;     * Returns the &quot;exception&quot; (failure.exception) of the given message, or null if none.
+<i class="no-highlight">63</i>&nbsp;     */
+<i class="no-highlight">64</i>&nbsp;    public static Exception getException(Message message) {
+<i class="no-highlight">65</i>&nbsp;        @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        Optional&lt;Exception&gt; optional = resolve(() -&gt;</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;                (Exception) ((Map&lt;String, Object&gt;) message.get(FAILURE_KEY)).get(EXCEPTION_KEY));</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        return optional.orElse(null);</b>
+<i class="no-highlight">69</i>&nbsp;    }
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    /**
+<i class="no-highlight">72</i>&nbsp;     * Returns a concatenation of the available error, failureReason, and/or exception, or
+<i class="no-highlight">73</i>&nbsp;     * UNKNOWN_CAUSE if none are available.
+<i class="no-highlight">74</i>&nbsp;     */
+<i class="no-highlight">75</i>&nbsp;    public static String getErrorReason(Message message) {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        String result = JOINER.join(getError(message), getFailureReason(message), getException(message));</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        return result.isEmpty() ? UNKNOWN_CAUSE : result;</b>
+<i class="no-highlight">78</i>&nbsp;    }
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;    /**
+<i class="no-highlight">81</i>&nbsp;     * Returns the &quot;replayId&quot; of the given message, or null if none.
+<i class="no-highlight">82</i>&nbsp;     */
+<i class="no-highlight">83</i>&nbsp;    public static Long getReplayId(Message message) {
+<i class="no-highlight">84</i>&nbsp;        @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        Optional&lt;Long&gt; optional = resolve(() -&gt;</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                (Long) ((Map&lt;String, Object&gt;) message.getDataAsMap().get(EVENT_KEY)).get(REPLAY_ID_KEY));</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        return optional.orElse(null);</b>
+<i class="no-highlight">88</i>&nbsp;    }
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;    /**
+<i class="no-highlight">91</i>&nbsp;     * Partially &quot;flattens&quot; the structure of the content of a Message for a topic by moving
+<i class="no-highlight">92</i>&nbsp;     * the key/value pairs directly under &quot;event&quot; and &quot;payload&quot; to the top level.
+<i class="no-highlight">93</i>&nbsp;     *
+<i class="no-highlight">94</i>&nbsp;     * BEFORE
+<i class="no-highlight">95</i>&nbsp;     *    &quot;event&quot;: {
+<i class="no-highlight">96</i>&nbsp;     *      &quot;replayId&quot;: 1234
+<i class="no-highlight">97</i>&nbsp;     *    },
+<i class="no-highlight">98</i>&nbsp;     *    &quot;schema&quot;: &quot;...&quot;,
+<i class="no-highlight">99</i>&nbsp;     *    &quot;payload&quot;: {
+<i class="no-highlight">100</i>&nbsp;     *        &quot;Field1&quot;: &quot;val1&quot;,
+<i class="no-highlight">101</i>&nbsp;     *        &quot;Field2&quot;: &quot;val2&quot;,
+<i class="no-highlight">102</i>&nbsp;     *        &quot;ChangeEventHeader&quot;: {
+<i class="no-highlight">103</i>&nbsp;     *            &quot;entityName&quot;: &quot;...&quot;,
+<i class="no-highlight">104</i>&nbsp;     *            ...
+<i class="no-highlight">105</i>&nbsp;     *        }
+<i class="no-highlight">106</i>&nbsp;     *    }
+<i class="no-highlight">107</i>&nbsp;     * AFTER
+<i class="no-highlight">108</i>&nbsp;     *    &quot;replayId&quot;: 1234
+<i class="no-highlight">109</i>&nbsp;     *    &quot;schema&quot;: &quot;...&quot;,
+<i class="no-highlight">110</i>&nbsp;     *    &quot;Field1&quot;: &quot;val1&quot;,
+<i class="no-highlight">111</i>&nbsp;     *    &quot;Field2&quot;: &quot;val2&quot;,
+<i class="no-highlight">112</i>&nbsp;     *    &quot;ChangeEventHeader&quot;: {
+<i class="no-highlight">113</i>&nbsp;     *        &quot;entityName&quot;: &quot;...&quot;,
+<i class="no-highlight">114</i>&nbsp;     *        ...
+<i class="no-highlight">115</i>&nbsp;     *    }
+<i class="no-highlight">116</i>&nbsp;     */
+<i class="no-highlight">117</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">118</i>&nbsp;    public static Map&lt;String, Object&gt; flattenData(Map&lt;String, Object&gt; messageMap) {
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        Map&lt;String, Object&gt; result = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        result.putAll((Map&lt;String, Object&gt;) messageMap.get(EVENT_KEY)); // event contains replayId</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        result.put(SCHEMA_KEY, messageMap.get(SCHEMA_KEY));</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        result.putAll((Map&lt;String, Object&gt;) messageMap.get(PAYLOAD_KEY));</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        return result;</b>
+<i class="no-highlight">124</i>&nbsp;    }
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    /**
+<i class="no-highlight">127</i>&nbsp;     * &quot;Converts&quot; Message data by copying Maps or Lists, and replacing arrays with Lists.
+<i class="no-highlight">128</i>&nbsp;     */
+<i class="no-highlight">129</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">130</i>&nbsp;    public static Object convertData(Object data) {
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        if (data instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            Map newMapData = Maps.newLinkedHashMap();</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            ((Map) data).forEach((key, value) -&gt; newMapData.put(key, convertData(value)));</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            return newMapData;</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        } else if (data instanceof List) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            List newListData = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            ((List) data).forEach(value -&gt; newListData.add(convertData(value)));</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            return newListData;</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        } else if (data instanceof Object[]) {</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            return convertData(Arrays.asList((Object[]) data));</b>
+<i class="no-highlight">141</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            return data;</b>
+<i class="no-highlight">143</i>&nbsp;        }
+<i class="no-highlight">144</i>&nbsp;    }
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;    private static &lt;T&gt; Optional&lt;T&gt; resolve(Supplier&lt;T&gt; resolver) {
+<i class="no-highlight">147</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            T result = resolver.get();</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            return Optional.ofNullable(result);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        } catch (NullPointerException e) {</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            return Optional.empty();</b>
+<i class="no-highlight">152</i>&nbsp;        }
+<i class="no-highlight">153</i>&nbsp;    }
+<i class="no-highlight">154</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

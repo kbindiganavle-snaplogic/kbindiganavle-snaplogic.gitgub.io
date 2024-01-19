@@ -1,0 +1,672 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > S3Path</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.fs.s3</a>
+</div>
+
+<h1>Coverage Summary for Class: S3Path (com.snaplogic.snap.api.fs.s3)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">S3Path</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/57)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/175)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.fs.s3;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.AmazonServiceException;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.auth.AWSCredentials;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.auth.AWSStaticCredentialsProvider;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.auth.BasicSessionCredentials;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.s3.AmazonS3;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.amazonaws.services.s3.model.ListObjectsRequest;
+<i class="no-highlight">22</i>&nbsp;import com.amazonaws.services.s3.model.ObjectListing;
+<i class="no-highlight">23</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.fs.JfsUtils;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.fs.URLUtils;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.s3.S3ClientConfig;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.s3.S3ClientService;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import org.apache.commons.io.FilenameUtils;
+<i class="no-highlight">31</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">32</i>&nbsp;import org.apache.http.NameValuePair;
+<i class="no-highlight">33</i>&nbsp;import org.apache.http.client.utils.URIBuilder;
+<i class="no-highlight">34</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">35</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import java.io.File;
+<i class="no-highlight">38</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">39</i>&nbsp;import java.net.URI;
+<i class="no-highlight">40</i>&nbsp;import java.net.URISyntaxException;
+<i class="no-highlight">41</i>&nbsp;import java.nio.file.InvalidPathException;
+<i class="no-highlight">42</i>&nbsp;import java.nio.file.LinkOption;
+<i class="no-highlight">43</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">44</i>&nbsp;import java.nio.file.WatchEvent;
+<i class="no-highlight">45</i>&nbsp;import java.nio.file.WatchKey;
+<i class="no-highlight">46</i>&nbsp;import java.nio.file.WatchService;
+<i class="no-highlight">47</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">48</i>&nbsp;import java.util.List;
+<i class="no-highlight">49</i>&nbsp;import java.util.Map;
+<i class="no-highlight">50</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.IAM_CREDENTIAL_FOR_S3;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.PROTOCOL_SEPARATOR;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.URL_SEPARATOR;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.compare;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.ERR_AWS_ACCESS_KEY_ID;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.ERR_INDEX_OUT_OF_BOUND;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.ERR_INIT_S3_ACCOUNT;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.ERR_S3_BUCKET_NAME;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.ERR_S3_SERVICE;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.ERR_S3_SERVICE_RESOLUTION;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.ERR_URI_SYNTAX;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.REASON_URI_SYNTAX;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.RESOLUTION_URI_SYNTAX;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.Messages.RESOLUTION_VALID_S3_ACCOUNT;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;/**
+<i class="no-highlight">68</i>&nbsp; * S3Path is a S3 customized class which implements NIO Path interface, and
+<i class="no-highlight">69</i>&nbsp; * parses the given path into S3 credential, bucket name, and key.
+<i class="no-highlight">70</i>&nbsp; */
+<i class="no-highlight">71</i>&nbsp;public class S3Path implements Path {
+<b class="nc"><i class="no-highlight">72</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(S3Path.class);</b>
+<i class="no-highlight">73</i>&nbsp;    private static final String URL_S3_ROOT = &quot;s3:///&quot;;
+<i class="no-highlight">74</i>&nbsp;    private static final String QUERY_INCLUDESUBFOLDERS = &quot;includeSubfolders&quot;;
+<i class="no-highlight">75</i>&nbsp;    private static final String FORMAT_S3_BUCKET_PATH = &quot;s3:///%s/&quot;;
+<i class="no-highlight">76</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">77</i>&nbsp;    boolean isIAMCredential;
+<i class="no-highlight">78</i>&nbsp;    private final S3FileSystem s3FileSystem;
+<i class="no-highlight">79</i>&nbsp;    private final String path;
+<i class="no-highlight">80</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">81</i>&nbsp;    String bucketName;
+<i class="no-highlight">82</i>&nbsp;    private String bucketPath;
+<i class="no-highlight">83</i>&nbsp;    private String key;
+<b class="nc"><i class="no-highlight">84</i>&nbsp;    private String query = &quot;&quot;;</b>
+<i class="no-highlight">85</i>&nbsp;    protected AmazonS3 s3;
+<b class="nc"><i class="no-highlight">86</i>&nbsp;    private boolean exists = false;</b>
+<i class="no-highlight">87</i>&nbsp;    private boolean isRegularFile;
+<i class="no-highlight">88</i>&nbsp;    private ObjectListing objectListing;
+<i class="no-highlight">89</i>&nbsp;    private String userInfo;
+<i class="no-highlight">90</i>&nbsp;    private String accessKeyId;
+<i class="no-highlight">91</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">92</i>&nbsp;    String secretKey;
+<b class="nc"><i class="no-highlight">93</i>&nbsp;    private String securityToken = null;</b>
+<i class="no-highlight">94</i>&nbsp;    private S3FileAttributes s3FileAttributes;
+<i class="no-highlight">95</i>&nbsp;    private Map&lt;String, Object&gt; kmsProperties;
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;    /**
+<i class="no-highlight">98</i>&nbsp;     * Constructs an instance for the given S3 file system and path string. The path format
+<i class="no-highlight">99</i>&nbsp;     * should be &quot;s3://{yourAccessKeyId}:{yourSecretKey}@s3/{bucketName}/{folderPath}/{fileName}&quot;
+<i class="no-highlight">100</i>&nbsp;     * In S3, &quot;{folderPath}/{fileName}&quot; is defined as key. Please note that a path string for a
+<i class="no-highlight">101</i>&nbsp;     * directory should end with &quot;/&quot;.
+<i class="no-highlight">102</i>&nbsp;     *
+<i class="no-highlight">103</i>&nbsp;     * @param s3FileSystem - S3 file system object
+<i class="no-highlight">104</i>&nbsp;     * @param path         - S3 path string
+<i class="no-highlight">105</i>&nbsp;     * @throws InvalidPathException - if it finds any invalid element in the path
+<i class="no-highlight">106</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">107</i>&nbsp;    public S3Path(S3FileSystem s3FileSystem, String path) {</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        String ec2CredentialForS3 = System.getProperty(IAM_CREDENTIAL_FOR_S3);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        isIAMCredential = Boolean.parseBoolean(ec2CredentialForS3);</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        this.s3FileSystem = s3FileSystem;</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        this.path = path;</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        if (path.contains(PROTOCOL_SEPARATOR)) {</b>
+<i class="no-highlight">113</i>&nbsp;            // parse s3 path if it is absolute
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            parseS3Path(path, null);</b>
+<i class="no-highlight">115</i>&nbsp;        }
+<i class="no-highlight">116</i>&nbsp;    }
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;    /**
+<i class="no-highlight">119</i>&nbsp;     * Constructs an S3Path instance, using the immutable S3 file system and
+<i class="no-highlight">120</i>&nbsp;     * the pathOverride String to specify a desired file path.
+<i class="no-highlight">121</i>&nbsp;     * The AmazonS3Client from the originalS3Path is used to ensure that this S3Path
+<i class="no-highlight">122</i>&nbsp;     * gets the same region configuration, and also to ensure performance and less memory usage.
+<i class="no-highlight">123</i>&nbsp;     *
+<i class="no-highlight">124</i>&nbsp;     * The path format should be :
+<i class="no-highlight">125</i>&nbsp;     * &quot;s3://{yourAccessKeyId}:{yourSecretKey}@s3/{bucketName}/{folderPath}/{fileName}&quot;
+<i class="no-highlight">126</i>&nbsp;     * In S3, &quot;{folderPath}/{fileName}&quot; is defined as key. Please note that a path string for a
+<i class="no-highlight">127</i>&nbsp;     * directory should end with &quot;/&quot;.
+<i class="no-highlight">128</i>&nbsp;     *
+<i class="no-highlight">129</i>&nbsp;     * @param originalS3Path - Original S3Path Object
+<i class="no-highlight">130</i>&nbsp;     * @param pathOverride   - S3 path string
+<i class="no-highlight">131</i>&nbsp;     * @throws InvalidPathException - if it finds any invalid element in the path
+<i class="no-highlight">132</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">133</i>&nbsp;    public S3Path(S3Path originalS3Path, String pathOverride) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        this.s3FileSystem = originalS3Path.getFileSystem();</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        this.path = pathOverride;</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        this.s3 = originalS3Path.getAmazonS3();</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        if (path.contains(PROTOCOL_SEPARATOR)) {</b>
+<i class="no-highlight">138</i>&nbsp;            // parse s3 path if it is absolute
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            parseS3Path(path, this.s3);</b>
+<i class="no-highlight">140</i>&nbsp;        }
+<i class="no-highlight">141</i>&nbsp;    }
+<i class="no-highlight">142</i>&nbsp;
+<i class="no-highlight">143</i>&nbsp;    @Override
+<i class="no-highlight">144</i>&nbsp;    public S3Path getName(int index) {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        String path = this.toUri().getPath();</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        String[] names = path.split(URL_SEPARATOR);</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        if (index &gt; 0 &amp;&amp; index &lt; names.length) {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            return new S3Path(s3FileSystem, names[index]);</b>
+<i class="no-highlight">149</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            throw new IllegalArgumentException(</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                    String.format(ERR_INDEX_OUT_OF_BOUND, index, names.length));</b>
+<i class="no-highlight">152</i>&nbsp;        }
+<i class="no-highlight">153</i>&nbsp;    }
+<i class="no-highlight">154</i>&nbsp;
+<i class="no-highlight">155</i>&nbsp;    @Override
+<i class="no-highlight">156</i>&nbsp;    public Path getFileName() {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        String key = FilenameUtils.normalizeNoEndSeparator(this.key);</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        String name = FilenameUtils.getName(key);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        return new S3Path(s3FileSystem, JfsUtils.encode(name));</b>
+<i class="no-highlight">160</i>&nbsp;    }
+<i class="no-highlight">161</i>&nbsp;
+<i class="no-highlight">162</i>&nbsp;    @Override
+<i class="no-highlight">163</i>&nbsp;    public S3Path getRoot() {
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        return new S3Path(s3FileSystem, URL_S3_ROOT);</b>
+<i class="no-highlight">165</i>&nbsp;    }
+<i class="no-highlight">166</i>&nbsp;
+<i class="no-highlight">167</i>&nbsp;    @Override
+<i class="no-highlight">168</i>&nbsp;    public S3FileSystem getFileSystem() {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        return s3FileSystem;</b>
+<i class="no-highlight">170</i>&nbsp;    }
+<i class="no-highlight">171</i>&nbsp;
+<i class="no-highlight">172</i>&nbsp;    @Override
+<i class="no-highlight">173</i>&nbsp;    public boolean equals(final Object o) {
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        if (this == o) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            return true;</b>
+<i class="no-highlight">176</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        if (o == null || getClass() != o.getClass()) {</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            return false;</b>
+<i class="no-highlight">179</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        final S3Path paths = (S3Path) o;</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        return Objects.equals(path, paths.path);</b>
+<i class="no-highlight">182</i>&nbsp;    }
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;    @Override
+<i class="no-highlight">185</i>&nbsp;    public int hashCode() {
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        return Objects.hash(path);</b>
+<i class="no-highlight">187</i>&nbsp;    }
+<i class="no-highlight">188</i>&nbsp;
+<i class="no-highlight">189</i>&nbsp;    @Override
+<i class="no-highlight">190</i>&nbsp;    public String toString() {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        return path;</b>
+<i class="no-highlight">192</i>&nbsp;    }
+<i class="no-highlight">193</i>&nbsp;
+<i class="no-highlight">194</i>&nbsp;    @Override
+<i class="no-highlight">195</i>&nbsp;    public URI toUri() {
+<i class="no-highlight">196</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            return new URI(path);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        } catch (URISyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;            throw new SnapDataException(e, URLUtils.getFileNoAuth(e.getMessage()))</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                    .withReason(REASON_URI_SYNTAX)</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                    .withResolution(RESOLUTION_URI_SYNTAX);</b>
+<i class="no-highlight">202</i>&nbsp;        }
+<i class="no-highlight">203</i>&nbsp;    }
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;    @Override
+<i class="no-highlight">206</i>&nbsp;    public boolean startsWith(Path other) {
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        if (other instanceof S3Path) {</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;            S3Path s3Other = (S3Path) other;</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;            if (bucketName.equals(s3Other.bucketName)) {</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                return key.startsWith(s3Other.key);</b>
+<i class="no-highlight">211</i>&nbsp;            }
+<i class="no-highlight">212</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        return false;</b>
+<i class="no-highlight">214</i>&nbsp;    }
+<i class="no-highlight">215</i>&nbsp;
+<i class="no-highlight">216</i>&nbsp;    @Override
+<i class="no-highlight">217</i>&nbsp;    public int compareTo(final Path other) {
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        return compare(this, other);</b>
+<i class="no-highlight">219</i>&nbsp;    }
+<i class="no-highlight">220</i>&nbsp;
+<i class="no-highlight">221</i>&nbsp;    /**
+<i class="no-highlight">222</i>&nbsp;     * Connect to S3 service with AWS credential, bucket name and key,
+<i class="no-highlight">223</i>&nbsp;     * and get S3 object listing. Invalid AWS credential or bucket name will cause exception.
+<i class="no-highlight">224</i>&nbsp;     */
+<i class="no-highlight">225</i>&nbsp;    protected ObjectListing getS3ObjectListing() {
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        ListObjectsRequest listObjectRequest = getListObjectsRequest();</b>
+<i class="no-highlight">227</i>&nbsp;
+<i class="no-highlight">228</i>&nbsp;        // if there is no includeSubfolders query, there is no need to list grandchildren
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        if (!QUERY_INCLUDESUBFOLDERS.equalsIgnoreCase(getQuery()) &amp;&amp; StringUtils.isNotBlank(key)) {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            listObjectRequest = listObjectRequest.withDelimiter(URL_SEPARATOR);</b>
+<i class="no-highlight">231</i>&nbsp;        }
+<i class="no-highlight">232</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">233</i>&nbsp;            objectListing = s3.listObjects(listObjectRequest);</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        } catch (AmazonServiceException e) {</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;            throw new SnapDataException(e, ERR_S3_SERVICE)</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                    .withResolution(ERR_S3_SERVICE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        }</b>
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;        // Users often forget to put &quot;/&quot; at the end of a S3 directory path. If it happens,
+<i class="no-highlight">241</i>&nbsp;        // we should try again listObjects() with modified key.
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        if (objectListing.getObjectSummaries().size() == 0 &amp;&amp; !key.endsWith(&quot;/&quot;)) {</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            key += &quot;/&quot;;</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            listObjectRequest = listObjectRequest.withPrefix(key);</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            objectListing = s3.listObjects(listObjectRequest);</b>
+<i class="no-highlight">246</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        return objectListing;</b>
+<i class="no-highlight">248</i>&nbsp;    }
+<i class="no-highlight">249</i>&nbsp;
+<i class="no-highlight">250</i>&nbsp;    private String parseS3Path(String s3Path, AmazonS3 optionalS3Override) {
+<i class="no-highlight">251</i>&nbsp;        // get userInfo and S3Client
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        URIBuilder builder = URLUtils.getURIBuilder(s3Path);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        userInfo = builder.getUserInfo();</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        Map&lt;String, String&gt; map = URLUtils.getUsernamePassword(userInfo);</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        accessKeyId = map.get(URLUtils.USERNAME);</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        secretKey = map.get(URLUtils.PASSWORD);</b>
+<i class="no-highlight">257</i>&nbsp;        // get s3 bucket and key
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        String path = builder.getPath();</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        if (StringUtils.isBlank(path) || path.length() == 1) {</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;            throw new SnapDataException(ERR_S3_BUCKET_NAME)</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                    .withReason(REASON_URI_SYNTAX)</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                    .withResolution(RESOLUTION_URI_SYNTAX);</b>
+<i class="no-highlight">263</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        String[] strings = path.split(URLUtils.URL_SEPARATOR);</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        switch (strings.length) {</b>
+<i class="no-highlight">266</i>&nbsp;            case 0:
+<i class="no-highlight">267</i>&nbsp;            case 1:
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                throw new SnapDataException(ERR_S3_BUCKET_NAME)</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                        .withReason(REASON_URI_SYNTAX)</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                        .withResolution(RESOLUTION_URI_SYNTAX);</b>
+<i class="no-highlight">271</i>&nbsp;            case 2:
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                bucketName = strings[1];</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                key = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                break;</b>
+<i class="no-highlight">275</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                bucketName = strings[1];</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                key = path.substring(path.indexOf(bucketName) + bucketName.length() + 1);</b>
+<i class="no-highlight">278</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        bucketPath = String.format(FORMAT_S3_BUCKET_PATH, bucketName);</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        boolean s3ClientOverrideProvided = (null != optionalS3Override);</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        if (s3ClientOverrideProvided) {</b>
+<i class="no-highlight">282</i>&nbsp;            // non-default region support
+<i class="no-highlight">283</i>&nbsp;            // do NOT pass the s3Client if we provided an override s3Client because we want to
+<i class="no-highlight">284</i>&nbsp;            // reuse this client and it&#39;s region parameters. We still want to parse the bucketName
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            bucketName = JfsUtils.updateS3RegionInfo(bucketName, null);</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            s3 = optionalS3Override;</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            LOG.warn(&quot;s3ClientOverrideProvided=true&quot;);</b>
+<i class="no-highlight">288</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">289</i>&nbsp;            s3 = getAmazonS3Client();</b>
+<i class="no-highlight">290</i>&nbsp;        }
+<i class="no-highlight">291</i>&nbsp;
+<i class="no-highlight">292</i>&nbsp;        // get query, expected to have no query or only one query &quot;includeSubfolders&quot;
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        List&lt;NameValuePair&gt; queryParams = builder.getQueryParams();</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        if (queryParams.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;            query = StringUtils.EMPTY;</b>
+<i class="no-highlight">296</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">297</i>&nbsp;            query = queryParams.get(0).getName();</b>
+<i class="no-highlight">298</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        return builder.toString();</b>
+<i class="no-highlight">300</i>&nbsp;    }
+<i class="no-highlight">301</i>&nbsp;
+<i class="no-highlight">302</i>&nbsp;    /**
+<i class="no-highlight">303</i>&nbsp;     * @return ListObjectsRequest
+<i class="no-highlight">304</i>&nbsp;     */
+<i class="no-highlight">305</i>&nbsp;    protected ListObjectsRequest getListObjectsRequest() {
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        return new ListObjectsRequest().withBucketName(bucketName).withPrefix(key);</b>
+<i class="no-highlight">307</i>&nbsp;    }
+<i class="no-highlight">308</i>&nbsp;
+<i class="no-highlight">309</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">310</i>&nbsp;    protected AmazonS3 getAmazonS3Client() {
+<i class="no-highlight">311</i>&nbsp;        // build S3ClientConfig
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        S3ClientConfig s3ClientConfig = getS3ClientConfig();</b>
+<i class="no-highlight">313</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            return S3ClientService.createAmazonS3Client(s3ClientConfig);</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        } catch (IllegalArgumentException e) {</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;            throw new SnapDataException(e, ERR_INIT_S3_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                    .withResolution(RESOLUTION_VALID_S3_ACCOUNT);</b>
+<i class="no-highlight">318</i>&nbsp;        }
+<i class="no-highlight">319</i>&nbsp;    }
+<i class="no-highlight">320</i>&nbsp;
+<i class="no-highlight">321</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">322</i>&nbsp;    protected S3ClientConfig getS3ClientConfig() {
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        if (StringUtils.isNotBlank(accessKeyId) &amp;&amp; StringUtils.isNotBlank(secretKey) &amp;&amp;</b>
+<i class="no-highlight">324</i>&nbsp;                isIAMCredential) {
+<i class="no-highlight">325</i>&nbsp;            // accessKeyId/secretKey are not blank isIAMCredential should be set false
+<b class="nc"><i class="no-highlight">326</i>&nbsp;            isIAMCredential = false;</b>
+<i class="no-highlight">327</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        String[] tokens = StringUtils.split(secretKey, &quot;:&quot;, 2);</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        if (tokens != null &amp;&amp; tokens.length &gt; 1) {</b>
+<i class="no-highlight">330</i>&nbsp;            // In the case of Cross account IAM, the secretKey from the userInfo is
+<i class="no-highlight">331</i>&nbsp;            // formatted by secretKey:sessionToken
+<b class="nc"><i class="no-highlight">332</i>&nbsp;            secretKey = tokens[0];</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;            securityToken = tokens[1];</b>
+<i class="no-highlight">334</i>&nbsp;        }
+<i class="no-highlight">335</i>&nbsp;        // parse region
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        int index = StringUtils.indexOf(bucketName, &#39;@&#39;);</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;        String region = null;</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        if (index &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;            region = bucketName.substring(index + 1);</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;            bucketName = bucketName.substring(0, index);</b>
+<i class="no-highlight">341</i>&nbsp;        }
+<i class="no-highlight">342</i>&nbsp;        // build S3ClientConfig
+<b class="nc"><i class="no-highlight">343</i>&nbsp;        return S3ClientConfig.builder()</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                .accessKeyId(accessKeyId)</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                .secretKey(secretKey)</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                .securityToken(securityToken)</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                .region(region)</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                .isIAMRole(isIAMCredential)</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                .build();</b>
+<i class="no-highlight">350</i>&nbsp;    }
+<i class="no-highlight">351</i>&nbsp;
+<i class="no-highlight">352</i>&nbsp;    protected void buildAmazonS3Client() {
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        AmazonS3ClientBuilder amazonS3Builder =</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                getS3ClientBuilder(accessKeyId, secretKey, securityToken);</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;        bucketName = JfsUtils.updateS3RegionInfo(null, bucketName, amazonS3Builder);</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        s3 = (AmazonS3) amazonS3Builder.build();</b>
+<i class="no-highlight">357</i>&nbsp;    }
+<i class="no-highlight">358</i>&nbsp;
+<i class="no-highlight">359</i>&nbsp;    /**
+<i class="no-highlight">360</i>&nbsp;     * Returns Amazon S3 client
+<i class="no-highlight">361</i>&nbsp;     *
+<i class="no-highlight">362</i>&nbsp;     * @param awsAccessKey access key ID
+<i class="no-highlight">363</i>&nbsp;     * @param awsSecretKey secret key
+<i class="no-highlight">364</i>&nbsp;     * @return Amazon S3 client
+<i class="no-highlight">365</i>&nbsp;     */
+<i class="no-highlight">366</i>&nbsp;    protected AmazonS3ClientBuilder getS3ClientBuilder(String awsAccessKey, String awsSecretKey,
+<i class="no-highlight">367</i>&nbsp;            String sessionToken) {
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        if (StringUtils.isBlank(awsAccessKey)) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            if (isIAMCredential) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                return AmazonS3ClientBuilder.standard()</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                        .withCredentials(new InstanceProfileCredentialsProvider())</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                        .withClientConfiguration(S3UrlConnection.createClientConfiguration())</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                        .withForceGlobalBucketAccessEnabled(true);</b>
+<i class="no-highlight">374</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                throw new SnapDataException(ERR_AWS_ACCESS_KEY_ID)</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                        .withReason(ERR_URI_SYNTAX)</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                        .withResolution(RESOLUTION_URI_SYNTAX);</b>
+<i class="no-highlight">378</i>&nbsp;            }
+<i class="no-highlight">379</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">380</i>&nbsp;        AWSCredentials credentials = StringUtils.isBlank(sessionToken) ?</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                new BasicAWSCredentials(awsAccessKey, awsSecretKey) :</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                new BasicSessionCredentials(awsAccessKey, awsSecretKey, sessionToken);</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;        return AmazonS3ClientBuilder.standard()</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                .withCredentials(new AWSStaticCredentialsProvider(credentials))</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                .withClientConfiguration(S3UrlConnection.createClientConfiguration())</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                .withForceGlobalBucketAccessEnabled(true);</b>
+<i class="no-highlight">387</i>&nbsp;    }
+<i class="no-highlight">388</i>&nbsp;
+<i class="no-highlight">389</i>&nbsp;    /*
+<i class="no-highlight">390</i>&nbsp;     * Following setters and getters are intended to be called from methods in other classes in
+<i class="no-highlight">391</i>&nbsp;     * this package only.
+<i class="no-highlight">392</i>&nbsp;     */
+<i class="no-highlight">393</i>&nbsp;    protected String getBucketPath() {
+<b class="nc"><i class="no-highlight">394</i>&nbsp;        return bucketPath;</b>
+<i class="no-highlight">395</i>&nbsp;    }
+<i class="no-highlight">396</i>&nbsp;
+<i class="no-highlight">397</i>&nbsp;    protected String getBucketName() {
+<b class="nc"><i class="no-highlight">398</i>&nbsp;        return bucketName;</b>
+<i class="no-highlight">399</i>&nbsp;    }
+<i class="no-highlight">400</i>&nbsp;
+<i class="no-highlight">401</i>&nbsp;    protected String getKey() {
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        return key;</b>
+<i class="no-highlight">403</i>&nbsp;    }
+<i class="no-highlight">404</i>&nbsp;
+<i class="no-highlight">405</i>&nbsp;    protected void setKey(String key) {
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        this.key = key;</b>
+<i class="no-highlight">407</i>&nbsp;    }
+<i class="no-highlight">408</i>&nbsp;
+<i class="no-highlight">409</i>&nbsp;    protected String getQuery() {
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        return query;</b>
+<i class="no-highlight">411</i>&nbsp;    }
+<i class="no-highlight">412</i>&nbsp;
+<i class="no-highlight">413</i>&nbsp;    protected AmazonS3 getAmazonS3() {
+<b class="nc"><i class="no-highlight">414</i>&nbsp;        return s3;</b>
+<i class="no-highlight">415</i>&nbsp;    }
+<i class="no-highlight">416</i>&nbsp;
+<i class="no-highlight">417</i>&nbsp;    public void setKmsProperties(Map&lt;String, Object&gt; kmsProperties) {
+<b class="nc"><i class="no-highlight">418</i>&nbsp;        this.kmsProperties = kmsProperties;</b>
+<i class="no-highlight">419</i>&nbsp;    }
+<i class="no-highlight">420</i>&nbsp;
+<i class="no-highlight">421</i>&nbsp;    public Map&lt;String, Object&gt; getKmsProperties() {
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        return kmsProperties;</b>
+<i class="no-highlight">423</i>&nbsp;    }
+<i class="no-highlight">424</i>&nbsp;
+<i class="no-highlight">425</i>&nbsp;    protected ObjectListing getObjectListing() {
+<b class="nc"><i class="no-highlight">426</i>&nbsp;        return objectListing == null ? getS3ObjectListing() : objectListing;</b>
+<i class="no-highlight">427</i>&nbsp;    }
+<i class="no-highlight">428</i>&nbsp;
+<i class="no-highlight">429</i>&nbsp;    protected void setIsRegularFile(boolean isRegularFile) {
+<b class="nc"><i class="no-highlight">430</i>&nbsp;        this.isRegularFile = isRegularFile;</b>
+<i class="no-highlight">431</i>&nbsp;    }
+<i class="no-highlight">432</i>&nbsp;
+<i class="no-highlight">433</i>&nbsp;    protected boolean isRegularFile() {
+<b class="nc"><i class="no-highlight">434</i>&nbsp;        return this.isRegularFile;</b>
+<i class="no-highlight">435</i>&nbsp;    }
+<i class="no-highlight">436</i>&nbsp;
+<i class="no-highlight">437</i>&nbsp;    protected boolean isDirectory() {
+<b class="nc"><i class="no-highlight">438</i>&nbsp;        return exists &amp;&amp; !isRegularFile;</b>
+<i class="no-highlight">439</i>&nbsp;    }
+<i class="no-highlight">440</i>&nbsp;
+<i class="no-highlight">441</i>&nbsp;    protected void setExists(boolean exists) {
+<b class="nc"><i class="no-highlight">442</i>&nbsp;        this.exists = exists;</b>
+<i class="no-highlight">443</i>&nbsp;    }
+<i class="no-highlight">444</i>&nbsp;
+<i class="no-highlight">445</i>&nbsp;    protected boolean exists() {
+<b class="nc"><i class="no-highlight">446</i>&nbsp;        return this.exists;</b>
+<i class="no-highlight">447</i>&nbsp;    }
+<i class="no-highlight">448</i>&nbsp;
+<i class="no-highlight">449</i>&nbsp;    protected String getUserInfo() {
+<b class="nc"><i class="no-highlight">450</i>&nbsp;        return userInfo;</b>
+<i class="no-highlight">451</i>&nbsp;    }
+<i class="no-highlight">452</i>&nbsp;
+<i class="no-highlight">453</i>&nbsp;    protected S3FileAttributes getS3FileAttributes() {
+<b class="nc"><i class="no-highlight">454</i>&nbsp;        return s3FileAttributes;</b>
+<i class="no-highlight">455</i>&nbsp;    }
+<i class="no-highlight">456</i>&nbsp;
+<i class="no-highlight">457</i>&nbsp;    protected void setS3FileAttributes(S3FileAttributes s3FileAttributes) {
+<b class="nc"><i class="no-highlight">458</i>&nbsp;        this.s3FileAttributes = s3FileAttributes;</b>
+<i class="no-highlight">459</i>&nbsp;    }
+<i class="no-highlight">460</i>&nbsp;
+<i class="no-highlight">461</i>&nbsp;    /**
+<i class="no-highlight">462</i>&nbsp;     * Shuts down AmazonS3Client object.
+<i class="no-highlight">463</i>&nbsp;     */
+<i class="no-highlight">464</i>&nbsp;    public void shutdown() {
+<b class="nc"><i class="no-highlight">465</i>&nbsp;        if (s3 != null) {</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;            s3.shutdown();</b>
+<i class="no-highlight">467</i>&nbsp;        }
+<i class="no-highlight">468</i>&nbsp;    }
+<i class="no-highlight">469</i>&nbsp;
+<i class="no-highlight">470</i>&nbsp;    // TODO psung: implement the following methods with UnsupportedOperationException()
+<i class="no-highlight">471</i>&nbsp;
+<i class="no-highlight">472</i>&nbsp;    @Override
+<i class="no-highlight">473</i>&nbsp;    public S3Path getParent() {
+<b class="nc"><i class="no-highlight">474</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">475</i>&nbsp;    }
+<i class="no-highlight">476</i>&nbsp;
+<i class="no-highlight">477</i>&nbsp;    @Override
+<i class="no-highlight">478</i>&nbsp;    public int getNameCount() {
+<b class="nc"><i class="no-highlight">479</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">480</i>&nbsp;    }
+<i class="no-highlight">481</i>&nbsp;
+<i class="no-highlight">482</i>&nbsp;    @Override
+<i class="no-highlight">483</i>&nbsp;    public S3Path subpath(int beginIndex, int endIndex) {
+<b class="nc"><i class="no-highlight">484</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">485</i>&nbsp;    }
+<i class="no-highlight">486</i>&nbsp;
+<i class="no-highlight">487</i>&nbsp;    @Override
+<i class="no-highlight">488</i>&nbsp;    public S3Path toRealPath(LinkOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">489</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">490</i>&nbsp;    }
+<i class="no-highlight">491</i>&nbsp;
+<i class="no-highlight">492</i>&nbsp;    @Override
+<i class="no-highlight">493</i>&nbsp;    public S3Path toAbsolutePath() {
+<b class="nc"><i class="no-highlight">494</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">495</i>&nbsp;    }
+<i class="no-highlight">496</i>&nbsp;
+<i class="no-highlight">497</i>&nbsp;    @Override
+<i class="no-highlight">498</i>&nbsp;    public Path relativize(Path other) {
+<b class="nc"><i class="no-highlight">499</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">500</i>&nbsp;    }
+<i class="no-highlight">501</i>&nbsp;
+<i class="no-highlight">502</i>&nbsp;    @Override
+<i class="no-highlight">503</i>&nbsp;    public boolean isAbsolute() {
+<b class="nc"><i class="no-highlight">504</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">505</i>&nbsp;    }
+<i class="no-highlight">506</i>&nbsp;
+<i class="no-highlight">507</i>&nbsp;    @Override
+<i class="no-highlight">508</i>&nbsp;    public S3Path resolve(Path other) {
+<b class="nc"><i class="no-highlight">509</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">510</i>&nbsp;    }
+<i class="no-highlight">511</i>&nbsp;
+<i class="no-highlight">512</i>&nbsp;    @Override
+<i class="no-highlight">513</i>&nbsp;    public Path resolveSibling(Path other) {
+<b class="nc"><i class="no-highlight">514</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">515</i>&nbsp;    }
+<i class="no-highlight">516</i>&nbsp;
+<i class="no-highlight">517</i>&nbsp;    @Override
+<i class="no-highlight">518</i>&nbsp;    public boolean endsWith(Path other) {
+<b class="nc"><i class="no-highlight">519</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">520</i>&nbsp;    }
+<i class="no-highlight">521</i>&nbsp;
+<i class="no-highlight">522</i>&nbsp;    @Override
+<i class="no-highlight">523</i>&nbsp;    public S3Path resolve(String other) {
+<b class="nc"><i class="no-highlight">524</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">525</i>&nbsp;    }
+<i class="no-highlight">526</i>&nbsp;
+<i class="no-highlight">527</i>&nbsp;    @Override
+<i class="no-highlight">528</i>&nbsp;    public final Path resolveSibling(String other) {
+<b class="nc"><i class="no-highlight">529</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">530</i>&nbsp;    }
+<i class="no-highlight">531</i>&nbsp;
+<i class="no-highlight">532</i>&nbsp;    @Override
+<i class="no-highlight">533</i>&nbsp;    public final boolean startsWith(String other) {
+<b class="nc"><i class="no-highlight">534</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">535</i>&nbsp;    }
+<i class="no-highlight">536</i>&nbsp;
+<i class="no-highlight">537</i>&nbsp;    @Override
+<i class="no-highlight">538</i>&nbsp;    public final boolean endsWith(String other) {
+<b class="nc"><i class="no-highlight">539</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">540</i>&nbsp;    }
+<i class="no-highlight">541</i>&nbsp;
+<i class="no-highlight">542</i>&nbsp;    @Override
+<i class="no-highlight">543</i>&nbsp;    public Path normalize() {
+<b class="nc"><i class="no-highlight">544</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">545</i>&nbsp;    }
+<i class="no-highlight">546</i>&nbsp;
+<i class="no-highlight">547</i>&nbsp;    @Override
+<i class="no-highlight">548</i>&nbsp;    public WatchKey register(WatchService watcher, WatchEvent.Kind&lt;?&gt;... events) {
+<b class="nc"><i class="no-highlight">549</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">550</i>&nbsp;    }
+<i class="no-highlight">551</i>&nbsp;
+<i class="no-highlight">552</i>&nbsp;    @Override
+<i class="no-highlight">553</i>&nbsp;    public WatchKey register(WatchService watcher, WatchEvent.Kind&lt;?&gt;[] events,
+<i class="no-highlight">554</i>&nbsp;            WatchEvent.Modifier... modifiers) {
+<b class="nc"><i class="no-highlight">555</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">556</i>&nbsp;    }
+<i class="no-highlight">557</i>&nbsp;
+<i class="no-highlight">558</i>&nbsp;    @Override
+<i class="no-highlight">559</i>&nbsp;    public final File toFile() {
+<b class="nc"><i class="no-highlight">560</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">561</i>&nbsp;    }
+<i class="no-highlight">562</i>&nbsp;
+<i class="no-highlight">563</i>&nbsp;    @Override
+<i class="no-highlight">564</i>&nbsp;    public Iterator&lt;Path&gt; iterator() {
+<b class="nc"><i class="no-highlight">565</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">566</i>&nbsp;    }
+<i class="no-highlight">567</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

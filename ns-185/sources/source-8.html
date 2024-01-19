@@ -1,0 +1,331 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > QueryExecutor</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.zuora.request</a>
+</div>
+
+<h1>Coverage Summary for Class: QueryExecutor (com.snaplogic.snaps.zuora.request)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">QueryExecutor</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/73)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.zuora.request;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.base.Splitter;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.metrics.Counter;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.EditorProperty;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.TemplateEvaluator;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.soap.ClientBuilder;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.soap.InvocationService;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snaps.zuora.ZuoraCommon;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">34</i>&nbsp;import java.util.List;
+<i class="no-highlight">35</i>&nbsp;import java.util.Map;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import javax.annotation.Nullable;
+<i class="no-highlight">38</i>&nbsp;import javax.xml.namespace.QName;
+<i class="no-highlight">39</i>&nbsp;import javax.xml.soap.SOAPException;
+<i class="no-highlight">40</i>&nbsp;import javax.xml.soap.SOAPMessage;
+<i class="no-highlight">41</i>&nbsp;import javax.xml.stream.XMLStreamException;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.zuora.request.Messages.NO_SOAP_RESPONSE;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.zuora.request.Messages.SOAP_EXCEPTION;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.zuora.request.Messages.SOAP_EXCEPTION_REASON;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.zuora.request.Messages.SOAP_EXCEPTION_RESOLUTION;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.zuora.request.Messages.XML_SERIALIZATION_FAILED;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;/**
+<i class="no-highlight">50</i>&nbsp; * Executes a ZOQL query by evaluating the SOAP envelope with the generated query. The query is
+<i class="no-highlight">51</i>&nbsp; * fully configured as this point and will be send to Zuora. QueryMore operation will be executed if
+<i class="no-highlight">52</i>&nbsp; * the result of the request indicates there are more records to fetch.
+<i class="no-highlight">53</i>&nbsp; *
+<i class="no-highlight">54</i>&nbsp; * @author mklumpp
+<i class="no-highlight">55</i>&nbsp; */
+<i class="no-highlight">56</i>&nbsp;public class QueryExecutor extends RequestExecutor {
+<i class="no-highlight">57</i>&nbsp;    private static final String QUERY_LOCATOR = &quot;queryLocator&quot;;
+<b class="nc"><i class="no-highlight">58</i>&nbsp;    private static final Splitter SPLITTER = Splitter.on(&#39;:&#39;).omitEmptyStrings();</b>
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;    private static final String QUERY_MORE_TEMPLATE =
+<i class="no-highlight">61</i>&nbsp;            &quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot;?&gt;\n&quot; +
+<i class="no-highlight">62</i>&nbsp;                    &quot;&lt;SOAP-ENV:Envelope xmlns:SOAP-ENV=\&quot;http://schemas.xmlsoap&quot; +
+<i class="no-highlight">63</i>&nbsp;                    &quot;.org/soap/envelope/\&quot;\n&quot; +
+<i class="no-highlight">64</i>&nbsp;                    &quot;                   xmlns:ns2=\&quot;http://object.api.zuora.com/\&quot;\n&quot; +
+<i class="no-highlight">65</i>&nbsp;                    &quot;                   xmlns:xsi=\&quot;http://www.w3.org/2001/XMLSchema-instance\&quot;\n&quot; +
+<i class="no-highlight">66</i>&nbsp;                    &quot;                   xmlns:ns1=\&quot;http://api.zuora.com/\&quot;&gt;\n&quot; +
+<i class="no-highlight">67</i>&nbsp;                    &quot;    &lt;SOAP-ENV:Body&gt;\n&quot; +
+<i class="no-highlight">68</i>&nbsp;                    &quot;        &lt;ns1:queryMore&gt;\n&quot; +
+<i class="no-highlight">69</i>&nbsp;                    &quot;            &lt;ns1:queryLocator&gt;$&quot; + QUERY_LOCATOR + &quot;&lt;/ns1:queryLocator&gt;\n&quot; +
+<i class="no-highlight">70</i>&nbsp;                    &quot;        &lt;/ns1:queryMore&gt;\n&quot; +
+<i class="no-highlight">71</i>&nbsp;                    &quot;    &lt;/SOAP-ENV:Body&gt;\n&quot; +
+<i class="no-highlight">72</i>&nbsp;                    &quot;&lt;/SOAP-ENV:Envelope&gt;&quot;;
+<i class="no-highlight">73</i>&nbsp;    private static final String QUERY_MORE_OPERATION = &quot;{http://api.zuora.com/}queryMore&quot;;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;    private final TemplateEvaluator templateEvaluator;
+<i class="no-highlight">76</i>&nbsp;    private final Map&lt;String, ExpressionProperty&gt; whereClauseProperties;
+<i class="no-highlight">77</i>&nbsp;    private final QueryMessageHandler messageHandler;
+<b class="nc"><i class="no-highlight">78</i>&nbsp;    private static final JsonPath jsonPath = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">79</i>&nbsp;            &quot;$..[?(key instanceof String &amp;&amp; &quot; +
+<i class="no-highlight">80</i>&nbsp;                    &quot;(key.startsWith(&#39;@xmlns&#39;) || key.startsWith(&#39;@xsi&#39;)))]&quot;);
+<b class="nc"><i class="no-highlight">81</i>&nbsp;    private boolean shouldRemoveNamespacePrefix = false;</b>
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;    public QueryExecutor(final ClientBuilder clientBuilder, final EditorProperty editorProperty,
+<i class="no-highlight">84</i>&nbsp;            final InvocationService invocationService, final Counter counter,
+<i class="no-highlight">85</i>&nbsp;            final Map&lt;String, Object&gt; snapProperties, final DocumentUtility documentUtility,
+<i class="no-highlight">86</i>&nbsp;            final OutputViews outputViews, final ErrorViews errorViews,
+<i class="no-highlight">87</i>&nbsp;            final TemplateEvaluator templateEvaluator,
+<i class="no-highlight">88</i>&nbsp;            @Nullable final Map&lt;String, ExpressionProperty&gt; whereClauseProperties,
+<i class="no-highlight">89</i>&nbsp;            final QueryMessageHandler requestMessageHandler) {
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        super(clientBuilder, editorProperty, invocationService, counter, snapProperties,</b>
+<i class="no-highlight">91</i>&nbsp;                documentUtility, outputViews, errorViews, requestMessageHandler);
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        this.templateEvaluator = templateEvaluator;</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        this.whereClauseProperties = whereClauseProperties;</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        this.messageHandler = requestMessageHandler;</b>
+<i class="no-highlight">95</i>&nbsp;
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        if (snapProperties != null) {</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;            shouldRemoveNamespacePrefix = Boolean.TRUE.equals(</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                    snapProperties.get(ZuoraCommon.REMOVE_NAMESPACE_PREFIX));</b>
+<i class="no-highlight">99</i>&nbsp;        }
+<i class="no-highlight">100</i>&nbsp;    }
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;    @Override
+<i class="no-highlight">103</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">104</i>&nbsp;    protected void postProcess(final SOAPMessage soapMessage, final Document inputDocument)
+<i class="no-highlight">105</i>&nbsp;            throws XMLStreamException, SOAPException {
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        Object data = invocationService.serialize(soapMessage);</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        if (isSuccessful(data, inputDocument)) {</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            Object results = messageHandler.getResults(data);</b>
+<i class="no-highlight">109</i>&nbsp;            // invocation serialization requires xml namespaces to convert xml to json, now
+<i class="no-highlight">110</i>&nbsp;            // remove non-data, xml markup related info from json data: namespaces and xml schema
+<i class="no-highlight">111</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                jsonPath.delete(results);</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            } catch (InvalidPathException e) {</b>
+<i class="no-highlight">114</i>&nbsp;                // NO OP
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            }</b>
+<i class="no-highlight">116</i>&nbsp;
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            writeResultsToOutputViewsRemovingNamespacePrefixesIfNecessary(results,</b>
+<i class="no-highlight">118</i>&nbsp;                    shouldRemoveNamespacePrefix,
+<i class="no-highlight">119</i>&nbsp;                    inputDocument, outputViews, documentUtility, counter);
+<i class="no-highlight">120</i>&nbsp;
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            if (!messageHandler.isDone(data)) {</b>
+<i class="no-highlight">122</i>&nbsp;                // query more
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                queryMore(data, inputDocument);</b>
+<i class="no-highlight">124</i>&nbsp;            }
+<i class="no-highlight">125</i>&nbsp;        }
+<i class="no-highlight">126</i>&nbsp;    }
+<i class="no-highlight">127</i>&nbsp;
+<i class="no-highlight">128</i>&nbsp;    protected void writeResultsToOutputViewsRemovingNamespacePrefixesIfNecessary(
+<i class="no-highlight">129</i>&nbsp;            Object results, final boolean shouldRemoveNamespacePrefix, final Document inputDocument,
+<i class="no-highlight">130</i>&nbsp;            final OutputViews outputViews, final DocumentUtility documentUtility,
+<i class="no-highlight">131</i>&nbsp;            final Counter counter) {
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        if (results != null) {</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            if (results instanceof List) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                List&lt;Object&gt; allResults = (List&lt;Object&gt;) results;</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                for (Object result : allResults) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    result = removeNamespacePrefixesIfEnabled(shouldRemoveNamespacePrefix, result);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                    outputViews.write(documentUtility.newDocumentFor(inputDocument, result),</b>
+<i class="no-highlight">138</i>&nbsp;                            inputDocument);
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    counter.inc();</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                results = removeNamespacePrefixesIfEnabled(shouldRemoveNamespacePrefix, results);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                outputViews.write(documentUtility.newDocumentFor(inputDocument, results),</b>
+<i class="no-highlight">144</i>&nbsp;                        inputDocument);
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                counter.inc();</b>
+<i class="no-highlight">146</i>&nbsp;            }
+<i class="no-highlight">147</i>&nbsp;        }
+<i class="no-highlight">148</i>&nbsp;    }
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;    protected final Object removeNamespacePrefixesIfEnabled(
+<i class="no-highlight">151</i>&nbsp;            final boolean shouldRemoveNamespacePrefix, final Object result) {
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        return shouldRemoveNamespacePrefix ? removeNamespacePrefixes(result) : result;</b>
+<i class="no-highlight">153</i>&nbsp;    }
+<i class="no-highlight">154</i>&nbsp;
+<i class="no-highlight">155</i>&nbsp;    /**
+<i class="no-highlight">156</i>&nbsp;     * If the user wants the XML namespace prefixes to be removed from the output, and the result is
+<i class="no-highlight">157</i>&nbsp;     * a Map, iterate over the keys and remove the prefix in each one.
+<i class="no-highlight">158</i>&nbsp;     */
+<i class="no-highlight">159</i>&nbsp;    protected final Object removeNamespacePrefixes(final Object result) {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        Object newResult = result;</b>
+<i class="no-highlight">161</i>&nbsp;
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        if (result instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            Map&lt;String, String&gt; resultAsMap = (Map&lt;String, String&gt;) result;</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            Map&lt;String, String&gt; newMap = new LinkedHashMap&lt;&gt;(resultAsMap.size());</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;            for (String originalKey : resultAsMap.keySet()) {</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                String newKey = removeNamespacePrefixFromKey(originalKey);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                newMap.put(newKey, resultAsMap.get(originalKey));</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            newResult = newMap;</b>
+<i class="no-highlight">170</i>&nbsp;        }
+<i class="no-highlight">171</i>&nbsp;
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        return newResult;</b>
+<i class="no-highlight">173</i>&nbsp;    }
+<i class="no-highlight">174</i>&nbsp;
+<i class="no-highlight">175</i>&nbsp;    /**
+<i class="no-highlight">176</i>&nbsp;     * Remove an XML namespace prefix from the response map e.g. &quot;ns2:key&quot; becomes &quot;key&quot;
+<i class="no-highlight">177</i>&nbsp;     */
+<i class="no-highlight">178</i>&nbsp;    protected final String removeNamespacePrefixFromKey(String originalKey) {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        String[] strings = StringUtils.split(originalKey, &quot;:&quot;);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        return strings.length == 2 ? strings[1] : originalKey;</b>
+<i class="no-highlight">181</i>&nbsp;    }
+<i class="no-highlight">182</i>&nbsp;
+<i class="no-highlight">183</i>&nbsp;    /**
+<i class="no-highlight">184</i>&nbsp;     * Query more data until all records are fetched.
+<i class="no-highlight">185</i>&nbsp;     *
+<i class="no-highlight">186</i>&nbsp;     * @param data          as the current response
+<i class="no-highlight">187</i>&nbsp;     * @param inputDocument as the current input document
+<i class="no-highlight">188</i>&nbsp;     */
+<i class="no-highlight">189</i>&nbsp;    private void queryMore(Object data, Document inputDocument) {
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        String queryLocator = messageHandler.getQueryLocator(data);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        Map&lt;String, String&gt; locator = Maps.newHashMapWithExpectedSize(1);</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        locator.put(QUERY_LOCATOR, queryLocator);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        String template = templateEvaluator.evaluate(QUERY_MORE_TEMPLATE, locator);</b>
+<i class="no-highlight">194</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            clientBuilder.requestMessageBody(QName.valueOf(QUERY_MORE_OPERATION));</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            SOAPMessage soapMessage = invocationService.call(clientBuilder, template);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            if (soapMessage == null) {</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                throw new ExecutionException(NO_SOAP_RESPONSE).formatWith(template)</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                        .withResolutionAsDefect();</b>
+<i class="no-highlight">200</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            postProcess(soapMessage, inputDocument);</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        } catch (SOAPException e) {</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;            throw new ExecutionException(e, SOAP_EXCEPTION)</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                    .withReason(SOAP_EXCEPTION_REASON)</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                    .withResolution(SOAP_EXCEPTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;            throw new ExecutionException(e, XML_SERIALIZATION_FAILED)</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        }</b>
+<i class="no-highlight">210</i>&nbsp;    }
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;    protected Map&lt;String, Object&gt; getExpressionProperties(Document document) {
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        if (whereClauseProperties == null) {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            return null;</b>
+<i class="no-highlight">215</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        Map&lt;String, Object&gt; evaluatedWhereClauses = Maps.newHashMapWithExpectedSize</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                (whereClauseProperties.size());</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        for (Map.Entry&lt;String, ExpressionProperty&gt; whereClauses : whereClauseProperties</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                .entrySet()) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            String variableName = whereClauses.getKey();</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;            String templateVariable = variableName.substring(1, variableName.length());</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;            evaluatedWhereClauses.put(templateVariable, whereClauses.getValue().eval(document));</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        return evaluatedWhereClauses;</b>
+<i class="no-highlight">225</i>&nbsp;    }
+<i class="no-highlight">226</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

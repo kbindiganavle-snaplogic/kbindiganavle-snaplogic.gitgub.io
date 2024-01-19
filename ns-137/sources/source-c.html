@@ -1,0 +1,694 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > S3Upload</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.s3</a>
+</div>
+
+<h1>Coverage Summary for Class: S3Upload (com.snaplogic.snaps.s3)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">S3Upload</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/62)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">S3Upload$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">S3Upload$S3UploadConfig</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/153)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">S3Upload$S3UploadConfig$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/41)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/222)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.s3;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.services.s3.model.AccessControlList;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.services.s3.model.CannedAccessControlList;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.s3.model.CanonicalGrantee;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.services.s3.model.EmailAddressGrantee;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.services.s3.model.Grant;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.s3.model.Grantee;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.s3.model.GroupGrantee;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.services.s3.model.Permission;
+<i class="no-highlight">21</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">22</i>&nbsp;import com.google.common.collect.Iterables;
+<i class="no-highlight">23</i>&nbsp;import com.google.common.collect.Sets;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.MetricsProvider;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.api.OutputSchemaProvider;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.common.properties.Suggestions;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.MetricsBuilder;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.s3.S3Service;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.s3.Upload;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">51</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">52</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">53</i>&nbsp;import org.apache.commons.lang3.exception.ExceptionUtils;
+<i class="no-highlight">54</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">55</i>&nbsp;import org.apache.commons.validator.routines.EmailValidator;
+<i class="no-highlight">56</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">57</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">60</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">61</i>&nbsp;import java.nio.channels.ReadableByteChannel;
+<i class="no-highlight">62</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">63</i>&nbsp;import java.util.EnumSet;
+<i class="no-highlight">64</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">65</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">66</i>&nbsp;import java.util.List;
+<i class="no-highlight">67</i>&nbsp;import java.util.Map;
+<i class="no-highlight">68</i>&nbsp;import java.util.Set;
+<i class="no-highlight">69</i>&nbsp;import java.util.concurrent.CompletableFuture;
+<i class="no-highlight">70</i>&nbsp;import java.util.concurrent.CompletionException;
+<i class="no-highlight">71</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;import javax.annotation.Nullable;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.NONE;
+<i class="no-highlight">76</i>&nbsp;import static com.snaplogic.snap.api.s3.S3Utils.VALUE;
+<i class="no-highlight">77</i>&nbsp;import static com.snaplogic.snaps.s3.Messages.*;
+<i class="no-highlight">78</i>&nbsp;import static com.snaplogic.snaps.s3.S3Common.S3CommonConfig.BUCKET_PROP;
+<i class="no-highlight">79</i>&nbsp;import static com.snaplogic.snaps.s3.S3Common.S3CommonConfig.OBJECT_KEY_PROP;
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;/**
+<i class="no-highlight">82</i>&nbsp; * S3 Upload Snap uploads binary data to S3 files.
+<i class="no-highlight">83</i>&nbsp; */
+<i class="no-highlight">84</i>&nbsp;@General(title = S3_UPLOAD_LABEL, purpose = S3_UPLOAD_DESC, docLink =
+<i class="no-highlight">85</i>&nbsp;        &quot;https://docs-snaplogic.atlassian.net/wiki/spaces/SD/pages/2475982855/S3+Upload&quot;)
+<i class="no-highlight">86</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">87</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.BINARY})
+<i class="no-highlight">88</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">89</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<i class="no-highlight">90</i>&nbsp;public class S3Upload extends S3Common implements MetricsProvider,
+<i class="no-highlight">91</i>&nbsp;        OutputSchemaProvider {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(S3Upload.class);</b>
+<i class="no-highlight">93</i>&nbsp;    private static final int DEFAULT_MULTIPART_SIZE_MB = 10;
+<i class="no-highlight">94</i>&nbsp;    static final int MIN_MULTIPART_SIZE_MB = 5;
+<i class="no-highlight">95</i>&nbsp;    static final int MAX_MULTIPART_SIZE_MB = 5000;
+<i class="no-highlight">96</i>&nbsp;    protected S3UploadConfig s3UploadConfig;
+<b class="nc"><i class="no-highlight">97</i>&nbsp;    private S3UploadV2 s3UploadV2;</b>
+<i class="no-highlight">98</i>&nbsp;    private List&lt;Pair&lt;CompletableFuture&lt;Upload&gt;, Document&gt;&gt; uploads = new ArrayList&lt;&gt;();
+<b class="nc"><i class="no-highlight">99</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;    public S3Upload() {</b>
+<i class="no-highlight">101</i>&nbsp;        s3UploadConfig = new S3UploadConfig();
+<i class="no-highlight">102</i>&nbsp;    }
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">105</i>&nbsp;    public void defineProperties(final PropertyBuilder builder) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        super.defineProperties(builder);</b>
+<i class="no-highlight">107</i>&nbsp;        s3UploadConfig.define(builder);
+<i class="no-highlight">108</i>&nbsp;    }
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">111</i>&nbsp;    public void configure(final PropertyValues propertyValues) throws ConfigurationException {</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        super.configure(propertyValues);</b>
+<i class="no-highlight">113</i>&nbsp;        s3UploadConfig.configure(propertyValues);
+<i class="no-highlight">114</i>&nbsp;    }
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;    @Override
+<i class="no-highlight">117</i>&nbsp;    protected void processBinary(@Nullable Document header, String inputViewName,
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            ReadableByteChannel channel) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        super.processBinary(header, inputViewName, channel);</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        s3CommonConfig.process(header);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        s3UploadConfig.process(header);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        if (isS3Express()) {</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;            if (s3UploadV2 == null) {</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                s3UploadV2 = new S3UploadV2(s3ClientConfig, s3CommonConfig, s3UploadConfig,</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                        isUltraPipeline, outputViews, errorViews, documentUtility);</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            if (s3ServiceV2 != null) {</b>
+<i class="no-highlight">128</i>&nbsp;                s3UploadV2.setS3ServiceV2(s3ServiceV2);
+<i class="no-highlight">129</i>&nbsp;            }
+<i class="no-highlight">130</i>&nbsp;            s3UploadV2.process(header, channel);
+<i class="no-highlight">131</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        if (s3Service == null) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            s3Service = S3Service.builder()</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                    .s3ClientConfig(s3ClientConfig)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    .threadPoolSize(s3CommonConfig.getThreadPoolSize())</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                    .multipartSizeInMB(s3UploadConfig.getMultipartSizeInMB())</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            amazonS3 = s3Service.getAmazonS3();</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            // InputStream should not be closed here. It is closed when S3Service completes the</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            // upload of the S3 object requested.</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            InputStream inputStream = Channels.newInputStream(channel);</b>
+<i class="no-highlight">145</i>&nbsp;            Upload.UploadRequest uploadRequest = new Upload.UploadRequest(
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                    s3CommonConfig.getBucket(), s3CommonConfig.getObjectKey())</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                    .withInputStream(inputStream)</b>
+<i class="no-highlight">148</i>&nbsp;                    .withHeaderMap(header.get(Map.class))
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                    .withAcl(s3UploadConfig.getAcl())</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                    .withCannedACL(s3UploadConfig.getCannedACL())</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                    .withWriteEmptyFile(s3UploadConfig.isWriteEmptyFile())</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                    .withUserDefinedMetadataMap(s3UploadConfig.getUserDefinedMetadata())</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                    .withObjectTagMap(s3UploadConfig.getObjectTags());</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            CompletableFuture&lt;Upload&gt; task = s3Service.submitUpload(uploadRequest);</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;            if (isUltraPipeline) {</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                processResult(task, header);</b>
+<i class="no-highlight">157</i>&nbsp;            } else {
+<i class="no-highlight">158</i>&nbsp;                uploads.add(Pair.of(task, header));
+<i class="no-highlight">159</i>&nbsp;                checkUploads();
+<i class="no-highlight">160</i>&nbsp;            }
+<i class="no-highlight">161</i>&nbsp;        } catch (SuggestViewAbortException e) {
+<b class="nc"><i class="no-highlight">162</i>&nbsp;            throw e;</b>
+<i class="no-highlight">163</i>&nbsp;        } catch (Exception e) {
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_UPLOAD_S3)</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                    .withReason(e.getMessage())</b>
+<i class="no-highlight">166</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">167</i>&nbsp;            errorViews.write(ex, header);
+<i class="no-highlight">168</i>&nbsp;        }
+<i class="no-highlight">169</i>&nbsp;    }
+<i class="no-highlight">170</i>&nbsp;
+<i class="no-highlight">171</i>&nbsp;    @Override
+<i class="no-highlight">172</i>&nbsp;    public void cleanup() throws ExecutionException {
+<i class="no-highlight">173</i>&nbsp;        try {
+<i class="no-highlight">174</i>&nbsp;            if (s3UploadV2 == null) {
+<i class="no-highlight">175</i>&nbsp;                uploads.forEach(p -&gt; processResult(p.getLeft(), p.getRight()));
+<i class="no-highlight">176</i>&nbsp;            } else {
+<i class="no-highlight">177</i>&nbsp;                s3UploadV2.cleanup();
+<i class="no-highlight">178</i>&nbsp;            }
+<i class="no-highlight">179</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">180</i>&nbsp;            super.cleanup();</b>
+<i class="no-highlight">181</i>&nbsp;        }
+<i class="no-highlight">182</i>&nbsp;    }
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">185</i>&nbsp;    public void defineMetrics(MetricsBuilder metricsBuilder) {</b>
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;    }
+<i class="no-highlight">188</i>&nbsp;
+<i class="no-highlight">189</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">190</i>&nbsp;    public void defineOutputSchema(SchemaProvider provider) {</b>
+<i class="no-highlight">191</i>&nbsp;
+<i class="no-highlight">192</i>&nbsp;    }
+<i class="no-highlight">193</i>&nbsp;
+<b class="nc"><i class="no-highlight">194</i>&nbsp;    @Override</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;    public void process(Document document, String inputViewName) {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        throw new ExecutionException(ERR_NOT_IMPLEMENTED);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;</b>
+<i class="no-highlight">199</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">200</i>&nbsp;    S3UploadConfig getS3UploadConfig() {
+<i class="no-highlight">201</i>&nbsp;        return s3UploadConfig;
+<i class="no-highlight">202</i>&nbsp;    }
+<i class="no-highlight">203</i>&nbsp;
+<b class="nc"><i class="no-highlight">204</i>&nbsp;    private boolean checkUploads() {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        List&lt;Pair&lt;CompletableFuture&lt;Upload&gt;, Document&gt;&gt; doneList = uploads.stream()</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .filter(p -&gt; p.getLeft().isDone())</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                .collect(Collectors.toList());</b>
+<i class="no-highlight">208</i>&nbsp;        doneList.forEach(p -&gt; processResult(p.getLeft(), p.getRight()));
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        return uploads.removeAll(doneList);</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;    }</b>
+<i class="no-highlight">211</i>&nbsp;
+<b class="nc"><i class="no-highlight">212</i>&nbsp;    private void processResult(CompletableFuture&lt;Upload&gt; task, Document document) {</b>
+<i class="no-highlight">213</i>&nbsp;        Upload upload;
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            upload = task.join();</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;            Map&lt;String, Object&gt; data = new LinkedHashMap() {{</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                put(BUCKET_PROP, s3CommonConfig.getOriginalBucket());</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                put(OBJECT_KEY_PROP, upload.getObjectKey());</b>
+<i class="no-highlight">219</i>&nbsp;            }};
+<i class="no-highlight">220</i>&nbsp;            if (s3CommonConfig.isPassThough()) {
+<i class="no-highlight">221</i>&nbsp;                outputViews.write(documentUtility.newDocument(data), document);
+<i class="no-highlight">222</i>&nbsp;            } else {
+<i class="no-highlight">223</i>&nbsp;                outputViews.write(documentUtility.newDocumentFor(document, data));
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            }</b>
+<i class="no-highlight">225</i>&nbsp;        } catch (CompletionException e) {
+<i class="no-highlight">226</i>&nbsp;            errorViews.write((SnapDataException) new SnapDataException(e, e.getMessage())
+<i class="no-highlight">227</i>&nbsp;                    .withReason(ExceptionUtils.getRootCauseMessage(e))
+<i class="no-highlight">228</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE), document);
+<i class="no-highlight">229</i>&nbsp;        }
+<i class="no-highlight">230</i>&nbsp;    }
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">233</i>&nbsp;     * S3Upload Configuration</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;    class S3UploadConfig {</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        private static final String WRITE_EMPTY_FILE_PROP = &quot;writeEmptyFile&quot;;</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        private static final String MULTIPART_SIZE_PROP = &quot;multipartSize&quot;;</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        private static final String GRANTEE_PROP = &quot;grantee&quot;;</b>
+<i class="no-highlight">239</i>&nbsp;        private static final String READ_PROP = &quot;read&quot;;
+<i class="no-highlight">240</i>&nbsp;        private static final String VIEW_PERMISSIONS_PROP = &quot;viewPermissions&quot;;
+<i class="no-highlight">241</i>&nbsp;        private static final String FULL_CONTROL_PROP = &quot;editPermissions&quot;;
+<i class="no-highlight">242</i>&nbsp;        private static final String ACL_PROP = &quot;acl&quot;;
+<i class="no-highlight">243</i>&nbsp;        private static final String CANNED_ACL_PROP = &quot;cannedACL&quot;;
+<i class="no-highlight">244</i>&nbsp;        private final Set&lt;String&gt; CANNED_ACLS = Sets.newLinkedHashSet(Iterables.concat(
+<i class="no-highlight">245</i>&nbsp;                Sets.newHashSet(NONE),
+<i class="no-highlight">246</i>&nbsp;                EnumSet.allOf(CannedAccessControlList.class)
+<i class="no-highlight">247</i>&nbsp;                        .stream()
+<i class="no-highlight">248</i>&nbsp;                        .map(CannedAccessControlList::name)
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                        .collect(Collectors.toSet())</b>
+<i class="no-highlight">250</i>&nbsp;        ));
+<i class="no-highlight">251</i>&nbsp;        protected static final String KEY_PROP = &quot;key&quot;;
+<i class="no-highlight">252</i>&nbsp;        protected static final String VALUE_PROP = &quot;value&quot;;
+<i class="no-highlight">253</i>&nbsp;        protected static final String USER_DEFINED_METADATA_PROP = &quot;userDefinedMetadata&quot;;
+<i class="no-highlight">254</i>&nbsp;        protected static final String OBJECT_TAGS_PROP = &quot;objectTags&quot;;
+<i class="no-highlight">255</i>&nbsp;        private static final String EVERYONE = &quot;Everyone&quot;;
+<i class="no-highlight">256</i>&nbsp;        private static final String AUTHENTICATED_USER = &quot;Authenticated user&quot;;
+<i class="no-highlight">257</i>&nbsp;        private static final String AUTHENTICATED = &quot;Authenticated&quot;;
+<i class="no-highlight">258</i>&nbsp;        private static final String EMAIL_ADDRESS = &quot;{Email address}&quot;;
+<i class="no-highlight">259</i>&nbsp;        private static final String AWS_CANONICAL_ID = &quot;{Canonical AWS ID}&quot;;
+<i class="no-highlight">260</i>&nbsp;        private final String[] GRANTEES = new String[]{EVERYONE, AUTHENTICATED_USER,
+<i class="no-highlight">261</i>&nbsp;                EMAIL_ADDRESS, AWS_CANONICAL_ID};
+<b class="nc"><i class="no-highlight">262</i>&nbsp;        private PropertyValues propertyValues;</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        private boolean isWriteEmptyFile;</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        private int multipartSizeInMB;</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        private AccessControlList acl;</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        private CannedAccessControlList cannedACL;</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        private Map&lt;ExpressionProperty, ExpressionProperty&gt; userDefinedMetadataExpr;</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        private Map&lt;ExpressionProperty, ExpressionProperty&gt; objectTagsExpr;</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        private Map&lt;String, String&gt; userDefinedMetadata;</b>
+<i class="no-highlight">270</i>&nbsp;        private Map&lt;String, String&gt; objectTags;
+<i class="no-highlight">271</i>&nbsp;
+<i class="no-highlight">272</i>&nbsp;        S3UploadConfig define(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            writeEmptyFile(builder);</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;            multipartSizeInMB(builder);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;            acl(builder);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            cannedACL(builder);</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            userDefinedMedata(builder);</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;            objectTags(builder);</b>
+<i class="no-highlight">279</i>&nbsp;            s3CommonConfig.passThrough(builder);
+<i class="no-highlight">280</i>&nbsp;            return this;
+<i class="no-highlight">281</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">282</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        S3UploadConfig configure(final PropertyValues propertyValues) {</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;            this.propertyValues = propertyValues;</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            isWriteEmptyFile = propertyValues.getBoolean(WRITE_EMPTY_FILE_PROP, Boolean.FALSE);</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            multipartSizeInMB = propertyValues.getInt(MULTIPART_SIZE_PROP).intValue();</b>
+<i class="no-highlight">287</i>&nbsp;            userDefinedMetadataExpr = getExpressionMap(propertyValues, USER_DEFINED_METADATA_PROP);
+<i class="no-highlight">288</i>&nbsp;            objectTagsExpr = getExpressionMap(propertyValues, OBJECT_TAGS_PROP);
+<i class="no-highlight">289</i>&nbsp;            return this;
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        }</b>
+<i class="no-highlight">291</i>&nbsp;
+<i class="no-highlight">292</i>&nbsp;        S3UploadConfig process(final Document header) {
+<i class="no-highlight">293</i>&nbsp;            acl = initACL(header);
+<b class="nc"><i class="no-highlight">294</i>&nbsp;            cannedACL = initCannedACL(header);</b>
+<i class="no-highlight">295</i>&nbsp;            userDefinedMetadata = getMetadataMap(userDefinedMetadataExpr, header);
+<i class="no-highlight">296</i>&nbsp;            objectTags = getMetadataMap(objectTagsExpr, header);
+<i class="no-highlight">297</i>&nbsp;            return this;
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        }</b>
+<i class="no-highlight">299</i>&nbsp;
+<i class="no-highlight">300</i>&nbsp;        public boolean isWriteEmptyFile() {
+<i class="no-highlight">301</i>&nbsp;            return isWriteEmptyFile;
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        }</b>
+<i class="no-highlight">303</i>&nbsp;
+<i class="no-highlight">304</i>&nbsp;        public int getMultipartSizeInMB() {
+<i class="no-highlight">305</i>&nbsp;            return multipartSizeInMB;
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        }</b>
+<i class="no-highlight">307</i>&nbsp;
+<i class="no-highlight">308</i>&nbsp;        public AccessControlList getAcl() {
+<i class="no-highlight">309</i>&nbsp;            return acl;
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        }</b>
+<i class="no-highlight">311</i>&nbsp;
+<i class="no-highlight">312</i>&nbsp;        public CannedAccessControlList getCannedACL() {
+<i class="no-highlight">313</i>&nbsp;            return cannedACL;
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        }</b>
+<i class="no-highlight">315</i>&nbsp;
+<i class="no-highlight">316</i>&nbsp;        public Map&lt;ExpressionProperty, ExpressionProperty&gt; getUserDefinedMetadataExpr() {
+<i class="no-highlight">317</i>&nbsp;            return userDefinedMetadataExpr;
+<b class="nc"><i class="no-highlight">318</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        public Map&lt;String, String&gt; getUserDefinedMetadata() {</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;            return userDefinedMetadata;</b>
+<i class="no-highlight">322</i>&nbsp;        }
+<i class="no-highlight">323</i>&nbsp;
+<i class="no-highlight">324</i>&nbsp;        public Map&lt;String, String&gt; getObjectTags() {
+<b class="nc"><i class="no-highlight">325</i>&nbsp;            return objectTags;</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        private void writeEmptyFile(PropertyBuilder builder) {</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;            builder.describe(WRITE_EMPTY_FILE_PROP, WRITE_EMPTY_FILE_LABEL, WRITE_EMPTY_FILE_DESC)</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                    .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                    .enableIf(ENABLE_IF_SHOW_ADVANCED)</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                    .add();</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        }</b>
+<i class="no-highlight">334</i>&nbsp;
+<i class="no-highlight">335</i>&nbsp;        private void multipartSizeInMB(final PropertyBuilder builder) {
+<i class="no-highlight">336</i>&nbsp;            builder.describe(MULTIPART_SIZE_PROP, MULTIPART_SIZE_LABEL, MULTIPART_SIZE_DESC)
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                    .type(SnapType.INTEGER)</b>
+<i class="no-highlight">338</i>&nbsp;                    .expression()
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                    .defaultValue(DEFAULT_MULTIPART_SIZE_MB)</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                    .withMinValue(MIN_MULTIPART_SIZE_MB)</b>
+<i class="no-highlight">341</i>&nbsp;                    .withMaxValue(MAX_MULTIPART_SIZE_MB)
+<i class="no-highlight">342</i>&nbsp;                    .enableIf(ENABLE_IF_SHOW_ADVANCED)
+<i class="no-highlight">343</i>&nbsp;                    .required()
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                    .add();</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;</b>
+<i class="no-highlight">347</i>&nbsp;        private void acl(final PropertyBuilder builder) {
+<i class="no-highlight">348</i>&nbsp;            SnapProperty granteeProperty = builder.describe(GRANTEE_PROP, GRANTEE_LABEL,
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                    GRANTEE_DESC)</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                    .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                    .withSuggestions(new Suggestions() {</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                        @Override</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                        public void suggest(final SuggestionBuilder suggestionBuilder,</b>
+<i class="no-highlight">354</i>&nbsp;                                final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                            suggestionBuilder.node(ACL_PROP)</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                                    .over(GRANTEE_PROP)</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                                    .suggestions(GRANTEES);</b>
+<i class="no-highlight">358</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                    })</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;            SnapProperty readProperty = builder.describe(READ_PROP, READ_LABEL, READ_DESC)</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                    .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            SnapProperty viewPermissionsProperty = builder.describe(VIEW_PERMISSIONS_PROP,</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                    VIEW_PERMISSIONS_LABEL, VIEW_PERMISSIONS_DESC)</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                    .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            SnapProperty editPermissionsProperty = builder.describe(FULL_CONTROL_PROP,</b>
+<i class="no-highlight">369</i>&nbsp;                    FULL_CONTROL_LABEL, FULL_CONTROL_DESC)
+<i class="no-highlight">370</i>&nbsp;                    .type(SnapType.BOOLEAN)
+<i class="no-highlight">371</i>&nbsp;                    .build();
+<b class="nc"><i class="no-highlight">372</i>&nbsp;            builder.describe(ACL_PROP, ACL_LABEL, ACL_DESC)</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                    .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                    .withEntry(granteeProperty)</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                    .withEntry(readProperty)</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                    .withEntry(viewPermissionsProperty)</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                    .withEntry(editPermissionsProperty)</b>
+<i class="no-highlight">378</i>&nbsp;                    .enableIf(ENABLE_IF_SHOW_ADVANCED)
+<i class="no-highlight">379</i>&nbsp;                    .add();
+<i class="no-highlight">380</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">381</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;        private void cannedACL(PropertyBuilder builder) {</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;            builder.describe(CANNED_ACL_PROP, CANNED_ACL_LABEL, CANNED_ACL_DESC)</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                    .expression()</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                    .withAllowedValues(CANNED_ACLS)</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                    .defaultValue(NONE)</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                    .enableIf(ENABLE_IF_SHOW_ADVANCED)</b>
+<i class="no-highlight">388</i>&nbsp;                    .add();
+<b class="nc"><i class="no-highlight">389</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;        private void userDefinedMedata(final PropertyBuilder builder) {</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            SnapProperty keyProperty = builder.describe(KEY_PROP, KEY_LABEL, KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                    .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<i class="no-highlight">394</i>&nbsp;                    .build();
+<i class="no-highlight">395</i>&nbsp;            SnapProperty valueProperty = builder.describe(VALUE_PROP, VALUE_LABEL, VALUE_DESC)
+<i class="no-highlight">396</i>&nbsp;                    .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;            builder.describe(USER_DEFINED_METADATA_PROP, USER_DEFINED_METADATA_LABEL,</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;                    USER_DEFINED_METADATA_DESC)</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                    .type(SnapType.TABLE)</b>
+<i class="no-highlight">401</i>&nbsp;                    .withEntry(keyProperty)
+<b class="nc"><i class="no-highlight">402</i>&nbsp;                    .withEntry(valueProperty)</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;                    .enableIf(ENABLE_IF_SHOW_ADVANCED)</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                    .add();</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;        private void objectTags(final PropertyBuilder builder) {</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;            SnapProperty keyProperty = builder.describe(KEY_PROP, KEY_LABEL, OBJECT_TAGS_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                    .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<i class="no-highlight">410</i>&nbsp;                    .build();
+<i class="no-highlight">411</i>&nbsp;            SnapProperty valueProperty = builder.describe(VALUE_PROP, VALUE_LABEL,
+<i class="no-highlight">412</i>&nbsp;                    OBJECT_TAGS_VALUE_DESC)
+<i class="no-highlight">413</i>&nbsp;                    .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;            builder.describe(OBJECT_TAGS_PROP, OBJECT_TAGS_LABEL, OBJECT_TAGS_DESC)</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                    .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                    .withEntry(keyProperty)</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                    .withEntry(valueProperty)</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                    .enableIf(ENABLE_IF_SHOW_ADVANCED)</b>
+<i class="no-highlight">420</i>&nbsp;                    .add();
+<b class="nc"><i class="no-highlight">421</i>&nbsp;        }</b>
+<i class="no-highlight">422</i>&nbsp;
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        private Map&lt;ExpressionProperty, ExpressionProperty&gt; getExpressionMap(</b>
+<i class="no-highlight">424</i>&nbsp;                PropertyValues propertyValues, String tableProp) {
+<i class="no-highlight">425</i>&nbsp;            List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; tableProps = propertyValues.get(tableProp);
+<b class="nc"><i class="no-highlight">426</i>&nbsp;            Map&lt;ExpressionProperty, ExpressionProperty&gt; tableExprMap =</b>
+<i class="no-highlight">427</i>&nbsp;                    new LinkedHashMap&lt;&gt;(tableProps == null ? 0 : tableProps.size());
+<i class="no-highlight">428</i>&nbsp;            if (CollectionUtils.isNotEmpty(tableProps)) {
+<i class="no-highlight">429</i>&nbsp;                tableProps.forEach(p -&gt; {
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                    ExpressionProperty keyExpr = propertyValues.getExpressionPropertyFor(p,</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                            KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                    ExpressionProperty valueExpr = propertyValues.getExpressionPropertyFor(p,</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;                            VALUE_PROP);</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                    tableExprMap.put(keyExpr, valueExpr);</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                });</b>
+<i class="no-highlight">436</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">437</i>&nbsp;            return tableExprMap;</b>
+<i class="no-highlight">438</i>&nbsp;        }
+<i class="no-highlight">439</i>&nbsp;
+<b class="nc"><i class="no-highlight">440</i>&nbsp;        private AccessControlList initACL(Document header) {</b>
+<i class="no-highlight">441</i>&nbsp;            List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; aclProperties = propertyValues.get(ACL_PROP);
+<i class="no-highlight">442</i>&nbsp;            AccessControlList acl = null;
+<i class="no-highlight">443</i>&nbsp;            if (CollectionUtils.isNotEmpty(aclProperties)) {
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                Set&lt;Grant&gt; grants = getGrantList(aclProperties, header);</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                if (!grants.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                    acl = new AccessControlList();</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                    // add permissions to ACL</b>
+<i class="no-highlight">448</i>&nbsp;                    acl.grantAllPermissions(grants.toArray(new Grant[0]));
+<i class="no-highlight">449</i>&nbsp;                }
+<i class="no-highlight">450</i>&nbsp;            }
+<i class="no-highlight">451</i>&nbsp;            return acl;
+<i class="no-highlight">452</i>&nbsp;        }
+<i class="no-highlight">453</i>&nbsp;
+<i class="no-highlight">454</i>&nbsp;        private CannedAccessControlList initCannedACL(Document header) {
+<i class="no-highlight">455</i>&nbsp;            ExpressionProperty cannedAclExpr = propertyValues.getAsExpression(CANNED_ACL_PROP);
+<i class="no-highlight">456</i>&nbsp;            String cannedAclStr = cannedAclExpr.eval(header);
+<i class="no-highlight">457</i>&nbsp;            return (StringUtils.isEmpty(cannedAclStr) || NONE.equals(cannedAclStr))
+<i class="no-highlight">458</i>&nbsp;                    ? null : CannedAccessControlList.valueOf(cannedAclStr);
+<b class="nc"><i class="no-highlight">459</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;</b>
+<i class="no-highlight">461</i>&nbsp;        /**
+<b class="nc"><i class="no-highlight">462</i>&nbsp;         * Creates a set of grantee/permission pairs.</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;         *</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;         * @param aclProperties - access control list properties</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;         * @param header        - input header document</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;         * @return a set of grantee/permission pairs</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;         */</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;        private Set&lt;Grant&gt; getGrantList(List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; aclProperties,</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                Document header) {</b>
+<i class="no-highlight">470</i>&nbsp;            Set&lt;Grant&gt; grants = new HashSet&lt;&gt;();
+<i class="no-highlight">471</i>&nbsp;            for (Map&lt;String, Map&lt;String, Object&gt;&gt; property : aclProperties) {
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                // get Grantee object</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                ExpressionProperty granteeExpr =</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                        propertyValues.getExpressionPropertyFor(property, GRANTEE_PROP);</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                String granteeStr = granteeExpr.eval(header);</b>
+<i class="no-highlight">476</i>&nbsp;                if (StringUtils.isBlank(granteeStr)) {
+<b class="nc"><i class="no-highlight">477</i>&nbsp;                    throw new ConfigurationException(ERR_INVALID_VALUE)</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;                            .formatWith(granteeStr, GRANTEE_LABEL)</b>
+<i class="no-highlight">479</i>&nbsp;                            .withReason(REASON_BLANK_PROPERTY)
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                            .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">481</i>&nbsp;                }
+<i class="no-highlight">482</i>&nbsp;                Grantee grantee;
+<i class="no-highlight">483</i>&nbsp;                if (EVERYONE.equalsIgnoreCase(granteeStr)) {
+<b class="nc"><i class="no-highlight">484</i>&nbsp;                    grantee = GroupGrantee.AllUsers;</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;                } else if (StringUtils.containsIgnoreCase(granteeStr, AUTHENTICATED)) {</b>
+<i class="no-highlight">486</i>&nbsp;                    grantee = GroupGrantee.AuthenticatedUsers;
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                    if (EmailValidator.getInstance().isValid(granteeStr)) {</b>
+<i class="no-highlight">489</i>&nbsp;                        grantee = new EmailAddressGrantee(granteeStr);
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                    } else {</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                        grantee = new CanonicalGrantee(granteeStr);</b>
+<i class="no-highlight">492</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                // add permissions to the list of grants</b>
+<i class="no-highlight">495</i>&nbsp;                if (Boolean.TRUE.equals(property.get(READ_PROP).get(VALUE))) {
+<i class="no-highlight">496</i>&nbsp;                    grants.add(new Grant(grantee, Permission.Read));
+<i class="no-highlight">497</i>&nbsp;                }
+<i class="no-highlight">498</i>&nbsp;                if (Boolean.TRUE.equals(property.get(VIEW_PERMISSIONS_PROP).get(VALUE))) {
+<i class="no-highlight">499</i>&nbsp;                    grants.add(new Grant(grantee, Permission.ReadAcp));
+<b class="nc"><i class="no-highlight">500</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                if (Boolean.TRUE.equals(property.get(FULL_CONTROL_PROP).get(VALUE))) {</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;                    grants.add(new Grant(grantee, Permission.FullControl));</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;            return grants;</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;        }</b>
+<i class="no-highlight">507</i>&nbsp;
+<i class="no-highlight">508</i>&nbsp;        @VisibleForTesting
+<b class="nc"><i class="no-highlight">509</i>&nbsp;        Map&lt;String, String&gt; getMetadataMap(</b>
+<i class="no-highlight">510</i>&nbsp;                Map&lt;ExpressionProperty, ExpressionProperty&gt; exprMap, Document header) {
+<b class="nc"><i class="no-highlight">511</i>&nbsp;            if (MapUtils.isNotEmpty(exprMap)) {</b>
+<i class="no-highlight">512</i>&nbsp;                Map&lt;String, String&gt; metadataMap = new LinkedHashMap&lt;&gt;(exprMap.size());
+<i class="no-highlight">513</i>&nbsp;                exprMap.forEach((k, v) -&gt; {
+<i class="no-highlight">514</i>&nbsp;                    String key = k.eval(header);
+<i class="no-highlight">515</i>&nbsp;                    String value = v.eval(header);
+<i class="no-highlight">516</i>&nbsp;                    if (key != null &amp;&amp; value != null) {
+<i class="no-highlight">517</i>&nbsp;                        metadataMap.put(key, value);
+<i class="no-highlight">518</i>&nbsp;                    }
+<i class="no-highlight">519</i>&nbsp;                });
+<i class="no-highlight">520</i>&nbsp;                return metadataMap;
+<i class="no-highlight">521</i>&nbsp;            }
+<i class="no-highlight">522</i>&nbsp;            return Map.of();
+<i class="no-highlight">523</i>&nbsp;        }
+<i class="no-highlight">524</i>&nbsp;    }
+<i class="no-highlight">525</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

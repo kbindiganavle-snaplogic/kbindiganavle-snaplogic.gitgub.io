@@ -1,0 +1,434 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > S3AccountCommon</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.binary</a>
+</div>
+
+<h1>Coverage Summary for Class: S3AccountCommon (com.snaplogic.snap.api.binary)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">S3AccountCommon</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/110)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">S3AccountCommon$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/114)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.binary;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.ClientConfiguration;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.auth.AWSCredentialsProvider;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.auth.AWSStaticCredentialsProvider;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.auth.BasicSessionCredentials;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.regions.Region;
+<i class="no-highlight">21</i>&nbsp;import com.amazonaws.regions.Regions;
+<i class="no-highlight">22</i>&nbsp;import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+<i class="no-highlight">23</i>&nbsp;import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+<i class="no-highlight">24</i>&nbsp;import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+<i class="no-highlight">25</i>&nbsp;import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.fs.UrlAccount;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.fs.s3.S3EncryptionType;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.fs.s3.S3Utils;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">36</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">37</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">38</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import java.net.URLConnection;
+<i class="no-highlight">41</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">42</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">43</i>&nbsp;import java.util.Map;
+<i class="no-highlight">44</i>&nbsp;import java.util.Set;
+<i class="no-highlight">45</i>&nbsp;import java.util.Stack;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snap.api.binary.Messages.*;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snap.api.binary.Version.COMPANY_NAME;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snap.api.binary.Version.PROJECT_NAME;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snap.api.binary.Version.VERSION;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.S3EncryptionType.NONE;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.S3EncryptionType.SSE;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.S3EncryptionType.SSE_KMS;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.S3OutputStream.ENCRYPT_TYPE_KEY;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.S3OutputStream.KMS_KEY;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snap.api.fs.s3.S3OutputStream.KMS_REGION;
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;/**
+<i class="no-highlight">59</i>&nbsp; * Common functionality for the various S3 accounts
+<i class="no-highlight">60</i>&nbsp; */
+<b class="nc"><i class="no-highlight">61</i>&nbsp;public abstract class S3AccountCommon extends BinaryDefaultAccount implements UrlAccount {</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(S3AccountCommon.class);</b>
+<i class="no-highlight">63</i>&nbsp;    private static final String CROSS_ACCOUNT_IAM_PROP = &quot;crossAccountIAM&quot;;
+<i class="no-highlight">64</i>&nbsp;    private static final String ARN_PROP = &quot;arn&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String EXTERNAL_ID_PROP = &quot;externalID&quot;;
+<i class="no-highlight">66</i>&nbsp;    private static final String SECRETKEY_SESSIONKEY_FMT = &quot;%s:%s&quot;;
+<i class="no-highlight">67</i>&nbsp;    private static final String ASSUME_ROLE_SESSION_NAME_FMT = &quot;SL_%s&quot;;
+<i class="no-highlight">68</i>&nbsp;    protected static final String IAM_MAX_SESSION_DURATION_PROP = &quot;iamMaxSessionDuration&quot;;
+<i class="no-highlight">69</i>&nbsp;
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    protected static final String IAM_MAX_SESSION_DURATION_PROP_PATH =</b>
+<i class="no-highlight">71</i>&nbsp;                new JsonPathBuilder(CROSS_ACCOUNT_IAM_PROP)
+<b class="nc"><i class="no-highlight">72</i>&nbsp;            .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;            .appendCurrentElement(IAM_MAX_SESSION_DURATION_PROP)</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;    protected static final String ARN_PROP_PATH = new JsonPathBuilder(CROSS_ACCOUNT_IAM_PROP)</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;            .appendCurrentElement(ARN_PROP)</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;            .build();</b>
+<i class="no-highlight">79</i>&nbsp;    protected static final String EXTERNAL_ID_PROP_PATH =
+<b class="nc"><i class="no-highlight">80</i>&nbsp;            new JsonPathBuilder(CROSS_ACCOUNT_IAM_PROP).appendValueElement()</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;            .appendCurrentElement(EXTERNAL_ID_PROP)</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;            .build();</b>
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;    protected abstract String getEncryptionTypeString();
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;    protected abstract boolean isServerSideEncryptionEnabled();
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;    protected abstract String getKmsKey();
+<i class="no-highlight">92</i>&nbsp;
+<i class="no-highlight">93</i>&nbsp;    /**
+<i class="no-highlight">94</i>&nbsp;     * @return the region associated to this S3 account, from which buckets should be accessed.
+<i class="no-highlight">95</i>&nbsp;     */
+<i class="no-highlight">96</i>&nbsp;    public abstract String getKmsRegion();
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;    /**
+<i class="no-highlight">99</i>&nbsp;     * Gets the types of supported KMS data encryption by the account.
+<i class="no-highlight">100</i>&nbsp;     * @return
+<i class="no-highlight">101</i>&nbsp;     */
+<i class="no-highlight">102</i>&nbsp;    protected Set&lt;S3EncryptionType&gt; getSupportedEncryption() {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        Set&lt;S3EncryptionType&gt; encryptionTypes = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        encryptionTypes.add(S3EncryptionType.NONE);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        encryptionTypes.add(S3EncryptionType.SSE_KMS);</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        encryptionTypes.add(S3EncryptionType.CSE_KMS);</b>
+<i class="no-highlight">107</i>&nbsp;
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        return encryptionTypes;</b>
+<i class="no-highlight">109</i>&nbsp;    }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    public S3EncryptionType getEncryptionType() {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        String kmsEncryptionType = getEncryptionTypeString();</b>
+<i class="no-highlight">113</i>&nbsp;
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        if (StringUtils.isBlank(kmsEncryptionType) ||</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                kmsEncryptionType.equalsIgnoreCase(S3EncryptionType.NONE.toString())) {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            return isServerSideEncryptionEnabled() ? S3EncryptionType.SSE : S3EncryptionType.NONE;</b>
+<i class="no-highlight">117</i>&nbsp;        } else {
+<i class="no-highlight">118</i>&nbsp;            // If Server-side encryption checkbox and kms encryption option from the dropdown are
+<i class="no-highlight">119</i>&nbsp;            // both selected at the same time, we throw a configuration exception to tell the user
+<i class="no-highlight">120</i>&nbsp;            // to select only one of the two options. This behavior is intended to preserve backward
+<i class="no-highlight">121</i>&nbsp;            // compatibility, so that the user can continue to roll back snap to a previous version
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            if (isServerSideEncryptionEnabled()) {</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                throw new ConfigurationException(DISABLE_SSE_FOR_KMS)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                        .withReason(DISABLE_SSE_FOR_KMS_REASON);</b>
+<i class="no-highlight">125</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                return S3EncryptionType.toEnum(kmsEncryptionType);</b>
+<i class="no-highlight">127</i>&nbsp;            }
+<i class="no-highlight">128</i>&nbsp;        }
+<i class="no-highlight">129</i>&nbsp;
+<i class="no-highlight">130</i>&nbsp;    }
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;    @Override
+<i class="no-highlight">133</i>&nbsp;    public URLConnection withHeaders(URLConnection conn) {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        UrlUtils.setS3RequestProps(conn, getEncryptionType(), getKmsKey(), getKmsRegion());</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        return conn;</b>
+<i class="no-highlight">136</i>&nbsp;    }
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;    protected void verifyKmsConfig() {
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        String kmsKey = getKmsKey();</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        S3EncryptionType encryptionTypeEnum = getEncryptionType();</b>
+<i class="no-highlight">141</i>&nbsp;        //CS3_KMS is allowed with a blank key for the case that this account is used for reading
+<i class="no-highlight">142</i>&nbsp;        //from S3 only. In this case, the snap must know to use an AWS S3 encryption client.
+<i class="no-highlight">143</i>&nbsp;        //The encryption client is smart enough to look at each s3 object&#39;s metadata and download
+<i class="no-highlight">144</i>&nbsp;        //the key for it.
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        if (StringUtils.isBlank(kmsKey) &amp;&amp; SSE_KMS.equals(encryptionTypeEnum)) {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            throw new ConfigurationException(MISSING_ENCRYPT_KMS)</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                .withReason(MISSING_KMS_KEY_REASON)</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                .withResolution(MISSING_KMS_KEY_RES);</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        } else if (StringUtils.isNotBlank(kmsKey) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            (NONE.equals(encryptionTypeEnum) || SSE.equals(encryptionTypeEnum))) {</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            throw new ConfigurationException(MISSING_ENCRYPT_KMS)</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .withReason(MISSING_ENCRYPT_REA)</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                .withResolution(MISSING_ENCRYPT_RES);</b>
+<i class="no-highlight">154</i>&nbsp;        }
+<i class="no-highlight">155</i>&nbsp;    }
+<i class="no-highlight">156</i>&nbsp;
+<i class="no-highlight">157</i>&nbsp;    protected AssumeRoleResult getRoleAssumption(String accessKey, String secretKey,
+<i class="no-highlight">158</i>&nbsp;                                                 String securityToken, String roleArn,
+<i class="no-highlight">159</i>&nbsp;                                                 String externalID, boolean isIAMRole) {
+<i class="no-highlight">160</i>&nbsp;        AWSCredentialsProvider credentialsProvider;
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        if (isIAMRole) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;            credentialsProvider = InstanceProfileCredentialsProvider.getInstance();</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        } else if (StringUtils.isNotEmpty(securityToken)){</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            credentialsProvider = new AWSStaticCredentialsProvider(</b>
+<i class="no-highlight">165</i>&nbsp;                    new BasicSessionCredentials(accessKey, secretKey, securityToken));
+<i class="no-highlight">166</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">167</i>&nbsp;            credentialsProvider = new AWSStaticCredentialsProvider(</b>
+<i class="no-highlight">168</i>&nbsp;                    new BasicAWSCredentials(accessKey, secretKey));
+<i class="no-highlight">169</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        Region defaultRegion = Regions.getCurrentRegion();</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        String region = defaultRegion == null ? Regions.DEFAULT_REGION.getName() :</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                defaultRegion.getName();</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        ClientConfiguration configuration = new ClientConfiguration();</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        String apnHeader = S3Utils.getApnUserAgentHeaderFor(COMPANY_NAME, PROJECT_NAME, VERSION);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        configuration.setUserAgentPrefix(apnHeader);</b>
+<i class="no-highlight">176</i>&nbsp;
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        String sessionName = String.format(ASSUME_ROLE_SESSION_NAME_FMT, this.toString());</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        AssumeRoleRequest assumeRequest = new AssumeRoleRequest()</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .withRoleArn(roleArn)</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                .withRoleSessionName(sessionName);</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        if (StringUtils.isNotEmpty(externalID)) {</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            assumeRequest = assumeRequest.withExternalId(externalID);</b>
+<i class="no-highlight">183</i>&nbsp;        }
+<i class="no-highlight">184</i>&nbsp;
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        AssumeRoleResult assumeRoleResult = null;</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        AWSSecurityTokenService sts = createAWSSecurityTokenService(region, credentialsProvider,</b>
+<i class="no-highlight">187</i>&nbsp;                configuration);
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        Stack&lt;Integer&gt; sessionDurationStack = getIamRoleMaxSessionDurationsInSeconds();</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        while (!sessionDurationStack.isEmpty()) {</b>
+<i class="no-highlight">190</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                Integer sessionDuration = sessionDurationStack.pop();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                assumeRequest.withDurationSeconds(sessionDuration);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                assumeRoleResult = sts.assumeRole(assumeRequest);</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                break;</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            } catch (Throwable th) {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                if (!StringUtils.containsIgnoreCase(th.getMessage(),</b>
+<i class="no-highlight">197</i>&nbsp;                        &quot;requested DurationSeconds exceeds the MaxSessionDuration&quot;)) {
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                    throw new ConfigurationException(th, ERR_FAIL_TO_ASSUME_ROLE)</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                        .withResolution(RESOLUTION_CHECK_IF_CREDENTIAL_IS_VALID);</b>
+<i class="no-highlight">200</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            }</b>
+<i class="no-highlight">202</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        LOG.debug(&quot;Assumed role {} with session name:{}, max session duration:{}&quot;,</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;            roleArn, sessionName, assumeRequest.getDurationSeconds());</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        return assumeRoleResult;</b>
+<i class="no-highlight">206</i>&nbsp;    }
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;    protected AWSSecurityTokenService createAWSSecurityTokenService(String region,
+<i class="no-highlight">209</i>&nbsp;            AWSCredentialsProvider credentialsProvider, ClientConfiguration configuration) {
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        return AWSSecurityTokenServiceClientBuilder</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                    .standard()</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                    .withRegion(region)</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                    .withCredentials(credentialsProvider)</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                    .withClientConfiguration(configuration)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                    .build();</b>
+<i class="no-highlight">216</i>&nbsp;    }
+<i class="no-highlight">217</i>&nbsp;
+<i class="no-highlight">218</i>&nbsp;    protected Stack&lt;Integer&gt; getIamRoleMaxSessionDurationsInSeconds() {
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        Stack&lt;Integer&gt; durations = new Stack&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        durations.push(3600);</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        return durations;</b>
+<i class="no-highlight">222</i>&nbsp;    }
+<i class="no-highlight">223</i>&nbsp;
+<i class="no-highlight">224</i>&nbsp;    protected void defineCrossAccountIAMProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        SnapProperty arnProperty = propertyBuilder.describe(ARN_PROP, ROLE_ARN_LABEL, ROLE_ARN_DESC)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                .build();</b>
+<i class="no-highlight">229</i>&nbsp;
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        SnapProperty externalIDProperty = propertyBuilder.describe(EXTERNAL_ID_PROP,</b>
+<i class="no-highlight">231</i>&nbsp;                EXTERNAL_ID_LABEL, EXTERNAL_ID_DESC)
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                .build();</b>
+<i class="no-highlight">236</i>&nbsp;
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        SnapProperty iamMaxSessionDurationProperty = propertyBuilder.describe(</b>
+<i class="no-highlight">238</i>&nbsp;                IAM_MAX_SESSION_DURATION_PROP, IAM_MAX_SESSION_DURATION_LABEL,
+<i class="no-highlight">239</i>&nbsp;                IAM_MAX_SESSION_DURATION_DESC)
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                .build();</b>
+<i class="no-highlight">242</i>&nbsp;
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        propertyBuilder.describe(CROSS_ACCOUNT_IAM_PROP, CROSS_ACCOUNT_IAM_PROP_LABEL,</b>
+<i class="no-highlight">244</i>&nbsp;                CROSS_ACCOUNT_IAM_PROP_DESC)
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                .withEntry(arnProperty)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                .withEntry(externalIDProperty)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                .withEntry(iamMaxSessionDurationProperty)</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                .add();</b>
+<i class="no-highlight">250</i>&nbsp;    }
+<i class="no-highlight">251</i>&nbsp;
+<i class="no-highlight">252</i>&nbsp;    private String encodeSessionToken(String secretKey, String sessionToken) {
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        return StringUtils.isEmpty(sessionToken) ?</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                secretKey : String.format(SECRETKEY_SESSIONKEY_FMT, secretKey, sessionToken);</b>
+<i class="no-highlight">255</i>&nbsp;    }
+<i class="no-highlight">256</i>&nbsp;
+<i class="no-highlight">257</i>&nbsp;    /**
+<i class="no-highlight">258</i>&nbsp;     * Get the String pair that contains the credentials for S3
+<i class="no-highlight">259</i>&nbsp;     *
+<i class="no-highlight">260</i>&nbsp;     * The left of the pair would be Access Key ID. The right of the pair is either the Secret
+<i class="no-highlight">261</i>&nbsp;     * Key itself, or the combination of secretKey and session token if cross account IAM is
+<i class="no-highlight">262</i>&nbsp;     * used or security token is provided in S3 Dynamic Account. The format of the combination is
+<i class="no-highlight">263</i>&nbsp;     * &quot;secretKey:sessionToken&quot;
+<i class="no-highlight">264</i>&nbsp;     *
+<i class="no-highlight">265</i>&nbsp;     * @param accessKey
+<i class="no-highlight">266</i>&nbsp;     * @param secretKey
+<i class="no-highlight">267</i>&nbsp;     * @param securityToken
+<i class="no-highlight">268</i>&nbsp;     * @param roleArn
+<i class="no-highlight">269</i>&nbsp;     * @param externalID
+<i class="no-highlight">270</i>&nbsp;     * @param isIAMRole
+<i class="no-highlight">271</i>&nbsp;     * @return
+<i class="no-highlight">272</i>&nbsp;     */
+<i class="no-highlight">273</i>&nbsp;    protected Pair&lt;String, String&gt; getCredentials(String accessKey, String secretKey,
+<i class="no-highlight">274</i>&nbsp;                                                  String securityToken, String roleArn,
+<i class="no-highlight">275</i>&nbsp;                                                  String externalID, boolean isIAMRole) {
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        if (StringUtils.isEmpty(roleArn)) {</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            return Pair.of(accessKey, encodeSessionToken(secretKey, securityToken));</b>
+<i class="no-highlight">278</i>&nbsp;        } else {
+<i class="no-highlight">279</i>&nbsp;            // When using role assumption, the userInfo will be formatted as:
+<i class="no-highlight">280</i>&nbsp;            // accessKey:secretKey:sessionToken
+<b class="nc"><i class="no-highlight">281</i>&nbsp;            AssumeRoleResult assumeRoleResult = getRoleAssumption(accessKey, secretKey,</b>
+<i class="no-highlight">282</i>&nbsp;                    securityToken, roleArn, externalID, isIAMRole);
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            String tmpAccessKey = assumeRoleResult.getCredentials().getAccessKeyId();</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;            String tmpSecretKey = encodeSessionToken(</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                    assumeRoleResult.getCredentials().getSecretAccessKey(),</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                    assumeRoleResult.getCredentials().getSessionToken());</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            return Pair.of(tmpAccessKey, tmpSecretKey);</b>
+<i class="no-highlight">288</i>&nbsp;        }
+<i class="no-highlight">289</i>&nbsp;    }
+<i class="no-highlight">290</i>&nbsp;
+<i class="no-highlight">291</i>&nbsp;    /**
+<i class="no-highlight">292</i>&nbsp;     * Gets the encryption type, KMS key, and KMS region information.
+<i class="no-highlight">293</i>&nbsp;     *
+<i class="no-highlight">294</i>&nbsp;     * @return the encryption info in a Map object
+<i class="no-highlight">295</i>&nbsp;     */
+<i class="no-highlight">296</i>&nbsp;    public Map&lt;String, Object&gt; getKmsProperties() {
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        return new LinkedHashMap&lt;String, Object&gt;() {{</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            put(ENCRYPT_TYPE_KEY, getEncryptionType());</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;            put(KMS_KEY, getKmsKey());</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;            put(KMS_REGION, getKmsRegion());</b>
+<i class="no-highlight">301</i>&nbsp;        }};
+<i class="no-highlight">302</i>&nbsp;    }
+<i class="no-highlight">303</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,270 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CheckInFile</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.onedrive</a>
+</div>
+
+<h1>Coverage Summary for Class: CheckInFile (com.snaplogic.snaps.onedrive)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CheckInFile</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/75)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.onedrive;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.microsoft.graph.http.GraphServiceException;
+<i class="no-highlight">14</i>&nbsp;import com.microsoft.graph.models.DriveItemCheckinParameterSet;
+<i class="no-highlight">15</i>&nbsp;import com.microsoft.graph.requests.DriveItemRequestBuilder;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">28</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">32</i>&nbsp;import java.util.Map;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.DOCUMENT_LIBRARY;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.GRAPH_SERVICE_EXCEPTION_REASON;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.ITEM;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.RESULT;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.CHECK_IN_COMMENT;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.CHECK_IN_COMMENT_DESC;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.CHECK_IN_COMMENT_LABEL;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.CHECK_IN_ITEM;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.CHECK_IN_ITEM_DESC;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.CHECK_IN_SUCCESS;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.DRIVE_NAME;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.DRIVE_NAME_DESC;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.DRIVE_NAME_LABEL;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.ERROR_BUILDING_REQUEST;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.ERROR_CHECKIN_FILE;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.ONEDRIVE_CHECK_IN_FILE_DOC;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.RELATIVE_PATH;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.RESOLUTION_CUSTOMER_SUPPORT;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.SHARED_LIBRARY;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.SHARED_LIBRARY_DESC;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.SHARED_LIBRARY_LABEL;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.OneDriveCommonUtil.getUserAgentHeader;
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;/**
+<i class="no-highlight">59</i>&nbsp; * Check in a file after update. Only works for Shared libraries
+<i class="no-highlight">60</i>&nbsp; */
+<b class="nc"><i class="no-highlight">61</i>&nbsp;@General(title = CHECK_IN_ITEM, purpose = CHECK_IN_ITEM_DESC,</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        docLink = ONEDRIVE_CHECK_IN_FILE_DOC)</b>
+<i class="no-highlight">63</i>&nbsp;public class CheckInFile extends OneDriveWriteCommon {
+<i class="no-highlight">64</i>&nbsp;    private static Logger LOGGER = LoggerFactory.getLogger(CheckInFile.class);
+<i class="no-highlight">65</i>&nbsp;    private ExpressionProperty commentExpr;
+<i class="no-highlight">66</i>&nbsp;
+<b class="nc"><i class="no-highlight">67</i>&nbsp;    @Override</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        propertyBuilder.describe(SHARED_LIBRARY, SHARED_LIBRARY_LABEL, SHARED_LIBRARY_DESC)</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                .required()</b>
+<i class="no-highlight">72</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {
+<i class="no-highlight">73</i>&nbsp;                    buildSharedLibrarySuggestions(DOCUMENT_LIBRARY, suggestionBuilder,
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                            SHARED_LIBRARY);</b>
+<i class="no-highlight">75</i>&nbsp;                })
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        propertyBuilder.describe(DRIVE_NAME, DRIVE_NAME_LABEL, DRIVE_NAME_DESC)</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                    String group = propertyValues.get(SHARED_LIBRARY);</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                    driveIdNameMapping = getDriveIdNameMap(DOCUMENT_LIBRARY, group, null);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                    if (driveIdNameMapping != null &amp;&amp; !driveIdNameMapping.isEmpty()) {</b>
+<i class="no-highlight">85</i>&nbsp;                        suggestionBuilder.node(DRIVE_NAME)
+<i class="no-highlight">86</i>&nbsp;                                .suggestions(driveIdNameMapping.keySet().toArray(new String[0]));
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                })</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        defineRelativePathProperty(propertyBuilder).add();</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        propertyBuilder.describe(CHECK_IN_COMMENT, CHECK_IN_COMMENT_LABEL, CHECK_IN_COMMENT_DESC)</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                .required()</b>
+<i class="no-highlight">94</i>&nbsp;                .add();
+<i class="no-highlight">95</i>&nbsp;        defineRetryProperties(propertyBuilder);
+<i class="no-highlight">96</i>&nbsp;    }
+<i class="no-highlight">97</i>&nbsp;
+<b class="nc"><i class="no-highlight">98</i>&nbsp;    @Override</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;    public void configure(PropertyValues propertyValues) throws ConfigurationException {</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        type = DOCUMENT_LIBRARY;</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        groupIdExpr = propertyValues.getAsExpression(SHARED_LIBRARY);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        driveNameExpr = propertyValues.getAsExpression(DRIVE_NAME);</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        relativePathExpr = propertyValues.getAsExpression(RELATIVE_PATH);</b>
+<i class="no-highlight">104</i>&nbsp;        commentExpr = propertyValues.getAsExpression(CHECK_IN_COMMENT);
+<i class="no-highlight">105</i>&nbsp;        configureRetryProperties(propertyValues);
+<i class="no-highlight">106</i>&nbsp;    }
+<i class="no-highlight">107</i>&nbsp;
+<b class="nc"><i class="no-highlight">108</i>&nbsp;    @Override</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;    protected void process(Document document, String s) {</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        String relativePath = relativePathExpr.eval(document);</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        String comment = commentExpr.eval(document);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        if (StringUtils.isBlank(comment)) {</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            throw new SnapDataException(ERROR_BUILDING_REQUEST)</b>
+<i class="no-highlight">114</i>&nbsp;                    .withReason(&quot;Check In Comment should not be empty.&quot;)
+<i class="no-highlight">115</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            Failsafe.with(createRetryPolicy(document))</b>
+<i class="no-highlight">119</i>&nbsp;                    .onFailedAttempt(e -&gt; {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                        LOGGER.warn(String.format(ERROR_CHECKIN_FILE, relativePath), e);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                    }).run(context -&gt; {</b>
+<i class="no-highlight">122</i>&nbsp;                logRetryAttempt(context);
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                processCheckInFile(document, comment, relativePath);</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            });</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        } catch (GraphServiceException ex) {</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;            LOGGER.error(String.format(ERROR_CHECKIN_FILE, relativePath), ex);</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            throw new SnapDataException(ex, String.format(ERROR_CHECKIN_FILE, relativePath))</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                    .withReason(String.format(GRAPH_SERVICE_EXCEPTION_REASON, ex.getResponseCode(),</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                            ex.getResponseMessage(), ex.getServiceError().message))</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        } catch (SnapDataException ex) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            throw ex;</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        } catch (Exception ex) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            LOGGER.error(String.format(ERROR_CHECKIN_FILE, relativePath), ex);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            throw new SnapDataException(ex, String.format(ERROR_CHECKIN_FILE, relativePath))</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    .withReason(ex.getMessage())</b>
+<i class="no-highlight">137</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);
+<i class="no-highlight">138</i>&nbsp;        }
+<i class="no-highlight">139</i>&nbsp;    }
+<i class="no-highlight">140</i>&nbsp;
+<b class="nc"><i class="no-highlight">141</i>&nbsp;    private void processCheckInFile(Document document, String comment, String relativePath) {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        try {</b>
+<i class="no-highlight">143</i>&nbsp;            DriveItemRequestBuilder requestBuilder = buildDriveItemRequestBuilder(document);
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            if (requestBuilder != null) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                requestBuilder.checkin(DriveItemCheckinParameterSet.newBuilder().withComment(comment).build())</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                        .buildRequest(getUserAgentHeader()).post();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                Map&lt;String, String&gt; resultMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                resultMap.put(ITEM, relativePath);</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                resultMap.put(RESULT, CHECK_IN_SUCCESS);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                outputViews.write(documentUtility.newDocumentFor(document, resultMap));</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                LOGGER.error(ERROR_BUILDING_REQUEST);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                throw new SnapDataException(ERROR_BUILDING_REQUEST)</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                        .withReason(ERROR_BUILDING_REQUEST)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                        .withResolution(RESOLUTION_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            }</b>
+<i class="no-highlight">157</i>&nbsp;        } catch (GraphServiceException ex) {
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            if (refreshToken401Exception(ex) || oneDriveCommonUtil.handleThrottleError(ex)) {</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                processCheckInFile(document, comment, relativePath);</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                return;</b>
+<i class="no-highlight">161</i>&nbsp;            }
+<i class="no-highlight">162</i>&nbsp;            throw ex;
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;    }</b>
+<i class="no-highlight">165</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

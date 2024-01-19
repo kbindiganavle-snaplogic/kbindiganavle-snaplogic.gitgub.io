@@ -1,0 +1,456 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ZuoraEditorSuggestionsProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.zuora</a>
+</div>
+
+<h1>Coverage Summary for Class: ZuoraEditorSuggestionsProvider (com.snaplogic.snaps.zuora)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ZuoraEditorSuggestionsProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/79)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ZuoraEditorSuggestionsProvider$ComplexElementHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">ZuoraEditorSuggestionsProvider$SimpleElementHandler</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/91)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.zuora;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.Sets;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.TemplateEvaluator;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.soap.ClientBuilder;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.soap.SoapEditorSuggestionsProviderImpl;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.soap.WsdlIntrospectionService;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.soap.WsdlSchemaFactory;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.soap.XSD2XML;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.transform.schema.JsonSchemaTransformer;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.soap.XSDSchemaInfo;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.schema.api.ObjectSchema;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.util.JsonPathUtil;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">32</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">33</i>&nbsp;import org.ow2.easywsdl.schema.api.ComplexType;
+<i class="no-highlight">34</i>&nbsp;import org.ow2.easywsdl.schema.api.Element;
+<i class="no-highlight">35</i>&nbsp;import org.ow2.easywsdl.schema.api.SchemaElement;
+<i class="no-highlight">36</i>&nbsp;import org.ow2.easywsdl.schema.api.absItf.AbsItfType;
+<i class="no-highlight">37</i>&nbsp;import org.ow2.easywsdl.schema.impl.SequenceImpl;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">40</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">41</i>&nbsp;import java.util.List;
+<i class="no-highlight">42</i>&nbsp;import java.util.Map;
+<i class="no-highlight">43</i>&nbsp;import java.util.Set;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;import javax.annotation.Nullable;
+<i class="no-highlight">46</i>&nbsp;import javax.xml.namespace.QName;
+<i class="no-highlight">47</i>&nbsp;import javax.xml.soap.SOAPException;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.zuora.Messages.ERROR_WHILE_READING_XML_TEMPLATE;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.zuora.Messages.MISSING_ARGUMENTS;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;/**
+<i class="no-highlight">53</i>&nbsp; * Suggests the invoice envelope
+<i class="no-highlight">54</i>&nbsp; *
+<i class="no-highlight">55</i>&nbsp; * @author mklumpp
+<i class="no-highlight">56</i>&nbsp; */
+<i class="no-highlight">57</i>&nbsp;public class ZuoraEditorSuggestionsProvider extends SoapEditorSuggestionsProviderImpl {
+<i class="no-highlight">58</i>&nbsp;    /**
+<i class="no-highlight">59</i>&nbsp;     * Handles adding the element to the sequence element
+<i class="no-highlight">60</i>&nbsp;     */
+<i class="no-highlight">61</i>&nbsp;    private interface ElementHandler {
+<i class="no-highlight">62</i>&nbsp;        /**
+<i class="no-highlight">63</i>&nbsp;         * Adds an element to the sequence element
+<i class="no-highlight">64</i>&nbsp;         *
+<i class="no-highlight">65</i>&nbsp;         * @param sequenceElement as the sequence element
+<i class="no-highlight">66</i>&nbsp;         * @param element         as the element being added
+<i class="no-highlight">67</i>&nbsp;         */
+<i class="no-highlight">68</i>&nbsp;        void addElement(SequenceImpl sequenceElement, Element element);
+<i class="no-highlight">69</i>&nbsp;    }
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    /**
+<i class="no-highlight">72</i>&nbsp;     * Handler for simple elements
+<i class="no-highlight">73</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">74</i>&nbsp;    private static class SimpleElementHandler implements ElementHandler {</b>
+<i class="no-highlight">75</i>&nbsp;        @Override
+<i class="no-highlight">76</i>&nbsp;        public void addElement(SequenceImpl sequenceElement, Element element) {
+<i class="no-highlight">77</i>&nbsp;            // Only add the types for the variables defined in the envelope
+<b class="nc"><i class="no-highlight">78</i>&nbsp;            sequenceElement.getElements().add(element);</b>
+<i class="no-highlight">79</i>&nbsp;        }
+<i class="no-highlight">80</i>&nbsp;    }
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;    /**
+<i class="no-highlight">83</i>&nbsp;     * Handler for complex elements
+<i class="no-highlight">84</i>&nbsp;     */
+<i class="no-highlight">85</i>&nbsp;    private static class ComplexElementHandler implements ElementHandler {
+<i class="no-highlight">86</i>&nbsp;        private final WsdlSchemaFactory wsdlSchemaFactory;
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        private ComplexElementHandler(WsdlSchemaFactory wsdlSchemaFactory) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            this.wsdlSchemaFactory = wsdlSchemaFactory;</b>
+<i class="no-highlight">89</i>&nbsp;        }
+<i class="no-highlight">90</i>&nbsp;        private String objectTypeName;
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;        protected void withObjectName(String objectTypeName) {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            this.objectTypeName = objectTypeName;</b>
+<i class="no-highlight">94</i>&nbsp;        }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;        @Override
+<i class="no-highlight">97</i>&nbsp;        public void addElement(SequenceImpl sequenceElement, Element element) {
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            String fieldName = element.getQName().getLocalPart();</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            QName compositeQName = QName.valueOf(String.format(ZUORA_COMPLEX_OBJECT_Q_NAME,</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                    objectTypeName, element.getQName().getLocalPart()));</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            Element newElement = wsdlSchemaFactory.createLocalElementFor(fieldName,</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                    element.getType().getQName(), sequenceElement);</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            newElement.setQName(compositeQName);</b>
+<i class="no-highlight">104</i>&nbsp;            // only add the types for the variables defined in the envelope
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            sequenceElement.getElements().add(newElement);</b>
+<i class="no-highlight">106</i>&nbsp;        }
+<i class="no-highlight">107</i>&nbsp;    }
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;    private static final String DEFAULT_TYPE_STRING_QNAME = &quot;{http://www.w3&quot; +
+<i class="no-highlight">110</i>&nbsp;            &quot;.org/2001/XMLSchema}string&quot;;
+<i class="no-highlight">111</i>&nbsp;    private static final String RESOURCE_PATH = &quot;/%s/%s.xml&quot;;
+<i class="no-highlight">112</i>&nbsp;    private static final String ZUORA_OBJECT_Q_NAME = &quot;{http://object.api.zuora&quot; +
+<i class="no-highlight">113</i>&nbsp;            &quot;.com/}%s&quot;;
+<i class="no-highlight">114</i>&nbsp;    private static final String ZUORA_COMPLEX_OBJECT_Q_NAME = &quot;{http://object.api.zuora&quot; +
+<i class="no-highlight">115</i>&nbsp;            &quot;.com/}%s.%s&quot;;
+<b class="nc"><i class="no-highlight">116</i>&nbsp;    private static final CustomXSDTypeResolver XSD_TYPE_RESOLVER = new CustomXSDTypeResolver();</b>
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;    @Inject
+<i class="no-highlight">119</i>&nbsp;    private TemplateEvaluator templateEvaluator;
+<i class="no-highlight">120</i>&nbsp;
+<b class="nc"><i class="no-highlight">121</i>&nbsp;    private final SimpleElementHandler simpleElementHandler = new SimpleElementHandler();</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;    private final ComplexElementHandler complexElementHandler =</b>
+<i class="no-highlight">123</i>&nbsp;            new ComplexElementHandler(wsdlSchemaFactory);
+<i class="no-highlight">124</i>&nbsp;    private String operationName;
+<i class="no-highlight">125</i>&nbsp;    private String objectName;
+<i class="no-highlight">126</i>&nbsp;    private String templateName;
+<i class="no-highlight">127</i>&nbsp;    private Map&lt;String, Object&gt; snapProperties;
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    @Inject
+<i class="no-highlight">130</i>&nbsp;    ZuoraEditorSuggestionsProvider(WsdlIntrospectionService introspectionService,
+<i class="no-highlight">131</i>&nbsp;            XSD2XML xsd2XML, WsdlSchemaFactory wsdlSchemaFactory,
+<i class="no-highlight">132</i>&nbsp;            JsonSchemaTransformer jsonSchemaTransformer, TemplateEvaluator templateEvaluator) {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        super(introspectionService, xsd2XML, wsdlSchemaFactory, jsonSchemaTransformer,</b>
+<i class="no-highlight">134</i>&nbsp;                templateEvaluator);
+<i class="no-highlight">135</i>&nbsp;    }
+<i class="no-highlight">136</i>&nbsp;
+<i class="no-highlight">137</i>&nbsp;    /**
+<i class="no-highlight">138</i>&nbsp;     * Sets the operation name for the suggestion
+<i class="no-highlight">139</i>&nbsp;     *
+<i class="no-highlight">140</i>&nbsp;     * @param operationName as the operation name
+<i class="no-highlight">141</i>&nbsp;     *
+<i class="no-highlight">142</i>&nbsp;     * @return itself
+<i class="no-highlight">143</i>&nbsp;     */
+<i class="no-highlight">144</i>&nbsp;    public ZuoraEditorSuggestionsProvider withOperationName(String operationName) {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        this.operationName = operationName;</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        return this;</b>
+<i class="no-highlight">147</i>&nbsp;    }
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;    /**
+<i class="no-highlight">150</i>&nbsp;     * Sets the object name for the suggestion
+<i class="no-highlight">151</i>&nbsp;     *
+<i class="no-highlight">152</i>&nbsp;     * @param objectName as the object name
+<i class="no-highlight">153</i>&nbsp;     *
+<i class="no-highlight">154</i>&nbsp;     * @return itself
+<i class="no-highlight">155</i>&nbsp;     */
+<i class="no-highlight">156</i>&nbsp;    public ZuoraEditorSuggestionsProvider withObjectName(String objectName) {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        this.objectName = objectName;</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        return this;</b>
+<i class="no-highlight">159</i>&nbsp;    }
+<i class="no-highlight">160</i>&nbsp;
+<i class="no-highlight">161</i>&nbsp;    /**
+<i class="no-highlight">162</i>&nbsp;     * Sets the template name for the suggestion
+<i class="no-highlight">163</i>&nbsp;     *
+<i class="no-highlight">164</i>&nbsp;     * @param templateName as the template name
+<i class="no-highlight">165</i>&nbsp;     *
+<i class="no-highlight">166</i>&nbsp;     * @return itself
+<i class="no-highlight">167</i>&nbsp;     */
+<i class="no-highlight">168</i>&nbsp;    public ZuoraEditorSuggestionsProvider withTemplateName(String templateName) {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        this.templateName = templateName;</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        return this;</b>
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    /**
+<i class="no-highlight">174</i>&nbsp;     * Sets snap properties to substitute variables in the template before returning it,
+<i class="no-highlight">175</i>&nbsp;     * such as a query.
+<i class="no-highlight">176</i>&nbsp;     *
+<i class="no-highlight">177</i>&nbsp;     * @param snapProperties as snap properties which provide substitution values
+<i class="no-highlight">178</i>&nbsp;     *
+<i class="no-highlight">179</i>&nbsp;     * @return itself
+<i class="no-highlight">180</i>&nbsp;     */
+<i class="no-highlight">181</i>&nbsp;    public ZuoraEditorSuggestionsProvider withSnapProperties(Map&lt;String, Object&gt; snapProperties) {
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        this.snapProperties = snapProperties;</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        return this;</b>
+<i class="no-highlight">184</i>&nbsp;    }
+<i class="no-highlight">185</i>&nbsp;
+<i class="no-highlight">186</i>&nbsp;    @Override
+<i class="no-highlight">187</i>&nbsp;    public ZuoraEditorSuggestionsProvider withClientBuilder(ClientBuilder clientBuilder) {
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        super.withClientBuilder(clientBuilder);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        return this;</b>
+<i class="no-highlight">190</i>&nbsp;    }
+<i class="no-highlight">191</i>&nbsp;
+<i class="no-highlight">192</i>&nbsp;    @Override
+<i class="no-highlight">193</i>&nbsp;    public String suggestContent() {
+<i class="no-highlight">194</i>&nbsp;        // TODO - MK: Load the schema from the wsdl and insert it into the resources file instead
+<i class="no-highlight">195</i>&nbsp;        //            There can be multiple pieces that need to be loader (e.g. for subscribe)
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        if (StringUtils.isBlank(objectName) || StringUtils.isBlank(operationName)) {</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            throw new ExecutionException(MISSING_ARGUMENTS)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">199</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        try (InputStream is = getClass().getResourceAsStream(String.format</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                (RESOURCE_PATH, operationName, templateName.toLowerCase()))) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            String template = IOUtils.toString(is);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;            return templateEvaluator.initializeFor(template, snapProperties);</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            throw new ExecutionException(e, ERROR_WHILE_READING_XML_TEMPLATE)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">207</i>&nbsp;        }
+<i class="no-highlight">208</i>&nbsp;    }
+<i class="no-highlight">209</i>&nbsp;
+<i class="no-highlight">210</i>&nbsp;    public List&lt;Element&gt; getElementsForObjectType(String objectName) {
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        QName objectQName = QName.valueOf(String.format(ZUORA_OBJECT_Q_NAME, objectName));</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        return getElementsForObjectType(objectQName);</b>
+<i class="no-highlight">213</i>&nbsp;    }
+<i class="no-highlight">214</i>&nbsp;
+<i class="no-highlight">215</i>&nbsp;    @Override
+<i class="no-highlight">216</i>&nbsp;    public Element getElementsForContent(QName operation, @Nullable String envelope) throws
+<i class="no-highlight">217</i>&nbsp;            IOException, SOAPException {
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        if (StringUtils.isBlank(envelope)) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            return null;</b>
+<i class="no-highlight">220</i>&nbsp;        }
+<i class="no-highlight">221</i>&nbsp;
+<i class="no-highlight">222</i>&nbsp;        // Group by object types in the envelope, such as $Account.Name results in
+<i class="no-highlight">223</i>&nbsp;        // key: Account,
+<i class="no-highlight">224</i>&nbsp;        // value: [Name]
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        Map&lt;String, Set&lt;String&gt;&gt; objectTypeMappings = templateEvaluator.getGroupedKeysFor</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                (envelope, objectName);</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        if (objectTypeMappings == null || objectTypeMappings.isEmpty()) {</b>
+<i class="no-highlight">228</i>&nbsp;            // No variables, no schema to be defined
+<b class="nc"><i class="no-highlight">229</i>&nbsp;            return null;</b>
+<i class="no-highlight">230</i>&nbsp;        }
+<i class="no-highlight">231</i>&nbsp;
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        Element topLevelElement = wsdlSchemaFactory.createTopLevelElementFor(operation);</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        ComplexType complexElement = wsdlSchemaFactory.createComplexTypeFor(topLevelElement);</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        SequenceImpl sequenceElement = (SequenceImpl) wsdlSchemaFactory.createSequenceElementFor</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                (complexElement);</b>
+<i class="no-highlight">236</i>&nbsp;
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        boolean hasComplexChildren = objectTypeMappings.keySet().size() &gt; 1;</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        Map&lt;String, List&lt;Element&gt;&gt; allElements = groupElementsBy(objectTypeMappings);</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        for (Map.Entry&lt;String, List&lt;Element&gt;&gt; entry : allElements.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;            List&lt;Element&gt; elements = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            String objectTypeName = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;            Set&lt;String&gt; fieldNames = objectTypeMappings.get(objectTypeName);</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            if (hasComplexChildren) {</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                complexElementHandler.withObjectName(objectTypeName);</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                processElements(elements, fieldNames, sequenceElement, complexElementHandler);</b>
+<i class="no-highlight">246</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                processElements(elements, fieldNames, sequenceElement, simpleElementHandler);</b>
+<i class="no-highlight">248</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        return topLevelElement;</b>
+<i class="no-highlight">251</i>&nbsp;    }
+<i class="no-highlight">252</i>&nbsp;
+<i class="no-highlight">253</i>&nbsp;    protected com.snaplogic.snap.schema.api.Schema createOldSchemaFor(Map&lt;QName, Object&gt; values,
+<i class="no-highlight">254</i>&nbsp;            Map&lt;QName, SchemaElement&gt; schemas,
+<i class="no-highlight">255</i>&nbsp;            SchemaBuilder schemaBuilder, String viewName) {
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        SchemaProvider schemaProvider = schemaBuilder.getSchemaProvider();</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        ObjectSchema rootSchema = schemaProvider.createSchema(SnapType.COMPOSITE, null);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        for (Map.Entry&lt;QName, Object&gt; entry : values.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            QName qName = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;            String path = (String) entry.getValue();</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            AbsItfType type = (AbsItfType) schemas.get(qName);</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;            XSDSchemaInfo info = new XSDSchemaInfo(QName.valueOf(JsonPathUtil</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                    .removeRootPathElement(path)), type, false, XSD_TYPE_RESOLVER);</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            xsd2JsonSchema.to(info, rootSchema);</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        schemaProvider.setProvidedSchemaForViewName(viewName, rootSchema);</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        return rootSchema;</b>
+<i class="no-highlight">268</i>&nbsp;    }
+<i class="no-highlight">269</i>&nbsp;
+<i class="no-highlight">270</i>&nbsp;    /**
+<i class="no-highlight">271</i>&nbsp;     * Groups the elements by object name.
+<i class="no-highlight">272</i>&nbsp;     *
+<i class="no-highlight">273</i>&nbsp;     * @param objectTypeMappings as the object type mappings
+<i class="no-highlight">274</i>&nbsp;     *
+<i class="no-highlight">275</i>&nbsp;     * @return the grouped list of elements
+<i class="no-highlight">276</i>&nbsp;     */
+<i class="no-highlight">277</i>&nbsp;    private Map&lt;String, List&lt;Element&gt;&gt; groupElementsBy(
+<i class="no-highlight">278</i>&nbsp;            Map&lt;String, Set&lt;String&gt;&gt; objectTypeMappings) {
+<i class="no-highlight">279</i>&nbsp;        // Will hold all element definitions for all object types and their field names
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        Map&lt;String, List&lt;Element&gt;&gt; allElements = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        for (String objectName : objectTypeMappings.keySet()) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;            QName objectType = QName.valueOf(String.format(ZUORA_OBJECT_Q_NAME, objectName));</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            List&lt;Element&gt; elements = getElementsForObjectType(objectType);</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;            if (elements != null) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                allElements.put(objectName, elements);</b>
+<i class="no-highlight">286</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        return allElements;</b>
+<i class="no-highlight">289</i>&nbsp;    }
+<i class="no-highlight">290</i>&nbsp;
+<i class="no-highlight">291</i>&nbsp;    private void processElements(List&lt;Element&gt; elements, Set&lt;String&gt; fieldNames,
+<i class="no-highlight">292</i>&nbsp;            SequenceImpl sequenceElement, ElementHandler elementHandler) {
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        Set&lt;String&gt; allFieldNames = Sets.newHashSet(fieldNames);</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        for (Element element : elements) {</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;            String variableKey = element.getQName().getLocalPart();</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;            if (allFieldNames.contains(variableKey)) {</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                allFieldNames.remove(variableKey);</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                elementHandler.addElement(sequenceElement, element);</b>
+<i class="no-highlight">299</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        for (String fieldName : allFieldNames) {</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;            elementHandler.addElement(sequenceElement, wsdlSchemaFactory.createLocalElementFor</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                    (fieldName, QName.valueOf(DEFAULT_TYPE_STRING_QNAME), sequenceElement));</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        }</b>
+<i class="no-highlight">305</i>&nbsp;    }
+<i class="no-highlight">306</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

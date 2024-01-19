@@ -1,0 +1,377 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EltCoalesce</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt</a>
+</div>
+
+<h1>Coverage Summary for Class: EltCoalesce (com.snaplogic.snaps.elt)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EltCoalesce</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/120)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.SuggestExecutionProvider;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snaps.elt.model.CoalesceFunction;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.Field;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.ctx.PushdownContext;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.parts.SelectPart;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snaps.elt.utils.EltUtils;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">38</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">39</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">42</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">43</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">44</i>&nbsp;import java.util.List;
+<i class="no-highlight">45</i>&nbsp;import java.util.Map;
+<i class="no-highlight">46</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.*;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.*;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.extractQueryFromInputDocument;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.extractSnapTypeFromInputDocument;
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;/**
+<i class="no-highlight">54</i>&nbsp; * The Elt coalesce function snap.
+<i class="no-highlight">55</i>&nbsp; * The COALESCE() function returns the first non-null value in a list.
+<i class="no-highlight">56</i>&nbsp; */
+<i class="no-highlight">57</i>&nbsp;@General(title = ELT_COALESCE_TITLE, purpose = ELT_COALESCE_PURPOSE,
+<i class="no-highlight">58</i>&nbsp;        docLink = ELT_COALESCE_DOC_LINK)
+<i class="no-highlight">59</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">60</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">61</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">62</i>&nbsp;@Category(snap = SnapCategory.TRANSFORM)
+<i class="no-highlight">63</i>&nbsp;@Accounts(provides = {EltDatabaseAccount.class})
+<b class="nc"><i class="no-highlight">64</i>&nbsp;public class EltCoalesce extends BaseElt implements SuggestExecutionProvider, InputSchemaProvider {</b>
+<i class="no-highlight">65</i>&nbsp;
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(EltCoalesce.class);</b>
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    private CoalesceFunction coalesceFunction;
+<i class="no-highlight">69</i>&nbsp;    private boolean passThroughCoalesce;
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    private static final List&lt;String&gt; COALESCE_PUSHDOWN_SNAP_LIST =
+<i class="no-highlight">72</i>&nbsp;            new ImmutableList
+<i class="no-highlight">73</i>&nbsp;                    .Builder&lt;String&gt;()
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                    .add(ELT_AGGREGATE_TITLE)</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                    .add(ELT_FILTER_TITLE)</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                    .add(ELT_INSERT_SELECT_TITLE)</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                    .add(ELT_JOIN_TITLE)</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                    .add(ELT_LOAD_TITLE)</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                    .add(ELT_MERGE_INTO_TITLE)</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                    .add(ELT_PIVOT_TITLE)</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                    .add(ELT_SAMPLE_TITLE)</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                    .add(ELT_SCD2_TITLE)</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                    .add(ELT_SELECT_TITLE)</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                    .add(ELT_LIMIT_TITLE)</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                    .add(ELT_TRANSFORM_TITLE)</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                    .add(ELT_WINDOW_FUNCTIONS_TITLE)</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                    .add(ELT_CASE_TITLE)</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                    .add(ELT_COALESCE_TITLE)</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    .add(ELT_CONDITIONAL_TITLE)</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                    .add(ELT_STRING_TITLE)</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                    .add(ELT_MATH_TITLE)</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                    .add(ELT_CAST_TITLE)</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                    .build();</b>
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;    @Override
+<i class="no-highlight">96</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        buildPassThroughFlag(builder);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        buildAlias(builder);</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        buildArgumentsTable(builder);</b>
+<i class="no-highlight">100</i>&nbsp;    }
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;    private void buildArgumentsTable(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        SnapProperty coalesceArgColumn = builder</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                .describe(COALESCE_ARGUMENT_PROP, ARGUMENT_LABEL, COALESCE_ARGUMENT_DESC)</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        builder.describe(COALESCE_ARGUMENTS_PROP, COALESCE_ARGUMENTS_LABEL, COALESCE_ARGUMENTS_DESC)</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                .withEntry(coalesceArgColumn)</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                .add();</b>
+<i class="no-highlight">112</i>&nbsp;    }
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    private void buildAlias(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        builder.describe(COALESCE_ALIAS_PROP, ALIAS_FIELD_LABEL, COALESCE_ALIAS_DESC)</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .add();</b>
+<i class="no-highlight">118</i>&nbsp;    }
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;    private void buildPassThroughFlag(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        builder.describe(Messages.PASS_THROUGH_PROP, PASS_THROUGH_LABEL, PASS_THROUGH_DESC)</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .add();</b>
+<i class="no-highlight">125</i>&nbsp;    }
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;    @Override
+<i class="no-highlight">128</i>&nbsp;    protected void configureSnap(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        setSnapLevelSubQueryPushDownParam(DISABLE_COALESCE_FUNCTIONS_SUBQUERY_PUSHDOWN);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        EltUtils.checkSnapPlacement(inputViews, ELT_COALESCE_TITLE);</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        passThroughCoalesce = Boolean.TRUE.equals(propertyValues.get(PASS_THROUGH_PROP));</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        coalesceFunction = new CoalesceFunction(getFieldsList(propertyValues,</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                propertyValues.get(COALESCE_ARGUMENTS_PROP), COALESCE_ARGUMENT_PROP),</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                Optional.ofNullable(propertyValues.&lt;String&gt;get(COALESCE_ALIAS_PROP))</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                        .orElse(EMPTY_STRING));</b>
+<i class="no-highlight">137</i>&nbsp;    }
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;    @Override
+<i class="no-highlight">140</i>&nbsp;    protected void processDocument(Document document, String inputViewName) {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        String inputSqlString = extractQueryFromInputDocument(document);</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        if (StringUtils.isBlank(inputSqlString)) {</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            LOG.info(&quot;Input sql is empty, do nothing&quot;);</b>
+<i class="no-highlight">144</i>&nbsp;            return;
+<i class="no-highlight">145</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        if (validationInProgress) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            schemaSupportService.defineInputSchema(schemaProvider, inputSqlString, inputViewName);</b>
+<i class="no-highlight">148</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        List&lt;String&gt; snapTypes = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        snapTypes.add(ELT_COALESCE_TITLE);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        Map&lt;String, Object&gt; output = getCoalesceOutput(document, inputSqlString, snapTypes);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        if (handlePreview(documentUtility.newDocument(output), document, account,</b>
+<i class="no-highlight">153</i>&nbsp;                validationInProgress, previewRowCount, executionMode, executeSqlInPreview)) {
+<i class="no-highlight">154</i>&nbsp;            return;
+<i class="no-highlight">155</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        outputViews.write(documentUtility.newDocument(output), document);</b>
+<i class="no-highlight">157</i>&nbsp;    }
+<i class="no-highlight">158</i>&nbsp;
+<i class="no-highlight">159</i>&nbsp;    private Map&lt;String, Object&gt; getCoalesceOutput(Document document, String inputSqlString,
+<i class="no-highlight">160</i>&nbsp;                                                  List&lt;String&gt; snapTypes) {
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        String randomString = &quot;Coalesce_&quot;.concat(getDerivedTableName());</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        List&lt;String&gt; previousSnapTypes = extractSnapTypeFromInputDocument(document);</b>
+<i class="no-highlight">163</i>&nbsp;        Map&lt;String, Object&gt; output;
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        if (canPushdownFunctions(document, COALESCE_PUSHDOWN_SNAP_LIST,</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                Collections.singletonList(coalesceFunction), inputSqlString)) {</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;            snapTypes.addAll(previousSnapTypes);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;            output = buildCoalescePushDownOutput(document, snapTypes, randomString, inputSqlString);</b>
+<i class="no-highlight">168</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            output = buildCoalesceOutput(inputSqlString, snapTypes, document, randomString);</b>
+<i class="no-highlight">170</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        return output;</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    private Map&lt;String, Object&gt; buildCoalescePushDownOutput(Document document,
+<i class="no-highlight">175</i>&nbsp;                                                            List&lt;String&gt; snapTypes,
+<i class="no-highlight">176</i>&nbsp;                                                            String randomString,
+<i class="no-highlight">177</i>&nbsp;                                                            String inputSqlString) {
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        String resultSql = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        PushdownContext ctx = PushdownContext.getOrCreate(document, randomString);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        if (!coalesceFunction.getArgs().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;            coalesceFunction.setAlias(getFunctionAlias(coalesceFunction.getAlias()));</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            Field functionToSetWithOriginalName = buildAllFields(</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                    Collections.singletonList(coalesceFunction)).get(0);</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;            checkColumnsExists(document, Collections.singletonList(functionToSetWithOriginalName),</b>
+<i class="no-highlight">185</i>&nbsp;                    inputSqlString);
+<i class="no-highlight">186</i>&nbsp;
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            replaceArgumentsIfRenamed(ctx, Collections.singletonList(coalesceFunction));</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;            Field functionToSet = buildAllFields(</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                    Collections.singletonList(coalesceFunction)).get(0);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;            SelectPart selectPart = ctx.getSelectPart();</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;            if (passThroughCoalesce) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                List&lt;Field&gt; expressions = new ArrayList&lt;&gt;(selectPart.getExpressions());</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                expressions.add(0, functionToSet);</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                selectPart.setExpressions(expressions);</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                selectPart.setExpressions(Collections.singletonList(functionToSet));</b>
+<i class="no-highlight">197</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            resultSql = pushdownQueryBuilder.buildSql(ctx);</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        } else if (passThroughCoalesce) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            resultSql = pushdownQueryBuilder.buildSql(ctx);</b>
+<i class="no-highlight">201</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            throwInvalidConfig();</b>
+<i class="no-highlight">203</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        return getOutputViewMap(document, resultSql, snapTypes, ctx);</b>
+<i class="no-highlight">205</i>&nbsp;    }
+<i class="no-highlight">206</i>&nbsp;
+<i class="no-highlight">207</i>&nbsp;    private Map&lt;String, Object&gt; buildCoalesceOutput(String inputSqlString, List&lt;String&gt; snapTypes,
+<i class="no-highlight">208</i>&nbsp;                                                    Document document, String randomString) {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        String resultSql = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        PushdownContext ctx = PushdownContext.create(document, randomString);</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        if (!coalesceFunction.getArgs().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;            coalesceFunction.setAlias(getFunctionAlias(coalesceFunction.getAlias()));</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            Field functionToSet = buildAllFields(</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                    Collections.singletonList(coalesceFunction)).get(0);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            String functionString =</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                    buildAllFuncsString(Collections.singletonList(coalesceFunction));</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            SelectPart selectPart = ctx.getSelectPart();</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;            if (passThroughCoalesce) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                List&lt;Field&gt; expressions = new ArrayList&lt;&gt;(selectPart.getExpressions());</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                expressions.add(0, functionToSet);</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                selectPart.setExpressions(expressions);</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                resultSql = String.format(FUNCTIONS_AND_PASS_THROUGH_SQL,</b>
+<i class="no-highlight">223</i>&nbsp;                        functionString, inputSqlString, randomString);
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                selectPart.setExpressions(Collections.singletonList(functionToSet));</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                resultSql = String.format(FUNCTIONS_ONLY_SQL, functionString, inputSqlString,</b>
+<i class="no-highlight">227</i>&nbsp;                        randomString);
+<i class="no-highlight">228</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        } else if (passThroughCoalesce) {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            if (isSubQueryPushdownEnabled()) {</b>
+<i class="no-highlight">231</i>&nbsp;                // if Pass through is enabled and there are no coalesce
+<i class="no-highlight">232</i>&nbsp;                // arguments in the snap, subquery pushdown is enabled then the
+<i class="no-highlight">233</i>&nbsp;                // Coalesce snap can simply forward the input SQL without any processing.
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                resultSql = inputSqlString;</b>
+<i class="no-highlight">235</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                resultSql = String.format(PASS_THROUGH_ONLY_SQL_FUNCTIONS, inputSqlString,</b>
+<i class="no-highlight">237</i>&nbsp;                        randomString);
+<i class="no-highlight">238</i>&nbsp;            }
+<i class="no-highlight">239</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">240</i>&nbsp;            throwInvalidConfig();</b>
+<i class="no-highlight">241</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        return getOutputViewMap(document, resultSql, snapTypes, ctx);</b>
+<i class="no-highlight">243</i>&nbsp;    }
+<i class="no-highlight">244</i>&nbsp;
+<i class="no-highlight">245</i>&nbsp;    private void throwInvalidConfig() {
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        throw new ConfigurationException(ERR_MSG_INVALID_SNAP_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                .withReason(ERR_REASON_ARGUMENTS_AND_PASS_THROUGH_NOT_DEFINED)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                .withResolution(ERR_RES_ARGUMENTS_AND_PASS_THROUGH_NOT_DEFINED);</b>
+<i class="no-highlight">249</i>&nbsp;    }
+<i class="no-highlight">250</i>&nbsp;
+<i class="no-highlight">251</i>&nbsp;    private String getFunctionAlias(String alias) {
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        return StringUtils.isBlank(alias) ? &quot;coalesce_&quot; + getDerivedTableName() : alias;</b>
+<i class="no-highlight">253</i>&nbsp;    }
+<i class="no-highlight">254</i>&nbsp;
+<i class="no-highlight">255</i>&nbsp;    @Override
+<i class="no-highlight">256</i>&nbsp;    public void configureForSuggest(final PropertyValues propertyValues,
+<i class="no-highlight">257</i>&nbsp;                                    final BigInteger maxSuggestValue) {
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        configurePreviewProps(maxSuggestValue);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        configure(propertyValues);</b>
+<i class="no-highlight">260</i>&nbsp;    }
+<i class="no-highlight">261</i>&nbsp;
+<i class="no-highlight">262</i>&nbsp;    @Override
+<i class="no-highlight">263</i>&nbsp;    public void executeForSuggest() {
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        execute();</b>
+<i class="no-highlight">265</i>&nbsp;    }
+<i class="no-highlight">266</i>&nbsp;
+<i class="no-highlight">267</i>&nbsp;    @Override
+<i class="no-highlight">268</i>&nbsp;    public void defineInputSchema(final SchemaProvider schemaProvider) {
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        this.schemaProvider = schemaProvider;</b>
+<i class="no-highlight">270</i>&nbsp;    }
+<i class="no-highlight">271</i>&nbsp;
+<i class="no-highlight">272</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

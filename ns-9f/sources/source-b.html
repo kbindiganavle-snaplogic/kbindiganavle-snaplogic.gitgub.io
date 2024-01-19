@@ -1,0 +1,245 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BinaryS3Account</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.binary</a>
+</div>
+
+<h1>Coverage Summary for Class: BinaryS3Account (com.snaplogic.snaps.binary)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BinaryS3Account</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/36)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.binary;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.auth.BasicSessionCredentials;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.s3.AmazonS3;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.services.s3.AmazonS3Client;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+<i class="no-highlight">18</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.binary.AbstractS3Account;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.binary.UrlUtils;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">30</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">31</i>&nbsp;import org.apache.hadoop.conf.Configuration;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import java.util.Stack;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.binary.Messages.ERR_VALIDATE_ACCOUNT;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.binary.Messages.S3_ACCOUNT_DOC_LINK;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.binary.Messages.S3_ACCOUNT_TITLE;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;/**
+<i class="no-highlight">40</i>&nbsp; * Represent an AWS S3 account which provides an access key and secret key properties.
+<i class="no-highlight">41</i>&nbsp; *
+<i class="no-highlight">42</i>&nbsp; * @author mklumpp
+<i class="no-highlight">43</i>&nbsp; */
+<i class="no-highlight">44</i>&nbsp;@General(title = S3_ACCOUNT_TITLE, docLink = S3_ACCOUNT_DOC_LINK)
+<i class="no-highlight">45</i>&nbsp;@Version(snap = 2)
+<i class="no-highlight">46</i>&nbsp;@AccountCategory(type = AccountType.AWS_S3)
+<b class="nc"><i class="no-highlight">47</i>&nbsp;public class BinaryS3Account extends AbstractS3Account {</b>
+<i class="no-highlight">48</i>&nbsp;    private static final String FS_S3_AWS_ACCESS_KEY_ID = &quot;fs.s3.awsAccessKeyId&quot;;
+<i class="no-highlight">49</i>&nbsp;    private static final String FS_S3_AWS_SECRET_KEY = &quot;fs.s3.awsSecretAccessKey&quot;;
+<i class="no-highlight">50</i>&nbsp;    protected String roleArn;
+<i class="no-highlight">51</i>&nbsp;    protected String externalID;
+<i class="no-highlight">52</i>&nbsp;    private boolean isIamMaxSessionDurationEnabled;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;    @Override
+<i class="no-highlight">56</i>&nbsp;    protected void defineAdditionalProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">57</i>&nbsp;        defineCrossAccountIAMProperties(propertyBuilder);</b>
+<i class="no-highlight">58</i>&nbsp;    }
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;    @Override
+<i class="no-highlight">61</i>&nbsp;    protected void configureAdditionalProperties(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        configureCrossAccountIAMProperties(propertyValues);</b>
+<i class="no-highlight">63</i>&nbsp;    }
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    @Inject
+<i class="no-highlight">66</i>&nbsp;    private UrlUtil urlUtil;
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    @Override
+<i class="no-highlight">69</i>&nbsp;    public String connect() throws ExecutionException {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        Pair&lt;String, String&gt; keyPairs = getCredentials(accessKey, secretKey, null, roleArn,</b>
+<i class="no-highlight">71</i>&nbsp;                externalID, isIAMRole);
+<b class="nc"><i class="no-highlight">72</i>&nbsp;        return urlUtil.formatUserInfo(keyPairs.getLeft(), keyPairs.getRight());</b>
+<i class="no-highlight">73</i>&nbsp;    }
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;    @Override
+<i class="no-highlight">76</i>&nbsp;    public String validate(final Void arg) {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        if (isIAMRole) {</b>
+<i class="no-highlight">78</i>&nbsp;            // IAM role account cannot be validated and cannot display reason and resolution in
+<i class="no-highlight">79</i>&nbsp;            // the account validation. This issue is documented in the Snap reference document.
+<b class="nc"><i class="no-highlight">80</i>&nbsp;            throw new ExecutionException(ERR_VALIDATE_ACCOUNT);</b>
+<i class="no-highlight">81</i>&nbsp;        }
+<i class="no-highlight">82</i>&nbsp;        AmazonS3 s3;
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        if (StringUtils.isEmpty(roleArn)) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;            s3 = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey),</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                    UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">86</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            AssumeRoleResult assumeRoleResult = getRoleAssumption(accessKey, secretKey, null,</b>
+<i class="no-highlight">88</i>&nbsp;                    roleArn, externalID, isIAMRole);
+<i class="no-highlight">89</i>&nbsp;
+<b class="nc"><i class="no-highlight">90</i>&nbsp;            s3 = new AmazonS3Client(new BasicSessionCredentials(</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                    assumeRoleResult.getCredentials().getAccessKeyId(),</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                    assumeRoleResult.getCredentials().getSecretAccessKey(),</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                    assumeRoleResult.getCredentials().getSessionToken()),</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">95</i>&nbsp;        }
+<i class="no-highlight">96</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;            return s3.getS3AccountOwner().getDisplayName();</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            throw new ExecutionException(e, ERR_VALIDATE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                    .withReason(e.getMessage());</b>
+<i class="no-highlight">101</i>&nbsp;        }
+<i class="no-highlight">102</i>&nbsp;    }
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;    @Override
+<i class="no-highlight">105</i>&nbsp;    public boolean isIAMRole() {
+<i class="no-highlight">106</i>&nbsp;        // If CrossAccountIAM is used, we will use a temporary access key and secret key to do
+<i class="no-highlight">107</i>&nbsp;        // authentication, and will not go through the normal IAMRole routine.
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        return super.isIAMRole() &amp;&amp; StringUtils.isEmpty(roleArn);</b>
+<i class="no-highlight">109</i>&nbsp;    }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    @Override
+<i class="no-highlight">112</i>&nbsp;    protected Stack&lt;Integer&gt; getIamRoleMaxSessionDurationsInSeconds() {
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        Stack&lt;Integer&gt; durations = new Stack&lt;&gt;();</b>
+<i class="no-highlight">114</i>&nbsp;        // push session durations in ascending order
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        durations.push(1 * 3600);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        if (isIamMaxSessionDurationEnabled) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            durations.push(2 * 3600);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            durations.push(4 * 3600);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            durations.push(8 * 3600);</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            durations.push(12 * 3600);</b>
+<i class="no-highlight">121</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        return durations;</b>
+<i class="no-highlight">123</i>&nbsp;    }
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;    /**
+<i class="no-highlight">126</i>&nbsp;     * Gets s3 account information and sets at hadoop configuration
+<i class="no-highlight">127</i>&nbsp;     */
+<i class="no-highlight">128</i>&nbsp;    void setAccountCredential(Configuration hadoopConf) {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        hadoopConf.set(FS_S3_AWS_ACCESS_KEY_ID, accessKey);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        hadoopConf.set(FS_S3_AWS_SECRET_KEY, secretKey);</b>
+<i class="no-highlight">131</i>&nbsp;    }
+<i class="no-highlight">132</i>&nbsp;
+<i class="no-highlight">133</i>&nbsp;    private void configureCrossAccountIAMProperties(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        this.roleArn = propertyValues.getAsExpression(ARN_PROP_PATH).eval(null);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        this.externalID = propertyValues.getAsExpression(EXTERNAL_ID_PROP_PATH)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                .eval(null);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        this.isIamMaxSessionDurationEnabled = Boolean.TRUE.equals(propertyValues</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                .get(IAM_MAX_SESSION_DURATION_PROP_PATH));</b>
+<i class="no-highlight">139</i>&nbsp;    }
+<i class="no-highlight">140</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

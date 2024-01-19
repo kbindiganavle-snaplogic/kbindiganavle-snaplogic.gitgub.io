@@ -1,0 +1,247 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > LoginCache</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce</a>
+</div>
+
+<h1>Coverage Summary for Class: LoginCache (com.snaplogic.snaps.salesforce)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LoginCache</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/23)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">LoginCache$LoginSalesforce</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.cache.CacheBuilder;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.cache.CacheLoader;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.cache.LoadingCache;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">17</i>&nbsp;import com.google.inject.Injector;
+<i class="no-highlight">18</i>&nbsp;import com.google.inject.Singleton;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.account.api.Account;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snaps.salesforce.auth.SalesforceLogin;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snaps.salesforce.common.Login;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snaps.salesforce.common.UserCredentials;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.util.ConvertUtils;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snaps.salesforce.Messages.ERR_LOGIN;
+<i class="no-highlight">32</i>&nbsp;import static com.snaplogic.snaps.salesforce.Messages.ERR_LOGIN_RESOLUTION;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.salesforce.Messages.ERR_MALFORMED_SERVICE_URL;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.salesforce.Messages.ERR_MALFORMED_SERVICE_URL_MESSAGE;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;/**
+<i class="no-highlight">37</i>&nbsp; * Maintains Salesfoce.com login cache data. If it has successfully logged into Salesforce.com
+<i class="no-highlight">38</i>&nbsp; * with given credentials, it reuses the SalesforceLogin object without login again, or else, logs
+<i class="no-highlight">39</i>&nbsp; * in to Salesforce.com and creates a SalesforceLogin object. The SalesforceLogin object contains
+<i class="no-highlight">40</i>&nbsp; * an access token and an instance URL.
+<i class="no-highlight">41</i>&nbsp; *
+<i class="no-highlight">42</i>&nbsp; * @author psung
+<i class="no-highlight">43</i>&nbsp; */
+<i class="no-highlight">44</i>&nbsp;@Singleton
+<b class="nc"><i class="no-highlight">45</i>&nbsp;public class LoginCache {</b>
+<i class="no-highlight">46</i>&nbsp;    private static final int MAX_CACHE_SIZE = 20;
+<i class="no-highlight">47</i>&nbsp;    // The shortest time that Salesforce users are allowed to set the access token expiration to is
+<i class="no-highlight">48</i>&nbsp;    // 15 minutes. It would be safe to set our expiration to 14 minutes.
+<i class="no-highlight">49</i>&nbsp;    private static final String DEFAULT_SFDC_SESSION_TIMEOUT_MINUTES = &quot;14&quot;;
+<b class="nc"><i class="no-highlight">50</i>&nbsp;    private final int sfdcSessionTimeoutMinutes = ConvertUtils.getIntegerSystemProperty(</b>
+<i class="no-highlight">51</i>&nbsp;            &quot;SFDC_SESSION_TIMEOUT_MINUTES&quot;, DEFAULT_SFDC_SESSION_TIMEOUT_MINUTES);
+<i class="no-highlight">52</i>&nbsp;    @Inject
+<i class="no-highlight">53</i>&nbsp;    private Injector injector;
+<i class="no-highlight">54</i>&nbsp;
+<b class="nc"><i class="no-highlight">55</i>&nbsp;    private class LoginSalesforce extends CacheLoader&lt;UserCredentials, Login&gt; {</b>
+<i class="no-highlight">56</i>&nbsp;        @Override
+<i class="no-highlight">57</i>&nbsp;        public Login load(UserCredentials credentials) {
+<b class="nc"><i class="no-highlight">58</i>&nbsp;            Login sfLogin = injector.getInstance(SalesforceLogin.class);</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;            sfLogin.initialize(credentials);</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;            sfLogin.login();</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;            return sfLogin;</b>
+<i class="no-highlight">62</i>&nbsp;        }
+<i class="no-highlight">63</i>&nbsp;    }
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    private final LoadingCache&lt;UserCredentials, Login&gt; loginCache = CacheBuilder.newBuilder()
+<b class="nc"><i class="no-highlight">66</i>&nbsp;            .maximumSize(MAX_CACHE_SIZE)</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;            .expireAfterWrite(sfdcSessionTimeoutMinutes, TimeUnit.MINUTES)</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            .build(new LoginSalesforce());</b>
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;    /**
+<i class="no-highlight">71</i>&nbsp;     * Gets Login object from the cache
+<i class="no-highlight">72</i>&nbsp;     *
+<i class="no-highlight">73</i>&nbsp;     * @param credentials - Salesforce login credentials
+<i class="no-highlight">74</i>&nbsp;     * @param invalidate  - if true, invalidate cached Login object
+<i class="no-highlight">75</i>&nbsp;     *
+<i class="no-highlight">76</i>&nbsp;     * @return SalesforceLgin object
+<i class="no-highlight">77</i>&nbsp;     */
+<i class="no-highlight">78</i>&nbsp;    protected synchronized Login get(UserCredentials credentials, boolean invalidate) {
+<i class="no-highlight">79</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">80</i>&nbsp;            if (invalidate) {</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                loginCache.invalidate(credentials);</b>
+<i class="no-highlight">82</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">83</i>&nbsp;            return loginCache.get(credentials);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            if (e.getCause() instanceof ExecutionException) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                throw (ExecutionException) e.getCause();</b>
+<i class="no-highlight">89</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                throw new ExecutionException(e, ERR_LOGIN).formatWith(credentials.getUsername())</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                        .withResolution(ERR_LOGIN_RESOLUTION);</b>
+<i class="no-highlight">93</i>&nbsp;            }
+<i class="no-highlight">94</i>&nbsp;        }
+<i class="no-highlight">95</i>&nbsp;    }
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;    /**
+<i class="no-highlight">98</i>&nbsp;     * Gets Login object from the cache. This version is used in the Salesforce object
+<i class="no-highlight">99</i>&nbsp;     * caches.
+<i class="no-highlight">100</i>&nbsp;     *
+<i class="no-highlight">101</i>&nbsp;     * @param account - Salesforce login credentials
+<i class="no-highlight">102</i>&nbsp;     * @param invalidate  - if true, invalidate cached Login object
+<i class="no-highlight">103</i>&nbsp;     *
+<i class="no-highlight">104</i>&nbsp;     * @return SalesforceLgin object
+<i class="no-highlight">105</i>&nbsp;     */
+<i class="no-highlight">106</i>&nbsp;    public synchronized Login get(Account&lt;Login&gt; account, boolean invalidate) {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        Login login = get(((SalesforceAccount) account).getUserCredentials(), invalidate);</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        if ((login == null) || StringUtils.isBlank(login.getInstanceUrl())) {</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;            throw new ExecutionException(ERR_MALFORMED_SERVICE_URL)</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                    .formatWith(((SalesforceAccount) account).getUsername())</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                    .withReason(ERR_MALFORMED_SERVICE_URL_MESSAGE)</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                    .withResolution(ERR_LOGIN_RESOLUTION);</b>
+<i class="no-highlight">113</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        return login;</b>
+<i class="no-highlight">115</i>&nbsp;    }
+<i class="no-highlight">116</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

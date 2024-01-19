@@ -1,0 +1,275 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RequestHistory</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.http</a>
+</div>
+
+<h1>Coverage Summary for Class: RequestHistory (com.snaplogic.snap.api.http)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RequestHistory</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/64)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.http;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import org.apache.commons.lang.StringUtils;
+<i class="no-highlight">17</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">18</i>&nbsp;import org.apache.http.Header;
+<i class="no-highlight">19</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">20</i>&nbsp;import org.apache.http.HttpEntityEnclosingRequest;
+<i class="no-highlight">21</i>&nbsp;import org.apache.http.HttpHeaders;
+<i class="no-highlight">22</i>&nbsp;import org.apache.http.HttpRequest;
+<i class="no-highlight">23</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">24</i>&nbsp;import org.apache.http.util.EntityUtils;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">27</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">28</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">29</i>&nbsp;import java.util.Date;
+<i class="no-highlight">30</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">31</i>&nbsp;import java.util.List;
+<i class="no-highlight">32</i>&nbsp;import java.util.Map;
+<i class="no-highlight">33</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">34</i>&nbsp;import java.util.Set;
+<i class="no-highlight">35</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snap.api.http.Constants.*;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;/**
+<i class="no-highlight">40</i>&nbsp; * A class to hold information for a request that was sent and a response that was returned
+<i class="no-highlight">41</i>&nbsp; */
+<i class="no-highlight">42</i>&nbsp;public class RequestHistory {
+<i class="no-highlight">43</i>&nbsp;    private final static String STRINGIFY_FMT = &quot;%s %s [%s]&quot;;
+<i class="no-highlight">44</i>&nbsp;    private String requestLine;
+<i class="no-highlight">45</i>&nbsp;    private List&lt;Pair&lt;String, String&gt;&gt; requestHeaders;
+<i class="no-highlight">46</i>&nbsp;    private String requestEntity;
+<i class="no-highlight">47</i>&nbsp;    private String responseStatus;
+<i class="no-highlight">48</i>&nbsp;    private List&lt;Pair&lt;String, String&gt;&gt; responseHeaders;
+<i class="no-highlight">49</i>&nbsp;    private String responseEntity;
+<i class="no-highlight">50</i>&nbsp;    private Date reqTime;
+<i class="no-highlight">51</i>&nbsp;    private Date respTime;
+<i class="no-highlight">52</i>&nbsp;    private Set&lt;String&gt; accountHeaders;
+<i class="no-highlight">53</i>&nbsp;    private String accountPassword;
+<b class="nc"><i class="no-highlight">54</i>&nbsp;</b>
+<i class="no-highlight">55</i>&nbsp;    RequestHistory() {
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;    }
+<i class="no-highlight">58</i>&nbsp;
+<b class="nc"><i class="no-highlight">59</i>&nbsp;    @VisibleForTesting</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    public RequestHistory(HttpRequest request, Set&lt;String&gt; accountHeaders, String password) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;        this.accountHeaders = accountHeaders;</b>
+<i class="no-highlight">62</i>&nbsp;        this.accountPassword = password;
+<i class="no-highlight">63</i>&nbsp;        setHttpRequest(request);
+<i class="no-highlight">64</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">65</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    @VisibleForTesting</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;    public RequestHistory(HttpRequest request, Set&lt;String&gt; accountHeaders) {</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        this.accountHeaders = accountHeaders;</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        setHttpRequest(request);</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;</b>
+<i class="no-highlight">72</i>&nbsp;    void setHttpRequest(HttpRequest request) {
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        reqTime = new Date();</b>
+<i class="no-highlight">74</i>&nbsp;        if (StringUtils.isNotBlank(accountPassword)) {
+<b class="nc"><i class="no-highlight">75</i>&nbsp;            requestLine = request.getRequestLine().toString()</b>
+<i class="no-highlight">76</i>&nbsp;                    .replaceAll(accountPassword, &quot;&lt;--Hidden--&gt;&quot;);
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;            requestLine = request.getRequestLine().toString();</b>
+<i class="no-highlight">79</i>&nbsp;        }
+<i class="no-highlight">80</i>&nbsp;        requestHeaders = new ArrayList&lt;&gt;();
+<i class="no-highlight">81</i>&nbsp;        for (Header header : request.getAllHeaders()) {
+<i class="no-highlight">82</i>&nbsp;            String val = header.getValue();
+<b class="nc"><i class="no-highlight">83</i>&nbsp;            if (StringUtils.equalsIgnoreCase(HttpHeaders.AUTHORIZATION, header.getName()) ||</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                    accountHeaders != null &amp;&amp; accountHeaders.contains(header.getName()) ||</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                    StringUtils.isNotBlank(accountPassword) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                            StringUtils.equals(accountPassword, val)) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                // Masked the Authorization headers for security reason</b>
+<i class="no-highlight">88</i>&nbsp;                val = &quot;&lt;--Hidden--&gt;&quot;;
+<b class="nc"><i class="no-highlight">89</i>&nbsp;            }</b>
+<i class="no-highlight">90</i>&nbsp;            requestHeaders.add(Pair.of(header.getName(), val));
+<i class="no-highlight">91</i>&nbsp;        }
+<i class="no-highlight">92</i>&nbsp;        if (request instanceof HttpEntityEnclosingRequest) {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            requestEntity = entityToString(((HttpEntityEnclosingRequest) request).getEntity());</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;            if (StringUtils.isNotBlank(accountPassword) &amp;&amp; StringUtils.isNotBlank(requestEntity)) {</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                requestEntity = requestEntity.replaceAll(accountPassword, &quot;&lt;--Hidden--&gt;&quot;);</b>
+<i class="no-highlight">96</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;</b>
+<i class="no-highlight">100</i>&nbsp;    void setResponse(HttpResponse response) {
+<i class="no-highlight">101</i>&nbsp;        respTime = new Date();
+<i class="no-highlight">102</i>&nbsp;        responseStatus = response.getStatusLine().toString();
+<i class="no-highlight">103</i>&nbsp;        responseHeaders = new ArrayList&lt;&gt;();
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        for (Header header : response.getAllHeaders()) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            responseHeaders.add(Pair.of(header.getName(), header.getValue()));</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        }</b>
+<i class="no-highlight">107</i>&nbsp;        responseEntity = entityToString(response.getEntity());
+<i class="no-highlight">108</i>&nbsp;    }
+<i class="no-highlight">109</i>&nbsp;
+<b class="nc"><i class="no-highlight">110</i>&nbsp;    private String entityToString(HttpEntity entity) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        if (entity == null) {</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        } else if (entity.isRepeatable()) {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                return EntityUtils.toString(entity, StandardCharsets.UTF_8);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                return String.valueOf((entity));</b>
+<i class="no-highlight">118</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        // In order not to impact the performance, we don&#39;t read the actual entity</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        // content for other entity types like InputStream or File entities</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        return String.format(&quot;[UnrepeatableEntity] {Content-Type: %s,Content-Length: %d,&quot; +</b>
+<i class="no-highlight">123</i>&nbsp;                        &quot;Chunked: %s}&quot;, entity.getContentType(), entity.getContentLength(),
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                entity.isChunked());</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;    public Map&lt;String, Object&gt; toMap() {</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        Map&lt;String, Object&gt; requestMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        requestMap.put(SNAPSHOT_REQUEST_LINE, requestLine);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        requestMap.put(SNAPSHOT_HEADERS, requestHeaders == null ? new ArrayList&lt;&gt;() :</b>
+<i class="no-highlight">132</i>&nbsp;                requestHeaders.stream().map(pair -&gt; {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                    String key = Objects.requireNonNullElse(pair.getKey(), StringUtils.EMPTY);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                    String value = Objects.requireNonNullElse(pair.getValue(), StringUtils.EMPTY);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                    return ImmutableMap.of(key, value);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                })</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                        .collect(Collectors.toList()));</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        requestMap.put(SNAPSHOT_TIMESTAMP_KEY, reqTime);</b>
+<i class="no-highlight">139</i>&nbsp;        if (StringUtils.isNotEmpty(requestEntity)) {
+<i class="no-highlight">140</i>&nbsp;            requestMap.put(SNAPSHOT_ENTITY, requestEntity);
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        map.put(SNAPSHOT_REQUEST_STR_KEY, String.format(STRINGIFY_FMT, requestLine,</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                requestHeaders == null ? new ArrayList&lt;&gt;() :</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                        requestHeaders.stream().map(pair -&gt; pair.getKey() + &quot;: &quot; + pair.getValue())</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                                .collect(Collectors.toList()), requestEntity));</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        map.put(SNAPSHOT_REQUEST_KEY, requestMap);</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        if (responseStatus != null) {</b>
+<i class="no-highlight">148</i>&nbsp;            Map&lt;String, Object&gt; responseMap = new LinkedHashMap&lt;&gt;();
+<i class="no-highlight">149</i>&nbsp;            responseMap.put(SNAPSHOT_RESPONSE_STATUS, responseStatus);
+<b class="nc"><i class="no-highlight">150</i>&nbsp;</b>
+<i class="no-highlight">151</i>&nbsp;            responseMap.put(SNAPSHOT_HEADERS, responseHeaders == null ? new ArrayList&lt;&gt;() :
+<i class="no-highlight">152</i>&nbsp;                    responseHeaders.stream().map(pair -&gt; ImmutableMap.of(pair.getKey(),
+<i class="no-highlight">153</i>&nbsp;                            pair.getValue())).collect(Collectors.toList()));
+<i class="no-highlight">154</i>&nbsp;            responseMap.put(SNAPSHOT_TIMESTAMP_KEY, respTime);
+<i class="no-highlight">155</i>&nbsp;            if (StringUtils.isNotEmpty(responseEntity)) {
+<i class="no-highlight">156</i>&nbsp;                responseMap.put(SNAPSHOT_ENTITY, responseEntity);
+<i class="no-highlight">157</i>&nbsp;            }
+<i class="no-highlight">158</i>&nbsp;
+<i class="no-highlight">159</i>&nbsp;            map.put(SNAPSHOT_RESPONSE_STR_KEY, String.format(STRINGIFY_FMT, responseStatus,
+<i class="no-highlight">160</i>&nbsp;                    responseHeaders == null ? new ArrayList&lt;&gt;() :
+<i class="no-highlight">161</i>&nbsp;                            responseHeaders.stream()
+<i class="no-highlight">162</i>&nbsp;                                    .map(pair -&gt; pair.getKey() + &quot;:&quot; + pair.getValue())
+<i class="no-highlight">163</i>&nbsp;                                    .collect(Collectors.toList()), responseEntity));
+<i class="no-highlight">164</i>&nbsp;            map.put(SNAPSHOT_RESPONSE_KEY, responseMap);
+<i class="no-highlight">165</i>&nbsp;            map.put(SNAPSHOT_TIME_USED_KEY, respTime.getTime() - reqTime.getTime());
+<i class="no-highlight">166</i>&nbsp;
+<i class="no-highlight">167</i>&nbsp;        }
+<i class="no-highlight">168</i>&nbsp;        return map;
+<i class="no-highlight">169</i>&nbsp;    }
+<i class="no-highlight">170</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,186 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MergeJoinOperator</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform.multijoin</a>
+</div>
+
+<h1>Coverage Summary for Class: MergeJoinOperator (com.snaplogic.snaps.transform.multijoin)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MergeJoinOperator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/30)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.transform.multijoin;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snaps.transform.SnapInternals;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import java.io.File;
+<i class="no-highlight">18</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">19</i>&nbsp;import java.util.Map;
+<i class="no-highlight">20</i>&nbsp;import java.util.concurrent.ThreadFactory;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import static com.snaplogic.snaps.transform.util.Utils.cloneObject;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;/**
+<i class="no-highlight">25</i>&nbsp; * Does merge-join of all documents from all input views. Documents, one from each input views,
+<i class="no-highlight">26</i>&nbsp; * are merge into one output document and it continues until it reaches the end of the document
+<i class="no-highlight">27</i>&nbsp; * stream.
+<i class="no-highlight">28</i>&nbsp; */
+<i class="no-highlight">29</i>&nbsp;public class MergeJoinOperator extends AbstractJoinOperator {
+<i class="no-highlight">30</i>&nbsp;    public MergeJoinOperator(final OrderValidator orderValidator,
+<i class="no-highlight">31</i>&nbsp;                             final PropertyValues propertyValues,
+<i class="no-highlight">32</i>&nbsp;                             final SnapInternals snapInternals,
+<i class="no-highlight">33</i>&nbsp;                             File tmpDir,
+<i class="no-highlight">34</i>&nbsp;                             ThreadFactory threadFactory) {
+<b class="nc"><i class="no-highlight">35</i>&nbsp;        super(orderValidator, propertyValues, snapInternals, tmpDir, threadFactory);</b>
+<i class="no-highlight">36</i>&nbsp;    }
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;    @Override
+<i class="no-highlight">39</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">40</i>&nbsp;    public void execute() {
+<b class="nc"><i class="no-highlight">41</i>&nbsp;        while (inputViewCount &gt; endedInputViews.size()) {</b>
+<i class="no-highlight">42</i>&nbsp;            // Get one document from each input view
+<b class="nc"><i class="no-highlight">43</i>&nbsp;            Map&lt;String, Map&lt;String, Object&gt;&gt; mergeDataMap = new LinkedHashMap&lt;&gt;(inputViewCount);</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;            for (Map.Entry&lt;String, String&gt; entry : inputViewNames.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;                String inputViewLabel = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;                if (endedInputViews.contains(inputViewLabel)) {</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;                    continue;</b>
+<i class="no-highlight">48</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">49</i>&nbsp;                String inputViewId = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;                Document document = getNextDocument(inputViewId);</b>
+<b class="nc"><i class="no-highlight">51</i>&nbsp;                if (document == null) {</b>
+<i class="no-highlight">52</i>&nbsp;                    // record the label of the input view which reached the end of document stream.
+<b class="nc"><i class="no-highlight">53</i>&nbsp;                    endedInputViews.add(inputViewLabel);</b>
+<i class="no-highlight">54</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;                    Map&lt;String, Object&gt; data = document.get(Map.class);</b>
+<b class="nc"><i class="no-highlight">56</i>&nbsp;                    mergeDataMap.put(inputViewLabel, data);</b>
+<i class="no-highlight">57</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">58</i>&nbsp;            }</b>
+<i class="no-highlight">59</i>&nbsp;            // merge a set of documents and write one output document to the output view
+<b class="nc"><i class="no-highlight">60</i>&nbsp;            if (!mergeDataMap.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;                Map&lt;String, Object&gt; mergedData = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;                for (Map.Entry&lt;String, Map&lt;String, Object&gt;&gt; entry : mergeDataMap.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;                    String inputViewLabel = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;                    Map&lt;String, Object&gt; inputData = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;                    if (inputData != null) {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                        for (Map.Entry&lt;String, Object&gt; dataEntry : inputData.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;                            String key = dataEntry.getKey();</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;                            if (mergedData.containsKey(key)) {</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                                key = getOutputDocKey(inputViewLabel, key);</b>
+<i class="no-highlight">70</i>&nbsp;                            }
+<i class="no-highlight">71</i>&nbsp;                            // the value may need to be deep-copied
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                            Object value = cloneObject(dataEntry.getValue());</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                            mergedData.put(key, value);</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                        }</b>
+<i class="no-highlight">75</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                writeOutputViews(documentUtility.newDocument(mergedData));</b>
+<i class="no-highlight">78</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        }</b>
+<i class="no-highlight">80</i>&nbsp;    }
+<i class="no-highlight">81</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,283 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SqlServerMetadataProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.metadata</a>
+</div>
+
+<h1>Coverage Summary for Class: SqlServerMetadataProvider (com.snaplogic.snap.api.sql.metadata)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SqlServerMetadataProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/48)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql.metadata;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">14</i>&nbsp;import com.google.inject.name.Named;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.sql.ColumnMetaData;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.sql.operations.JdbcOperationsImpl;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.QuotationHandler;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">25</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">28</i>&nbsp;import java.sql.DatabaseMetaData;
+<i class="no-highlight">29</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">30</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">31</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">32</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">33</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;import net.jodah.failsafe.ExecutionContext;
+<i class="no-highlight">36</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">37</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snap.api.sql.metadata.Messages.ERR_CREATE_TABLE_STMT;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snap.api.sql.metadata.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;/**
+<i class="no-highlight">43</i>&nbsp; * Provides SQL server specific metadata, such as additional metadata for identity columns.
+<i class="no-highlight">44</i>&nbsp; *
+<i class="no-highlight">45</i>&nbsp; * @author mklumpp
+<i class="no-highlight">46</i>&nbsp; */
+<i class="no-highlight">47</i>&nbsp;public class SqlServerMetadataProvider extends DefaultMetadataProvider {
+<i class="no-highlight">48</i>&nbsp;
+<b class="nc"><i class="no-highlight">49</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(SqlServerMetadataProvider.class);</b>
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;    private static final String VARCHAR_DATA_TYPE = &quot;VARCHAR(8000)&quot;;
+<i class="no-highlight">52</i>&nbsp;    private static final String INTEGER_DATA_TYPE = &quot;BIGINT&quot;;
+<i class="no-highlight">53</i>&nbsp;    private static final String DOUBLE_DATA_TYPE = &quot;Numeric(38,18)&quot;;
+<i class="no-highlight">54</i>&nbsp;    private static final String DATE_TIME_DATA_TYPE = &quot;datetime&quot;;
+<i class="no-highlight">55</i>&nbsp;    private static final String DATE_DATA_TYPE = &quot;date&quot;;
+<i class="no-highlight">56</i>&nbsp;    private static final String BOOLEAN_DATA_TYPE = &quot;bit&quot;;
+<i class="no-highlight">57</i>&nbsp;    private static final String MAX_LENGTH = &quot;max&quot;;
+<i class="no-highlight">58</i>&nbsp;    private static final String REGEX_FLOAT_REAL = &quot;\\([0-9,&#39; &#39;]{1,3},[0-9,&#39; &#39;]{1,3}\\)&quot;;
+<i class="no-highlight">59</i>&nbsp;    private static final String FLOAT = &quot;float&quot;;
+<i class="no-highlight">60</i>&nbsp;    private static final String REAL = &quot;real&quot;;
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;    private static final int MAX_DELAY_MS = 1000;
+<i class="no-highlight">63</i>&nbsp;    private static final int MAX_RETRIES = 3;
+<i class="no-highlight">64</i>&nbsp;    private static final int MIN_DELAY_MS = 250;
+<i class="no-highlight">65</i>&nbsp;
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    private static final JsonPath OVERSIZED_NVARCHAR = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">67</i>&nbsp;            &quot;$.columns[?(@.TYPE_NAME.match(/^NVARCHAR$/i)&quot; +
+<i class="no-highlight">68</i>&nbsp;            &quot; &amp;&amp; value.CHAR_OCTET_LENGTH &gt; 4000)].CHAR_OCTET_LENGTH&quot;);
+<b class="nc"><i class="no-highlight">69</i>&nbsp;    private static final JsonPath OVERSIZED_VARCHAR = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">70</i>&nbsp;            &quot;$.columns[?(@.TYPE_NAME.match(/^VARCHAR$/i)&quot; +
+<i class="no-highlight">71</i>&nbsp;            &quot; &amp;&amp; value.CHAR_OCTET_LENGTH &gt; 8000)].CHAR_OCTET_LENGTH&quot;);
+<b class="nc"><i class="no-highlight">72</i>&nbsp;    private static final JsonPath OVERSIZED_VARBINARY = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">73</i>&nbsp;            &quot;$.columns[?(@.TYPE_NAME.match(/^VARBINARY$/i)&quot; +
+<i class="no-highlight">74</i>&nbsp;            &quot; &amp;&amp; value._SL_BINARY_LENGTH &gt; 8000)]._SL_BINARY_LENGTH&quot;);
+<b class="nc"><i class="no-highlight">75</i>&nbsp;    private static final JsonPath UNICODE_COLUMNS = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">76</i>&nbsp;            &quot;$.columns[?(@.TYPE_NAME.match(/^NCHAR|NVARCHAR$/i))]&quot;);
+<i class="no-highlight">77</i>&nbsp;    private static final String UNICODE_LENGTH =
+<i class="no-highlight">78</i>&nbsp;            &quot;$.columns[?(@.COLUMN_NAME.match(/^%s$/))].CHAR_OCTET_LENGTH&quot;;
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;    @Inject
+<i class="no-highlight">81</i>&nbsp;    public SqlServerMetadataProvider(
+<i class="no-highlight">82</i>&nbsp;            @Named(JdbcOperationsImpl.SQLSERVER) QuotationHandler quotationHandler) {
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        super(quotationHandler);</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        varcharDatatype = VARCHAR_DATA_TYPE;</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        integerDatatype = INTEGER_DATA_TYPE;</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        doubleDatatype = DOUBLE_DATA_TYPE;</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        timestampDatatype = DATE_TIME_DATA_TYPE;</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        timestampLocalDatatype = DATE_TIME_DATA_TYPE;</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        dateDatatype = DATE_DATA_TYPE;</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        booleanDatatype = BOOLEAN_DATA_TYPE;</b>
+<i class="no-highlight">91</i>&nbsp;    }
+<i class="no-highlight">92</i>&nbsp;
+<i class="no-highlight">93</i>&nbsp;    @Override
+<i class="no-highlight">94</i>&nbsp;    public String getColumnType(final Object value) {
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        return getDefaultColumnType(value);</b>
+<i class="no-highlight">96</i>&nbsp;    }
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;    @Override
+<i class="no-highlight">99</i>&nbsp;    public String generateCreateTableStatement(Connection conn, String tableName,
+<i class="no-highlight">100</i>&nbsp;               Document document, Document schema) {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        if (schema != null) {</b>
+<i class="no-highlight">102</i>&nbsp;            try {
+<i class="no-highlight">103</i>&nbsp;                // unicode data types: length = storage size / 2
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                ArrayList&lt;HashMap&gt; unicodeColumns = UNICODE_COLUMNS.read(schema.get());</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                for (HashMap map : unicodeColumns) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                    Long size = new Long(String.valueOf(map.get(CHAR_OCTET_LENGTH)));</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                    String path = String.format(UNICODE_LENGTH, map.get(COLUMN_NAME));</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                    JsonPath columnPath = JsonPathImpl.compileStatic(path);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                    columnPath.write(schema.get(), size / 2);</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                }</b>
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;                // use &#39;max&#39; length (2 GB) if column&#39;s length
+<i class="no-highlight">113</i>&nbsp;                // - exceeds 8,000 bytes for varchar and varbinary
+<i class="no-highlight">114</i>&nbsp;                // - exceeds 4,000 bytes for nvarchar
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                OVERSIZED_VARCHAR.write(schema.get(), MAX_LENGTH);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                OVERSIZED_NVARCHAR.write(schema.get(), MAX_LENGTH);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                OVERSIZED_VARBINARY.write(schema.get(), MAX_LENGTH);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                throw new ExecutionException(e, ERR_CREATE_TABLE_STMT)</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            }</b>
+<i class="no-highlight">123</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        String statement = super.generateCreateTableStatement(conn, tableName, document, schema);</b>
+<i class="no-highlight">125</i>&nbsp;        // if data type is float(*,*) or real(*,*), (*,*) should be deleted
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        statement = statement.replaceAll(FLOAT.concat(REGEX_FLOAT_REAL), FLOAT);</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        statement = statement.replaceAll(REAL.concat(REGEX_FLOAT_REAL), REAL);</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        return statement;</b>
+<i class="no-highlight">129</i>&nbsp;    }
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;    @Override
+<i class="no-highlight">132</i>&nbsp;    public ColumnMetaData createColumnMetadataFor(final ResultSet tableMetaData) {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        return new SqlServerColumnMetaDataImpl(tableMetaData);</b>
+<i class="no-highlight">134</i>&nbsp;    }
+<i class="no-highlight">135</i>&nbsp;
+<i class="no-highlight">136</i>&nbsp;    @Override
+<i class="no-highlight">137</i>&nbsp;    protected ResultSet getTableColumns(DatabaseMetaData dbMetaData,
+<i class="no-highlight">138</i>&nbsp;                                        String catalogNamePattern, String schemaNamePattern,
+<i class="no-highlight">139</i>&nbsp;                                        String tableNamePattern,
+<i class="no-highlight">140</i>&nbsp;                                        String columnNamePattern) throws SQLException {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        return Failsafe.with(getRetryPolicy(MAX_RETRIES))</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                      .onFailedAttempt(e -&gt; LOG.warn(</b>
+<i class="no-highlight">143</i>&nbsp;                          &quot;failed to get table column metadata. &quot; +
+<i class="no-highlight">144</i>&nbsp;                          &quot;[catalog:{} schema:{} table:{} column:{}] error:{}&quot;, catalogNamePattern,
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                          schemaNamePattern, tableNamePattern, columnNamePattern, e.getMessage()))</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                      .onRetry((result, failure, context) -&gt; logRetryAttempt(context, LOG))</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                      .get(cntx -&gt; {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                          return dbMetaData.getColumns(catalogNamePattern, schemaNamePattern,</b>
+<i class="no-highlight">149</i>&nbsp;                              tableNamePattern, columnNamePattern);
+<i class="no-highlight">150</i>&nbsp;                      });
+<i class="no-highlight">151</i>&nbsp;    }
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    /**
+<i class="no-highlight">154</i>&nbsp;     * Gets the retry policy.
+<i class="no-highlight">155</i>&nbsp;     * @param maxRetries The number of retries.
+<i class="no-highlight">156</i>&nbsp;     * @return A RetryPolicy that represents the exception conditions, maxRetries, and backoff.
+<i class="no-highlight">157</i>&nbsp;     */
+<i class="no-highlight">158</i>&nbsp;    protected RetryPolicy getRetryPolicy(int maxRetries) {
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        return new RetryPolicy()</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                .retryOn(SQLException.class)</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                .withBackoff(MIN_DELAY_MS, MAX_DELAY_MS, TimeUnit.MILLISECONDS)</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                .withMaxRetries(maxRetries);</b>
+<i class="no-highlight">163</i>&nbsp;    }
+<i class="no-highlight">164</i>&nbsp;
+<i class="no-highlight">165</i>&nbsp;    /**
+<i class="no-highlight">166</i>&nbsp;     * Writes a warning-level log with the retry attempt sequence number.
+<i class="no-highlight">167</i>&nbsp;     * The first execution is 0 and is not logged.
+<i class="no-highlight">168</i>&nbsp;     *
+<i class="no-highlight">169</i>&nbsp;     * @param context - Failsafe retry execution context
+<i class="no-highlight">170</i>&nbsp;     * @param log     - Logger from the calling class
+<i class="no-highlight">171</i>&nbsp;     */
+<i class="no-highlight">172</i>&nbsp;    protected void logRetryAttempt(ExecutionContext context, Logger log) {
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        int count = context.getExecutions();</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        if (count &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            log.warn(&quot;Retry attempt: {}&quot;, count);</b>
+<i class="no-highlight">176</i>&nbsp;        }
+<i class="no-highlight">177</i>&nbsp;    }
+<i class="no-highlight">178</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

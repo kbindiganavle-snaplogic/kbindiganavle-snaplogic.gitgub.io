@@ -1,0 +1,362 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkGet</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.dynamodb</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkGet (com.snaplogic.snaps.dynamodb)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkGet</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/113)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015 - 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.dynamodb;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.AmazonClientException;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.BatchGetItemOutcome;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.TableKeysAndAttributes;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.spec.BatchGetItemSpec;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.BatchGetItemResult;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.KeysAndAttributes;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity;
+<i class="no-highlight">21</i>&nbsp;import com.google.common.base.Throwables;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.data.model.DocumentMapData;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.data.model.SchemaData;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">45</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">46</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">47</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import java.io.ByteArrayInputStream;
+<i class="no-highlight">50</i>&nbsp;import java.io.ByteArrayOutputStream;
+<i class="no-highlight">51</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">52</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">53</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">54</i>&nbsp;import java.util.List;
+<i class="no-highlight">55</i>&nbsp;import java.util.Map;
+<i class="no-highlight">56</i>&nbsp;import java.util.concurrent.BlockingQueue;
+<i class="no-highlight">57</i>&nbsp;import java.util.concurrent.CompletableFuture;
+<i class="no-highlight">58</i>&nbsp;import java.util.concurrent.LinkedBlockingQueue;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.BATCH_UNPROCESSED_RETRIES;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.CONSUMED_CAPACITY_PATH;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.KEY;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.RESPONSES_PATH;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.UNPROCESSED_KEYS_PATH;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.dynamodb.DynamoDBConverter.generateResultList;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.dynamodb.DynamoDBConverter.toLowLevelMap;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.BULK_GET_SNAP_PURPOSE;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.BULK_GET_SNAP_TITLE;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.ERROR_BATCH_GET;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.ERROR_CREATING_TABLE_SCHEMA;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.ERROR_INTERRUPT;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.FINISHED_GET_BATCH;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.RESOLUTION_VERIFY_INPUT_DATA;
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;/**
+<i class="no-highlight">77</i>&nbsp; * This class is a bulk get snap that reads data from AWS DynamoDB table
+<i class="no-highlight">78</i>&nbsp; *
+<i class="no-highlight">79</i>&nbsp; * @author kgade
+<i class="no-highlight">80</i>&nbsp; */
+<i class="no-highlight">81</i>&nbsp;@General(title = BULK_GET_SNAP_TITLE, purpose = BULK_GET_SNAP_PURPOSE)
+<i class="no-highlight">82</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">83</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">84</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">85</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">86</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<b class="nc"><i class="no-highlight">87</i>&nbsp;public class BulkGet extends DynamoBulkCommon implements InputSchemaProvider {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(BulkGet.class);</b>
+<i class="no-highlight">89</i>&nbsp;    protected BlockingQueue&lt;BatchGetItemSpec&gt; specQueue;
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;    @Override
+<i class="no-highlight">92</i>&nbsp;    public void definePropertiesAdditional(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        defineProjectionExpressionProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        defineBatchSizeProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        defineExpressionAttributeValuesProperty(propertyBuilder);</b>
+<i class="no-highlight">96</i>&nbsp;    }
+<i class="no-highlight">97</i>&nbsp;
+<i class="no-highlight">98</i>&nbsp;    @Override
+<i class="no-highlight">99</i>&nbsp;    protected void configureAdditional(PropertyValues propertyValues)
+<i class="no-highlight">100</i>&nbsp;            throws ConfigurationException {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        super.configureAdditional(propertyValues);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        readProjectionExpressionProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        readBatchSizeProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        readExpressionAttributeValuesProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        specQueue = new LinkedBlockingQueue&lt;&gt;(threadCount * 2);</b>
+<i class="no-highlight">106</i>&nbsp;    }
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    @Override
+<i class="no-highlight">109</i>&nbsp;    public void defineInputSchema(final SchemaProvider schemaProvider) {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        for (String inputViewName : schemaProvider.getRegisteredViewNames()) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            SchemaBuilder schemaBuilder = schemaProvider.getSchemaBuilder(inputViewName);</b>
+<i class="no-highlight">112</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                this.describeTable(tableName);</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            } catch (AmazonClientException e) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                errorViews.write(new SnapDataException(e, e.getMessage()));</b>
+<i class="no-highlight">116</i>&nbsp;                return;
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            schemaBuilder.type(SnapType.COMPOSITE);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            ByteArrayOutputStream boas = new ByteArrayOutputStream();</b>
+<i class="no-highlight">120</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                if (keySchema != null &amp;&amp; !keySchema.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                    schemaWriter.writeValue(boas, keySchema.get(KEY));</b>
+<i class="no-highlight">123</i>&nbsp;                } else {
+<i class="no-highlight">124</i>&nbsp;                    return;
+<i class="no-highlight">125</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">126</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                throw new ExecutionException(e, ERROR_CREATING_TABLE_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                        .withReason(Throwables.getRootCause(e).getMessage())</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                        .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            ByteArrayInputStream bais = new ByteArrayInputStream(boas.toByteArray());</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            this.documentSchemaStreamReader.initialize(bais);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            SchemaData schemaData = this.documentSchemaStreamReader.read();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            DocumentMapData mapData = schemaData.toDocumentSchemaData();</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            Schema schema = mapData.getSchema();</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            schemaProvider.setProvidedSchemaForViewName(inputViewName, schema);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        }</b>
+<i class="no-highlight">138</i>&nbsp;    }
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    @Override
+<i class="no-highlight">141</i>&nbsp;    public void processDocument(Document document) {
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        if (documents == null) {</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            documents = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">144</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        documents.add(document);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        if (documents.size() == batchSize) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            queue(documents);</b>
+<i class="no-highlight">148</i>&nbsp;        }
+<i class="no-highlight">149</i>&nbsp;    }
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    @Override
+<i class="no-highlight">152</i>&nbsp;    protected void queue(List&lt;Document&gt; documents) {
+<i class="no-highlight">153</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            batchQueue.put(new ArrayList&lt;&gt;(documents));</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;            specQueue.put(getBatchGetItemSpec(documents));</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            LOGGER.error(ERROR_INTERRUPT, e);</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            Thread.currentThread().interrupt();</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        } catch (AmazonClientException e) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            batchQueue.poll();</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            writeToErrorView(new SnapDataException(e, e.getMessage()), documents);</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;            documents.clear();</b>
+<i class="no-highlight">163</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        documents.clear();</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        CompletableFuture&lt;Void&gt; task = CompletableFuture.runAsync(this::processBatch, executor);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        tasks.add(task);</b>
+<i class="no-highlight">168</i>&nbsp;    }
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;    @Override
+<i class="no-highlight">171</i>&nbsp;    protected void processBatch() {
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        int retries = BATCH_UNPROCESSED_RETRIES;</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        int currentBatch = batchNumber.getAndIncrement();</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        List&lt;Document&gt; documents = batchQueue.poll();</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        BatchGetItemSpec batchGetItemSpec = specQueue.poll();</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        BatchGetItemResult result = null;</b>
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;            BatchGetItemOutcome outcome = dynamoDB.batchGetItem(batchGetItemSpec);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;            Map&lt;String, KeysAndAttributes&gt; unprocessedKeys = null;</b>
+<i class="no-highlight">181</i>&nbsp;            do {
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                if (MapUtils.isNotEmpty(unprocessedKeys)) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                    outcome = dynamoDB.batchGetItemUnprocessed(unprocessedKeys);</b>
+<i class="no-highlight">184</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                BatchGetItemResult batchGetItemResult = outcome.getBatchGetItemResult();</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                unprocessedKeys = outcome.getUnprocessedKeys();</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                if (result == null) {</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                    result = batchGetItemResult;</b>
+<i class="no-highlight">189</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                    unprocessedKeys.forEach(result::addUnprocessedKeysEntry);</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    batchGetItemResult.getResponses().forEach(result::addResponsesEntry);</b>
+<i class="no-highlight">192</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            } while (MapUtils.isNotEmpty(unprocessedKeys) &amp;&amp; retries-- &gt; 0);</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        } catch (AmazonClientException e) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            SnapDataException sde = new SnapDataException(e, ERROR_BATCH_GET)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            writeToErrorView(sde, documents);</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        } catch (IllegalArgumentException e) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            SnapDataException sde = new SnapDataException(e, ERROR_BATCH_GET)</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                    .withResolution(RESOLUTION_VERIFY_INPUT_DATA);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;            writeToErrorView(sde, documents);</b>
+<i class="no-highlight">204</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            if (result != null) {</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                writeBatchOutput(result, documents);</b>
+<i class="no-highlight">207</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        LOGGER.debug(FINISHED_GET_BATCH, currentBatch);</b>
+<i class="no-highlight">210</i>&nbsp;    }
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;    private void writeBatchOutput(BatchGetItemResult batchGetItemResult, List&lt;Document&gt; documents) {
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        Map&lt;String, List&lt;Map&lt;String, Object&gt;&gt;&gt; responses = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        batchGetItemResult.getResponses().forEach((itemTable, itemList) -&gt; {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; simpleList =</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                    responses.getOrDefault(itemTable, new ArrayList&lt;&gt;());</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            itemList.forEach(attributeValueMap -&gt; {</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                simpleList.add(toLowLevelMap(attributeValueMap));</b>
+<i class="no-highlight">219</i>&nbsp;            });
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            responses.put(itemTable, simpleList);</b>
+<i class="no-highlight">221</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        Map&lt;String, Object&gt; outputMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        Map&lt;String, KeysAndAttributes&gt; unprocessedKeys = batchGetItemResult.getUnprocessedKeys();</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        CONSUMED_CAPACITY_PATH.writeStatic(outputMap,</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                generateResultList(batchGetItemResult.getConsumedCapacity()));</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        RESPONSES_PATH.writeStatic(outputMap, responses);</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        UNPROCESSED_KEYS_PATH.writeStatic(outputMap, unprocessedKeys);</b>
+<i class="no-highlight">228</i>&nbsp;
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        synchronized (outputViews) {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            if (batchSize == 1) {</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                Document originalDoc = documents.get(0);</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                outputViews.write(documentUtility.newDocumentFor(originalDoc, outputMap));</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                outputViews.write(documentUtility.newDocument(outputMap));</b>
+<i class="no-highlight">235</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        }</b>
+<i class="no-highlight">237</i>&nbsp;    }
+<i class="no-highlight">238</i>&nbsp;
+<i class="no-highlight">239</i>&nbsp;    private synchronized BatchGetItemSpec getBatchGetItemSpec(List&lt;Document&gt; documents) {
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        BatchGetItemSpec batchGetItemSpec = new BatchGetItemSpec();</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;        TableKeysAndAttributes keyAndAttributes = new TableKeysAndAttributes(tableName);</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        if (StringUtils.isNotBlank(projectionExpr)) {</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            keyAndAttributes.withProjectionExpression(projectionExpr);</b>
+<i class="no-highlight">244</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        if (MapUtils.isNotEmpty(nameMap)) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            keyAndAttributes.withNameMap(nameMap);</b>
+<i class="no-highlight">247</i>&nbsp;        }
+<i class="no-highlight">248</i>&nbsp;
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        documents.stream()</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                .map(this::getDocumentContentAsMap)</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                .map(this::getPrimaryKeyFromInput)</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                .forEach(keyAndAttributes::addPrimaryKey);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        batchGetItemSpec.withTableKeyAndAttributes(keyAndAttributes);</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        batchGetItemSpec.withReturnConsumedCapacity(ReturnConsumedCapacity.TOTAL);</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        return batchGetItemSpec;</b>
+<i class="no-highlight">256</i>&nbsp;    }
+<i class="no-highlight">257</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

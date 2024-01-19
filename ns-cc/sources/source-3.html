@@ -1,0 +1,218 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AzureStorageApi</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt.schema_detector.storage</a>
+</div>
+
+<h1>Coverage Summary for Class: AzureStorageApi (com.snaplogic.snaps.elt.schema_detector.storage)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AzureStorageApi</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package com.snaplogic.snaps.elt.schema_detector.storage;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">4</i>&nbsp;
+<i class="no-highlight">5</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">6</i>&nbsp;
+<i class="no-highlight">7</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">8</i>&nbsp;
+<i class="no-highlight">9</i>&nbsp;import java.net.HttpURLConnection;
+<i class="no-highlight">10</i>&nbsp;import java.net.URL;
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.AZURE_BlobStorage;
+<i class="no-highlight">13</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.AZURE_EXTERNAL_LOCATION_ADLSGEN2;
+<i class="no-highlight">14</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.AZURE_EXTERNAL_LOCATION_NONADLSGEN2;
+<i class="no-highlight">15</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.AZURE_Storage;
+<i class="no-highlight">16</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.AZURE_StorageV2;
+<i class="no-highlight">17</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_FAILED_HTTP_GET_AZURE_BLOB_SERVICE_FOUND;
+<i class="no-highlight">18</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_GET_ACCOUNT_INFORMATION;
+<i class="no-highlight">19</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_INVALID_ACCOUNT_KIND_FOUND;
+<i class="no-highlight">20</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_INVALID_HTTP_URL_CONNECTION_FOUND;
+<i class="no-highlight">21</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.REASON_FAILED_HTTP_GET_AZURE_BLOB_SERVICE_FOUND;
+<i class="no-highlight">22</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.REASON_INVALID_ACCOUNT_KIND_FOUND;
+<i class="no-highlight">23</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.REASON_INVALID_HTTP_URL_CONNECTION_FOUND;
+<i class="no-highlight">24</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.RESOLUTION_FAILED_HTTP_GET_AZURE_BLOB_SERVICE_FOUND;
+<i class="no-highlight">25</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.RESOLUTION_GET_ACCOUNT_INFORMATION;
+<i class="no-highlight">26</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.RESOLUTION_INVALID_HTTP_URL_CONNECTION_FOUND;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;/**
+<i class="no-highlight">29</i>&nbsp; * Azure Storage API class
+<i class="no-highlight">30</i>&nbsp; */
+<i class="no-highlight">31</i>&nbsp;public class AzureStorageApi {
+<b class="nc"><i class="no-highlight">32</i>&nbsp;    private AzureStorageApi() {}</b>
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;    /**
+<i class="no-highlight">35</i>&nbsp;     * Retrieve account information for the account from the given url,
+<i class="no-highlight">36</i>&nbsp;     * decide if the account is for ADLSGen2 or not. Then
+<i class="no-highlight">37</i>&nbsp;     * return &quot;ADLSGen2&quot; if ADLSGen2 or &quot;NONADLSGen2&quot; if not.
+<i class="no-highlight">38</i>&nbsp;     *
+<i class="no-highlight">39</i>&nbsp;     * CF: https://docs.microsoft.com/en-us/rest/api/storageservices/get-account-information
+<i class="no-highlight">40</i>&nbsp;     *
+<i class="no-highlight">41</i>&nbsp;     * @param basicUriStr
+<i class="no-highlight">42</i>&nbsp;     */
+<i class="no-highlight">43</i>&nbsp;    public static String getAzureExternalLocation(
+<i class="no-highlight">44</i>&nbsp;            String basicUriStr, String azureAccountName) {
+<b class="nc"><i class="no-highlight">45</i>&nbsp;        HttpURLConnection urlConnectionHeader = null;</b>
+<i class="no-highlight">46</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">47</i>&nbsp;            urlConnectionHeader = getHttpURLConnection(basicUriStr);</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;            if (urlConnectionHeader != null) {</b>
+<b class="nc"><i class="no-highlight">49</i>&nbsp;                urlConnectionHeader.setRequestProperty(&quot;Accept&quot;, &quot;application/json&quot;);</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;                urlConnectionHeader.setRequestProperty(&quot;x-ms-version&quot;, &quot;2019-07-07&quot;);</b>
+<i class="no-highlight">51</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">52</i>&nbsp;                throw new ExecutionException(ERR_INVALID_HTTP_URL_CONNECTION_FOUND)</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;                        .withReason(REASON_INVALID_HTTP_URL_CONNECTION_FOUND)</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;                        .withResolution(String.format(RESOLUTION_INVALID_HTTP_URL_CONNECTION_FOUND,</b>
+<i class="no-highlight">55</i>&nbsp;                                basicUriStr));
+<i class="no-highlight">56</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">57</i>&nbsp;            urlConnectionHeader.connect();</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;            if (urlConnectionHeader.getResponseCode() != HttpURLConnection.HTTP_OK) {</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;                throw new ExecutionException(ERR_FAILED_HTTP_GET_AZURE_BLOB_SERVICE_FOUND)</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;                        .withReason(String.format(REASON_FAILED_HTTP_GET_AZURE_BLOB_SERVICE_FOUND,</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;                                urlConnectionHeader.getResponseCode(),</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;                                urlConnectionHeader.getResponseMessage()))</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;                        .withResolution(RESOLUTION_FAILED_HTTP_GET_AZURE_BLOB_SERVICE_FOUND);</b>
+<i class="no-highlight">64</i>&nbsp;            }
+<i class="no-highlight">65</i>&nbsp;
+<b class="nc"><i class="no-highlight">66</i>&nbsp;            String hnsEnabled = urlConnectionHeader.getHeaderField(&quot;x-ms-is-hns-enabled&quot;);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;            String accountKind = urlConnectionHeader.getHeaderField(&quot;x-ms-account-kind&quot;);</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            String version = urlConnectionHeader.getHeaderField(&quot;x-ms-version&quot;);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;            if (StringUtils.equalsIgnoreCase(accountKind, AZURE_BlobStorage) ||</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                    StringUtils.equalsIgnoreCase(accountKind, AZURE_Storage)) {</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                return AZURE_EXTERNAL_LOCATION_NONADLSGEN2;</b>
+<i class="no-highlight">72</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">73</i>&nbsp;            if (!StringUtils.equalsIgnoreCase(accountKind, AZURE_StorageV2)) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                throw new ExecutionException(</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                        String.format(ERR_INVALID_ACCOUNT_KIND_FOUND, azureAccountName))</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                        .withReason(String.format(</b>
+<i class="no-highlight">77</i>&nbsp;                                REASON_INVALID_ACCOUNT_KIND_FOUND, accountKind))
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                        .withResolution(String.format(</b>
+<i class="no-highlight">79</i>&nbsp;                                RESOLUTION_GET_ACCOUNT_INFORMATION, basicUriStr));
+<i class="no-highlight">80</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">81</i>&nbsp;            if (hnsEnabled.equalsIgnoreCase(&quot;true&quot;)) {</b>
+<i class="no-highlight">82</i>&nbsp;                // if &quot;x-ms-is-hns-enabled&quot; has &quot;true&quot;, then full ADLS Gen2
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                return AZURE_EXTERNAL_LOCATION_ADLSGEN2;</b>
+<i class="no-highlight">84</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        } catch (IOException ioe) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;            if (urlConnectionHeader != null) {</b>
+<i class="no-highlight">87</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                    urlConnectionHeader.getErrorStream().close();</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                }</b>
+<i class="no-highlight">91</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            throw new ExecutionException(String.format(</b>
+<i class="no-highlight">93</i>&nbsp;                    ERR_GET_ACCOUNT_INFORMATION, azureAccountName))
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                    .withReason(ioe.getMessage())</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                    .withResolution(String.format(</b>
+<i class="no-highlight">96</i>&nbsp;                            RESOLUTION_GET_ACCOUNT_INFORMATION, basicUriStr));
+<i class="no-highlight">97</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            if (urlConnectionHeader != null) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                urlConnectionHeader.disconnect();</b>
+<i class="no-highlight">100</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        return AZURE_EXTERNAL_LOCATION_NONADLSGEN2;</b>
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    private static HttpURLConnection getHttpURLConnection(String basicUrlStr)
+<i class="no-highlight">106</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        URL url = new URL(basicUrlStr);</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        HttpURLConnection connection = (HttpURLConnection) url.openConnection();</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        connection.setDoOutput(true);</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        connection.setRequestMethod(&quot;GET&quot;);</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        return connection;</b>
+<i class="no-highlight">112</i>&nbsp;    }
+<i class="no-highlight">113</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

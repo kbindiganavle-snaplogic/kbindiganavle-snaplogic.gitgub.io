@@ -1,0 +1,277 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BoxAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.box</a>
+</div>
+
+<h1>Coverage Summary for Class: BoxAccount (com.snaplogic.snaps.box)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BoxAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.box;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.box.sdk.BoxAPIConnection;
+<i class="no-highlight">14</i>&nbsp;import com.box.sdk.BoxAPIException;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.services.SnapControl;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.account.oauth2.OAuth2Account;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">28</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import java.net.InetSocketAddress;
+<i class="no-highlight">32</i>&nbsp;import java.net.Proxy;
+<i class="no-highlight">33</i>&nbsp;import java.util.Map;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.box.Messages.BOX_ACCOUNT_DOC_LINK;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.box.Messages.BOX_ACCOUNT_TITLE;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;/**
+<i class="no-highlight">39</i>&nbsp; * OAuth 2.0 Account for Box.com snaps.
+<i class="no-highlight">40</i>&nbsp; *
+<i class="no-highlight">41</i>&nbsp; * Our Box OAuth2 apps are owned by fullsail@snaplogic.com.
+<i class="no-highlight">42</i>&nbsp; * Password is in sandbox/demo accounts spreadsheet.
+<i class="no-highlight">43</i>&nbsp; * To manage our apps, go to https://app.box.com/developers/services/
+<i class="no-highlight">44</i>&nbsp; * Each Box app is pod-specific, since it has a redirect URL for that pod,
+<i class="no-highlight">45</i>&nbsp; * such as https://elastic.snaplogic.com/api/1/rest/admin/oauth2callback/box
+<i class="no-highlight">46</i>&nbsp; * Each app has a corresponding client ID and client secret.
+<i class="no-highlight">47</i>&nbsp; * The client ID/secret for the production Box app are stored in
+<i class="no-highlight">48</i>&nbsp; * Tectonic/cloudops/data/snap_data.json, with pod-specific overrides in
+<i class="no-highlight">49</i>&nbsp; * snap_data_&lt;podname&gt;.json, corresponding to pod-specific Box apps.
+<i class="no-highlight">50</i>&nbsp; * There is also a localhost-specific Box app, whose ID/secret can be loaded
+<i class="no-highlight">51</i>&nbsp; * in a development environment by executing this command from Tectonic root:
+<i class="no-highlight">52</i>&nbsp; * python tools/python/tools/snap_data_tool.py --prefix=local-sladmin load
+<i class="no-highlight">53</i>&nbsp; * cloudops/data/snap_data_localhost.json
+<i class="no-highlight">54</i>&nbsp; *
+<i class="no-highlight">55</i>&nbsp; * @author psung
+<i class="no-highlight">56</i>&nbsp; * @author smudassir
+<i class="no-highlight">57</i>&nbsp; */
+<i class="no-highlight">58</i>&nbsp;@General(title = BOX_ACCOUNT_TITLE, docLink = BOX_ACCOUNT_DOC_LINK)
+<i class="no-highlight">59</i>&nbsp;@Version(snap = 2)
+<i class="no-highlight">60</i>&nbsp;@AccountCategory(type = AccountType.OAUTH2)
+<b class="nc"><i class="no-highlight">61</i>&nbsp;public class BoxAccount extends OAuth2Account&lt;BoxAPIConnection&gt; implements Timeoutable {</b>
+<i class="no-highlight">62</i>&nbsp;
+<b class="nc"><i class="no-highlight">63</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(BoxAccount.class);</b>
+<i class="no-highlight">64</i>&nbsp;    private static final String AUTH_ENDPOINT_URL = &quot;https://app.box.com/api/oauth2/authorize&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String TOKEN_ENDPOINT_URL = &quot;https://app.box.com/api/oauth2/token&quot;;
+<i class="no-highlight">66</i>&nbsp;    private static final String SYSTEM_PROPERTY_HTTPS_PROXY_HOST_NAME = &quot;https.proxyHost&quot;;
+<i class="no-highlight">67</i>&nbsp;    private static final String SYSTEM_PROPERTY_HTTPS_PROXY_PORT = &quot;https.proxyPort&quot;;
+<i class="no-highlight">68</i>&nbsp;    private static final String SYSTEM_PROPERTY_HTTPS_PROXY_USER = &quot;https.proxyUser&quot;;
+<i class="no-highlight">69</i>&nbsp;    private static final String SYSTEM_PROPERTY_HTTPS_PROXY_PASSWORD = &quot;https.proxyPassword&quot;;
+<i class="no-highlight">70</i>&nbsp;    private static final String DEFAULT_PROXY_PORT = &quot;443&quot;;
+<b class="nc"><i class="no-highlight">71</i>&nbsp;    private int connTimeout = 0;</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;    private int readTimeout = 0;</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;    private int writeTimeout = 0;</b>
+<i class="no-highlight">74</i>&nbsp;    @Inject
+<i class="no-highlight">75</i>&nbsp;    private SnapControl snapControl;
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;    @Override
+<i class="no-highlight">78</i>&nbsp;    public void configureAdditional(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        Map&lt;String, Integer&gt; timeouts = configureTimeoutProperties(propertyValues);</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        connTimeout = timeouts.get(CONN_TIMEOUT_PROP);</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        readTimeout = timeouts.get(READ_TIMEOUT_PROP);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        writeTimeout = timeouts.get(WRITE_TIMEOUT_PROP);</b>
+<i class="no-highlight">83</i>&nbsp;    }
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;    @Override
+<i class="no-highlight">86</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        super.defineProperties(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        defineTimeoutProperties(propertyBuilder);</b>
+<i class="no-highlight">89</i>&nbsp;    }
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;    @Override
+<i class="no-highlight">92</i>&nbsp;    public BoxAPIConnection connect() {
+<i class="no-highlight">93</i>&nbsp;        // connect to Box
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        String httpsProxyHost = System.getProperty(SYSTEM_PROPERTY_HTTPS_PROXY_HOST_NAME);</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        String httpsProxyPort = System.getProperty(SYSTEM_PROPERTY_HTTPS_PROXY_PORT,</b>
+<i class="no-highlight">96</i>&nbsp;                DEFAULT_PROXY_PORT);
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        String httpsProxyUser = System.getProperty(SYSTEM_PROPERTY_HTTPS_PROXY_USER);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        String httpsProxyPassword = System.getProperty(SYSTEM_PROPERTY_HTTPS_PROXY_PASSWORD);</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        BoxAPIConnection connection = new BoxAPIConnection(getAccessToken());</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        if (StringUtils.isNotBlank(httpsProxyHost)) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            Proxy proxy = new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                    httpsProxyHost, Integer.valueOf(httpsProxyPort)));</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            connection.setProxy(proxy);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;            connection.setProxyUsername(httpsProxyUser);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            connection.setProxyPassword(httpsProxyPassword);</b>
+<i class="no-highlight">106</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        connection.setConnectTimeout(connTimeout * 1000);</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        connection.setReadTimeout(readTimeout * 1000);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        return connection;</b>
+<i class="no-highlight">110</i>&nbsp;    }
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;    @Override
+<i class="no-highlight">113</i>&nbsp;    protected SnapProperty defineScopeProperty(final PropertyBuilder propertyBuilder) {
+<i class="no-highlight">114</i>&nbsp;        // scope is not needed for box
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        return propertyBuilder.describe(SCOPE, SCOPE)</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                .hide()</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .defaultValue(setDefaultScope())</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                .build();</b>
+<i class="no-highlight">119</i>&nbsp;    }
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;    @Override
+<i class="no-highlight">122</i>&nbsp;    public void disconnect() throws ExecutionException {
+<i class="no-highlight">123</i>&nbsp;        // do nothing
+<i class="no-highlight">124</i>&nbsp;    }
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    @Override
+<i class="no-highlight">127</i>&nbsp;    protected String setDefaultClientId() {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        return null;</b>
+<i class="no-highlight">129</i>&nbsp;    }
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;    @Override
+<i class="no-highlight">132</i>&nbsp;    protected String setDefaultClientSecret() {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        return null;</b>
+<i class="no-highlight">134</i>&nbsp;    }
+<i class="no-highlight">135</i>&nbsp;
+<i class="no-highlight">136</i>&nbsp;    @Override
+<i class="no-highlight">137</i>&nbsp;    protected String setAuthorizationEndpoint() {
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        return AUTH_ENDPOINT_URL;</b>
+<i class="no-highlight">139</i>&nbsp;    }
+<i class="no-highlight">140</i>&nbsp;
+<i class="no-highlight">141</i>&nbsp;    @Override
+<i class="no-highlight">142</i>&nbsp;    protected String setTokenEndpoint() {
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        return TOKEN_ENDPOINT_URL;</b>
+<i class="no-highlight">144</i>&nbsp;    }
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;    @Override
+<i class="no-highlight">147</i>&nbsp;    protected String setDefaultScope() {
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        return null;</b>
+<i class="no-highlight">149</i>&nbsp;    }
+<i class="no-highlight">150</i>&nbsp;
+<i class="no-highlight">151</i>&nbsp;    /**
+<i class="no-highlight">152</i>&nbsp;     * Try to reload the account if the Box connection failed
+<i class="no-highlight">153</i>&nbsp;     *
+<i class="no-highlight">154</i>&nbsp;     * @param e The exception of the Box Connection
+<i class="no-highlight">155</i>&nbsp;     *
+<i class="no-highlight">156</i>&nbsp;     * @return true if the account is reloaded,
+<i class="no-highlight">157</i>&nbsp;     * false otherwise
+<i class="no-highlight">158</i>&nbsp;     */
+<i class="no-highlight">159</i>&nbsp;    public boolean tryReloadAccount(BoxAPIException e) {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        LOGGER.debug(&quot;Box API Exception&#39;s Response: &quot; + e.getResponse());</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        LOGGER.debug(&quot;Box API Exception&#39;s Message: &quot; + e.getMessage());</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        LOGGER.debug(&quot;Box API Exception&#39;s Response Code: &quot; + e.getResponseCode());</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        boolean reloaded = snapControl.reloadSnapAccount();</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        LOGGER.warn(reloaded ? &quot;box_oauth2 - account reloaded, will retry&quot; :</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                &quot;box_oauth2 - account not reloaded, cannot retry&quot;);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        return reloaded;</b>
+<i class="no-highlight">167</i>&nbsp;    }
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;    public long getWriteTimeout() {
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        return this.writeTimeout;</b>
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

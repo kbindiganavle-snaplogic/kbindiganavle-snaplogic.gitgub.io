@@ -1,0 +1,370 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EltLimit</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt</a>
+</div>
+
+<h1>Coverage Summary for Class: EltLimit (com.snaplogic.snaps.elt)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EltLimit</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/106)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020-2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.SuggestExecutionProvider;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.ctx.PushdownContext;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.parts.LimitPart;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.parts.OffsetPart;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snaps.elt.pushdown.parts.TopPart;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snaps.elt.utils.EltUtils;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">39</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">40</i>&nbsp;import java.util.List;
+<i class="no-highlight">41</i>&nbsp;import java.util.Map;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.*;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.*;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.extractQueryFromInputDocument;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.extractSnapTypeFromInputDocument;
+<i class="no-highlight">47</i>&nbsp;
+<i class="no-highlight">48</i>&nbsp;/**
+<i class="no-highlight">49</i>&nbsp; * Executes a simple LIMIT clause on a database for a result of a
+<i class="no-highlight">50</i>&nbsp; * SQL query appearing on its input. OFFSET clause is optional.
+<i class="no-highlight">51</i>&nbsp; * &lt;p&gt;
+<i class="no-highlight">52</i>&nbsp; * This component supports the following syntax:
+<i class="no-highlight">53</i>&nbsp; * SELECT * FROM [table] LIMIT &lt;limit value&gt; OFFSET &lt;offset value&gt;
+<i class="no-highlight">54</i>&nbsp; *
+<i class="no-highlight">55</i>&nbsp; * @author Pradeep Sathyanarayan
+<i class="no-highlight">56</i>&nbsp; */
+<i class="no-highlight">57</i>&nbsp;@Category(snap = SnapCategory.TRANSFORM)
+<i class="no-highlight">58</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">59</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">60</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">61</i>&nbsp;@General(title = ELT_LIMIT_TITLE, purpose = ELT_LIMIT_PURPOSE,
+<i class="no-highlight">62</i>&nbsp;        docLink = ELT_LIMIT_DOC_LINK)
+<i class="no-highlight">63</i>&nbsp;@Accounts(provides = {EltDatabaseAccount.class})
+<b class="nc"><i class="no-highlight">64</i>&nbsp;public class EltLimit extends BaseElt implements SuggestExecutionProvider, InputSchemaProvider {</b>
+<i class="no-highlight">65</i>&nbsp;
+<i class="no-highlight">66</i>&nbsp;    static final List&lt;String&gt; LIMIT_PUSHDOWN_SNAP_LIST =
+<i class="no-highlight">67</i>&nbsp;            new ImmutableList
+<i class="no-highlight">68</i>&nbsp;                    .Builder&lt;String&gt;()
+<b class="nc"><i class="no-highlight">69</i>&nbsp;                    .add(ELT_AGGREGATE_TITLE)</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;                    .add(ELT_FILTER_TITLE)</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                    .add(ELT_INSERT_SELECT_TITLE)</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;                    .add(ELT_JOIN_TITLE)</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                    .add(ELT_LOAD_TITLE)</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;                    .add(ELT_MERGE_INTO_TITLE)</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                    .add(ELT_PIVOT_TITLE)</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;                    .add(ELT_SAMPLE_TITLE)</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                    .add(ELT_COALESCE_TITLE)</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                    .add(ELT_CASE_TITLE)</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                    .add(ELT_CONDITIONAL_TITLE)</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                    .add(ELT_STRING_TITLE)</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                    .add(ELT_MATH_TITLE)</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                    .add(ELT_SCD2_TITLE)</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                    .add(ELT_TRANSFORM_TITLE)</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                    .add(ELT_UNPIVOT_TITLE)</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                    .add(ELT_WINDOW_FUNCTIONS_TITLE)</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                    .add(ELT_UNIQUE_TITLE)</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                    .add(ELT_LIMIT_TITLE)</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                    .add(ELT_SELECT_TITLE)</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    .add(ELT_CAST_TITLE)</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                    .build();</b>
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;    private String limitValue;
+<i class="no-highlight">93</i>&nbsp;    private String offsetValue;
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;    @Override
+<i class="no-highlight">96</i>&nbsp;    protected void createSnapProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        createLimitProperty(builder);</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    protected void createLimitProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        builder.describe(LIMIT_PROP, LIMIT_LABEL, LIMIT_DESC)</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        builder.describe(OFFSET_PROP, OFFSET_LABEL, OFFSET_DESC)</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;                .add();</b>
+<i class="no-highlight">111</i>&nbsp;    }
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    @Override
+<i class="no-highlight">115</i>&nbsp;    protected void configureSnap(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        setSnapLevelSubQueryPushDownParam(DISABLE_LIMIT_SUBQUERY_PUSHDOWN);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        EltUtils.checkSnapPlacement(inputViews, ELT_LIMIT_TITLE);</b>
+<i class="no-highlight">119</i>&nbsp;
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        offsetValue = propertyValues.getAsExpression(OFFSET_PROP).eval(null);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        if (isDeltalakeDb()) {</b>
+<i class="no-highlight">122</i>&nbsp;            // There is no support for obtaining offset for a LIMIT clause in
+<i class="no-highlight">123</i>&nbsp;            // Databricks Lakehouse Platform
+<i class="no-highlight">124</i>&nbsp;            // Therefore even if the user has specified any offset value in the snap,
+<i class="no-highlight">125</i>&nbsp;            // it will be ignored.
+<b class="nc"><i class="no-highlight">126</i>&nbsp;            offsetValue = null;</b>
+<i class="no-highlight">127</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        limitValue = propertyValues.getAsExpression(LIMIT_PROP).eval(null);</b>
+<i class="no-highlight">129</i>&nbsp;    }
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;    @Override
+<i class="no-highlight">132</i>&nbsp;    protected void processDocument(final Document document, final String inputViewName) {
+<i class="no-highlight">133</i>&nbsp;
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        String inputSqlString = extractQueryFromInputDocument(document);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        if (StringUtils.isBlank(inputSqlString)) {</b>
+<i class="no-highlight">136</i>&nbsp;            return;
+<i class="no-highlight">137</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        if (validationInProgress) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            schemaSupportService.defineInputSchema(schemaProvider, inputSqlString, inputViewName);</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            long limit = Long.parseLong(this.limitValue);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            long previewRowCountLong = Long.parseLong(previewRowCount);</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            previewRowCount = String.valueOf(Math.min(limit, previewRowCountLong));</b>
+<i class="no-highlight">143</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        List&lt;String&gt; snapTypes = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        snapTypes.add(ELT_LIMIT_TITLE);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        String dtName = &quot;Limit_&quot; + getDerivedTableName();</b>
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;        PushdownContext ctx;
+<i class="no-highlight">149</i>&nbsp;        String sqlLimit;
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        boolean isPreviousQueryWithOffset = isPreviousQueryWithOffset(document);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        if (canPushdown(document, LIMIT_PUSHDOWN_SNAP_LIST)</b>
+<i class="no-highlight">152</i>&nbsp;                &amp;&amp; !isPreviousQueryWithOffset
+<i class="no-highlight">153</i>&nbsp;                &amp;&amp; offsetValue == null) {
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            snapTypes.addAll(extractSnapTypeFromInputDocument(document));</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;            ctx = PushdownContext.getOrCreate(document, dtName);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            pushdownExpression(ctx);</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            sqlLimit = pushdownQueryBuilder.buildSql(ctx);</b>
+<i class="no-highlight">158</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">159</i>&nbsp;            ctx = PushdownContext.create(document, dtName);</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            pushdownExpression(ctx);</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            sqlLimit = buildSqlQuery(inputSqlString, dtName);</b>
+<i class="no-highlight">162</i>&nbsp;        }
+<i class="no-highlight">163</i>&nbsp;
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        Map&lt;String, Object&gt; output = getOutputViewMap(document, sqlLimit, snapTypes, ctx);</b>
+<i class="no-highlight">165</i>&nbsp;
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        if (handlePreview(documentUtility.newDocument(output), document,</b>
+<i class="no-highlight">167</i>&nbsp;                account, validationInProgress, previewRowCount, executionMode,
+<i class="no-highlight">168</i>&nbsp;                executeSqlInPreview)) {
+<i class="no-highlight">169</i>&nbsp;            return;
+<i class="no-highlight">170</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        outputViews.write(documentUtility.newDocument(output), document);</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    private boolean isPreviousQueryWithOffset(Document document) {
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        return PushdownContext.get(document)</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                .map(PushdownContext::getOffsetPart)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .map(OffsetPart::getOffsetValue)</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .isPresent();</b>
+<i class="no-highlight">179</i>&nbsp;    }
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;    private void pushdownExpression(PushdownContext ctx) {
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        if (isAzureSynapseDb()) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            pushdownTopExpression(ctx);</b>
+<i class="no-highlight">184</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            pushdownLimitExpressions(ctx);</b>
+<i class="no-highlight">186</i>&nbsp;        }
+<i class="no-highlight">187</i>&nbsp;    }
+<i class="no-highlight">188</i>&nbsp;
+<i class="no-highlight">189</i>&nbsp;    private String buildSqlQuery(String inputSqlString, String dtName) {
+<i class="no-highlight">190</i>&nbsp;        String sqlString;
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        if (offsetValue != null) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            sqlString = String.format(LIMIT_WITH_OFFSET_SQL, inputSqlString, dtName, limitValue,</b>
+<i class="no-highlight">193</i>&nbsp;                    offsetValue);
+<i class="no-highlight">194</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            sqlString = String.format(LIMIT_WITH_NO_OFFSET_SQL, inputSqlString, dtName,</b>
+<i class="no-highlight">196</i>&nbsp;                    limitValue);
+<i class="no-highlight">197</i>&nbsp;        }
+<i class="no-highlight">198</i>&nbsp;
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        if (isAzureSynapseDb()) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            sqlString =</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                    String.format(LIMIT_WITH_OFFSET_ZERO_EQUIVALENT_SQL, limitValue, inputSqlString,</b>
+<i class="no-highlight">202</i>&nbsp;                            dtName);
+<i class="no-highlight">203</i>&nbsp;        }
+<i class="no-highlight">204</i>&nbsp;
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        return sqlString;</b>
+<i class="no-highlight">206</i>&nbsp;    }
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;    private void pushdownLimitExpressions(PushdownContext ctx) {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        long limit = Long.parseLong(this.limitValue);</b>
+<i class="no-highlight">210</i>&nbsp;
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        LimitPart limitPart = ctx.getLimitPart();</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        OffsetPart offsetPart = ctx.getOffsetPart();</b>
+<i class="no-highlight">213</i>&nbsp;
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        if (limitPart != null) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            long previousLimitValue = limitPart.getLimitValue();</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;            long newLimitValue = Math.min(previousLimitValue, limit);</b>
+<i class="no-highlight">217</i>&nbsp;
+<b class="nc"><i class="no-highlight">218</i>&nbsp;            limitPart.setLimitValue(newLimitValue);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            limitPart = new LimitPart();</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;            ctx.setLimitPart(limitPart);</b>
+<i class="no-highlight">222</i>&nbsp;
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            limitPart.setLimitValue(limit);</b>
+<i class="no-highlight">224</i>&nbsp;        }
+<i class="no-highlight">225</i>&nbsp;
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        if (offsetValue != null) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;            if (offsetPart == null) {</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                offsetPart = new OffsetPart();</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                ctx.setOffsetPart(offsetPart);</b>
+<i class="no-highlight">230</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            offsetPart.setOffsetValue(Long.parseLong(offsetValue));</b>
+<i class="no-highlight">232</i>&nbsp;        }
+<i class="no-highlight">233</i>&nbsp;    }
+<i class="no-highlight">234</i>&nbsp;
+<i class="no-highlight">235</i>&nbsp;    private void pushdownTopExpression(PushdownContext ctx) {
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        TopPart topPart = ctx.getTopPart();</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        long newTopValue = Long.parseLong(limitValue);</b>
+<i class="no-highlight">238</i>&nbsp;
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        if (topPart != null) {</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;            Long previousTopNumber = topPart.getTopValue();</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            newTopValue = Math.min(previousTopNumber, newTopValue);</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            topPart = new TopPart();</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            ctx.setTopPart(topPart);</b>
+<i class="no-highlight">245</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">246</i>&nbsp;        topPart.setTopValue(newTopValue);</b>
+<i class="no-highlight">247</i>&nbsp;    }
+<i class="no-highlight">248</i>&nbsp;
+<i class="no-highlight">249</i>&nbsp;    @Override
+<i class="no-highlight">250</i>&nbsp;    public void configureForSuggest(final PropertyValues propertyValues,
+<i class="no-highlight">251</i>&nbsp;                                    final BigInteger maxSuggestValue) {
+<b class="nc"><i class="no-highlight">252</i>&nbsp;        configurePreviewProps(maxSuggestValue);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        configure(propertyValues);</b>
+<i class="no-highlight">254</i>&nbsp;    }
+<i class="no-highlight">255</i>&nbsp;
+<i class="no-highlight">256</i>&nbsp;    @Override
+<i class="no-highlight">257</i>&nbsp;    public void executeForSuggest() {
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        execute();</b>
+<i class="no-highlight">259</i>&nbsp;    }
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;    @Override
+<i class="no-highlight">262</i>&nbsp;    public void defineInputSchema(final SchemaProvider schemaProvider) {
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        this.schemaProvider = schemaProvider;</b>
+<i class="no-highlight">264</i>&nbsp;    }
+<i class="no-highlight">265</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

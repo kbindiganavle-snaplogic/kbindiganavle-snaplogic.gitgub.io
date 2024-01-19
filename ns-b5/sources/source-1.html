@@ -1,0 +1,386 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AbstractAggrFunctionsRewriter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt.aggrfuncs_rewriter</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractAggrFunctionsRewriter (com.snaplogic.snaps.elt.aggrfuncs_rewriter)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractAggrFunctionsRewriter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/89)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt.aggrfuncs_rewriter;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snaps.elt.enums.RewriterExpressionType;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snaps.elt.utils.EltUtils;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snaps.elt.windowfuncs_rewriter.AbstractWindowFunctionsRewriter;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snaps.elt.windowfuncs_rewriter.AzureSynapseRewriteDatabaseImpl;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snaps.elt.windowfuncs_rewriter.BQRewriteDatabaseImpl;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snaps.elt.windowfuncs_rewriter.DlpRewriteDatabaseImpl;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snaps.elt.windowfuncs_rewriter.RedshiftRewriteDatabaseImpl;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snaps.elt.windowfuncs_rewriter.RewriteDatabase;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snaps.elt.windowfuncs_rewriter.RewriterFunction;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import static com.snaplogic.snap.api.sql.JdbcOperations.BIGQUERY;
+<i class="no-highlight">25</i>&nbsp;import static com.snaplogic.snaps.elt.windowfuncs_rewriter.RewriteConstants
+<i class="no-highlight">26</i>&nbsp;        .MAIN_SUBQUERY_ALIAS;
+<i class="no-highlight">27</i>&nbsp;import static com.snaplogic.snaps.elt.windowfuncs_rewriter.RewriteConstants
+<i class="no-highlight">28</i>&nbsp;        .SELECT_FOR_REGR_SINGLE_STATEMENT_SUBQUERY_FMT;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snaps.elt.windowfuncs_rewriter.RewriteConstants
+<i class="no-highlight">30</i>&nbsp;        .SELECT_FOR_REGR_STATEMENT_SUBQUERY_FMT;
+<i class="no-highlight">31</i>&nbsp;import static com.snaplogic.snaps.elt.windowfuncs_rewriter.RewriteConstants
+<i class="no-highlight">32</i>&nbsp;        .SUBQUERY_FIELD_ALIAS_WITH_FIELD_NAME_FORMAT;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.elt.windowfuncs_rewriter.RewriteConstants
+<i class="no-highlight">34</i>&nbsp;        .THE_MAIN_SUBQUERY_FORMAT;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.elt.windowfuncs_rewriter.RewriteConstants
+<i class="no-highlight">36</i>&nbsp;        .THE_MAIN_SUBQUERY_WITH_GROUP_BY_FORMAT;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">41</i>&nbsp;import java.util.List;
+<i class="no-highlight">42</i>&nbsp;import java.util.Map;
+<i class="no-highlight">43</i>&nbsp;import java.util.Set;
+<i class="no-highlight">44</i>&nbsp;import java.util.regex.Matcher;
+<i class="no-highlight">45</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snap.api.sql.JdbcOperations.AZURE_SYNAPSE;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snap.api.sql.JdbcOperations.DATABRICKS_LAKEHOUSE_PLATFORM;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snap.api.sql.JdbcOperations.REDSHIFT;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.COMMA_SPACE;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.*;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.elt.aggrfuncs_rewriter
+<i class="no-highlight">53</i>&nbsp;        .DefaultTypeThreeRewriterForAggrWithCTE.replaceAll;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;/**
+<i class="no-highlight">56</i>&nbsp; * The Abstract aggregate functions rewriter.
+<i class="no-highlight">57</i>&nbsp; */
+<i class="no-highlight">58</i>&nbsp;abstract class AbstractAggrFunctionsRewriter implements AggrFunctionsRewriter {
+<i class="no-highlight">59</i>&nbsp;    final String groupByClauseList;
+<i class="no-highlight">60</i>&nbsp;    final List&lt;String&gt; groupByFields;
+<i class="no-highlight">61</i>&nbsp;    List&lt;String&gt; groupByColumnList;
+<i class="no-highlight">62</i>&nbsp;    RewriteDatabase rewriterDatabase;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;    // &quot;functions&quot; include all the linear regression functions used for the current Aggregate snap.
+<i class="no-highlight">65</i>&nbsp;    private final List&lt;RewriterFunction&gt; functions;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;    // &quot;compressedMap&quot; has a subset of the above &quot;functions&quot; entries that has a unique triple
+<i class="no-highlight">68</i>&nbsp;    // &lt;function-name, argument 1, arguument 2&gt;.
+<i class="no-highlight">69</i>&nbsp;    // 1. If function-name is commutative in that,
+<i class="no-highlight">70</i>&nbsp;    // for example, aggr-function(x, y) is equivalent to aggr-function(y, x) in their results,
+<i class="no-highlight">71</i>&nbsp;    // then the map has only one entry. One example is CORR(x, y) and CORR(y, x).
+<i class="no-highlight">72</i>&nbsp;    // For this case, &quot;compressedMap&quot; will have only one CORR(x, y) entry when
+<i class="no-highlight">73</i>&nbsp;    // CORR(x, y) and CORR(y, x) are given for the current Aggregate snap and those two are
+<i class="no-highlight">74</i>&nbsp;    // contained in the &quot;functions&quot;.
+<i class="no-highlight">75</i>&nbsp;    // 2. If function-name is not commmutative in that,
+<i class="no-highlight">76</i>&nbsp;    // for example, aggr-function(x, y) is not equivalent to aggr-function(y, x) in their results
+<i class="no-highlight">77</i>&nbsp;    // like the case of REGR_SXY, &quot;compressedMap&quot; should have both REGR_SXY(x, y) and
+<i class="no-highlight">78</i>&nbsp;    // REGR_SXY(y, x).
+<i class="no-highlight">79</i>&nbsp;    final Map&lt;String, RewriterFunction&gt; compressedMap;
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    final List&lt;RewriterFunction&gt; compressedFunctions;
+<i class="no-highlight">82</i>&nbsp;    // Pseudo aggr function entry name to be replaced at processDocument()
+<i class="no-highlight">83</i>&nbsp;    final String pseudoAggrFunctionEntry;
+<i class="no-highlight">84</i>&nbsp;    final Map&lt;String, List&lt;RewriterFunction&gt;&gt; argumentPairMap;
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;    AbstractAggrFunctionsRewriter(String databaseType,
+<i class="no-highlight">87</i>&nbsp;                                            String groupByClauseList,
+<i class="no-highlight">88</i>&nbsp;                                            List&lt;String&gt; groupByFields,
+<i class="no-highlight">89</i>&nbsp;                                            List&lt;RewriterFunction&gt; functions,
+<i class="no-highlight">90</i>&nbsp;                                            Map&lt;String, RewriterFunction&gt; compressed,
+<i class="no-highlight">91</i>&nbsp;                                            String pseudoAggrFunctionEntry,
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                                            Map&lt;String, List&lt;RewriterFunction&gt;&gt; argumentPairMap) {</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        this.groupByClauseList = groupByClauseList;</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        this.groupByFields = groupByFields;</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;        this.functions = functions;</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        this.compressedMap = compressed;</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        this.compressedFunctions = new ArrayList&lt;&gt;(compressedMap.values());</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        this.pseudoAggrFunctionEntry = pseudoAggrFunctionEntry;</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        this.argumentPairMap = argumentPairMap;</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        switch(databaseType) {</b>
+<i class="no-highlight">101</i>&nbsp;            case REDSHIFT:
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                rewriterDatabase = new RedshiftRewriteDatabaseImpl();</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                break;</b>
+<i class="no-highlight">104</i>&nbsp;            case AZURE_SYNAPSE:
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                rewriterDatabase = new AzureSynapseRewriteDatabaseImpl();</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                break;</b>
+<i class="no-highlight">107</i>&nbsp;            case DATABRICKS_LAKEHOUSE_PLATFORM:
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                rewriterDatabase = new DlpRewriteDatabaseImpl();</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;                break;</b>
+<i class="no-highlight">110</i>&nbsp;            case BIGQUERY:
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                rewriterDatabase = new BQRewriteDatabaseImpl();</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                break;</b>
+<i class="no-highlight">113</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                EltUtils.throwInvalidDbTypeException();</b>
+<i class="no-highlight">115</i>&nbsp;        }
+<i class="no-highlight">116</i>&nbsp;    }
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;    /**
+<i class="no-highlight">119</i>&nbsp;     * Create main subquery string with the given parameters.
+<i class="no-highlight">120</i>&nbsp;     *
+<i class="no-highlight">121</i>&nbsp;     * @param inputSqlString  The upstream SQL string
+<i class="no-highlight">122</i>&nbsp;     * @param snapAggrFunctionExpressionList  Aggregate snap function expression list
+<i class="no-highlight">123</i>&nbsp;     * @param randomString  inputSqlString alias
+<i class="no-highlight">124</i>&nbsp;     * @return The main subquery substring
+<i class="no-highlight">125</i>&nbsp;     */
+<i class="no-highlight">126</i>&nbsp;    String buildMainSubqueryString(String inputSqlString,
+<i class="no-highlight">127</i>&nbsp;                                             String snapAggrFunctionExpressionList,
+<i class="no-highlight">128</i>&nbsp;                                             String randomString,
+<i class="no-highlight">129</i>&nbsp;                                             List&lt;String&gt; selectKeyFieldAliases) {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        if (StringUtils.isBlank(this.groupByClauseList)) {</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            return String.format(THE_MAIN_SUBQUERY_FORMAT,</b>
+<i class="no-highlight">132</i>&nbsp;                    snapAggrFunctionExpressionList,
+<i class="no-highlight">133</i>&nbsp;                    inputSqlString, randomString, MAIN_SUBQUERY_ALIAS);
+<i class="no-highlight">134</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            return String.format(THE_MAIN_SUBQUERY_WITH_GROUP_BY_FORMAT,</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    buildBaseSubquerySelectKeyFieldsStr(selectKeyFieldAliases, true),</b>
+<i class="no-highlight">137</i>&nbsp;                    snapAggrFunctionExpressionList,
+<i class="no-highlight">138</i>&nbsp;                    inputSqlString, randomString,
+<i class="no-highlight">139</i>&nbsp;                    this.groupByClauseList,
+<i class="no-highlight">140</i>&nbsp;                    MAIN_SUBQUERY_ALIAS);
+<i class="no-highlight">141</i>&nbsp;        }
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    /**
+<i class="no-highlight">145</i>&nbsp;     * Update main SELECT clause by rewriting target aggr function entries.
+<i class="no-highlight">146</i>&nbsp;     */
+<i class="no-highlight">147</i>&nbsp;    String processPhaseTwo(String mainSelectClause,
+<i class="no-highlight">148</i>&nbsp;                                     String inputSqlString, String randomString,
+<i class="no-highlight">149</i>&nbsp;                                     PerAggrFunctionProcessor processor) {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        StringBuilder sqlAggrStringBuilder = new StringBuilder(mainSelectClause);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        Pattern pattern = Pattern.compile(Pattern.quote(this.pseudoAggrFunctionEntry));</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        Matcher matcher = pattern.matcher(sqlAggrStringBuilder);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        int functionsIdx = 0;</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        int begin = 0;</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        RewriterFunction first = this.compressedFunctions.get(0);</b>
+<i class="no-highlight">156</i>&nbsp;
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        while (matcher.find(begin)) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            RewriterFunction current = this.functions.get(functionsIdx++);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;            String regrAggrStr =</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                    processor.processPerAggrFunction(</b>
+<i class="no-highlight">161</i>&nbsp;                            current, first, inputSqlString,
+<i class="no-highlight">162</i>&nbsp;                            randomString, begin == 0, this.groupByFields,
+<i class="no-highlight">163</i>&nbsp;                            this.argumentPairMap);
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            sqlAggrStringBuilder.replace(matcher.start(), matcher.end(), regrAggrStr);</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;            begin = matcher.start() + regrAggrStr.length();</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        return sqlAggrStringBuilder.toString();</b>
+<i class="no-highlight">168</i>&nbsp;    }
+<i class="no-highlight">169</i>&nbsp;
+<i class="no-highlight">170</i>&nbsp;    String setupTypeTwoSubqueryStr(
+<i class="no-highlight">171</i>&nbsp;            RewriterFunction function, String rewrittenSqlStr,
+<i class="no-highlight">172</i>&nbsp;            String inputString, String randomString) {
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        return String.format(SELECT_FOR_REGR_STATEMENT_SUBQUERY_FMT,</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                buildBaseSubquerySelectKeyFieldsStr(function, true),</b>
+<i class="no-highlight">175</i>&nbsp;                rewrittenSqlStr,
+<i class="no-highlight">176</i>&nbsp;                inputString,
+<i class="no-highlight">177</i>&nbsp;                randomString,
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                function.getField1Str(), function.getField2Str(),</b>
+<i class="no-highlight">179</i>&nbsp;                this.groupByClauseList,
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                function.getBaseSubqueryAlias());</b>
+<i class="no-highlight">181</i>&nbsp;    }
+<i class="no-highlight">182</i>&nbsp;    String setUpBaseSubqueryStr(
+<i class="no-highlight">183</i>&nbsp;            RewriterFunction function, String rewrittenSqlStr,
+<i class="no-highlight">184</i>&nbsp;            String inputString, String randomString) {
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        return String.format(SELECT_FOR_REGR_SINGLE_STATEMENT_SUBQUERY_FMT,</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                buildBaseSubquerySelectKeyFieldsStr(function, true),</b>
+<i class="no-highlight">187</i>&nbsp;                rewrittenSqlStr,
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                function.getResultExprStr(),</b>
+<i class="no-highlight">189</i>&nbsp;                inputString,
+<i class="no-highlight">190</i>&nbsp;                randomString,
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                function.getField1Str(), function.getField2Str(),</b>
+<i class="no-highlight">192</i>&nbsp;                this.groupByClauseList,
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                function.getBaseSubqueryAlias());</b>
+<i class="no-highlight">194</i>&nbsp;    }
+<i class="no-highlight">195</i>&nbsp;
+<i class="no-highlight">196</i>&nbsp;    void setUpGroupByColumns(Set&lt;String&gt; inputSqlStringColumns) {
+<i class="no-highlight">197</i>&nbsp;        // Find columns from this.partitionByFields and add to this.groupByColumnList.
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        this.groupByColumnList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        int index = -1;</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        for (String expr : this.groupByFields) {</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            for (String columnName : inputSqlStringColumns) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                if ((index = expr.indexOf(columnName.toLowerCase())) == -1) {</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                    index = expr.indexOf(columnName.toUpperCase());</b>
+<i class="no-highlight">204</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                if (index != -1 &amp;&amp; AbstractWindowFunctionsRewriter.isColumnReference(</b>
+<i class="no-highlight">206</i>&nbsp;                        expr, index, columnName,
+<i class="no-highlight">207</i>&nbsp;                        RewriterExpressionType.GROUP_BY_CLAUSE)) {
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                    this.groupByColumnList.add(expr.substring(index, index + columnName.length()));</b>
+<i class="no-highlight">209</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">210</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        if (this.groupByColumnList.size() != this.groupByFields.size()) {</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            throw new ConfigurationException(</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                    String.format(INVALID_FUNCTION_SPECIFIED, this.groupByClauseList))</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                    .withReason(REASON_INVALID_FUNCTION)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                    .withResolution(PLEASE_SPECIFY_A_VALID_FUNCTION);</b>
+<i class="no-highlight">217</i>&nbsp;        }
+<i class="no-highlight">218</i>&nbsp;    }
+<i class="no-highlight">219</i>&nbsp;
+<i class="no-highlight">220</i>&nbsp;    String buildBaseSubquerySelectKeyFieldsStr(
+<i class="no-highlight">221</i>&nbsp;            RewriterFunction function, boolean addFieldName) {
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        return buildBaseSubquerySelectKeyFieldsStr(</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                function.getSelectKeyFieldAliases(), addFieldName);</b>
+<i class="no-highlight">224</i>&nbsp;    }
+<i class="no-highlight">225</i>&nbsp;
+<i class="no-highlight">226</i>&nbsp;    private String buildBaseSubquerySelectKeyFieldsStr(List&lt;String&gt; selectKeyFieldAliases,
+<i class="no-highlight">227</i>&nbsp;                                                         boolean addFieldName) {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        StringBuilder sb = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        boolean first = true;</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        for (int i = 0; i &lt; this.groupByFields.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;            if (first) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                first = false;</b>
+<i class="no-highlight">233</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                sb.append(COMMA_SPACE);</b>
+<i class="no-highlight">235</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            if (addFieldName) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                sb.append(String.format(&quot;%s %s&quot;, this.groupByFields.get(i),</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                        selectKeyFieldAliases.get(i)));</b>
+<i class="no-highlight">239</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                sb.append(String.format(&quot;%s&quot;, selectKeyFieldAliases.get(i)));</b>
+<i class="no-highlight">241</i>&nbsp;            }
+<i class="no-highlight">242</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        return sb.toString();</b>
+<i class="no-highlight">244</i>&nbsp;    }
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;    String buildMainSelectClauseSelectKeyFieldsStr(
+<i class="no-highlight">247</i>&nbsp;            String outerOrMainAlias, List&lt;String&gt; selectKeyFieldAliases,
+<i class="no-highlight">248</i>&nbsp;            String quote) {
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        StringBuilder sb = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        boolean first = true;</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        for (int i = 0; i &lt; this.groupByFields.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;            if (first) {</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                first = false;</b>
+<i class="no-highlight">254</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                sb.append(COMMA_SPACE);</b>
+<i class="no-highlight">256</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            sb.append(String.format(SUBQUERY_FIELD_ALIAS_WITH_FIELD_NAME_FORMAT,</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                    outerOrMainAlias, selectKeyFieldAliases.get(i),</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                    quote + this.groupByFields.get(i) + quote));</b>
+<i class="no-highlight">260</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        return sb.toString();</b>
+<i class="no-highlight">262</i>&nbsp;    }
+<i class="no-highlight">263</i>&nbsp;
+<i class="no-highlight">264</i>&nbsp;    /*
+<i class="no-highlight">265</i>&nbsp;     * Update the given expr to use outer subquery aliases.
+<i class="no-highlight">266</i>&nbsp;     * For example, in the example of process() method,
+<i class="no-highlight">267</i>&nbsp;     * this method updates to &quot;subq_CORR_v_v2&quot;, &quot;subq_CORR_v_v2_v_br_id&quot;.
+<i class="no-highlight">268</i>&nbsp;     */
+<i class="no-highlight">269</i>&nbsp;    protected String updateOuterSubqueryAlias(String expr, String lastOuterSubqueryAlias) {
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        StringBuilder sb = new StringBuilder(expr);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        for (int i = 0; i &lt; this.compressedFunctions.size() - 1; i++) {</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            RewriterFunction curr = this.compressedFunctions.get(i);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            replaceAll(sb, curr.getCompositeSubqueryAlias(), lastOuterSubqueryAlias, true);</b>
+<i class="no-highlight">274</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        return sb.toString();</b>
+<i class="no-highlight">276</i>&nbsp;    }
+<i class="no-highlight">277</i>&nbsp;
+<i class="no-highlight">278</i>&nbsp;    RewriterFunction getPreviousFunction(RewriterFunction current) {
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        return this.compressedFunctions.get(current.getCompressedArrayIdx() - 1);</b>
+<i class="no-highlight">280</i>&nbsp;    }
+<i class="no-highlight">281</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

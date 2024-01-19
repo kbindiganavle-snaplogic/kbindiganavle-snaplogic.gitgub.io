@@ -1,0 +1,424 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AbstractHadoopFileSystemProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.fs.hadoop</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractHadoopFileSystemProvider (com.snaplogic.snap.api.fs.hadoop)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractHadoopFileSystemProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/61)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.fs.hadoop;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import org.apache.hadoop.fs.FSDataInputStream;
+<i class="no-highlight">15</i>&nbsp;import org.apache.hadoop.fs.FSDataOutputStream;
+<i class="no-highlight">16</i>&nbsp;import org.apache.hadoop.fs.FileUtil;
+<i class="no-highlight">17</i>&nbsp;import org.apache.hadoop.security.UserGroupInformation;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">20</i>&nbsp;import java.nio.channels.SeekableByteChannel;
+<i class="no-highlight">21</i>&nbsp;import java.nio.file.AccessMode;
+<i class="no-highlight">22</i>&nbsp;import java.nio.file.CopyOption;
+<i class="no-highlight">23</i>&nbsp;import java.nio.file.DirectoryStream;
+<i class="no-highlight">24</i>&nbsp;import java.nio.file.DirectoryStream.Filter;
+<i class="no-highlight">25</i>&nbsp;import java.nio.file.FileAlreadyExistsException;
+<i class="no-highlight">26</i>&nbsp;import java.nio.file.FileStore;
+<i class="no-highlight">27</i>&nbsp;import java.nio.file.FileSystem;
+<i class="no-highlight">28</i>&nbsp;import java.nio.file.Files;
+<i class="no-highlight">29</i>&nbsp;import java.nio.file.LinkOption;
+<i class="no-highlight">30</i>&nbsp;import java.nio.file.OpenOption;
+<i class="no-highlight">31</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">32</i>&nbsp;import java.nio.file.StandardCopyOption;
+<i class="no-highlight">33</i>&nbsp;import java.nio.file.attribute.BasicFileAttributes;
+<i class="no-highlight">34</i>&nbsp;import java.nio.file.attribute.FileAttribute;
+<i class="no-highlight">35</i>&nbsp;import java.nio.file.attribute.FileAttributeView;
+<i class="no-highlight">36</i>&nbsp;import java.nio.file.spi.FileSystemProvider;
+<i class="no-highlight">37</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">38</i>&nbsp;import java.util.Map;
+<i class="no-highlight">39</i>&nbsp;import java.util.Set;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;/**
+<i class="no-highlight">42</i>&nbsp; * java.nio.file.spi.FileSystemProvider facade for org.apache.hadoop.fs.FileSystem.
+<i class="no-highlight">43</i>&nbsp; * Note: this class has minimal support for symbolic links and ACLs and no support
+<i class="no-highlight">44</i>&nbsp; * for snapshots.
+<i class="no-highlight">45</i>&nbsp; *
+<i class="no-highlight">46</i>&nbsp; * Implementation note: for proper encapsulation most of these methods are thin wrappers
+<i class="no-highlight">47</i>&nbsp; * around calls to analogous methods HdfsFileSystem.
+<i class="no-highlight">48</i>&nbsp; *
+<i class="no-highlight">49</i>&nbsp; * Implementation note: the &#39;hdfs&#39; and &#39;webhdfs&#39; schemes will have identical
+<i class="no-highlight">50</i>&nbsp; * implementations. When necessary this class can be pushed into an abstract base
+<i class="no-highlight">51</i>&nbsp; * class with the HdfsFileSystemProvider and WebHdfsFileSystemProvider thin
+<i class="no-highlight">52</i>&nbsp; * extensions to it.
+<i class="no-highlight">53</i>&nbsp; *
+<i class="no-highlight">54</i>&nbsp; * @param &lt;FS&gt; concrete filesystem
+<i class="no-highlight">55</i>&nbsp; */
+<i class="no-highlight">56</i>&nbsp;public abstract class AbstractHadoopFileSystemProvider&lt;FS extends FileSystem&gt;
+<i class="no-highlight">57</i>&nbsp;        extends FileSystemProvider {
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;    private final String scheme;
+<i class="no-highlight">60</i>&nbsp;
+<b class="nc"><i class="no-highlight">61</i>&nbsp;    protected AbstractHadoopFileSystemProvider(String scheme) {</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        this.scheme = scheme;</b>
+<i class="no-highlight">63</i>&nbsp;    }
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    /**
+<i class="no-highlight">66</i>&nbsp;     * Convenience method to check Path argument.
+<i class="no-highlight">67</i>&nbsp;     * @param path
+<i class="no-highlight">68</i>&nbsp;     */
+<i class="no-highlight">69</i>&nbsp;    protected abstract void checkPath(Path path);
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    /**
+<i class="no-highlight">72</i>&nbsp;     * Get scheme of internal FileSystem, if available, otherwise default to HDFS.
+<i class="no-highlight">73</i>&nbsp;     * This is required since the Hadoop classes support multiple schemes.
+<i class="no-highlight">74</i>&nbsp;     *
+<i class="no-highlight">75</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#getScheme()
+<i class="no-highlight">76</i>&nbsp;     */
+<i class="no-highlight">77</i>&nbsp;    @Override
+<i class="no-highlight">78</i>&nbsp;    public String getScheme() {
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        return scheme;</b>
+<i class="no-highlight">80</i>&nbsp;    }
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;    /**
+<i class="no-highlight">83</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#newInputStream(Path, OpenOption...)
+<i class="no-highlight">84</i>&nbsp;     */
+<i class="no-highlight">85</i>&nbsp;    public FSDataInputStream newInputStream(Path path, OpenOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        checkPath(path);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        return ((AbstractHadoopFileSystem&lt;FS&gt;) path.getFileSystem()).newInputStream(path, options);</b>
+<i class="no-highlight">88</i>&nbsp;    }
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;    /**
+<i class="no-highlight">91</i>&nbsp;     * Create an output stream.
+<i class="no-highlight">92</i>&nbsp;     *
+<i class="no-highlight">93</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#newOutputStream(Path, OpenOption...)
+<i class="no-highlight">94</i>&nbsp;     */
+<i class="no-highlight">95</i>&nbsp;    public FSDataOutputStream newOutputStream(Path path, OpenOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        checkPath(path);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        return ((AbstractHadoopFileSystem&lt;FS&gt;) path.getFileSystem()).newOutputStream(path, options);</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    /**
+<i class="no-highlight">101</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#newDirectoryStream(java.nio.file.Path,
+<i class="no-highlight">102</i>&nbsp;     *      java.nio.file.DirectoryStream.Filter)
+<i class="no-highlight">103</i>&nbsp;     */
+<i class="no-highlight">104</i>&nbsp;    @Override
+<i class="no-highlight">105</i>&nbsp;    public DirectoryStream&lt;Path&gt; newDirectoryStream(Path dir, Filter&lt;? super Path&gt; filter)
+<i class="no-highlight">106</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        checkPath(dir);</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        return ((AbstractHadoopFileSystem&lt;FS&gt;) dir.getFileSystem()).newDirectoryStream(dir, filter);</b>
+<i class="no-highlight">109</i>&nbsp;    }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    /**
+<i class="no-highlight">112</i>&nbsp;     * Create directory. We set Posix attributes but not ownership or ACLs.
+<i class="no-highlight">113</i>&nbsp;     *
+<i class="no-highlight">114</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#createDirectory(java.nio.file.Path,
+<i class="no-highlight">115</i>&nbsp;     *      java.nio.file.attribute.FileAttribute[])
+<i class="no-highlight">116</i>&nbsp;     */
+<i class="no-highlight">117</i>&nbsp;    @Override
+<i class="no-highlight">118</i>&nbsp;    public void createDirectory(Path dir, FileAttribute&lt;?&gt;... attrs) throws IOException {
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        checkPath(dir);</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        ((AbstractHadoopFileSystem&lt;FS&gt;) dir.getFileSystem()).createDirectory(dir, attrs);</b>
+<i class="no-highlight">121</i>&nbsp;    }
+<i class="no-highlight">122</i>&nbsp;
+<i class="no-highlight">123</i>&nbsp;    /**
+<i class="no-highlight">124</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#delete(java.nio.file.Path)
+<i class="no-highlight">125</i>&nbsp;     */
+<i class="no-highlight">126</i>&nbsp;    @Override
+<i class="no-highlight">127</i>&nbsp;    public void delete(Path path) throws IOException {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        checkPath(path);</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        ((AbstractHadoopFileSystem&lt;FS&gt;) path.getFileSystem()).delete(path);</b>
+<i class="no-highlight">130</i>&nbsp;    }
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;    /**
+<i class="no-highlight">133</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#isHidden(java.nio.file.Path)
+<i class="no-highlight">134</i>&nbsp;     */
+<i class="no-highlight">135</i>&nbsp;    @Override
+<i class="no-highlight">136</i>&nbsp;    public boolean isHidden(Path path) throws IOException {
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        return false;</b>
+<i class="no-highlight">138</i>&nbsp;    }
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    /**
+<i class="no-highlight">141</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#getFileStore(java.nio.file.Path)
+<i class="no-highlight">142</i>&nbsp;     */
+<i class="no-highlight">143</i>&nbsp;    @Override
+<i class="no-highlight">144</i>&nbsp;    public FileStore getFileStore(Path path) throws IOException {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        checkPath(path);</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">147</i>&nbsp;    }
+<i class="no-highlight">148</i>&nbsp;
+<i class="no-highlight">149</i>&nbsp;    /**
+<i class="no-highlight">150</i>&nbsp;     * Check access permitted.
+<i class="no-highlight">151</i>&nbsp;     *
+<i class="no-highlight">152</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#checkAccess(java.nio.file.Path,
+<i class="no-highlight">153</i>&nbsp;     *      java.nio.file.AccessMode[])
+<i class="no-highlight">154</i>&nbsp;     */
+<i class="no-highlight">155</i>&nbsp;    @Override
+<i class="no-highlight">156</i>&nbsp;    public void checkAccess(Path path, AccessMode... modes) throws IOException {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        checkPath(path);</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        ((AbstractHadoopFileSystem&lt;FS&gt;) path.getFileSystem()).checkAccess(path, modes);</b>
+<i class="no-highlight">159</i>&nbsp;    }
+<i class="no-highlight">160</i>&nbsp;
+<i class="no-highlight">161</i>&nbsp;    /**
+<i class="no-highlight">162</i>&nbsp;     * Read file attributes views. TODO: obey LinkOptions once we update to Hadoop version
+<i class="no-highlight">163</i>&nbsp;     * that supports them.
+<i class="no-highlight">164</i>&nbsp;     *
+<i class="no-highlight">165</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#getFileAttributeView(java.nio.file.Path,
+<i class="no-highlight">166</i>&nbsp;     *      java.lang.Class, java.nio.file.LinkOption[])
+<i class="no-highlight">167</i>&nbsp;     */
+<i class="no-highlight">168</i>&nbsp;    @Override
+<i class="no-highlight">169</i>&nbsp;    public &lt;V extends FileAttributeView&gt; V getFileAttributeView(Path path, Class&lt;V&gt; type,
+<i class="no-highlight">170</i>&nbsp;            LinkOption... options) {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        checkPath(path);</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        return ((AbstractHadoopFileSystem&lt;FS&gt;) path.getFileSystem()).getFileAttributeView(path,</b>
+<i class="no-highlight">173</i>&nbsp;                type, options);
+<i class="no-highlight">174</i>&nbsp;    }
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;    /**
+<i class="no-highlight">177</i>&nbsp;     * Read POSIX attributes. TODO: obey LinkOptions once we update to Hadoop version
+<i class="no-highlight">178</i>&nbsp;     * that supports them.
+<i class="no-highlight">179</i>&nbsp;     *
+<i class="no-highlight">180</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#readAttributes(java.nio.file.Path, java.lang.Class,
+<i class="no-highlight">181</i>&nbsp;     *      java.nio.file.LinkOption[])
+<i class="no-highlight">182</i>&nbsp;     */
+<i class="no-highlight">183</i>&nbsp;    @Override
+<i class="no-highlight">184</i>&nbsp;    public &lt;A extends BasicFileAttributes&gt; A readAttributes(Path path, Class&lt;A&gt; type,
+<i class="no-highlight">185</i>&nbsp;            LinkOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        checkPath(path);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        return ((AbstractHadoopFileSystem&lt;FS&gt;) path.getFileSystem()).readAttributes(path,</b>
+<i class="no-highlight">188</i>&nbsp;                type, options);
+<i class="no-highlight">189</i>&nbsp;    }
+<i class="no-highlight">190</i>&nbsp;
+<i class="no-highlight">191</i>&nbsp;    /**
+<i class="no-highlight">192</i>&nbsp;     * Read attributes. For simplicity this method returns everything.
+<i class="no-highlight">193</i>&nbsp;     *
+<i class="no-highlight">194</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#readAttributes(java.nio.file.Path,
+<i class="no-highlight">195</i>&nbsp;     *      java.lang.String, java.nio.file.LinkOption[])
+<i class="no-highlight">196</i>&nbsp;     */
+<i class="no-highlight">197</i>&nbsp;    @Override
+<i class="no-highlight">198</i>&nbsp;    public Map&lt;String, Object&gt; readAttributes(Path path, String attributes, LinkOption... options)
+<i class="no-highlight">199</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        checkPath(path);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        return ((AbstractHadoopFileSystem&lt;FS&gt;) path.getFileSystem()).readAttributes(path,</b>
+<i class="no-highlight">202</i>&nbsp;                attributes, options);
+<i class="no-highlight">203</i>&nbsp;    }
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;    /**
+<i class="no-highlight">206</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#setAttribute(java.nio.file.Path, java.lang.String,
+<i class="no-highlight">207</i>&nbsp;     *      java.lang.Object, java.nio.file.LinkOption[])
+<i class="no-highlight">208</i>&nbsp;     */
+<i class="no-highlight">209</i>&nbsp;    @Override
+<i class="no-highlight">210</i>&nbsp;    public void setAttribute(Path path, String attribute, Object value, LinkOption... options)
+<i class="no-highlight">211</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        checkPath(path);</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        ((AbstractHadoopFileSystem&lt;FS&gt;) path.getFileSystem()).setAttribute(path, attribute, value,</b>
+<i class="no-highlight">214</i>&nbsp;                options);
+<i class="no-highlight">215</i>&nbsp;    }
+<i class="no-highlight">216</i>&nbsp;
+<i class="no-highlight">217</i>&nbsp;    // --------------------------------
+<i class="no-highlight">218</i>&nbsp;    // Unsupported operations (for now)
+<i class="no-highlight">219</i>&nbsp;    // --------------------------------
+<i class="no-highlight">220</i>&nbsp;
+<i class="no-highlight">221</i>&nbsp;    /**
+<i class="no-highlight">222</i>&nbsp;     * Perform shallow check if the paths point to the same file. We perform normalization
+<i class="no-highlight">223</i>&nbsp;     * (e.g., removing any . and .. elements) but do not dereference symbolic links.
+<i class="no-highlight">224</i>&nbsp;     *
+<i class="no-highlight">225</i>&nbsp;     * TODO: dereference symbolic links when we bump the Hadoop library to a version that
+<i class="no-highlight">226</i>&nbsp;     * supports them.
+<i class="no-highlight">227</i>&nbsp;     *
+<i class="no-highlight">228</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#isSameFile(java.nio.file.Path, java.nio.file.Path)
+<i class="no-highlight">229</i>&nbsp;     */
+<i class="no-highlight">230</i>&nbsp;    @Override
+<i class="no-highlight">231</i>&nbsp;    public boolean isSameFile(Path path, Path path2) throws IOException {
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        if (path.normalize().equals(path2.normalize())) {</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;            return true;</b>
+<i class="no-highlight">234</i>&nbsp;        }
+<i class="no-highlight">235</i>&nbsp;
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        return false;</b>
+<i class="no-highlight">237</i>&nbsp;    }
+<i class="no-highlight">238</i>&nbsp;
+<i class="no-highlight">239</i>&nbsp;    /**
+<i class="no-highlight">240</i>&nbsp;     * Copy file. This should allow us to copy files from any supported filesystem to
+<i class="no-highlight">241</i>&nbsp;     * any other supported filesystem.
+<i class="no-highlight">242</i>&nbsp;     *
+<i class="no-highlight">243</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#copy(java.nio.file.Path, java.nio.file.Path,
+<i class="no-highlight">244</i>&nbsp;     *      java.nio.file.CopyOption[])
+<i class="no-highlight">245</i>&nbsp;     */
+<i class="no-highlight">246</i>&nbsp;    @Override
+<i class="no-highlight">247</i>&nbsp;    public void copy(Path source, Path target, CopyOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        copy(source, target, false, options);</b>
+<i class="no-highlight">249</i>&nbsp;    }
+<i class="no-highlight">250</i>&nbsp;
+<i class="no-highlight">251</i>&nbsp;    /**
+<i class="no-highlight">252</i>&nbsp;     * Move file to/from local filesystem, or rename file on remove filesystem.
+<i class="no-highlight">253</i>&nbsp;     * Rename file.
+<i class="no-highlight">254</i>&nbsp;     *
+<i class="no-highlight">255</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#move(java.nio.file.Path, java.nio.file.Path,
+<i class="no-highlight">256</i>&nbsp;     *      java.nio.file.CopyOption[])
+<i class="no-highlight">257</i>&nbsp;     */
+<i class="no-highlight">258</i>&nbsp;    @Override
+<i class="no-highlight">259</i>&nbsp;    public void move(Path source, Path target, CopyOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        copy(source, target, true, options);</b>
+<i class="no-highlight">261</i>&nbsp;    }
+<i class="no-highlight">262</i>&nbsp;
+<i class="no-highlight">263</i>&nbsp;    private void copy(Path source, Path target, boolean deleteSource, CopyOption... options)
+<i class="no-highlight">264</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        checkPath(source);</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        checkPath(target);</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        if (Arrays.stream(options)</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                .noneMatch(option -&gt; option.equals(StandardCopyOption.REPLACE_EXISTING))</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                &amp;&amp; Files.exists(target)) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            throw new FileAlreadyExistsException(&quot;Target file already exists: &quot; + target);</b>
+<i class="no-highlight">271</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        org.apache.hadoop.fs.Path sourcePathHadoop = new org.apache.hadoop.fs.Path(source.toUri());</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        org.apache.hadoop.fs.Path targetPathHadoop = new org.apache.hadoop.fs.Path(target.toUri());</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        org.apache.hadoop.fs.FileSystem sourceFileSystem =</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                ((AbstractHadoopFileSystem&lt;FS&gt;) source.getFileSystem()).getHadoopFileSystem();</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        org.apache.hadoop.fs.FileSystem targetFileSystem =</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                ((AbstractHadoopFileSystem&lt;FS&gt;) target.getFileSystem()).getHadoopFileSystem();</b>
+<i class="no-highlight">278</i>&nbsp;
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        boolean result = FileUtil.copy(sourceFileSystem, sourcePathHadoop, targetFileSystem,</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                targetPathHadoop, deleteSource, sourceFileSystem.getConf());</b>
+<i class="no-highlight">281</i>&nbsp;
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        String operation = deleteSource ? &quot;Move&quot; : &quot;Copy&quot;;</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        if (!result) {</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;            throw new IOException(&quot;Unable to perform file &quot; + operation + &quot; operation from &quot;</b>
+<i class="no-highlight">285</i>&nbsp;                    + source + &quot; to &quot; + target);
+<i class="no-highlight">286</i>&nbsp;        }
+<i class="no-highlight">287</i>&nbsp;    }
+<i class="no-highlight">288</i>&nbsp;
+<i class="no-highlight">289</i>&nbsp;    /**
+<i class="no-highlight">290</i>&nbsp;     * @see java.nio.file.spi.FileSystemProvider#newByteChannel(java.nio.file.Path, java.util.Set,
+<i class="no-highlight">291</i>&nbsp;     *      java.nio.file.attribute.FileAttribute[])
+<i class="no-highlight">292</i>&nbsp;     */
+<i class="no-highlight">293</i>&nbsp;    @Override
+<i class="no-highlight">294</i>&nbsp;    public SeekableByteChannel newByteChannel(Path path, Set&lt;? extends OpenOption&gt; options,
+<i class="no-highlight">295</i>&nbsp;            FileAttribute&lt;?&gt;... attrs) throws IOException {
+<i class="no-highlight">296</i>&nbsp;
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        throw new UnsupportedOperationException(&quot;HDFS dues not support seekable channels.&quot;);</b>
+<i class="no-highlight">298</i>&nbsp;    }
+<i class="no-highlight">299</i>&nbsp;
+<i class="no-highlight">300</i>&nbsp;    /**
+<i class="no-highlight">301</i>&nbsp;     * ToString()
+<i class="no-highlight">302</i>&nbsp;     */
+<i class="no-highlight">303</i>&nbsp;    @Override
+<i class="no-highlight">304</i>&nbsp;    public String toString() {
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        StringBuilder sb = new StringBuilder(&quot;{ &quot;);</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        sb.append(&quot;\&quot;classname\&quot; : \&quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        sb.append(this.getClass().getName());</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        sb.append(&quot;\&quot;, \&quot;scheme\&quot; : \&quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        sb.append(scheme);</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        sb.append(&quot;\&quot;, \&quot;user\&quot; : \&quot;&quot;);</b>
+<i class="no-highlight">311</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">312</i>&nbsp;            sb.append(UserGroupInformation.getCurrentUser().getUserName());</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            sb.append(&quot;*&quot;);</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        sb.append(&quot;\&quot; }&quot;);</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        return sb.toString();</b>
+<i class="no-highlight">318</i>&nbsp;    }
+<i class="no-highlight">319</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

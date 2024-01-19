@@ -1,0 +1,557 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AbstractAmazonSQSSnap</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.amazonsqs</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractAmazonSQSSnap (com.snaplogic.snaps.amazonsqs)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractAmazonSQSSnap</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/164)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.amazonsqs;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.ClientConfiguration;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.auth.AWSCredentialsProvider;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.regions.Regions;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.sqs.AmazonSQS;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
+<i class="no-highlight">21</i>&nbsp;import com.amazonaws.services.sqs.buffered.QueueBufferConfig;
+<i class="no-highlight">22</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">23</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">24</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">25</i>&nbsp;import com.google.inject.Module;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.account.api.capabilities.Accounts;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.account.api.capabilities.MultiAccountBinding;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.StatusReporter;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.PlatformFeature;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">44</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">45</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">48</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">49</i>&nbsp;import java.util.List;
+<i class="no-highlight">50</i>&nbsp;import java.util.Map;
+<i class="no-highlight">51</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snaps.amazonsqs.Messages.*;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;/**
+<i class="no-highlight">57</i>&nbsp; * Base Class for AmazonSQS snaps
+<i class="no-highlight">58</i>&nbsp; */
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">61</i>&nbsp;@Accounts(provides = {AmazonSQSAccount.class})
+<i class="no-highlight">62</i>&nbsp;@PlatformFeature(coerceAndValidateExpressions = true)
+<b class="nc"><i class="no-highlight">63</i>&nbsp;public abstract class AbstractAmazonSQSSnap extends SimpleSnap</b>
+<i class="no-highlight">64</i>&nbsp;        implements MultiAccountBinding&lt;AmazonSQSBaseAccount&gt; {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(AbstractAmazonSQSSnap.class);</b>
+<i class="no-highlight">66</i>&nbsp;    protected static final String REGION_PROP = &quot;region&quot;;
+<i class="no-highlight">67</i>&nbsp;    protected static final String QUEUE_NAME_PROP = &quot;queueName&quot;;
+<i class="no-highlight">68</i>&nbsp;    protected static final String BATCH_SIZE_PROP = &quot;batchSize&quot;;
+<i class="no-highlight">69</i>&nbsp;    protected static final String CLIENT_SIDE_BUFFER_PROP = &quot;clientSideBuffering&quot;;
+<i class="no-highlight">70</i>&nbsp;    protected static final String FIFO_QNAME_SUFFIX = &quot;.fifo&quot;;
+<i class="no-highlight">71</i>&nbsp;    protected static final String BASIC_ATTR_TYPE_STRING = &quot;String&quot;;
+<i class="no-highlight">72</i>&nbsp;    protected static final String BASIC_ATTR_TYPE_NUMBER = &quot;Number&quot;;
+<i class="no-highlight">73</i>&nbsp;    protected static final String CLIENTSIDE_BUFFER_CONFIG_PROP = &quot;bufferConfig&quot;;
+<i class="no-highlight">74</i>&nbsp;    protected static final String BUFFERING_MAX_BATCH_SIZE_PROP = &quot;maxBatchSize&quot;;
+<i class="no-highlight">75</i>&nbsp;    protected static final String BUFFERING_MAX_BATCH_OPEN_MS_PROP = &quot;maxBatchOpenMs&quot;;
+<i class="no-highlight">76</i>&nbsp;    protected static final String BUFFERING_MAX_OUTBOUND_BATCHES_PROP = &quot;maxInflightOutboundBatches&quot;;
+<i class="no-highlight">77</i>&nbsp;    protected static final String QUEUE_URL_PROP = &quot;queueUrl&quot;;
+<i class="no-highlight">78</i>&nbsp;    protected static final String MAX_ERROR_RETRY_PROP = &quot;maxErrorRetry&quot;;
+<i class="no-highlight">79</i>&nbsp;    protected static final String SLASH = &quot;/&quot;;
+<i class="no-highlight">80</i>&nbsp;    protected static final String QUEUE_URL_KEY_FMT = &quot;%s-%s&quot;;
+<i class="no-highlight">81</i>&nbsp;    protected static final String QUEUE_URL_OUTPUT_KEY = &quot;QueueURL&quot;;
+<i class="no-highlight">82</i>&nbsp;    protected static final String RECEIPT_HANDLE_OUTPUT_KEY = &quot;ReceiptHandle&quot;;
+<i class="no-highlight">83</i>&nbsp;    protected static final String MESSAGE_ID_KEY = &quot;MessageId&quot;;
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;    protected static final String CONDITION_IS_FIFO =
+<i class="no-highlight">86</i>&nbsp;            &quot;$.settings.queueName.expression &quot; +
+<i class="no-highlight">87</i>&nbsp;                    &quot;|| $.settings.queueUrl.expression &quot; +
+<i class="no-highlight">88</i>&nbsp;                    &quot;|| ($.settings.queueName.value.endsWith(&#39;.fifo&#39;) &quot; +
+<i class="no-highlight">89</i>&nbsp;                    &quot;|| $.settings.queueUrl.value.endsWith(&#39;.fifo&#39;))&quot;;
+<i class="no-highlight">90</i>&nbsp;    protected static final String CONDITION_IS_NOT_FIFO =
+<i class="no-highlight">91</i>&nbsp;            &quot;$.settings.queueName.expression &quot; +
+<i class="no-highlight">92</i>&nbsp;                    &quot;|| $.settings.queueUrl.expression&quot; +
+<i class="no-highlight">93</i>&nbsp;                    &quot;|| (!$.settings.queueName.value.endsWith(&#39;.fifo&#39;) &quot; +
+<i class="no-highlight">94</i>&nbsp;                    &quot;&amp;&amp; !$.settings.queueUrl.value.endsWith(&#39;.fifo&#39;))&quot;;
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    protected static final String CONDITION_CLIENT_SIDE_BUFFER_ENABLED =
+<i class="no-highlight">97</i>&nbsp;            &quot;$.settings.clientSideBuffering.value&quot;;
+<i class="no-highlight">98</i>&nbsp;    protected static final String CONDITION_CLIENT_SIDE_BUFFER_DISABLED =
+<i class="no-highlight">99</i>&nbsp;            &quot;!$.settings.clientSideBuffering.value&quot;;
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;    // Constant values
+<i class="no-highlight">102</i>&nbsp;    // Retry
+<i class="no-highlight">103</i>&nbsp;    protected static final int MIN_ERROR_RETRY = 0;
+<i class="no-highlight">104</i>&nbsp;    protected static final int DEFAULT_ERROR_RETRY = 3;
+<i class="no-highlight">105</i>&nbsp;    // Buffer size for Client-side buffering
+<i class="no-highlight">106</i>&nbsp;    protected static final int MAX_BUFFER_SIZE = 10;
+<i class="no-highlight">107</i>&nbsp;    protected static final int MIN_BUFFER_SIZE = 1;
+<i class="no-highlight">108</i>&nbsp;    protected static final int DEFAULT_BUFFER_SIZE = 10;
+<i class="no-highlight">109</i>&nbsp;    // Buffer open time for Client-side buffering
+<i class="no-highlight">110</i>&nbsp;    protected static final int MIN_BUFFER_OPEN_TIME = 1;
+<i class="no-highlight">111</i>&nbsp;    protected static final int DEFAULT_BUFFER_OPEN_TIME = 200;
+<i class="no-highlight">112</i>&nbsp;    // Inflight outbound batches for Client-side buffering
+<i class="no-highlight">113</i>&nbsp;    protected static final int MIN_INFLIGHT_OUTBOUND_BATCHES = 1;
+<i class="no-highlight">114</i>&nbsp;    protected static final int DEFAULT_INFLIGHT_OUTBOUND_BATCHES = 5;
+<i class="no-highlight">115</i>&nbsp;    // Sleep time
+<i class="no-highlight">116</i>&nbsp;    protected static final int SLEEP_TIMEOUT = 200;
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;
+<b class="nc"><i class="no-highlight">119</i>&nbsp;    protected final Map&lt;String, String&gt; queueUrls = Maps.newHashMap();</b>
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;
+<i class="no-highlight">122</i>&nbsp;    @Inject
+<i class="no-highlight">123</i>&nbsp;    protected AmazonSQSBaseAccount account;
+<i class="no-highlight">124</i>&nbsp;    @Inject
+<i class="no-highlight">125</i>&nbsp;    protected ErrorViews errorViews;
+<i class="no-highlight">126</i>&nbsp;    @Inject
+<i class="no-highlight">127</i>&nbsp;    protected StatusReporter statusReporter;
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    protected AmazonSQS sqsClient;
+<i class="no-highlight">130</i>&nbsp;    protected String queueName;
+<i class="no-highlight">131</i>&nbsp;    protected String region;
+<i class="no-highlight">132</i>&nbsp;    protected String queueUrl;
+<i class="no-highlight">133</i>&nbsp;    protected Integer maxErrorRetry;
+<i class="no-highlight">134</i>&nbsp;
+<i class="no-highlight">135</i>&nbsp;    protected ExpressionProperty regionExpr;
+<i class="no-highlight">136</i>&nbsp;    protected ExpressionProperty queueNameExpr;
+<i class="no-highlight">137</i>&nbsp;    protected ExpressionProperty queueUrlExpr;
+<i class="no-highlight">138</i>&nbsp;    protected ExpressionProperty maxBatchSizeExpr;
+<i class="no-highlight">139</i>&nbsp;    protected ExpressionProperty maxBatchTimeMsExpr;
+<i class="no-highlight">140</i>&nbsp;    protected ExpressionProperty maxInflightOutboundBatchesExpr;
+<i class="no-highlight">141</i>&nbsp;
+<i class="no-highlight">142</i>&nbsp;    protected boolean clientSideBuffering;
+<i class="no-highlight">143</i>&nbsp;    protected boolean isFIFO;
+<i class="no-highlight">144</i>&nbsp;    protected Integer maxBatchSize;
+<i class="no-highlight">145</i>&nbsp;    protected Integer maxBatchTimeMs;
+<i class="no-highlight">146</i>&nbsp;    protected Integer maxInflightOutboundBatches;
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;    private static final String APN_TRACKING_FORMAT = &quot;APN/1.0 %s/1.0 %s/%s, %s&quot;;
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;    @Override
+<i class="no-highlight">151</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        defineQueueDestinationProps(propertyBuilder);</b>
+<i class="no-highlight">153</i>&nbsp;
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        propertyBuilder.describe(MAX_ERROR_RETRY_PROP, MAX_ERROR_RETRY_LABEL, MAX_ERROR_RETRY_DESC)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                .withMinValue(MIN_ERROR_RETRY)</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                .defaultValue(DEFAULT_ERROR_RETRY)</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                .add();</b>
+<i class="no-highlight">160</i>&nbsp;
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        defineAdditionalProperties(propertyBuilder);</b>
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;        // Properties for Client-side buffering
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        propertyBuilder.describe(CLIENT_SIDE_BUFFER_PROP, CLIENTSIDE_BUFFERING_LABEL,</b>
+<i class="no-highlight">165</i>&nbsp;                CLIENTSIDE_BUFFERING_DESC)
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                .add();</b>
+<i class="no-highlight">169</i>&nbsp;
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        SnapProperty maxBatchSizeProp = propertyBuilder.describe(BUFFERING_MAX_BATCH_SIZE_PROP,</b>
+<i class="no-highlight">171</i>&nbsp;                BUFFERING_MAX_BATCH_SIZE_LABEL, BUFFERING_MAX_BATCH_SIZE_DESC)
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .withMaxValue(MAX_BUFFER_SIZE)</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                .withMinValue(MIN_BUFFER_SIZE)</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                .defaultValue(DEFAULT_BUFFER_SIZE)</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .build();</b>
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;        // The maxBatchOpenMS can be 0, but from the documentation, if it is set to 0, the
+<i class="no-highlight">180</i>&nbsp;        // client-side buffering is effectively disabled, which doesn&#39;t make any scence here. So we
+<i class="no-highlight">181</i>&nbsp;        // are setting the min value of the property to be 1 here.
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        SnapProperty maxBatchOpenMs = propertyBuilder.describe(BUFFERING_MAX_BATCH_OPEN_MS_PROP,</b>
+<i class="no-highlight">183</i>&nbsp;                BUFFERING_MAX_BATCH_OPEN_MS_LABEL, BUFFERING_MAX_BATCH_OPEN_MS_DESC)
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .withMinValue(MIN_BUFFER_OPEN_TIME)</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .defaultValue(DEFAULT_BUFFER_OPEN_TIME)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .build();</b>
+<i class="no-highlight">189</i>&nbsp;
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        SnapProperty maxInflightOutboundBatches = propertyBuilder.describe</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                (BUFFERING_MAX_OUTBOUND_BATCHES_PROP, BUFFERING_MAX_OUTBOUND_BATCHES_LABEL,</b>
+<i class="no-highlight">192</i>&nbsp;                        BUFFERING_MAX_OUTBOUND_BATCHES_DESC)
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                .withMinValue(MIN_INFLIGHT_OUTBOUND_BATCHES)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .defaultValue(DEFAULT_INFLIGHT_OUTBOUND_BATCHES)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        List&lt;SnapProperty&gt; configEntries = Lists.newArrayList(maxBatchSizeProp, maxBatchOpenMs,</b>
+<i class="no-highlight">199</i>&nbsp;                maxInflightOutboundBatches);
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        defineAdditionalClientSideBufferingProperties(propertyBuilder, configEntries);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        propertyBuilder.describe(CLIENTSIDE_BUFFER_CONFIG_PROP,</b>
+<i class="no-highlight">202</i>&nbsp;                CLIENTSIDE_BUFFER_CONFIG_LABEL, CLIENTSIDE_BUFFER_CONFIG_DESC)
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                .withEntries(configEntries)</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                .enableIf(CONDITION_CLIENT_SIDE_BUFFER_ENABLED)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .add();</b>
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;    }
+<i class="no-highlight">209</i>&nbsp;
+<i class="no-highlight">210</i>&nbsp;
+<i class="no-highlight">211</i>&nbsp;    @Override
+<i class="no-highlight">212</i>&nbsp;    public void configure(PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        regionExpr = propertyValues.getAsExpression(REGION_PROP);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        queueNameExpr = propertyValues.getAsExpression(QUEUE_NAME_PROP);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        queueUrlExpr = propertyValues.getAsExpression(QUEUE_URL_PROP);</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        clientSideBuffering = Boolean.TRUE.equals(propertyValues.get(CLIENT_SIDE_BUFFER_PROP));</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;        maxErrorRetry = getIntValue(propertyValues.getAsExpression(MAX_ERROR_RETRY_PROP).eval</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                (null), null);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        maxBatchSizeExpr = propertyValues.getAsExpression(getBufferPropertyPathFor</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                (BUFFERING_MAX_BATCH_SIZE_PROP));</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        maxBatchTimeMsExpr = propertyValues.getAsExpression(getBufferPropertyPathFor</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                (BUFFERING_MAX_BATCH_OPEN_MS_PROP));</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        maxInflightOutboundBatchesExpr = propertyValues.getAsExpression</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                (getBufferPropertyPathFor(BUFFERING_MAX_OUTBOUND_BATCHES_PROP));</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        configureAdditions(propertyValues);</b>
+<i class="no-highlight">226</i>&nbsp;    }
+<i class="no-highlight">227</i>&nbsp;
+<i class="no-highlight">228</i>&nbsp;
+<i class="no-highlight">229</i>&nbsp;    @Override
+<i class="no-highlight">230</i>&nbsp;    public void cleanup() throws ExecutionException {
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        if (sqsClient != null) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;            sqsClient.shutdown();</b>
+<i class="no-highlight">233</i>&nbsp;        }
+<i class="no-highlight">234</i>&nbsp;    }
+<i class="no-highlight">235</i>&nbsp;
+<i class="no-highlight">236</i>&nbsp;    @Override
+<i class="no-highlight">237</i>&nbsp;    public Module getManagedAccountModule(final AmazonSQSBaseAccount account) {
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        return binder -&gt; binder.bind(AmazonSQSBaseAccount.class).toInstance(account);</b>
+<i class="no-highlight">239</i>&nbsp;    }
+<i class="no-highlight">240</i>&nbsp;
+<i class="no-highlight">241</i>&nbsp;
+<i class="no-highlight">242</i>&nbsp;    protected abstract void defineAdditionalProperties(final PropertyBuilder propertyBuilder);
+<i class="no-highlight">243</i>&nbsp;
+<i class="no-highlight">244</i>&nbsp;    protected abstract void configureAdditions(final PropertyValues propertyValues);
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;    /**
+<i class="no-highlight">247</i>&nbsp;     * Define other options for Client-side Buffering
+<i class="no-highlight">248</i>&nbsp;     *
+<i class="no-highlight">249</i>&nbsp;     * @param propertyBuilder
+<i class="no-highlight">250</i>&nbsp;     * @param configEntries
+<i class="no-highlight">251</i>&nbsp;     */
+<i class="no-highlight">252</i>&nbsp;    protected abstract void defineAdditionalClientSideBufferingProperties(
+<i class="no-highlight">253</i>&nbsp;            final PropertyBuilder propertyBuilder, final List&lt;SnapProperty&gt; configEntries);
+<i class="no-highlight">254</i>&nbsp;
+<i class="no-highlight">255</i>&nbsp;    protected AmazonSQS newSqsClient() {
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        if (sqsClient != null) {</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            sqsClient.shutdown();</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            sqsClient = null;</b>
+<i class="no-highlight">259</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        return getSqsClient();</b>
+<i class="no-highlight">261</i>&nbsp;    }
+<i class="no-highlight">262</i>&nbsp;
+<i class="no-highlight">263</i>&nbsp;    protected AmazonSQS getSqsClient() {
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        if (sqsClient == null) {</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            ClientConfiguration configuration = new ClientConfiguration();</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            if (maxErrorRetry != null) {</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                configuration.setMaxErrorRetry(maxErrorRetry.intValue());</b>
+<i class="no-highlight">268</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            String prefix = SQSUtils.getApnUserAgentHeader();</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            configuration.setUserAgentPrefix(prefix);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            account.setRegion(region);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            AWSCredentialsProvider credentialsProvider = account.connect();</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            AmazonSQSAsyncClientBuilder builder = AmazonSQSAsyncClientBuilder.standard()</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                    .withClientConfiguration(configuration)</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                    .withCredentials(credentialsProvider);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            if (StringUtils.isNotBlank(region)) {</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                builder.withRegion(region);</b>
+<i class="no-highlight">278</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                builder.withRegion(Regions.DEFAULT_REGION);</b>
+<i class="no-highlight">280</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">281</i>&nbsp;            if (clientSideBuffering) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                QueueBufferConfig config = getQueueBufferConfig();</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                sqsClient = new AmazonSQSBufferedAsyncClient(builder.build(), config);</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                sqsClient = builder.build();</b>
+<i class="no-highlight">286</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            if(account.largeMessageSupportEnabled()) {</b>
+<i class="no-highlight">288</i>&nbsp;                // Extend the current sqs client with the large message support
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                sqsClient = new AmazonSQSExtendedClient(sqsClient,</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                        account.getExtendedClientConfiguration(credentialsProvider));</b>
+<i class="no-highlight">291</i>&nbsp;            }
+<i class="no-highlight">292</i>&nbsp;        }
+<i class="no-highlight">293</i>&nbsp;
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        return sqsClient;</b>
+<i class="no-highlight">295</i>&nbsp;    }
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;    protected QueueBufferConfig getQueueBufferConfig() {
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        QueueBufferConfig config = new QueueBufferConfig().withFlushOnShutdown(true);</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        if (maxBatchSize != null) {</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;            config.setMaxBatchSize(maxBatchSize);</b>
+<i class="no-highlight">301</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        if (maxBatchTimeMs != null) {</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;            config.setMaxBatchOpenMs(maxBatchTimeMs);</b>
+<i class="no-highlight">304</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        if (maxInflightOutboundBatches != null) {</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;            config.setMaxInflightOutboundBatches(maxInflightOutboundBatches);</b>
+<i class="no-highlight">307</i>&nbsp;        }
+<i class="no-highlight">308</i>&nbsp;
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        return config;</b>
+<i class="no-highlight">310</i>&nbsp;    }
+<i class="no-highlight">311</i>&nbsp;
+<i class="no-highlight">312</i>&nbsp;    /**
+<i class="no-highlight">313</i>&nbsp;     * From SQS&#39;s documentation, the name of FIFO queue should always end with &quot;.fifo&quot;, and
+<i class="no-highlight">314</i>&nbsp;     * can be used to recognize the type of the queue.
+<i class="no-highlight">315</i>&nbsp;     *
+<i class="no-highlight">316</i>&nbsp;     * @param qUrl The name of the queue
+<i class="no-highlight">317</i>&nbsp;     *
+<i class="no-highlight">318</i>&nbsp;     * @return true if the queue specified is an FIFO queue
+<i class="no-highlight">319</i>&nbsp;     */
+<i class="no-highlight">320</i>&nbsp;    protected boolean isFifo(String qUrl) {
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        return StringUtils.endsWith(qUrl, FIFO_QNAME_SUFFIX);</b>
+<i class="no-highlight">322</i>&nbsp;    }
+<i class="no-highlight">323</i>&nbsp;
+<i class="no-highlight">324</i>&nbsp;    /**
+<i class="no-highlight">325</i>&nbsp;     * Decide and return the corresponding queue url. If the queueUrl is given from the property,
+<i class="no-highlight">326</i>&nbsp;     * then use it. Otherwise, get the url from the given queue name.
+<i class="no-highlight">327</i>&nbsp;     */
+<i class="no-highlight">328</i>&nbsp;    protected String updateQueueUrl(String region, String queueName, String queueUrl) {
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        if (StringUtils.isNotBlank(queueUrl)) {</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;            return queueUrl;</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        } else if (StringUtils.isBlank(queueName)) {</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;            throw new SnapDataException(ERROR_MUST_PROVIDE_QUEUE_URL_OR_NAME)</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                    .withReason(ERROR_MUST_PROVIDE_QUEUE_URL_OR_NAME_REASON)</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">335</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">336</i>&nbsp;            String key = String.format(QUEUE_URL_KEY_FMT, region, queueName);</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;            if (!queueUrls.containsKey(key)) {</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                LOG.debug(&quot;Getting new queueUrl for queueName: {}&quot;, queueName);</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                queueUrls.put(key, getSqsClient().getQueueUrl(queueName).getQueueUrl());</b>
+<i class="no-highlight">340</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">341</i>&nbsp;            return queueUrls.get(key);</b>
+<i class="no-highlight">342</i>&nbsp;        }
+<i class="no-highlight">343</i>&nbsp;    }
+<i class="no-highlight">344</i>&nbsp;
+<i class="no-highlight">345</i>&nbsp;    /**
+<i class="no-highlight">346</i>&nbsp;     * Define properties for Region, Queue name and Queue URL, and specify whether the properties
+<i class="no-highlight">347</i>&nbsp;     * can be get from upstream document input or not
+<i class="no-highlight">348</i>&nbsp;     *
+<i class="no-highlight">349</i>&nbsp;     * @param propertyBuilder
+<i class="no-highlight">350</i>&nbsp;     */
+<i class="no-highlight">351</i>&nbsp;    protected void defineQueueDestinationProps(final PropertyBuilder propertyBuilder) {
+<i class="no-highlight">352</i>&nbsp;        // Region
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        PropertyBuilder regionPropBuilder = propertyBuilder.describe(REGION_PROP, REGION_LABEL,</b>
+<i class="no-highlight">354</i>&nbsp;                REGION_DESC)
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                .type(SnapType.STRING);</b>
+<i class="no-highlight">356</i>&nbsp;
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        regionPropBuilder.expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA);</b>
+<i class="no-highlight">358</i>&nbsp;
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        regionPropBuilder.withSuggestions((suggestionBuilder, propertyValues) -&gt; {</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;            Regions[] regions = Regions.values();</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;            List&lt;String&gt; regionStrs = Arrays.stream(regions)</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                    .map(Regions::getName)</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                    .collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            suggestionBuilder</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                    .node(REGION_PROP)</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                    .suggestions(regionStrs.toArray(new String[regionStrs.size()]));</b>
+<i class="no-highlight">367</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        regionPropBuilder.add();</b>
+<i class="no-highlight">369</i>&nbsp;
+<i class="no-highlight">370</i>&nbsp;        // Queue Name
+<b class="nc"><i class="no-highlight">371</i>&nbsp;        PropertyBuilder queueNamePropBuilder = propertyBuilder.describe(QUEUE_NAME_PROP,</b>
+<i class="no-highlight">372</i>&nbsp;                QUEUE_NAME_LABEL, QUEUE_NAME_DESC)
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                .type(SnapType.STRING);</b>
+<i class="no-highlight">374</i>&nbsp;
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        queueNamePropBuilder.expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA);</b>
+<i class="no-highlight">376</i>&nbsp;
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        queueNamePropBuilder.withSuggestions(((suggestionBuilder, propertyValues) -&gt; {</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            account.setRegion(region);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            AWSCredentialsProvider credentialsProvider = account.connect();</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            AmazonSQS sqs = null;</b>
+<i class="no-highlight">381</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                AmazonSQSAsyncClientBuilder builder = AmazonSQSAsyncClientBuilder.standard()</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                        .withCredentials(credentialsProvider);</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                String region = propertyValues.getAsExpression(REGION_PROP).eval(null);</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                if (StringUtils.isNotBlank(region)) {</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                    builder.withRegion(region);</b>
+<i class="no-highlight">387</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                sqs = builder.build();</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                List&lt;String&gt; queueList = sqs.listQueues().getQueueUrls();</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                List&lt;String&gt; nameList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                queueList.forEach(url -&gt; {</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                    String[] urlParts = url.split(SLASH);</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                    String name = url;</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                    if (urlParts.length &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                        name = urlParts[urlParts.length - 1];</b>
+<i class="no-highlight">396</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                    nameList.add(name);</b>
+<i class="no-highlight">398</i>&nbsp;                });
+<b class="nc"><i class="no-highlight">399</i>&nbsp;                suggestionBuilder.node(QUEUE_NAME_PROP)</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                        .suggestions(nameList.toArray(new String[nameList.size()]));</b>
+<i class="no-highlight">401</i>&nbsp;
+<i class="no-highlight">402</i>&nbsp;            } finally {
+<b class="nc"><i class="no-highlight">403</i>&nbsp;                if (sqs != null) {</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                    sqs.shutdown();</b>
+<i class="no-highlight">405</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">406</i>&nbsp;            }</b>
+<i class="no-highlight">407</i>&nbsp;        }));
+<b class="nc"><i class="no-highlight">408</i>&nbsp;        queueNamePropBuilder.add();</b>
+<i class="no-highlight">409</i>&nbsp;
+<i class="no-highlight">410</i>&nbsp;        // Queue Url
+<b class="nc"><i class="no-highlight">411</i>&nbsp;        PropertyBuilder queueUrlPropBuilder = propertyBuilder.describe(QUEUE_URL_PROP,</b>
+<i class="no-highlight">412</i>&nbsp;                QUEUE_URL_LABEL, QUEUE_URL_DESC)
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                .type(SnapType.STRING);</b>
+<i class="no-highlight">414</i>&nbsp;
+<i class="no-highlight">415</i>&nbsp;
+<b class="nc"><i class="no-highlight">416</i>&nbsp;        queueUrlPropBuilder.expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA);</b>
+<i class="no-highlight">417</i>&nbsp;
+<b class="nc"><i class="no-highlight">418</i>&nbsp;        queueUrlPropBuilder.add();</b>
+<i class="no-highlight">419</i>&nbsp;    }
+<i class="no-highlight">420</i>&nbsp;
+<i class="no-highlight">421</i>&nbsp;    protected String getBufferPropertyPathFor(String propertyName) {
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        return new JsonPathBuilder</b>
+<i class="no-highlight">423</i>&nbsp;                (CLIENTSIDE_BUFFER_CONFIG_PROP)
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;                .appendCurrentElement(propertyName)</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                .build();</b>
+<i class="no-highlight">427</i>&nbsp;    }
+<i class="no-highlight">428</i>&nbsp;
+<i class="no-highlight">429</i>&nbsp;    /**
+<i class="no-highlight">430</i>&nbsp;     * Try to get the integer value from the given object. If the object is not an valid integer,
+<i class="no-highlight">431</i>&nbsp;     * default value would be returned
+<i class="no-highlight">432</i>&nbsp;     */
+<i class="no-highlight">433</i>&nbsp;    protected Integer getIntValue(Object value, Integer defaultValue) {
+<i class="no-highlight">434</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">435</i>&nbsp;            if (value instanceof BigInteger) {</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                return ((BigInteger) value).intValue();</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;            } else if (value instanceof Long) {</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;                return ((Long) value).intValue();</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;            } else if (value instanceof Integer) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                return (Integer) value;</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;            } else if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                return Integer.valueOf((String) value);</b>
+<i class="no-highlight">443</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                return defaultValue;</b>
+<i class="no-highlight">445</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">446</i>&nbsp;        } catch (NumberFormatException nfe) {</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;            LOG.debug(&quot;Failed to transform value to Integer, input {}&quot;, value);</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;            return defaultValue;</b>
+<i class="no-highlight">449</i>&nbsp;        }
+<i class="no-highlight">450</i>&nbsp;    }
+<i class="no-highlight">451</i>&nbsp;
+<i class="no-highlight">452</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,319 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > SequenceParser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.hadoop</a>
+</div>
+
+<h1>Coverage Summary for Class: SequenceParser (com.snaplogic.snaps.hadoop)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">SequenceParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/75)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.hadoop;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.io.CountingInputStream;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.Module;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.DependencyManager;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.OutputSchemaProvider;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.BinaryInput;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.SimpleBinarySnap;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snaps.hadoop.common.SeekableInputStream;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.util.converter.WritableConverterService;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.util.converter.WritableConverterServiceImpl;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">44</i>&nbsp;import org.apache.hadoop.conf.Configuration;
+<i class="no-highlight">45</i>&nbsp;import org.apache.hadoop.fs.FSDataInputStream;
+<i class="no-highlight">46</i>&nbsp;import org.apache.hadoop.io.SequenceFile;
+<i class="no-highlight">47</i>&nbsp;import org.apache.hadoop.io.Writable;
+<i class="no-highlight">48</i>&nbsp;import org.apache.hadoop.util.ReflectionUtils;
+<i class="no-highlight">49</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">50</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import java.io.EOFException;
+<i class="no-highlight">53</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">54</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">55</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">56</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">57</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">58</i>&nbsp;import java.util.Map;
+<i class="no-highlight">59</i>&nbsp;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.hadoop.Messages.*;
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;/**
+<i class="no-highlight">63</i>&nbsp; * SequenceFileParser snap allows the users to parse a native hadoop sequence file and convert
+<i class="no-highlight">64</i>&nbsp; * them into documents.
+<i class="no-highlight">65</i>&nbsp; *
+<i class="no-highlight">66</i>&nbsp; * @author ksubramanian, efulton
+<i class="no-highlight">67</i>&nbsp; */
+<i class="no-highlight">68</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">69</i>&nbsp;@General(title = Messages.SEQ_PARSER_LABEL, purpose = Messages.SEQ_PARSER_DESC)
+<i class="no-highlight">70</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.BINARY})
+<i class="no-highlight">71</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">72</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">73</i>&nbsp;@Category(snap = SnapCategory.PARSE)
+<b class="nc"><i class="no-highlight">74</i>&nbsp;public class SequenceParser extends SimpleBinarySnap implements OutputSchemaProvider,</b>
+<i class="no-highlight">75</i>&nbsp;        DependencyManager {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(SequenceParser.class);</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;    private static final Configuration CONFIGURATION = new Configuration();</b>
+<i class="no-highlight">78</i>&nbsp;    private static final String KEY = &quot;key&quot;;
+<i class="no-highlight">79</i>&nbsp;    private static final String VALUE = &quot;value&quot;;
+<i class="no-highlight">80</i>&nbsp;    private static final String PROP_KEY_CLASS = &quot;key_class&quot;;
+<i class="no-highlight">81</i>&nbsp;    private static final String PROP_VALUE_CLASS = &quot;value_class&quot;;
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;    @Inject
+<i class="no-highlight">84</i>&nbsp;    private WritableConverterService writableConverterService;
+<i class="no-highlight">85</i>&nbsp;
+<i class="no-highlight">86</i>&nbsp;    private String keyClass;
+<i class="no-highlight">87</i>&nbsp;    private String valueClass;
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;    @Override
+<i class="no-highlight">90</i>&nbsp;    public Module getManagedModule() {
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        return WritableConverterServiceImpl.getModule();</b>
+<i class="no-highlight">92</i>&nbsp;    }
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;    @Override
+<i class="no-highlight">95</i>&nbsp;    public void defineProperties(final PropertyBuilder builder) {
+<i class="no-highlight">96</i>&nbsp;        // Only required in the
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        builder.describe(PROP_KEY_CLASS, LBL_KEY_CLASS,  DESC_KEY_CLASS)</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        builder.describe(PROP_VALUE_CLASS, LBL_VALUE_CLASS, DESC_VALUE_CLASS)</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;                .add();</b>
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    @Override
+<i class="no-highlight">106</i>&nbsp;    public void configure(final PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        this.keyClass = propertyValues.get(PROP_KEY_CLASS);</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        this.valueClass = propertyValues.get(PROP_VALUE_CLASS);</b>
+<i class="no-highlight">109</i>&nbsp;    }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    @Override
+<i class="no-highlight">112</i>&nbsp;    public void defineOutputSchema(final SchemaProvider schemaProvider) {
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        Collection&lt;String&gt; viewNames = schemaProvider.getRegisteredViewNames();</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        if (CollectionUtils.isNotEmpty(viewNames)) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            String viewName = viewNames.iterator().next();</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            SchemaBuilder schemaBuilder = schemaProvider.getSchemaBuilder(viewName);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            Schema keySchema = schemaProvider.createSchema(SnapType.ANY, KEY);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            Schema valueSchema = schemaProvider.createSchema(SnapType.ANY, VALUE);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            Schema finalInputSchema = schemaBuilder.withChildSchema(keySchema)</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                    .withChildSchema(valueSchema)</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            schemaProvider.setProvidedSchemaForViewName(viewName, finalInputSchema);</b>
+<i class="no-highlight">123</i>&nbsp;        }
+<i class="no-highlight">124</i>&nbsp;    }
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    @Override
+<i class="no-highlight">127</i>&nbsp;    protected void doWork() {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        if (!inputViews.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;            for (BinaryInput binaryInput : inputViews.binaryInputs(inputViews.get())) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                Document header = binaryInput.getHeader();</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                SequenceFile.Reader reader = null;</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                Writable keyWritable = null;</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                Writable valueWritable = null;</b>
+<i class="no-highlight">134</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                    InputStream inputStream = Channels.newInputStream(binaryInput.getChannel());</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    CountingInputStream countingInputStream = new CountingInputStream(inputStream);</b>
+<i class="no-highlight">137</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                        reader = getReaderFor(countingInputStream);</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    } catch (EOFException ex) {</b>
+<i class="no-highlight">140</i>&nbsp;                        // Be lenient with files of size 0 as it is not uncommon for Hadoop
+<i class="no-highlight">141</i>&nbsp;                        // MapReduce jobs to contain these types of files, like _SUCCESS
+<i class="no-highlight">142</i>&nbsp;                        // after completing. Instead of requiring user to filter them out
+<i class="no-highlight">143</i>&nbsp;                        // just skip to the next file.
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                        if (countingInputStream.getCount() == 0) {</b>
+<i class="no-highlight">145</i>&nbsp;                            continue;
+<i class="no-highlight">146</i>&nbsp;                        }
+<i class="no-highlight">147</i>&nbsp;
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                        throw new SnapDataException(ex, CORRUPT_SEQUENCE_FILE)</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                                .withReason(EOF_TOO_SOON)</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                                .withResolution(EXAMINE_SEQUENCE_FILE);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                    Configuration configuration = new Configuration();</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                    keyWritable = (Writable) ReflectionUtils.newInstance(</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                            reader.getKeyClass(), configuration);</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                    valueWritable = (Writable) ReflectionUtils.newInstance(</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                            reader.getValueClass(), configuration);</b>
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;                    // Key/Value pairs need to be supported writable types
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                    final boolean canWrite = !writableConverterService.writableIsSupported(</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                            keyWritable.getClass())</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                            || !writableConverterService.writableIsSupported(</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                            valueWritable.getClass());</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                    if (canWrite) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                        errorViews.write(new SnapDataException(SEQ_UNSUPPORTED_TYPE));</b>
+<i class="no-highlight">165</i>&nbsp;                        continue;
+<i class="no-highlight">166</i>&nbsp;                    }
+<i class="no-highlight">167</i>&nbsp;
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                    while (reader.next(keyWritable, valueWritable)) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                        Map&lt;String, Object&gt; dataMap = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">170</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                            dataMap.put(KEY, writableConverterService.convertFrom(</b>
+<i class="no-highlight">172</i>&nbsp;                                    keyWritable));
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                            dataMap.put(VALUE, writableConverterService.convertFrom(</b>
+<i class="no-highlight">174</i>&nbsp;                                    valueWritable));
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                            outputViews.write(documentUtility.newDocumentFor(header, dataMap));</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                            errorViews.write(e);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                } catch (EOFException e) {</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                    LOG.warn(String.format(REACHED_EOF_OF_SEQ_FILE,</b>
+<i class="no-highlight">182</i>&nbsp;                            keyClass, keyWritable, valueClass, valueWritable));
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                    LOG.warn(e.toString());</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                    String reason = String.format(FAILED_TO_READ_INCOMING_DATA, e.getMessage());</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                    throw new ExecutionException(e, UNABLE_TO_READ_INPUT_STREAM)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                            .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                            .withResolutionAsDefect();</b>
+<i class="no-highlight">189</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                    if (reader != null) {</b>
+<i class="no-highlight">191</i>&nbsp;                        // This will close the underlying input stream too
+<i class="no-highlight">192</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                            reader.close();</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                            throw new ExecutionException(e, ERROR_CLOSING_SEQUENCE_FILE_READER)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                                    .withReason(EXCEPTION_WHILE_CLOSING_SEQUENCE_FILE_READER)</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                        }</b>
+<i class="no-highlight">199</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            }</b>
+<i class="no-highlight">202</i>&nbsp;        }
+<i class="no-highlight">203</i>&nbsp;    }
+<i class="no-highlight">204</i>&nbsp;
+<i class="no-highlight">205</i>&nbsp;    @Override
+<i class="no-highlight">206</i>&nbsp;    public void cleanup() throws ExecutionException {
+<i class="no-highlight">207</i>&nbsp;    }
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;    //---------------------------------- Private Methods ----------------------------------------//
+<i class="no-highlight">210</i>&nbsp;    private SequenceFile.Reader getReaderFor(final InputStream inputStream) throws IOException {
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        return new SequenceFile.Reader(CONFIGURATION, SequenceFile.Reader.stream(</b>
+<i class="no-highlight">212</i>&nbsp;                new FSDataInputStream(new SeekableInputStream(inputStream))));
+<i class="no-highlight">213</i>&nbsp;    }
+<i class="no-highlight">214</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

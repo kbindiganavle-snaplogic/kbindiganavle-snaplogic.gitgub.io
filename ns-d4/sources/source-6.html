@@ -1,0 +1,251 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EltRedshiftUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.elt.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: EltRedshiftUtils (com.snaplogic.snaps.elt.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EltRedshiftUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020-2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.elt.utils;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">18</i>&nbsp;import java.util.List;
+<i class="no-highlight">19</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.ADD;
+<i class="no-highlight">22</i>&nbsp;import static com.snaplogic.snaps.elt.EltConstants.COLUMN_DATA_TYPE_FMT;
+<i class="no-highlight">23</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.ERR_BLANK_ADD_OR_DROP_COLUMNS;
+<i class="no-highlight">24</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.REASON_BLANK_ADD_OR_DROP_COLUMNS;
+<i class="no-highlight">25</i>&nbsp;import static com.snaplogic.snaps.elt.Messages.RESOLUTION_BLANK_ADD_OR_DROP_COLUMNS;
+<i class="no-highlight">26</i>&nbsp;import static com.snaplogic.snaps.elt.utils.EltUtils.throwInvalidDataTypeException;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;/**
+<i class="no-highlight">29</i>&nbsp; * Util class to hold all the redshift specific common methods
+<i class="no-highlight">30</i>&nbsp; */
+<i class="no-highlight">31</i>&nbsp;public class EltRedshiftUtils {
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;    /**
+<i class="no-highlight">34</i>&nbsp;     * Based on redshift architecture we need to handle
+<i class="no-highlight">35</i>&nbsp;     * some aggregate operations in a different way. Here is a list of these functions:
+<i class="no-highlight">36</i>&nbsp;     * &lt;p&gt;
+<i class="no-highlight">37</i>&nbsp;     * MEDIAN
+<i class="no-highlight">38</i>&nbsp;     * LISTAGG
+<i class="no-highlight">39</i>&nbsp;     * PERCENTILE_DISC
+<i class="no-highlight">40</i>&nbsp;     * PERCENTILE_COUNT
+<i class="no-highlight">41</i>&nbsp;     * &lt;p&gt;
+<i class="no-highlight">42</i>&nbsp;     * This regex return &lt;code&gt;true&lt;/code&gt; if finds some of these functions
+<i class="no-highlight">43</i>&nbsp;     * used as a function in the query, and &lt;code&gt;false&lt;/code&gt; if not.
+<i class="no-highlight">44</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">45</i>&nbsp;    private static final Pattern redshiftSpecialAggregateFunctionsPattern = Pattern.compile(</b>
+<i class="no-highlight">46</i>&nbsp;            &quot;(\\s|,)(MEDIAN|LISTAGG|PERCENTILE_DISC|PERCENTILE_COUNT|APPROXIMATE_PERCENTILE_DISC)&quot; +
+<i class="no-highlight">47</i>&nbsp;                    &quot;(\\s|\\()&quot;);
+<i class="no-highlight">48</i>&nbsp;
+<b class="nc"><i class="no-highlight">49</i>&nbsp;    private EltRedshiftUtils() {}</b>
+<i class="no-highlight">50</i>&nbsp;
+<i class="no-highlight">51</i>&nbsp;    /**
+<i class="no-highlight">52</i>&nbsp;     * Checks that query contains special aggregate redshift functions.
+<i class="no-highlight">53</i>&nbsp;     * This method is case insensitive.
+<i class="no-highlight">54</i>&nbsp;     *
+<i class="no-highlight">55</i>&nbsp;     * @param query which you want to check
+<i class="no-highlight">56</i>&nbsp;     * @return &lt;code&gt;true&lt;/code&gt; if query contains special aggregate redshift functions,
+<i class="no-highlight">57</i>&nbsp;     * &lt;code&gt;false&lt;/code&gt; if not
+<i class="no-highlight">58</i>&nbsp;     */
+<i class="no-highlight">59</i>&nbsp;    public static boolean doesQueryContainRedshiftSpecialAggregateFunctions(String query) {
+<b class="nc"><i class="no-highlight">60</i>&nbsp;        return redshiftSpecialAggregateFunctionsPattern.matcher(query.toUpperCase()).find();</b>
+<i class="no-highlight">61</i>&nbsp;    }
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;    /**
+<i class="no-highlight">64</i>&nbsp;     * Builds alter table sql for Redshift which only supports single column add and single
+<i class="no-highlight">65</i>&nbsp;     * column drop at a time. Multiple alter table sqls are appended in the resultant string
+<i class="no-highlight">66</i>&nbsp;     * @param columns list of columns
+<i class="no-highlight">67</i>&nbsp;     * @param dataType list of data types corresponding to the list
+<i class="no-highlight">68</i>&nbsp;     * @param alterColumnModifiers list of alter column modifiers corresponding to columns
+<i class="no-highlight">69</i>&nbsp;     * @param targetTablePath table to be modified
+<i class="no-highlight">70</i>&nbsp;     * @param alterTableAddSqlFmt alter table add column sql format
+<i class="no-highlight">71</i>&nbsp;     * @param alterTableDropSqlFmt alter table drop column sql format
+<i class="no-highlight">72</i>&nbsp;     * @return alter table sql
+<i class="no-highlight">73</i>&nbsp;     */
+<i class="no-highlight">74</i>&nbsp;    public static String buildRedshiftAlterTableSql(List&lt;String&gt; columns, List&lt;String&gt; dataType,
+<i class="no-highlight">75</i>&nbsp;                                            List&lt;String&gt; alterColumnModifiers,
+<i class="no-highlight">76</i>&nbsp;                                            String targetTablePath,
+<i class="no-highlight">77</i>&nbsp;                                            String alterTableAddSqlFmt,
+<i class="no-highlight">78</i>&nbsp;                                            String alterTableDropSqlFmt) {
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        List&lt;String&gt; alterTableAddColumns = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        List&lt;String&gt; alterTableDropColumns = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">81</i>&nbsp;
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        for (int indx = 0; indx &lt; alterColumnModifiers.size(); indx++) {</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;            if (StringUtils.isBlank(columns.get(indx))) {</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                continue;</b>
+<i class="no-highlight">85</i>&nbsp;            }
+<i class="no-highlight">86</i>&nbsp;
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            if (StringUtils.equals(alterColumnModifiers.get(indx), ADD)) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                if (StringUtils.isBlank(dataType.get(indx))) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    throwInvalidDataTypeException();</b>
+<i class="no-highlight">90</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                alterTableAddColumns.add(String.format(</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                        COLUMN_DATA_TYPE_FMT, columns.get(indx), dataType.get(indx)));</b>
+<i class="no-highlight">93</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                alterTableDropColumns.add(columns.get(indx));</b>
+<i class="no-highlight">95</i>&nbsp;            }
+<i class="no-highlight">96</i>&nbsp;        }
+<i class="no-highlight">97</i>&nbsp;
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        if (alterTableAddColumns.isEmpty() &amp;&amp; alterTableDropColumns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_ADD_OR_DROP_COLUMNS)</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                    .withReason(REASON_BLANK_ADD_OR_DROP_COLUMNS)</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_ADD_OR_DROP_COLUMNS);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        } else if (alterTableAddColumns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            return getMultipleSingleColumnAlterTableSql(targetTablePath, alterTableDropColumns,</b>
+<i class="no-highlight">104</i>&nbsp;                                                        alterTableDropSqlFmt);
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        } else if (alterTableDropColumns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;            return getMultipleSingleColumnAlterTableSql(targetTablePath, alterTableAddColumns,</b>
+<i class="no-highlight">107</i>&nbsp;                                                        alterTableAddSqlFmt);
+<i class="no-highlight">108</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">109</i>&nbsp;            return getMultipleSingleColumnAlterTableSql(targetTablePath, alterTableAddColumns,</b>
+<i class="no-highlight">110</i>&nbsp;                                                        alterTableAddSqlFmt)
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                    .concat(getMultipleSingleColumnAlterTableSql(targetTablePath,</b>
+<i class="no-highlight">112</i>&nbsp;                                                                 alterTableDropColumns,
+<i class="no-highlight">113</i>&nbsp;                                                                 alterTableDropSqlFmt));
+<i class="no-highlight">114</i>&nbsp;        }
+<i class="no-highlight">115</i>&nbsp;    }
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;    private static String getMultipleSingleColumnAlterTableSql(String targetTablePath,
+<i class="no-highlight">118</i>&nbsp;                                           List&lt;String&gt; alterTableColumns, String fmt) {
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        StringBuilder alterSqlBuilder = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        for (String column : alterTableColumns) {</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            alterSqlBuilder.append(String.format(fmt, targetTablePath, column));</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        return alterSqlBuilder.toString();</b>
+<i class="no-highlight">124</i>&nbsp;    }
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    /**
+<i class="no-highlight">127</i>&nbsp;     * Return a Redshift database internal string list for the given &quot;columns&quot;.
+<i class="no-highlight">128</i>&nbsp;     * It returns converted-to-lowercase list from the &quot;columns&quot;
+<i class="no-highlight">129</i>&nbsp;     * since Redshift database keeps unquoted column namess in lowercase.
+<i class="no-highlight">130</i>&nbsp;     *
+<i class="no-highlight">131</i>&nbsp;     * https://docs.aws.amazon.com/redshift/latest/dg/r_names.html
+<i class="no-highlight">132</i>&nbsp;     *
+<i class="no-highlight">133</i>&nbsp;     * @param columns   list of column names
+<i class="no-highlight">134</i>&nbsp;     * @return          list of database internal format column names
+<i class="no-highlight">135</i>&nbsp;     */
+<i class="no-highlight">136</i>&nbsp;    public static List&lt;String&gt; buildDatabaseInternalColumnListRedshift(List&lt;String&gt; columns) {
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        List&lt;String&gt; columnsDatabaseFormat = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">138</i>&nbsp;
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        for (int i = 0; i &lt; columns.size(); i++) {</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            String column = columns.get(i);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            columnsDatabaseFormat.add(column.toLowerCase());</b>
+<i class="no-highlight">142</i>&nbsp;        }
+<i class="no-highlight">143</i>&nbsp;
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        return columnsDatabaseFormat;</b>
+<i class="no-highlight">145</i>&nbsp;    }
+<i class="no-highlight">146</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

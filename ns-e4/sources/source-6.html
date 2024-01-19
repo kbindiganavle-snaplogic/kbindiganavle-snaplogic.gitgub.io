@@ -1,0 +1,1301 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkLoadFromCloudStorage</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.google.bigquery</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkLoadFromCloudStorage (com.snaplogic.snaps.google.bigquery)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkLoadFromCloudStorage</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/44)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/555)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BulkLoadFromCloudStorage$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">BulkLoadFromCloudStorage$FilePathObject</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/47)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/566)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.google.bigquery;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.api.services.storage.Storage;
+<i class="no-highlight">14</i>&nbsp;import com.google.api.services.storage.model.Objects;
+<i class="no-highlight">15</i>&nbsp;import com.google.api.services.storage.model.StorageObject;
+<i class="no-highlight">16</i>&nbsp;import com.google.auth.Credentials;
+<i class="no-highlight">17</i>&nbsp;import com.google.cloud.RetryOption;
+<i class="no-highlight">18</i>&nbsp;import com.google.cloud.WriteChannel;
+<i class="no-highlight">19</i>&nbsp;import com.google.cloud.bigquery.BigQuery;
+<i class="no-highlight">20</i>&nbsp;import com.google.cloud.bigquery.BigQueryError;
+<i class="no-highlight">21</i>&nbsp;import com.google.cloud.bigquery.BigQueryException;
+<i class="no-highlight">22</i>&nbsp;import com.google.cloud.bigquery.CsvOptions;
+<i class="no-highlight">23</i>&nbsp;import com.google.cloud.bigquery.FormatOptions;
+<i class="no-highlight">24</i>&nbsp;import com.google.cloud.bigquery.Job;
+<i class="no-highlight">25</i>&nbsp;import com.google.cloud.bigquery.JobInfo;
+<i class="no-highlight">26</i>&nbsp;import com.google.cloud.bigquery.JobStatistics;
+<i class="no-highlight">27</i>&nbsp;import com.google.cloud.bigquery.LoadJobConfiguration;
+<i class="no-highlight">28</i>&nbsp;import com.google.cloud.bigquery.Table;
+<i class="no-highlight">29</i>&nbsp;import com.google.cloud.bigquery.TableId;
+<i class="no-highlight">30</i>&nbsp;import com.google.cloud.storage.BlobId;
+<i class="no-highlight">31</i>&nbsp;import com.google.cloud.storage.BlobInfo;
+<i class="no-highlight">32</i>&nbsp;import com.google.cloud.storage.Bucket;
+<i class="no-highlight">33</i>&nbsp;import com.google.cloud.storage.StorageException;
+<i class="no-highlight">34</i>&nbsp;import com.google.cloud.storage.StorageOptions;
+<i class="no-highlight">35</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">36</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">37</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.api.LifecycleCallback;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.api.LifecycleEvent;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.api.SuggestExecutionProvider;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.api.ViewProvider;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.common.properties.builders.ViewBuilder;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">54</i>&nbsp;import com.snaplogic.snap.api.ViewCategory;
+<i class="no-highlight">55</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">56</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">57</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">58</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">59</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">60</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">61</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">62</i>&nbsp;import com.snaplogic.snap.schema.api.ObjectSchema;
+<i class="no-highlight">63</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">64</i>&nbsp;import com.snaplogic.util.ExpressionUtils;
+<i class="no-highlight">65</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;import org.apache.avro.file.DataFileWriter;
+<i class="no-highlight">68</i>&nbsp;import org.apache.avro.generic.GenericData;
+<i class="no-highlight">69</i>&nbsp;import org.apache.avro.generic.GenericDatumReader;
+<i class="no-highlight">70</i>&nbsp;import org.apache.avro.generic.GenericDatumWriter;
+<i class="no-highlight">71</i>&nbsp;import org.apache.avro.io.DatumReader;
+<i class="no-highlight">72</i>&nbsp;import org.apache.avro.io.DecoderFactory;
+<i class="no-highlight">73</i>&nbsp;import org.apache.avro.io.JsonDecoder;
+<i class="no-highlight">74</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">75</i>&nbsp;import org.joda.time.DateTime;
+<i class="no-highlight">76</i>&nbsp;import org.joda.time.DateTimeZone;
+<i class="no-highlight">77</i>&nbsp;import org.joda.time.LocalDate;
+<i class="no-highlight">78</i>&nbsp;import org.joda.time.LocalDateTime;
+<i class="no-highlight">79</i>&nbsp;import org.joda.time.LocalTime;
+<i class="no-highlight">80</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">81</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">82</i>&nbsp;import org.threeten.bp.Duration;
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">85</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">88</i>&nbsp;import java.math.BigDecimal;
+<i class="no-highlight">89</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">90</i>&nbsp;import java.nio.ByteBuffer;
+<i class="no-highlight">91</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">92</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">93</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">94</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">95</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">96</i>&nbsp;import java.util.List;
+<i class="no-highlight">97</i>&nbsp;import java.util.Map;
+<i class="no-highlight">98</i>&nbsp;import java.util.Set;
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;import static com.google.cloud.bigquery.JobInfo.CreateDisposition.CREATE_IF_NEEDED;
+<i class="no-highlight">101</i>&nbsp;import static com.google.cloud.bigquery.JobInfo.CreateDisposition.CREATE_NEVER;
+<i class="no-highlight">102</i>&nbsp;import static com.snaplogic.snaps.google.bigquery.Constants.*;
+<i class="no-highlight">103</i>&nbsp;import static com.snaplogic.snaps.google.bigquery.Messages.*;
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;import static java.nio.charset.StandardCharsets.UTF_8;
+<i class="no-highlight">106</i>&nbsp;
+<i class="no-highlight">107</i>&nbsp;/**
+<i class="no-highlight">108</i>&nbsp; * Google Big Query Bulk Load that loads existing files (CSV/JSON/AVRO) on Google Cloud Storage
+<i class="no-highlight">109</i>&nbsp; * into target table or write the incoming documents to target table via temp file on Google
+<i class="no-highlight">110</i>&nbsp; * Cloud Storage
+<i class="no-highlight">111</i>&nbsp; */
+<i class="no-highlight">112</i>&nbsp;@General(title = BULK_LOAD_CLOUD_STORAGE_SNAP_TITLE, purpose = BULK_LOAD_CLOUD_STORAGE_SNAP_DESC,
+<i class="no-highlight">113</i>&nbsp;    docLink = DOCLINK_BULK_LOAD_STORAGE)
+<i class="no-highlight">114</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">115</i>&nbsp;@Inputs(min = 0, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">116</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">117</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">118</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<b class="nc"><i class="no-highlight">119</i>&nbsp;public class BulkLoadFromCloudStorage extends BigQueryWriteCommon implements ViewProvider,</b>
+<i class="no-highlight">120</i>&nbsp;        LifecycleCallback, SuggestExecutionProvider {
+<b class="nc"><i class="no-highlight">121</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(BulkLoadFromCloudStorage.class);</b>
+<i class="no-highlight">122</i>&nbsp;    private static final String EXISTING_FILES_UPLOAD_PROPS = &quot;uploadExistingFiles&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String DELETE_FILES_PROP = &quot;deleteFilesUponExit&quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String CSV_FILE_HEADER_PROP = &quot;csvFilesContainHeader&quot;;
+<i class="no-highlight">125</i>&nbsp;    private static final String CSV_FILE_DELIMITER_PROP = &quot;csvFileDelimiter&quot;;
+<i class="no-highlight">126</i>&nbsp;    private static final String INCOMING_DOCUMENTS_UPLOAD_PROPS = &quot;uploadIncomingDocuments&quot;;
+<i class="no-highlight">127</i>&nbsp;    private static final String TEMP_FILE_NAME_PROP = &quot;tempFileName&quot;;
+<i class="no-highlight">128</i>&nbsp;    private static final String PRESERVE_TEMP_FILE_PROP = &quot;preserveTempFile&quot;;
+<i class="no-highlight">129</i>&nbsp;    private static final String UPLOAD_TYPE_PROP = &quot;uploadType&quot;;
+<i class="no-highlight">130</i>&nbsp;    private static final String AUTO_DETECT_PROP = &quot;autoDetect&quot;;
+<i class="no-highlight">131</i>&nbsp;    private static final String BUCKET_NAME_PROP = &quot;googleCloudStorageBucketName&quot;;
+<i class="no-highlight">132</i>&nbsp;    private static final String FILE_FORMAT_PROP = &quot;fileFormat&quot;;
+<i class="no-highlight">133</i>&nbsp;    private static final String FILE_PATH_PROP = &quot;filePathOnGoogleCloudStorage&quot;;
+<i class="no-highlight">134</i>&nbsp;    private static final String FILE_PATHS_PROP = &quot;filePaths&quot;;
+<i class="no-highlight">135</i>&nbsp;    private static final String EXECUTE_DURING_PREVIEW_PROP = &quot;executable_during_suggest&quot;;
+<b class="nc"><i class="no-highlight">136</i>&nbsp;    private static final DecoderFactory DECODER_FACTORY = DecoderFactory.get();</b>
+<i class="no-highlight">137</i>&nbsp;    private static final String QUOTED_STRING = &quot;\&quot;%s\&quot;&quot;;
+<b class="nc"><i class="no-highlight">138</i>&nbsp;    private final int NUM_RETRIES = 3;</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;    private final int RETRY_INTERVAL_SECS = 5;</b>
+<i class="no-highlight">140</i>&nbsp;    private static final String KEY_BATCHING = &quot;keyBatching&quot;;
+<i class="no-highlight">141</i>&nbsp;    private static final String ENABLE_IF_BATCHING_ON =
+<i class="no-highlight">142</i>&nbsp;            &quot;$.settings.uploadIncomingDocuments.value.&quot; + KEY_BATCHING + &quot;.value == true&quot;;
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    private String uploadType;
+<i class="no-highlight">145</i>&nbsp;    private boolean deleteFiles;
+<i class="no-highlight">146</i>&nbsp;    private String bucketName;
+<i class="no-highlight">147</i>&nbsp;    private String fileFormat;
+<i class="no-highlight">148</i>&nbsp;    private boolean preserveTempFile;
+<i class="no-highlight">149</i>&nbsp;    private String tempFileName;
+<i class="no-highlight">150</i>&nbsp;    protected WriteChannel writeChannel;
+<i class="no-highlight">151</i>&nbsp;    private DataFileWriter&lt;GenericData.Record&gt; avroWriter;
+<i class="no-highlight">152</i>&nbsp;    private org.apache.avro.Schema avroSchema;
+<i class="no-highlight">153</i>&nbsp;    @Inject
+<i class="no-highlight">154</i>&nbsp;    private ExpressionUtils expressionUtils;
+<i class="no-highlight">155</i>&nbsp;    private DatumReader&lt;GenericData.Record&gt; avroReader;
+<i class="no-highlight">156</i>&nbsp;    private int avroInnerRecordIndex;
+<i class="no-highlight">157</i>&nbsp;    private List&lt;FilePathObject&gt; filePaths;
+<i class="no-highlight">158</i>&nbsp;    private com.google.cloud.storage.Storage cloudStorage;
+<i class="no-highlight">159</i>&nbsp;    private BigQuery bigQuery;
+<b class="nc"><i class="no-highlight">160</i>&nbsp;    protected boolean executeDuringPreview = true;</b>
+<i class="no-highlight">161</i>&nbsp;    private boolean autoDetect;
+<i class="no-highlight">162</i>&nbsp;    private int docCount;
+<i class="no-highlight">163</i>&nbsp;    private RetryPolicy retryPolicy;
+<i class="no-highlight">164</i>&nbsp;
+<i class="no-highlight">165</i>&nbsp;    /**
+<i class="no-highlight">166</i>&nbsp;     * Custom object to hold details of each existing file on google cloud storage
+<i class="no-highlight">167</i>&nbsp;     */
+<i class="no-highlight">168</i>&nbsp;    private class FilePathObject {
+<i class="no-highlight">169</i>&nbsp;        String fileFormat;
+<i class="no-highlight">170</i>&nbsp;        ExpressionProperty filePathExp;
+<i class="no-highlight">171</i>&nbsp;        boolean containsHeader;
+<i class="no-highlight">172</i>&nbsp;        String csvDelimiter;
+<i class="no-highlight">173</i>&nbsp;
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        FilePathObject(String fileFormat, boolean containsHeader, ExpressionProperty filePathExp) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            this.fileFormat = fileFormat;</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;            this.containsHeader = containsHeader;</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;            this.filePathExp = filePathExp;</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            this.csvDelimiter = COMMA_SEPARATOR;</b>
+<i class="no-highlight">179</i>&nbsp;        }
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;        FilePathObject(String fileFormat, boolean containsHeader, ExpressionProperty filePathExp,
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                String csvDelimiter) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            this.fileFormat = fileFormat;</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;            this.containsHeader = containsHeader;</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            this.filePathExp = filePathExp;</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            this.csvDelimiter = csvDelimiter;</b>
+<i class="no-highlight">187</i>&nbsp;        }
+<i class="no-highlight">188</i>&nbsp;    }
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;    @Override
+<i class="no-highlight">191</i>&nbsp;    public void defineAdditionalProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        super.defineAdditionalProperties(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        defineBucketProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        defineUploadTypeProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        definePropertiesForIncomingDocsUpload(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        defineSchemaAutoDetectProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        definePropertiesForExistingFilesUpload(propertyBuilder);</b>
+<i class="no-highlight">198</i>&nbsp;    }
+<i class="no-highlight">199</i>&nbsp;
+<i class="no-highlight">200</i>&nbsp;    private void defineSchemaAutoDetectProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        propertyBuilder.describe(AUTO_DETECT_PROP, AUTO_DETECT_LABEL, AUTO_DETECT_DESC)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                .add();</b>
+<i class="no-highlight">205</i>&nbsp;    }
+<i class="no-highlight">206</i>&nbsp;
+<i class="no-highlight">207</i>&nbsp;    private void defineBucketProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        propertyBuilder.describe(BUCKET_NAME_PROP, BUCKET_NAME_LABEL, BUCKET_NAME_DESC)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                    account.connect();</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                    String projectId1 = propertyValues.get(PROJECT_ID);</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                    Credentials credentials = getCredentialsForCloudStorage(account);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                    if (credentials == null) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                        throw new ConfigurationException(</b>
+<i class="no-highlight">216</i>&nbsp;                                ERR_GCS_ACCOUNT_PROPERTIES_UNDEFINED_MSG);
+<i class="no-highlight">217</i>&nbsp;                    }
+<i class="no-highlight">218</i>&nbsp;                    try {
+<i class="no-highlight">219</i>&nbsp;                        com.google.cloud.storage.Storage cloudStorage1 = StorageOptions
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                                .newBuilder()</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                                .setCredentials(credentials)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                                .setProjectId(projectId1)</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                                .build()</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                                .getService();</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                        suggestionBuilder</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                                .node(BUCKET_NAME_PROP)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                                .suggestions(listAllBuckets(cloudStorage1));</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    } catch (Exception e1) {</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                        throw new ConfigurationException(String.format(ERR_BUCKETS_SUGGEST_MSG,</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                                e1.getMessage()));</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    }</b>
+<i class="no-highlight">232</i>&nbsp;                })
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                .add();</b>
+<i class="no-highlight">234</i>&nbsp;    }
+<i class="no-highlight">235</i>&nbsp;
+<i class="no-highlight">236</i>&nbsp;    private void defineUploadTypeProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        propertyBuilder.describe(UPLOAD_TYPE_PROP, UPLOAD_TYPE_LABEL, UPLOAD_TYPE_DESC)</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                .withAllowedValues(UPLOAD_TYPES)</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                .defaultValue(UPLOAD_TYPE_EXISTING_FILES)</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                .add();</b>
+<i class="no-highlight">241</i>&nbsp;    }
+<i class="no-highlight">242</i>&nbsp;
+<i class="no-highlight">243</i>&nbsp;    private void definePropertiesForIncomingDocsUpload(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        SnapProperty fileFormatProperty = propertyBuilder.describe(FILE_FORMAT_PROP,</b>
+<i class="no-highlight">245</i>&nbsp;                FILE_FORMAT_LABEL, FILE_FORMAT_DESC)
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                .withAllowedValues(SUPPORTED_FILE_FORMATS)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                .defaultValue(FILE_FORMAT_CSV)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                .build();</b>
+<i class="no-highlight">249</i>&nbsp;
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        SnapProperty tempFileNameProperty = propertyBuilder.describe(TEMP_FILE_NAME_PROP,</b>
+<i class="no-highlight">251</i>&nbsp;                TEMP_FILE_NAME_LABEL, TEMP_FILE_NAME_DESC)
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                .build();</b>
+<i class="no-highlight">254</i>&nbsp;
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        SnapProperty preserveTempFileProperty = propertyBuilder.describe(PRESERVE_TEMP_FILE_PROP,</b>
+<i class="no-highlight">256</i>&nbsp;                PRESERVE_TEMP_FILE_LABEL, PRESERVE_TEMP_FILE_DESC)
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                .defaultValue(Boolean.TRUE)</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                .build();</b>
+<i class="no-highlight">260</i>&nbsp;
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        SnapProperty batchingProperty = propertyBuilder.describe(KEY_BATCHING, BATCHING_LABEL,</b>
+<i class="no-highlight">262</i>&nbsp;                BATCHING_DESC)
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                .build();</b>
+<i class="no-highlight">266</i>&nbsp;
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        SnapProperty batchSizeProperty = defineBatchSizeProperty(propertyBuilder,</b>
+<i class="no-highlight">268</i>&nbsp;                ENABLE_IF_BATCHING_ON, true, false);
+<i class="no-highlight">269</i>&nbsp;
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        SnapProperty batchTimeoutProperty = defineBatchTimeoutProperty(propertyBuilder,</b>
+<i class="no-highlight">271</i>&nbsp;                ENABLE_IF_BATCHING_ON, true, false);
+<i class="no-highlight">272</i>&nbsp;
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        propertyBuilder.describe(INCOMING_DOCUMENTS_UPLOAD_PROPS, INCOMING_DOCUMENTS_UPLOAD_LABEL,</b>
+<i class="no-highlight">274</i>&nbsp;                INCOMING_DOCUMENTS_UPLOAD_DESC)
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                .withEntry(fileFormatProperty)</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                .withEntry(tempFileNameProperty)</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                .withEntry(preserveTempFileProperty)</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                .withEntry(batchingProperty)</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                .withEntry(batchSizeProperty)</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                .withEntry(batchTimeoutProperty)</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                .add();</b>
+<i class="no-highlight">283</i>&nbsp;    }
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;    private void definePropertiesForExistingFilesUpload(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        SnapProperty fileFormatProperty = propertyBuilder.describe(FILE_FORMAT_PROP,</b>
+<i class="no-highlight">287</i>&nbsp;                FILE_FORMAT_LABEL, FILE_FORMAT_DESC)
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                .withAllowedValues(SUPPORTED_FILE_FORMATS)</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                .defaultValue(FILE_FORMAT_CSV)</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                .build();</b>
+<i class="no-highlight">291</i>&nbsp;
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        SnapProperty filePathProperty = propertyBuilder.describe(FILE_PATH_PROP, FILE_PATH_LABEL,</b>
+<i class="no-highlight">293</i>&nbsp;                FILE_PATH_DESC)
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<i class="no-highlight">295</i>&nbsp;                // Presently, the platform has a limitation.  It can do up to one-level suggest.
+<i class="no-highlight">296</i>&nbsp;                // The following suggestion is a two-level suggest.
+<i class="no-highlight">297</i>&nbsp;                // Hence disabling it for the time being.
+<i class="no-highlight">298</i>&nbsp;                /*
+<i class="no-highlight">299</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {
+<i class="no-highlight">300</i>&nbsp;                    try {
+<i class="no-highlight">301</i>&nbsp;                        account.connect();
+<i class="no-highlight">302</i>&nbsp;                        initStorageService();
+<i class="no-highlight">303</i>&nbsp;                        bucketName = propertyValues.get(BUCKET_NAME_PROP);
+<i class="no-highlight">304</i>&nbsp;                        suggestionBuilder
+<i class="no-highlight">305</i>&nbsp;                                .node(EXISTING_FILES_UPLOAD_PROPS)
+<i class="no-highlight">306</i>&nbsp;                                .over(VALUE)
+<i class="no-highlight">307</i>&nbsp;                                .over(FILE_PATHS_PROP)
+<i class="no-highlight">308</i>&nbsp;                                .over(FILE_PATH_PROP)
+<i class="no-highlight">309</i>&nbsp;                                .suggestions(listAllFilesInGivenBucket(bucketName));
+<i class="no-highlight">310</i>&nbsp;                    } catch (Exception e1) {
+<i class="no-highlight">311</i>&nbsp;                        throw new ConfigurationException(String.format(ERR_FILES_SUGGEST_MSG,
+<i class="no-highlight">312</i>&nbsp;                                e1.getMessage()));
+<i class="no-highlight">313</i>&nbsp;                    }
+<i class="no-highlight">314</i>&nbsp;                })*/
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                .build();</b>
+<i class="no-highlight">316</i>&nbsp;
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        SnapProperty csvHeaderProperty = propertyBuilder.describe(CSV_FILE_HEADER_PROP,</b>
+<i class="no-highlight">318</i>&nbsp;                CSV_FILE_HEADER_LABEL, CSV_FILE_HEADER_DESC)
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                .build();</b>
+<i class="no-highlight">321</i>&nbsp;
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        SnapProperty csvDelimiter = propertyBuilder.describe(CSV_FILE_DELIMITER_PROP,</b>
+<i class="no-highlight">323</i>&nbsp;                CSV_FILE_DELIMITER_LABEL, CSV_FILE_DELIMITER_DESC)
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                .defaultValue(COMMA_SEPARATOR)</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                .build();</b>
+<i class="no-highlight">326</i>&nbsp;
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        SnapProperty fileListProperty = propertyBuilder.describe(FILE_PATHS_PROP, FILE_PATHS_LABEL,</b>
+<i class="no-highlight">328</i>&nbsp;                FILE_PATHS_DESC)
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                .withEntry(fileFormatProperty)</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                .withEntry(filePathProperty)</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                .withEntry(csvHeaderProperty)</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                .withEntry(csvDelimiter)</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                .build();</b>
+<i class="no-highlight">335</i>&nbsp;
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        SnapProperty deleteFilesProperty = propertyBuilder.describe(DELETE_FILES_PROP,</b>
+<i class="no-highlight">337</i>&nbsp;                DELETE_FILES_LABEL, DELETE_FILES_DESC)
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                .build();</b>
+<i class="no-highlight">340</i>&nbsp;
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        propertyBuilder.describe(EXISTING_FILES_UPLOAD_PROPS,</b>
+<i class="no-highlight">342</i>&nbsp;                EXISTING_FILES_UPLOAD_LABEL, EXISTING_FILES_UPLOAD_DESC)
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                .withEntry(fileListProperty)</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                .withEntry(deleteFilesProperty)</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                .add();</b>
+<i class="no-highlight">347</i>&nbsp;    }
+<i class="no-highlight">348</i>&nbsp;
+<i class="no-highlight">349</i>&nbsp;    @Override
+<i class="no-highlight">350</i>&nbsp;    public void propagateSchemaToErrorStream(SchemaProvider schemaProvider, String name,
+<i class="no-highlight">351</i>&nbsp;                 ObjectSchema upstreamSchema, String view, ObjectSchema outputSchema) {
+<i class="no-highlight">352</i>&nbsp;        // No-Op: will not propagate input document schema to error view
+<i class="no-highlight">353</i>&nbsp;    }
+<i class="no-highlight">354</i>&nbsp;
+<i class="no-highlight">355</i>&nbsp;    /**
+<i class="no-highlight">356</i>&nbsp;     * Lists all buckets for the given account instance
+<i class="no-highlight">357</i>&nbsp;     *
+<i class="no-highlight">358</i>&nbsp;     * @param cloudStorage
+<i class="no-highlight">359</i>&nbsp;     *
+<i class="no-highlight">360</i>&nbsp;     * @return list of buckets (if any)
+<i class="no-highlight">361</i>&nbsp;     */
+<i class="no-highlight">362</i>&nbsp;    private String[] listAllBuckets(com.google.cloud.storage.Storage cloudStorage) {
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        List&lt;String&gt; buckets = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;        Iterator&lt;Bucket&gt; bucketIterator = cloudStorage.list().iterateAll().iterator();</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        while (bucketIterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;            buckets.add(bucketIterator.next().getName());</b>
+<i class="no-highlight">367</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        if (buckets.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            return new String[]{NO_BUCKETS_FOUND_MSG};</b>
+<i class="no-highlight">370</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">371</i>&nbsp;            return buckets.toArray(new String[0]);</b>
+<i class="no-highlight">372</i>&nbsp;        }
+<i class="no-highlight">373</i>&nbsp;    }
+<i class="no-highlight">374</i>&nbsp;
+<i class="no-highlight">375</i>&nbsp;    @Override
+<i class="no-highlight">376</i>&nbsp;    public void configureAdditional(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        super.configureAdditional(propertyValues);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        bucketName = propertyValues.get(BUCKET_NAME_PROP);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        uploadType = propertyValues.get(UPLOAD_TYPE_PROP);</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;        autoDetect = Boolean.TRUE.equals(propertyValues.get(AUTO_DETECT_PROP));</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;        if (uploadType.equals(UPLOAD_TYPE_INCOMING_DOCS)) {</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;            if (StringUtils.isBlank(bucketName)) {</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                throw new ConfigurationException(ERR_INVALID_SNAP_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                        .withReason(ERR_BUCKET_NAME_MISSING_REASON)</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                        .withResolution(ERR_BUCKET_NAME_MISSING_RESOLUTION);</b>
+<i class="no-highlight">386</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            readPropertiesForIncomingDocsUpload(propertyValues);</b>
+<i class="no-highlight">388</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">389</i>&nbsp;            if (autoCreateTable) {</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                throw new ConfigurationException(ERR_INVALID_SNAP_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                        .withReason(ERR_TABLE_CREATION_NOT_SUPPORTED_FOR_UPLOAD_FILES_MSG)</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                        .withResolution(</b>
+<i class="no-highlight">393</i>&nbsp;                                ERR_TABLE_CREATION_NOT_SUPPORTED_FOR_UPLOAD_FILES_RESOLUTION);
+<i class="no-highlight">394</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            readPropertiesForExistingFilesUpload(propertyValues);</b>
+<i class="no-highlight">396</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">397</i>&nbsp;        checkTableConfiguration();</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;        bigQuery = initBigQuery();</b>
+<i class="no-highlight">399</i>&nbsp;    }
+<i class="no-highlight">400</i>&nbsp;
+<i class="no-highlight">401</i>&nbsp;    private void readPropertiesForIncomingDocsUpload(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        String fileFormatPath = new JsonPathBuilder(INCOMING_DOCUMENTS_UPLOAD_PROPS)</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;                .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                .appendCurrentElement(FILE_FORMAT_PROP)</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        fileFormat = propertyValues.get(fileFormatPath);</b>
+<i class="no-highlight">407</i>&nbsp;
+<b class="nc"><i class="no-highlight">408</i>&nbsp;        String tempFileNamePath = new JsonPathBuilder(INCOMING_DOCUMENTS_UPLOAD_PROPS)</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                .appendCurrentElement(TEMP_FILE_NAME_PROP)</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;        tempFileName = propertyValues.get(tempFileNamePath);</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;        if (StringUtils.isBlank(tempFileName)) {</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;            generateTempFileName(propertyValues);</b>
+<i class="no-highlight">415</i>&nbsp;        }
+<i class="no-highlight">416</i>&nbsp;
+<b class="nc"><i class="no-highlight">417</i>&nbsp;        String preserveTempFilePath = new JsonPathBuilder(INCOMING_DOCUMENTS_UPLOAD_PROPS)</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                .appendCurrentElement(PRESERVE_TEMP_FILE_PROP)</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;        preserveTempFile = Boolean.TRUE.equals(propertyValues.get(preserveTempFilePath));</b>
+<i class="no-highlight">422</i>&nbsp;
+<i class="no-highlight">423</i>&nbsp;        // read batching properties
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        String batchingPath = new JsonPathBuilder(INCOMING_DOCUMENTS_UPLOAD_PROPS)</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;                .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                .appendCurrentElement(KEY_BATCHING)</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;        Object object = propertyValues.get(batchingPath);</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;        batching = (object == null ? false : Boolean.TRUE.equals(object));</b>
+<b class="nc"><i class="no-highlight">430</i>&nbsp;        if (batching) {</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;            readBatchSizeProperty(propertyValues, true, INCOMING_DOCUMENTS_UPLOAD_PROPS);</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;            readBatchTimeoutProperty(propertyValues, true, INCOMING_DOCUMENTS_UPLOAD_PROPS);</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;            flushBatchTimer.schedule(flushBatchTask, batchTimeout,</b>
+<i class="no-highlight">434</i>&nbsp;                    batchTimeout);
+<b class="nc"><i class="no-highlight">435</i>&nbsp;            retryPolicy = RetryUtils</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                    .createRetryPolicy(NUM_RETRIES, RETRY_INTERVAL_SECS, LOGGER);</b>
+<i class="no-highlight">437</i>&nbsp;        }
+<i class="no-highlight">438</i>&nbsp;    }
+<i class="no-highlight">439</i>&nbsp;
+<i class="no-highlight">440</i>&nbsp;    private void readPropertiesForExistingFilesUpload(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">441</i>&nbsp;        String deleteFilesPath = new JsonPathBuilder(EXISTING_FILES_UPLOAD_PROPS)</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;                .appendCurrentElement(DELETE_FILES_PROP)</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;        deleteFiles = Boolean.TRUE.equals(propertyValues.get(deleteFilesPath));</b>
+<i class="no-highlight">446</i>&nbsp;
+<b class="nc"><i class="no-highlight">447</i>&nbsp;        String fileListPath = new JsonPathBuilder(EXISTING_FILES_UPLOAD_PROPS)</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                .appendCurrentElement(FILE_PATHS_PROP)</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;        List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; fileList = propertyValues.get(fileListPath);</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;        if (fileList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;            throw new ConfigurationException(ERR_INVALID_SNAP_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                    .withReason(ERR_NO_FILE_PROVIDED_REASON)</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                    .withResolution(ERR_NO_FILE_PROVIDED_RESOLUTION);</b>
+<i class="no-highlight">456</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">457</i>&nbsp;        filePaths = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;        for (Map&lt;String, Map&lt;String, Object&gt;&gt; file : fileList) {</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;            String format = (String) file.get(FILE_FORMAT_PROP).get(VALUE);</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;            boolean header = Boolean.TRUE.equals(file.get(CSV_FILE_HEADER_PROP).get(VALUE));</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;            ExpressionProperty filePathExp = propertyValues.getExpressionPropertyFor(</b>
+<i class="no-highlight">462</i>&nbsp;                    file, FILE_PATH_PROP);
+<b class="nc"><i class="no-highlight">463</i>&nbsp;            Map&lt;String, Object&gt; delimiterMapObject = file.get(CSV_FILE_DELIMITER_PROP);</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;            String csvDelimiter = null;</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;            if (delimiterMapObject != null) {</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                Object delimiter = delimiterMapObject.get(VALUE);</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                if (delimiter != null) {</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                    csvDelimiter = (String) delimiter;</b>
+<i class="no-highlight">469</i>&nbsp;                }
+<i class="no-highlight">470</i>&nbsp;            }
+<i class="no-highlight">471</i>&nbsp;
+<b class="nc"><i class="no-highlight">472</i>&nbsp;            if (StringUtils.isBlank(csvDelimiter)) {</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                filePaths.add(new FilePathObject(format, header, filePathExp));</b>
+<i class="no-highlight">474</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                filePaths.add(new FilePathObject(format, header, filePathExp, csvDelimiter));</b>
+<i class="no-highlight">476</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">477</i>&nbsp;        }</b>
+<i class="no-highlight">478</i>&nbsp;    }
+<i class="no-highlight">479</i>&nbsp;
+<i class="no-highlight">480</i>&nbsp;    private void generateTempFileName(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">481</i>&nbsp;        ExpressionProperty nameExpression = expressionUtils.createExpressionProperty(</b>
+<i class="no-highlight">482</i>&nbsp;                propertyValues, true, TEMP_FILE_NAME_EXP);
+<i class="no-highlight">483</i>&nbsp;        FormatOptions formatOptions;
+<b class="nc"><i class="no-highlight">484</i>&nbsp;        switch (fileFormat) {</b>
+<i class="no-highlight">485</i>&nbsp;            case FILE_FORMAT_CSV:
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                formatOptions = FormatOptions.csv();</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                break;</b>
+<i class="no-highlight">488</i>&nbsp;            case FILE_FORMAT_JSON:
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                formatOptions = FormatOptions.json();</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                break;</b>
+<i class="no-highlight">491</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                formatOptions = FormatOptions.avro();</b>
+<i class="no-highlight">493</i>&nbsp;                break;
+<i class="no-highlight">494</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">495</i>&nbsp;        tempFileName = String.format(TEMP_FILE_NAME_PATTERN,</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;                nameExpression.eval(null),</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                formatOptions.getType().toLowerCase());</b>
+<i class="no-highlight">498</i>&nbsp;    }
+<i class="no-highlight">499</i>&nbsp;
+<i class="no-highlight">500</i>&nbsp;    @Override
+<i class="no-highlight">501</i>&nbsp;    public void defineInputSchema(SchemaProvider provider) {
+<b class="nc"><i class="no-highlight">502</i>&nbsp;        if (uploadType.equals(UPLOAD_TYPE_INCOMING_DOCS)) {</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;            super.defineInputSchema(provider);</b>
+<i class="no-highlight">504</i>&nbsp;        }
+<i class="no-highlight">505</i>&nbsp;    }
+<i class="no-highlight">506</i>&nbsp;
+<i class="no-highlight">507</i>&nbsp;    @Override
+<i class="no-highlight">508</i>&nbsp;    protected void reset() {
+<b class="nc"><i class="no-highlight">509</i>&nbsp;        docCount = 0;</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;        initWriteChannel();</b>
+<i class="no-highlight">511</i>&nbsp;    }
+<i class="no-highlight">512</i>&nbsp;
+<i class="no-highlight">513</i>&nbsp;    @Override
+<i class="no-highlight">514</i>&nbsp;    protected void process(Document document, String inputViewName) {
+<b class="nc"><i class="no-highlight">515</i>&nbsp;        if (uploadType.equals(UPLOAD_TYPE_EXISTING_FILES)) {</b>
+<b class="nc"><i class="no-highlight">516</i>&nbsp;            Table targetTable = getTable(TableId.of(projectId, datasetId, tableId));</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;            uploadExistingFiles(targetTable, document);</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;        } else {</b>
+<i class="no-highlight">519</i>&nbsp;            // Perform the operation iff the document is not null
+<b class="nc"><i class="no-highlight">520</i>&nbsp;            if (document != null) {</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;                if (batching) {</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                    synchronized (documents) {</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                        if (docCount &gt;= batchSize) {</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                            flushBatch();</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                            resetTimerAndTask();</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                            docCount = 1;</b>
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                            initWriteChannel();</b>
+<i class="no-highlight">528</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                            docCount++;</b>
+<i class="no-highlight">530</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                        documents.add(document);</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                        uploadDocument(document);</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;                    }</b>
+<i class="no-highlight">534</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                    uploadDocument(document);</b>
+<i class="no-highlight">536</i>&nbsp;                }
+<i class="no-highlight">537</i>&nbsp;            }
+<i class="no-highlight">538</i>&nbsp;        }
+<i class="no-highlight">539</i>&nbsp;    }
+<i class="no-highlight">540</i>&nbsp;
+<i class="no-highlight">541</i>&nbsp;    private void uploadDocument(Document document) {
+<b class="nc"><i class="no-highlight">542</i>&nbsp;        if (firstRecord) {</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;            firstRecord = false;</b>
+<i class="no-highlight">544</i>&nbsp;            // The createTable variable should be updated since it was initialized in configure()
+<b class="nc"><i class="no-highlight">545</i>&nbsp;            TableId id = TableId.of(projectId, datasetId, tableId);</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;            createTable = autoCreateTable &amp;&amp; getTable(id) == null;</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;            if (createTable) {</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;                createTable(document, id, bigQuery);</b>
+<i class="no-highlight">549</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">550</i>&nbsp;            initWriteChannel();</b>
+<i class="no-highlight">551</i>&nbsp;        }
+<i class="no-highlight">552</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">553</i>&nbsp;            writeDocumentToTempFile(document);</b>
+<b class="nc"><i class="no-highlight">554</i>&nbsp;        } catch (IOException e3) {</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;            throw new ExecutionException(e3, ERR_UNABLE_TO_WRITE_TEMP_FILE_MSG)</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                    .withReason(e3.getMessage())</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;                    .withResolution(ERR_UNABLE_TO_WRITE_TEMP_FILE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;        }</b>
+<i class="no-highlight">559</i>&nbsp;    }
+<i class="no-highlight">560</i>&nbsp;
+<i class="no-highlight">561</i>&nbsp;    protected void initWriteChannel() {
+<i class="no-highlight">562</i>&nbsp;        boolean isSuccess;
+<b class="nc"><i class="no-highlight">563</i>&nbsp;        int retryCounter = 0;</b>
+<i class="no-highlight">564</i>&nbsp;        do {
+<b class="nc"><i class="no-highlight">565</i>&nbsp;            Credentials credentials = getCredentialsForCloudStorage(account);</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;            if (credentials == null) {</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;                throw new ExecutionException(ERR_INVALID_ACCOUNT_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                        .withReason(ERR_GCS_ACCOUNT_PROPERTIES_UNDEFINED_MSG)</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                        .withResolution(ERR_GCS_ACCOUNT_PROPERTIES_UNDEFINED_RESOLUTION);</b>
+<i class="no-highlight">570</i>&nbsp;            }
+<i class="no-highlight">571</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">572</i>&nbsp;                cloudStorage = StorageOptions</b>
+<b class="nc"><i class="no-highlight">573</i>&nbsp;                        .newBuilder()</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;                        .setCredentials(credentials)</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;                        .setProjectId(projectId)</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;                        .build()</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                        .getService();</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;                BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, tempFileName)</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;                writeChannel = cloudStorage.writer(blobInfo);</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;                isSuccess = true;</b>
+<b class="nc"><i class="no-highlight">582</i>&nbsp;            }  catch (StorageException e) {</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                isSuccess = reconnectIfUnauthorizedOtherwiseHandleError(e,</b>
+<i class="no-highlight">584</i>&nbsp;                        retryCounter);
+<b class="nc"><i class="no-highlight">585</i>&nbsp;                bigQuery = initBigQuery();</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;                retryCounter++;</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;            } catch (Exception e1) {</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;                throw new ExecutionException(ERR_UNABLE_TO_CREATE_TEMP_FILE_MSG)</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;                        .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;                        .withResolution(ERR_UNABLE_TO_CREATE_TEMP_FILE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">592</i>&nbsp;        } while (!isSuccess);</b>
+<i class="no-highlight">593</i>&nbsp;    }
+<i class="no-highlight">594</i>&nbsp;
+<i class="no-highlight">595</i>&nbsp;    private void uploadExistingFiles(Table targetTable, Document document) {
+<b class="nc"><i class="no-highlight">596</i>&nbsp;        List&lt;String&gt; avroFiles = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;        List&lt;String&gt; jsonFiles = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;        Map&lt;String, List&lt;String&gt;&gt; csvFilesWithHeader = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;        Map&lt;String, List&lt;String&gt;&gt; csvFilesWithoutHeader = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">600</i>&nbsp;        // The variable allCsvFiles is used to store all CSV files (irrespective of header and
+<i class="no-highlight">601</i>&nbsp;        //  delimiter) to delete them easily
+<b class="nc"><i class="no-highlight">602</i>&nbsp;        List&lt;String&gt; allCsvFiles = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">603</i>&nbsp;        String fileName;
+<i class="no-highlight">604</i>&nbsp;
+<b class="nc"><i class="no-highlight">605</i>&nbsp;        for (FilePathObject filePath : filePaths) {</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;            fileName = filePath.filePathExp.eval(document);</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;            if (StringUtils.isBlank(fileName)) {</b>
+<b class="nc"><i class="no-highlight">608</i>&nbsp;                SnapDataException snapDataException =</b>
+<i class="no-highlight">609</i>&nbsp;                        new SnapDataException(ERR_INVALID_SNAP_CONFIGURATION)
+<b class="nc"><i class="no-highlight">610</i>&nbsp;                                .withReason(ERR_FILE_PATH_NULL_REASON)</b>
+<b class="nc"><i class="no-highlight">611</i>&nbsp;                                .withResolution(ERR_FILE_PATH_NULL_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">612</i>&nbsp;                errorViews.write(snapDataException, document);</b>
+<i class="no-highlight">613</i>&nbsp;                return;
+<i class="no-highlight">614</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">615</i>&nbsp;            switch (filePath.fileFormat) {</b>
+<i class="no-highlight">616</i>&nbsp;                case FILE_FORMAT_CSV:
+<b class="nc"><i class="no-highlight">617</i>&nbsp;                    allCsvFiles.add(fileName);</b>
+<b class="nc"><i class="no-highlight">618</i>&nbsp;                    if (filePath.containsHeader) {</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;                        if (csvFilesWithHeader.get(filePath.csvDelimiter) == null) {</b>
+<b class="nc"><i class="no-highlight">620</i>&nbsp;                            csvFilesWithHeader.put(filePath.csvDelimiter, new ArrayList&lt;&gt;());</b>
+<i class="no-highlight">621</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                        csvFilesWithHeader.get(filePath.csvDelimiter).add(fileName);</b>
+<i class="no-highlight">623</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">624</i>&nbsp;                        if (csvFilesWithoutHeader.get(filePath.csvDelimiter) == null) {</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;                            csvFilesWithoutHeader.put(filePath.csvDelimiter, new ArrayList&lt;&gt;());</b>
+<i class="no-highlight">626</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">627</i>&nbsp;                        csvFilesWithoutHeader.get(filePath.csvDelimiter).add(fileName);</b>
+<i class="no-highlight">628</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">629</i>&nbsp;                    break;</b>
+<i class="no-highlight">630</i>&nbsp;                case FILE_FORMAT_JSON:
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                    jsonFiles.add(fileName);</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;                    break;</b>
+<i class="no-highlight">633</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">634</i>&nbsp;                    avroFiles.add(fileName);</b>
+<i class="no-highlight">635</i>&nbsp;                    break;
+<i class="no-highlight">636</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">637</i>&nbsp;        }</b>
+<i class="no-highlight">638</i>&nbsp;
+<i class="no-highlight">639</i>&nbsp;        try {
+<i class="no-highlight">640</i>&nbsp;            // load CSV files (that contain header) grouped based on the delimiter
+<b class="nc"><i class="no-highlight">641</i>&nbsp;            for (String csvDelimiter : csvFilesWithHeader.keySet()) {</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;                doBulkLoad(csvFilesWithHeader.get(csvDelimiter), targetTable, document,</b>
+<i class="no-highlight">643</i>&nbsp;                        CsvOptions
+<b class="nc"><i class="no-highlight">644</i>&nbsp;                                .newBuilder()</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                                .setSkipLeadingRows(1)</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;                                .setFieldDelimiter(csvDelimiter)</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                                .setAllowQuotedNewLines(true)</b>
+<b class="nc"><i class="no-highlight">648</i>&nbsp;                                .build(),</b>
+<b class="nc"><i class="no-highlight">649</i>&nbsp;                        String.format(FILES_TYPE_CSV_WITH_HEADER, csvDelimiter));</b>
+<b class="nc"><i class="no-highlight">650</i>&nbsp;            }</b>
+<i class="no-highlight">651</i>&nbsp;            // load CSV files (with no header) grouped based on the delimiter
+<b class="nc"><i class="no-highlight">652</i>&nbsp;            for (String csvDelimiter : csvFilesWithoutHeader.keySet()) {</b>
+<b class="nc"><i class="no-highlight">653</i>&nbsp;                doBulkLoad(csvFilesWithoutHeader.get(csvDelimiter), targetTable, document,</b>
+<i class="no-highlight">654</i>&nbsp;                        CsvOptions
+<b class="nc"><i class="no-highlight">655</i>&nbsp;                                .newBuilder()</b>
+<b class="nc"><i class="no-highlight">656</i>&nbsp;                                .setFieldDelimiter(csvDelimiter)</b>
+<b class="nc"><i class="no-highlight">657</i>&nbsp;                                .setAllowQuotedNewLines(true)</b>
+<b class="nc"><i class="no-highlight">658</i>&nbsp;                                .build(),</b>
+<b class="nc"><i class="no-highlight">659</i>&nbsp;                        String.format(FILES_TYPE_CSV_WITHOUT_HEADER, csvDelimiter));</b>
+<b class="nc"><i class="no-highlight">660</i>&nbsp;            }</b>
+<i class="no-highlight">661</i>&nbsp;            // load JSON files
+<b class="nc"><i class="no-highlight">662</i>&nbsp;            doBulkLoad(jsonFiles, targetTable, document, FormatOptions.json(), FILES_TYPE_JSON);</b>
+<i class="no-highlight">663</i>&nbsp;            // load AVRO files
+<b class="nc"><i class="no-highlight">664</i>&nbsp;            doBulkLoad(avroFiles, targetTable, document, FormatOptions.avro(), FILES_TYPE_AVRO);</b>
+<i class="no-highlight">665</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">666</i>&nbsp;            if (deleteFiles) {</b>
+<i class="no-highlight">667</i>&nbsp;                // delete AVRO files
+<b class="nc"><i class="no-highlight">668</i>&nbsp;                deleteFiles(document, avroFiles);</b>
+<i class="no-highlight">669</i>&nbsp;                // delete JSON files
+<b class="nc"><i class="no-highlight">670</i>&nbsp;                deleteFiles(document, jsonFiles);</b>
+<i class="no-highlight">671</i>&nbsp;                // delete CSV files
+<b class="nc"><i class="no-highlight">672</i>&nbsp;                deleteFiles(document, allCsvFiles);</b>
+<i class="no-highlight">673</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">674</i>&nbsp;        }</b>
+<i class="no-highlight">675</i>&nbsp;    }
+<i class="no-highlight">676</i>&nbsp;
+<i class="no-highlight">677</i>&nbsp;    @Override
+<i class="no-highlight">678</i>&nbsp;    public void defineViews(final ViewBuilder viewBuilder) {
+<b class="nc"><i class="no-highlight">679</i>&nbsp;        viewBuilder.describe(DEFAULT_OUTPUT_VIEW_0)</b>
+<b class="nc"><i class="no-highlight">680</i>&nbsp;                .type(ViewType.DOCUMENT)</b>
+<b class="nc"><i class="no-highlight">681</i>&nbsp;                .add(ViewCategory.OUTPUT);</b>
+<i class="no-highlight">682</i>&nbsp;    }
+<i class="no-highlight">683</i>&nbsp;
+<i class="no-highlight">684</i>&nbsp;    private void deleteFiles(Document document, List&lt;String&gt; filesToBeDeleted) {
+<b class="nc"><i class="no-highlight">685</i>&nbsp;        if (filesToBeDeleted.isEmpty()) {</b>
+<i class="no-highlight">686</i>&nbsp;            return;
+<i class="no-highlight">687</i>&nbsp;        }
+<i class="no-highlight">688</i>&nbsp;
+<b class="nc"><i class="no-highlight">689</i>&nbsp;        initStorageService();</b>
+<b class="nc"><i class="no-highlight">690</i>&nbsp;        Storage.Objects objects = super.storageService.objects();</b>
+<b class="nc"><i class="no-highlight">691</i>&nbsp;        int bucketNameLength = bucketName.length();</b>
+<i class="no-highlight">692</i>&nbsp;        String fileName;
+<b class="nc"><i class="no-highlight">693</i>&nbsp;        for (String fileToBeDeleted : filesToBeDeleted) {</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;            fileName = extractFileName(fileToBeDeleted.trim(), bucketNameLength);</b>
+<i class="no-highlight">695</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">696</i>&nbsp;                objects.delete(bucketName, fileName).execute();</b>
+<b class="nc"><i class="no-highlight">697</i>&nbsp;            } catch (IOException e1) {</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                SnapDataException snapDataException = new SnapDataException(e1,</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;                        String.format(ERR_UNABLE_TO_DELETE_FILE_MSG, fileName))</b>
+<b class="nc"><i class="no-highlight">700</i>&nbsp;                        .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">701</i>&nbsp;                        .withResolution(ERR_UNABLE_TO_DELETE_FILE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;                errorViews.write(snapDataException, document);</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">704</i>&nbsp;        }</b>
+<i class="no-highlight">705</i>&nbsp;    }
+<i class="no-highlight">706</i>&nbsp;
+<i class="no-highlight">707</i>&nbsp;    private String extractFileName(String filePath, int bucketNameLength) {
+<i class="no-highlight">708</i>&nbsp;        // file path will be in the format gs://bucketName/fileName
+<i class="no-highlight">709</i>&nbsp;        // extracting just the fileName part by skipping preceding characters
+<i class="no-highlight">710</i>&nbsp;        // the no of preceding characters is length of bucket + 6
+<b class="nc"><i class="no-highlight">711</i>&nbsp;        return filePath.substring(FILE_PATH_PREFIX_LENGTH_FOR_DELETE + bucketNameLength);</b>
+<i class="no-highlight">712</i>&nbsp;    }
+<i class="no-highlight">713</i>&nbsp;
+<i class="no-highlight">714</i>&nbsp;    private String[] listAllFilesInGivenBucket(String bucketName) throws IOException {
+<b class="nc"><i class="no-highlight">715</i>&nbsp;        Storage.Objects.List listRequest = storageService.objects().list(bucketName);</b>
+<b class="nc"><i class="no-highlight">716</i>&nbsp;        List&lt;StorageObject&gt; allFiles = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">717</i>&nbsp;        Objects objects;
+<i class="no-highlight">718</i>&nbsp;
+<i class="no-highlight">719</i>&nbsp;        // Iterate every page, and add the entries to allFiles object
+<i class="no-highlight">720</i>&nbsp;        do {
+<b class="nc"><i class="no-highlight">721</i>&nbsp;            objects = listRequest.execute();</b>
+<i class="no-highlight">722</i>&nbsp;            // add all file objects from the current page
+<b class="nc"><i class="no-highlight">723</i>&nbsp;            allFiles.addAll(objects.getItems());</b>
+<i class="no-highlight">724</i>&nbsp;
+<i class="no-highlight">725</i>&nbsp;            // iterate next page
+<b class="nc"><i class="no-highlight">726</i>&nbsp;            listRequest.setPageToken(objects.getNextPageToken());</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;        } while (objects.getNextPageToken() != null);</b>
+<i class="no-highlight">728</i>&nbsp;
+<b class="nc"><i class="no-highlight">729</i>&nbsp;        if (!allFiles.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">730</i>&nbsp;            String[] fileNames = new String[allFiles.size()];</b>
+<i class="no-highlight">731</i>&nbsp;            String fileName;
+<b class="nc"><i class="no-highlight">732</i>&nbsp;            for (int i = 0; i &lt; fileNames.length; i++) {</b>
+<b class="nc"><i class="no-highlight">733</i>&nbsp;                fileName = allFiles.get(i).getName();</b>
+<i class="no-highlight">734</i>&nbsp;                // skip if the item is a folder
+<b class="nc"><i class="no-highlight">735</i>&nbsp;                if (!fileName.endsWith(FORWARD_SLASH)) {</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;                    fileNames[i] = String.format(GOOGLE_CLOUD_STORAGE_FILE_NAME_FORMAT,</b>
+<i class="no-highlight">737</i>&nbsp;                            bucketName, fileName);
+<i class="no-highlight">738</i>&nbsp;                }
+<i class="no-highlight">739</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">740</i>&nbsp;            return fileNames;</b>
+<i class="no-highlight">741</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">742</i>&nbsp;            return new String[]{ERR_BUCKET_EMPTY_MSG};</b>
+<i class="no-highlight">743</i>&nbsp;        }
+<i class="no-highlight">744</i>&nbsp;    }
+<i class="no-highlight">745</i>&nbsp;
+<i class="no-highlight">746</i>&nbsp;    private void doBulkLoad(List&lt;String&gt; sourceURIs, com.google.cloud.bigquery.Table targetTable,
+<i class="no-highlight">747</i>&nbsp;            Document document, FormatOptions formatOptions, String filesType) {
+<b class="nc"><i class="no-highlight">748</i>&nbsp;        if (sourceURIs.isEmpty()) {</b>
+<i class="no-highlight">749</i>&nbsp;            return;
+<i class="no-highlight">750</i>&nbsp;        }
+<i class="no-highlight">751</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">752</i>&nbsp;            JobInfo jobInfo = createJobInfo(targetTable, sourceURIs, formatOptions);</b>
+<b class="nc"><i class="no-highlight">753</i>&nbsp;            Job bulkLoadJob = bigQuery.create(jobInfo);</b>
+<b class="nc"><i class="no-highlight">754</i>&nbsp;            bulkLoadJob = bulkLoadJob.waitFor(</b>
+<b class="nc"><i class="no-highlight">755</i>&nbsp;                    RetryOption.initialRetryDelay(</b>
+<b class="nc"><i class="no-highlight">756</i>&nbsp;                            Duration.ofSeconds(BULK_LOAD_STATUS_CHECK_PERIOD_SECONDS)),</b>
+<b class="nc"><i class="no-highlight">757</i>&nbsp;                    RetryOption.totalTimeout(</b>
+<b class="nc"><i class="no-highlight">758</i>&nbsp;                            Duration.ofMinutes(BULK_LOAD_PROCESS_TIMEOUT_MINUTES)));</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;            if (bulkLoadJob.getStatus().getError() == null) {</b>
+<b class="nc"><i class="no-highlight">760</i>&nbsp;                Map&lt;String, Object&gt; result = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">761</i>&nbsp;                if (StringUtils.isNotBlank(filesType)) {</b>
+<b class="nc"><i class="no-highlight">762</i>&nbsp;                    result.put(FILES_TYPE, filesType);</b>
+<i class="no-highlight">763</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">764</i>&nbsp;                result.put(STATUS, COMPLETED);</b>
+<b class="nc"><i class="no-highlight">765</i>&nbsp;                result.put(STATISTICS, createMapObjectForLoadStatistics(</b>
+<b class="nc"><i class="no-highlight">766</i>&nbsp;                        bulkLoadJob.getStatistics()));</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;                outputViews.write(documentUtility.newDocumentFor(document, result));</b>
+<b class="nc"><i class="no-highlight">768</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">769</i>&nbsp;                String reasons = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">770</i>&nbsp;                for (BigQueryError error : bulkLoadJob.getStatus().getExecutionErrors()) {</b>
+<b class="nc"><i class="no-highlight">771</i>&nbsp;                    reasons = reasons + error.getMessage() + SEMI_COLON;</b>
+<b class="nc"><i class="no-highlight">772</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">773</i>&nbsp;                reasons = StringUtils.removeEnd(reasons, SEMI_COLON);</b>
+<b class="nc"><i class="no-highlight">774</i>&nbsp;                SnapDataException snapDataException =</b>
+<i class="no-highlight">775</i>&nbsp;                        new SnapDataException(ERR_BULK_LOAD_GCS_MSG)
+<b class="nc"><i class="no-highlight">776</i>&nbsp;                                .formatWith(sourceURIs)</b>
+<b class="nc"><i class="no-highlight">777</i>&nbsp;                                .withReason(reasons)</b>
+<b class="nc"><i class="no-highlight">778</i>&nbsp;                                .withResolution(ERR_BULK_LOAD_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">779</i>&nbsp;                errorViews.write(snapDataException, document);</b>
+<i class="no-highlight">780</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">781</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">782</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">783</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">784</i>&nbsp;            SnapDataException snapDataException =</b>
+<i class="no-highlight">785</i>&nbsp;                    new SnapDataException(e, ERR_BULK_LOAD_GCS_MSG)
+<b class="nc"><i class="no-highlight">786</i>&nbsp;                            .formatWith(sourceURIs)</b>
+<b class="nc"><i class="no-highlight">787</i>&nbsp;                            .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">788</i>&nbsp;            errorViews.write(snapDataException, document);</b>
+<b class="nc"><i class="no-highlight">789</i>&nbsp;        }</b>
+<i class="no-highlight">790</i>&nbsp;    }
+<i class="no-highlight">791</i>&nbsp;
+<i class="no-highlight">792</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">793</i>&nbsp;    protected JobInfo createJobInfo(Table targetTable, List&lt;String&gt; sourceURIs,
+<i class="no-highlight">794</i>&nbsp;            FormatOptions formatOptions) {
+<b class="nc"><i class="no-highlight">795</i>&nbsp;        LoadJobConfiguration.Builder configBuilder = LoadJobConfiguration.newBuilder(</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;                targetTable.getTableId(), sourceURIs, formatOptions)</b>
+<i class="no-highlight">797</i>&nbsp;                //Sets whether the job is allowed to create new table or not
+<b class="nc"><i class="no-highlight">798</i>&nbsp;                .setCreateDisposition(autoCreateTable ? CREATE_IF_NEEDED : CREATE_NEVER)</b>
+<i class="no-highlight">799</i>&nbsp;                //Sets options allowing the schema of the destination table to be updated as a
+<i class="no-highlight">800</i>&nbsp;                // side effect of the load job.
+<b class="nc"><i class="no-highlight">801</i>&nbsp;                .setSchemaUpdateOptions(ImmutableList.of(</b>
+<i class="no-highlight">802</i>&nbsp;                        JobInfo.SchemaUpdateOption.ALLOW_FIELD_RELAXATION,
+<i class="no-highlight">803</i>&nbsp;                        JobInfo.SchemaUpdateOption.ALLOW_FIELD_ADDITION));
+<b class="nc"><i class="no-highlight">804</i>&nbsp;        if (!(FormatOptions.avro().getType().equals(formatOptions.getType()))) {</b>
+<i class="no-highlight">805</i>&nbsp;            //Sets automatic inference of the options and schema for CSV and JSON sources.
+<b class="nc"><i class="no-highlight">806</i>&nbsp;            configBuilder.setAutodetect(autoDetect);</b>
+<i class="no-highlight">807</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">808</i>&nbsp;        return JobInfo.of(configBuilder.build());</b>
+<i class="no-highlight">809</i>&nbsp;    }
+<i class="no-highlight">810</i>&nbsp;
+<i class="no-highlight">811</i>&nbsp;    private Map createMapObjectForLoadStatistics(JobStatistics.LoadStatistics statistics) {
+<b class="nc"><i class="no-highlight">812</i>&nbsp;        Map&lt;String, Object&gt; statisticsAsMap = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">813</i>&nbsp;
+<b class="nc"><i class="no-highlight">814</i>&nbsp;        statisticsAsMap.put(CREATION_TIME, new DateTime(statistics.getCreationTime(),</b>
+<i class="no-highlight">815</i>&nbsp;                DateTimeZone.UTC));
+<b class="nc"><i class="no-highlight">816</i>&nbsp;        statisticsAsMap.put(START_TIME, new DateTime(statistics.getStartTime(),</b>
+<i class="no-highlight">817</i>&nbsp;                DateTimeZone.UTC));
+<b class="nc"><i class="no-highlight">818</i>&nbsp;        statisticsAsMap.put(END_TIME, new DateTime(statistics.getEndTime(),</b>
+<i class="no-highlight">819</i>&nbsp;                DateTimeZone.UTC));
+<b class="nc"><i class="no-highlight">820</i>&nbsp;        statisticsAsMap.put(INPUT_BYTES, statistics.getInputBytes());</b>
+<b class="nc"><i class="no-highlight">821</i>&nbsp;        statisticsAsMap.put(INPUT_FILES, statistics.getInputFiles());</b>
+<b class="nc"><i class="no-highlight">822</i>&nbsp;        statisticsAsMap.put(OUTPUT_BYTES, statistics.getOutputBytes());</b>
+<b class="nc"><i class="no-highlight">823</i>&nbsp;        statisticsAsMap.put(OUTPUT_ROWS, statistics.getOutputRows());</b>
+<i class="no-highlight">824</i>&nbsp;
+<b class="nc"><i class="no-highlight">825</i>&nbsp;        return statisticsAsMap;</b>
+<i class="no-highlight">826</i>&nbsp;    }
+<i class="no-highlight">827</i>&nbsp;
+<i class="no-highlight">828</i>&nbsp;    protected void writeDocumentToTempFile(Document document) throws IOException {
+<b class="nc"><i class="no-highlight">829</i>&nbsp;        Object data = document.get();</b>
+<b class="nc"><i class="no-highlight">830</i>&nbsp;        if (data == null || !(data instanceof Map)) {</b>
+<b class="nc"><i class="no-highlight">831</i>&nbsp;            throw new ExecutionException(ERR_INVALID_DOCUMENT_MSG)</b>
+<b class="nc"><i class="no-highlight">832</i>&nbsp;                    .withReason(ERR_INVALID_DOCUMENT_REASON)</b>
+<b class="nc"><i class="no-highlight">833</i>&nbsp;                    .withResolution(ERR_INVALID_DOCUMENT_RESOLUTION);</b>
+<i class="no-highlight">834</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">835</i>&nbsp;        Map&lt;String, Object&gt; record = (Map) data;</b>
+<b class="nc"><i class="no-highlight">836</i>&nbsp;        switch (fileFormat) {</b>
+<i class="no-highlight">837</i>&nbsp;            case FILE_FORMAT_CSV:
+<b class="nc"><i class="no-highlight">838</i>&nbsp;                StringBuffer csvStringBuffer = new StringBuffer();</b>
+<b class="nc"><i class="no-highlight">839</i>&nbsp;                writeCsvRecord(csvStringBuffer, record);</b>
+<b class="nc"><i class="no-highlight">840</i>&nbsp;                String csvLine = csvStringBuffer.toString();</b>
+<b class="nc"><i class="no-highlight">841</i>&nbsp;                csvLine = StringUtils.removeEnd(csvLine, COMMA_SEPARATOR);</b>
+<b class="nc"><i class="no-highlight">842</i>&nbsp;                csvLine += NEW_LINE;</b>
+<b class="nc"><i class="no-highlight">843</i>&nbsp;                writeChannel.write(ByteBuffer.wrap(csvLine.getBytes(UTF_8)));</b>
+<b class="nc"><i class="no-highlight">844</i>&nbsp;                break;</b>
+<i class="no-highlight">845</i>&nbsp;            case FILE_FORMAT_JSON:
+<b class="nc"><i class="no-highlight">846</i>&nbsp;                writeJsonRecord(record);</b>
+<b class="nc"><i class="no-highlight">847</i>&nbsp;                break;</b>
+<i class="no-highlight">848</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">849</i>&nbsp;                writeAvroRecord(record);</b>
+<i class="no-highlight">850</i>&nbsp;                break;
+<i class="no-highlight">851</i>&nbsp;        }
+<i class="no-highlight">852</i>&nbsp;    }
+<i class="no-highlight">853</i>&nbsp;
+<i class="no-highlight">854</i>&nbsp;    private void writeCsvRecord(StringBuffer csvStringBuffer, Map&lt;String, Object&gt; record) {
+<b class="nc"><i class="no-highlight">855</i>&nbsp;        Collection&lt;Object&gt; values = record.values();</b>
+<b class="nc"><i class="no-highlight">856</i>&nbsp;        for (Object value : values) {</b>
+<b class="nc"><i class="no-highlight">857</i>&nbsp;            if (value instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">858</i>&nbsp;                writeCsvRecord(csvStringBuffer, (Map) value);</b>
+<b class="nc"><i class="no-highlight">859</i>&nbsp;            } else if (value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">860</i>&nbsp;                throw new ExecutionException(ERR_CSV_CANNOT_SUPPORT_LIST_MSG)</b>
+<b class="nc"><i class="no-highlight">861</i>&nbsp;                        .withReason(ERR_CSV_CANNOT_SUPPORT_LIST_REASON)</b>
+<b class="nc"><i class="no-highlight">862</i>&nbsp;                        .withResolution(ERR_CSV_CANNOT_SUPPORT_LIST_RESOLUTION);</b>
+<i class="no-highlight">863</i>&nbsp;            } else {
+<i class="no-highlight">864</i>&nbsp;                String valueAsString;
+<b class="nc"><i class="no-highlight">865</i>&nbsp;                if (value instanceof DateTime) {</b>
+<b class="nc"><i class="no-highlight">866</i>&nbsp;                    valueAsString = ((DateTime) value).toString(DATE_TIME_FORMATTER);</b>
+<b class="nc"><i class="no-highlight">867</i>&nbsp;                } else if (value instanceof LocalDateTime) {</b>
+<b class="nc"><i class="no-highlight">868</i>&nbsp;                    valueAsString = ((LocalDateTime) value).toString(DATE_TIME_FORMATTER);</b>
+<b class="nc"><i class="no-highlight">869</i>&nbsp;                } else if (value instanceof LocalDate) {</b>
+<b class="nc"><i class="no-highlight">870</i>&nbsp;                    valueAsString = ((LocalDate) value).toString(DATE_FORMATTER);</b>
+<b class="nc"><i class="no-highlight">871</i>&nbsp;                } else if (value instanceof LocalTime) {</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;                    valueAsString = ((LocalTime) value).toString(TIME_FORMATTER);</b>
+<b class="nc"><i class="no-highlight">873</i>&nbsp;                } else if (value instanceof String) {</b>
+<i class="no-highlight">874</i>&nbsp;                    // For CSV, its better to quote the string value to avoid errors if the value
+<i class="no-highlight">875</i>&nbsp;                    //  contains comma.
+<i class="no-highlight">876</i>&nbsp;                    // Further, if the value contains double quote as part of its data then we need
+<i class="no-highlight">877</i>&nbsp;                    //  to escape the double quote by putting an additional double quote
+<i class="no-highlight">878</i>&nbsp;                    //  before/after it.
+<b class="nc"><i class="no-highlight">879</i>&nbsp;                    valueAsString = String.format(QUOTED_STRING,</b>
+<b class="nc"><i class="no-highlight">880</i>&nbsp;                            ((String) value).replaceAll(DOUBLE_QUOTE, DOUBLE_QUOTE_TWICE));</b>
+<i class="no-highlight">881</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">882</i>&nbsp;                    valueAsString = (value == null ? StringUtils.EMPTY : value.toString());</b>
+<i class="no-highlight">883</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">884</i>&nbsp;                csvStringBuffer = csvStringBuffer.append(valueAsString).append(COMMA_SEPARATOR);</b>
+<i class="no-highlight">885</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">886</i>&nbsp;        }</b>
+<i class="no-highlight">887</i>&nbsp;    }
+<i class="no-highlight">888</i>&nbsp;
+<i class="no-highlight">889</i>&nbsp;    private void writeJsonRecord(Map&lt;String, Object&gt; record) throws IOException {
+<b class="nc"><i class="no-highlight">890</i>&nbsp;        String jsonLine = objectMapper.writeValueAsString(record) + NEW_LINE;</b>
+<b class="nc"><i class="no-highlight">891</i>&nbsp;        writeChannel.write(ByteBuffer.wrap(jsonLine.getBytes(UTF_8)));</b>
+<i class="no-highlight">892</i>&nbsp;    }
+<i class="no-highlight">893</i>&nbsp;
+<i class="no-highlight">894</i>&nbsp;    private void writeAvroRecord(Map&lt;String, Object&gt; record) throws IOException {
+<b class="nc"><i class="no-highlight">895</i>&nbsp;        if (avroSchema == null) {</b>
+<b class="nc"><i class="no-highlight">896</i>&nbsp;            List&lt;org.apache.avro.Schema.Field&gt; avroFieldList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">897</i>&nbsp;            generateAvroSchema(record, avroFieldList);</b>
+<b class="nc"><i class="no-highlight">898</i>&nbsp;            avroSchema = org.apache.avro.Schema.createRecord(AVRO_SCHEMA_MAIN_RECORD_NAME, null,</b>
+<i class="no-highlight">899</i>&nbsp;                    AVRO_SCHEMA_MAIN_RECORD_NAMESPACE, false, avroFieldList);
+<b class="nc"><i class="no-highlight">900</i>&nbsp;            GenericDatumWriter&lt;GenericData.Record&gt; datum = new GenericDatumWriter&lt;&gt;(avroSchema);</b>
+<b class="nc"><i class="no-highlight">901</i>&nbsp;            avroReader = new GenericDatumReader&lt;&gt;(avroSchema);</b>
+<b class="nc"><i class="no-highlight">902</i>&nbsp;            avroWriter = new DataFileWriter&lt;&gt;(datum);</b>
+<b class="nc"><i class="no-highlight">903</i>&nbsp;            avroWriter.create(avroSchema, Channels.newOutputStream(writeChannel));</b>
+<i class="no-highlight">904</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">905</i>&nbsp;        avroWriter.append(createAvroRecord(record));</b>
+<i class="no-highlight">906</i>&nbsp;    }
+<i class="no-highlight">907</i>&nbsp;
+<i class="no-highlight">908</i>&nbsp;    private void generateAvroSchema(Map&lt;String, Object&gt; record,
+<i class="no-highlight">909</i>&nbsp;            List&lt;org.apache.avro.Schema.Field&gt; fieldList) {
+<b class="nc"><i class="no-highlight">910</i>&nbsp;        Set&lt;Map.Entry&lt;String, Object&gt;&gt; entries = record.entrySet();</b>
+<b class="nc"><i class="no-highlight">911</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; entry : entries) {</b>
+<b class="nc"><i class="no-highlight">912</i>&nbsp;            String key = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">913</i>&nbsp;            Object value = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">914</i>&nbsp;            if (value instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">915</i>&nbsp;                List&lt;org.apache.avro.Schema.Field&gt; innerFields = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">916</i>&nbsp;                generateAvroSchema((Map&lt;String, Object&gt;) value, innerFields);</b>
+<b class="nc"><i class="no-highlight">917</i>&nbsp;                fieldList.add(new org.apache.avro.Schema.Field(key,</b>
+<b class="nc"><i class="no-highlight">918</i>&nbsp;                        org.apache.avro.Schema.createRecord(</b>
+<i class="no-highlight">919</i>&nbsp;                                AVRO_SCHEMA_INNER_RECORD_NAME + avroInnerRecordIndex, null,
+<i class="no-highlight">920</i>&nbsp;                                AVRO_SCHEMA_INNER_RECORD_NAMESPACE + avroInnerRecordIndex, false,
+<i class="no-highlight">921</i>&nbsp;                                innerFields), null, (Object) null));
+<b class="nc"><i class="no-highlight">922</i>&nbsp;                avroInnerRecordIndex++;</b>
+<b class="nc"><i class="no-highlight">923</i>&nbsp;                continue;</b>
+<b class="nc"><i class="no-highlight">924</i>&nbsp;            } else if (value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">925</i>&nbsp;                Object firstObject = ((List) value).get(0);</b>
+<b class="nc"><i class="no-highlight">926</i>&nbsp;                if (firstObject instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">927</i>&nbsp;                    List&lt;org.apache.avro.Schema.Field&gt; innerFields = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">928</i>&nbsp;                    generateAvroSchema((Map&lt;String, Object&gt;) firstObject, innerFields);</b>
+<b class="nc"><i class="no-highlight">929</i>&nbsp;                    fieldList.add(new org.apache.avro.Schema.Field(key,</b>
+<b class="nc"><i class="no-highlight">930</i>&nbsp;                            org.apache.avro.Schema.createArray(</b>
+<b class="nc"><i class="no-highlight">931</i>&nbsp;                                    org.apache.avro.Schema.createRecord(</b>
+<i class="no-highlight">932</i>&nbsp;                                            AVRO_SCHEMA_INNER_RECORD_NAME + avroInnerRecordIndex,
+<i class="no-highlight">933</i>&nbsp;                                            null,
+<i class="no-highlight">934</i>&nbsp;                                            AVRO_SCHEMA_INNER_RECORD_NAMESPACE +
+<i class="no-highlight">935</i>&nbsp;                                                    avroInnerRecordIndex,
+<i class="no-highlight">936</i>&nbsp;                                            false, innerFields)), null,
+<i class="no-highlight">937</i>&nbsp;                            (Object) null));
+<b class="nc"><i class="no-highlight">938</i>&nbsp;                    avroInnerRecordIndex++;</b>
+<b class="nc"><i class="no-highlight">939</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">940</i>&nbsp;                    fieldList.add(new org.apache.avro.Schema.Field(key,</b>
+<b class="nc"><i class="no-highlight">941</i>&nbsp;                            org.apache.avro.Schema.createArray(getAvroPrimitiveType(firstObject)),</b>
+<i class="no-highlight">942</i>&nbsp;                            null, (Object) null));
+<i class="no-highlight">943</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">944</i>&nbsp;                continue;</b>
+<i class="no-highlight">945</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">946</i>&nbsp;                fieldList.add(new org.apache.avro.Schema.Field(key, getAvroPrimitiveType(value),</b>
+<i class="no-highlight">947</i>&nbsp;                        null, (Object) null));
+<i class="no-highlight">948</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">949</i>&nbsp;        }</b>
+<i class="no-highlight">950</i>&nbsp;    }
+<i class="no-highlight">951</i>&nbsp;
+<i class="no-highlight">952</i>&nbsp;    private org.apache.avro.Schema getAvroPrimitiveType(Object value) {
+<b class="nc"><i class="no-highlight">953</i>&nbsp;        if (value == null || value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">954</i>&nbsp;            return org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING);</b>
+<b class="nc"><i class="no-highlight">955</i>&nbsp;        } else if (value instanceof BigInteger || value instanceof Integer ||</b>
+<i class="no-highlight">956</i>&nbsp;                value instanceof Long) {
+<b class="nc"><i class="no-highlight">957</i>&nbsp;            return org.apache.avro.Schema.create(org.apache.avro.Schema.Type.LONG);</b>
+<b class="nc"><i class="no-highlight">958</i>&nbsp;        } else if (value instanceof BigDecimal || value instanceof Double ||</b>
+<i class="no-highlight">959</i>&nbsp;                value instanceof Float) {
+<b class="nc"><i class="no-highlight">960</i>&nbsp;            return org.apache.avro.Schema.create(org.apache.avro.Schema.Type.DOUBLE);</b>
+<b class="nc"><i class="no-highlight">961</i>&nbsp;        } else if (value instanceof Boolean) {</b>
+<b class="nc"><i class="no-highlight">962</i>&nbsp;            return org.apache.avro.Schema.create(org.apache.avro.Schema.Type.BOOLEAN);</b>
+<b class="nc"><i class="no-highlight">963</i>&nbsp;        } else if (value instanceof byte[]) {</b>
+<b class="nc"><i class="no-highlight">964</i>&nbsp;            return org.apache.avro.Schema.create(org.apache.avro.Schema.Type.BYTES);</b>
+<i class="no-highlight">965</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">966</i>&nbsp;            throw new ExecutionException(ERR_UNSUPPORTED_DATA_TYPE_MSG)</b>
+<b class="nc"><i class="no-highlight">967</i>&nbsp;                    .withReason(String.format(ERR_UNSUPPORTED_DATA_TYPE_AVRO_REASON,</b>
+<b class="nc"><i class="no-highlight">968</i>&nbsp;                            value.getClass().getSimpleName()))</b>
+<b class="nc"><i class="no-highlight">969</i>&nbsp;                    .withResolution(ERR_UNSUPPORTED_DATA_TYPE_RESOLUTION);</b>
+<i class="no-highlight">970</i>&nbsp;        }
+<i class="no-highlight">971</i>&nbsp;    }
+<i class="no-highlight">972</i>&nbsp;
+<i class="no-highlight">973</i>&nbsp;    private GenericData.Record createAvroRecord(Map&lt;String, Object&gt; record) throws IOException {
+<b class="nc"><i class="no-highlight">974</i>&nbsp;        JsonDecoder jsonDecoder = DECODER_FACTORY.jsonDecoder(avroSchema,</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;                objectMapper.writeValueAsString(record));</b>
+<b class="nc"><i class="no-highlight">976</i>&nbsp;        return avroReader.read(null, jsonDecoder);</b>
+<i class="no-highlight">977</i>&nbsp;    }
+<i class="no-highlight">978</i>&nbsp;
+<i class="no-highlight">979</i>&nbsp;    protected void closeWriter() {
+<i class="no-highlight">980</i>&nbsp;        try {
+<i class="no-highlight">981</i>&nbsp;            // Close the avro file first (if available)
+<b class="nc"><i class="no-highlight">982</i>&nbsp;            if (avroWriter != null) {</b>
+<b class="nc"><i class="no-highlight">983</i>&nbsp;                avroWriter.close();</b>
+<i class="no-highlight">984</i>&nbsp;            }
+<i class="no-highlight">985</i>&nbsp;            // Close the write channel next (if open)
+<b class="nc"><i class="no-highlight">986</i>&nbsp;            if (writeChannel != null) {</b>
+<b class="nc"><i class="no-highlight">987</i>&nbsp;                if (writeChannel.isOpen()) {</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;                    writeChannel.close();</b>
+<i class="no-highlight">989</i>&nbsp;                } else {
+<i class="no-highlight">990</i>&nbsp;                    // We will assume the channel is already closed due to some reasons
+<i class="no-highlight">991</i>&nbsp;                    //  such as network disconnection or it could be auto-closeable
+<i class="no-highlight">992</i>&nbsp;                    //  and we will proceed further
+<i class="no-highlight">993</i>&nbsp;                    // TODO: if any bugs arise due to this condition in the future
+<i class="no-highlight">994</i>&nbsp;                    //  the fix will go here
+<i class="no-highlight">995</i>&nbsp;                }
+<i class="no-highlight">996</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">997</i>&nbsp;        } catch (IOException e1) {</b>
+<b class="nc"><i class="no-highlight">998</i>&nbsp;            throw new ExecutionException(e1, ERR_UNABLE_TO_WRITE_TEMP_FILE_MSG)</b>
+<b class="nc"><i class="no-highlight">999</i>&nbsp;                    .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">1000</i>&nbsp;                    .withResolution(ERR_UNABLE_TO_WRITE_TEMP_FILE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1001</i>&nbsp;        }</b>
+<i class="no-highlight">1002</i>&nbsp;    }
+<i class="no-highlight">1003</i>&nbsp;
+<i class="no-highlight">1004</i>&nbsp;    protected void performBulkLoad() {
+<i class="no-highlight">1005</i>&nbsp;        FormatOptions formatOptions;
+<b class="nc"><i class="no-highlight">1006</i>&nbsp;        switch (fileFormat) {</b>
+<i class="no-highlight">1007</i>&nbsp;            case FILE_FORMAT_AVRO:
+<b class="nc"><i class="no-highlight">1008</i>&nbsp;                formatOptions = FormatOptions.avro();</b>
+<b class="nc"><i class="no-highlight">1009</i>&nbsp;                break;</b>
+<i class="no-highlight">1010</i>&nbsp;            case FILE_FORMAT_CSV:
+<i class="no-highlight">1011</i>&nbsp;                formatOptions = CsvOptions
+<b class="nc"><i class="no-highlight">1012</i>&nbsp;                        .newBuilder()</b>
+<b class="nc"><i class="no-highlight">1013</i>&nbsp;                        .setAllowQuotedNewLines(true)</b>
+<b class="nc"><i class="no-highlight">1014</i>&nbsp;                        .setFieldDelimiter(COMMA_SEPARATOR)</b>
+<b class="nc"><i class="no-highlight">1015</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">1016</i>&nbsp;                break;</b>
+<i class="no-highlight">1017</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">1018</i>&nbsp;                formatOptions = FormatOptions.json();</b>
+<i class="no-highlight">1019</i>&nbsp;                break;
+<i class="no-highlight">1020</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1021</i>&nbsp;        List&lt;String&gt; files = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">1022</i>&nbsp;        files.add(String.format(GOOGLE_CLOUD_STORAGE_FILE_NAME_FORMAT, bucketName,</b>
+<i class="no-highlight">1023</i>&nbsp;                tempFileName));
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;        doBulkLoad(files, getTable(TableId.of(projectId, datasetId, tableId)),</b>
+<i class="no-highlight">1025</i>&nbsp;                null, formatOptions, null);
+<i class="no-highlight">1026</i>&nbsp;    }
+<i class="no-highlight">1027</i>&nbsp;
+<i class="no-highlight">1028</i>&nbsp;    protected void deleteTempFile() {
+<b class="nc"><i class="no-highlight">1029</i>&nbsp;        if (!preserveTempFile || batching) {</b>
+<i class="no-highlight">1030</i>&nbsp;            // delete the temp file
+<i class="no-highlight">1031</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">1032</i>&nbsp;                cloudStorage.delete(BlobId.of(bucketName, tempFileName));</b>
+<b class="nc"><i class="no-highlight">1033</i>&nbsp;            } catch (Throwable t1) {</b>
+<i class="no-highlight">1034</i>&nbsp;                // NO OP
+<i class="no-highlight">1035</i>&nbsp;                // the file may not have been created
+<b class="nc"><i class="no-highlight">1036</i>&nbsp;                LOGGER.warn(&quot;Error deleting temp file {}&quot;, tempFileName, t1);</b>
+<b class="nc"><i class="no-highlight">1037</i>&nbsp;            }</b>
+<i class="no-highlight">1038</i>&nbsp;        }
+<i class="no-highlight">1039</i>&nbsp;    }
+<i class="no-highlight">1040</i>&nbsp;
+<i class="no-highlight">1041</i>&nbsp;    @Override
+<i class="no-highlight">1042</i>&nbsp;    protected void flushBatch() {
+<i class="no-highlight">1043</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1044</i>&nbsp;            Failsafe</b>
+<b class="nc"><i class="no-highlight">1045</i>&nbsp;                    .with(retryPolicy)</b>
+<b class="nc"><i class="no-highlight">1046</i>&nbsp;                    .run(context -&gt; {</b>
+<b class="nc"><i class="no-highlight">1047</i>&nbsp;                        if (context.getAttemptCount() &gt; 0) {</b>
+<i class="no-highlight">1048</i>&nbsp;                            // its  retry
+<i class="no-highlight">1049</i>&nbsp;                            // recreate the temp file
+<b class="nc"><i class="no-highlight">1050</i>&nbsp;                            deleteTempFile();</b>
+<b class="nc"><i class="no-highlight">1051</i>&nbsp;                            initWriteChannel();</b>
+<b class="nc"><i class="no-highlight">1052</i>&nbsp;                            for (Document document : documents) {</b>
+<b class="nc"><i class="no-highlight">1053</i>&nbsp;                                uploadDocument(document);</b>
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;                            }</b>
+<i class="no-highlight">1055</i>&nbsp;                        }
+<i class="no-highlight">1056</i>&nbsp;                        // upload the temp file
+<b class="nc"><i class="no-highlight">1057</i>&nbsp;                        closeWriter();</b>
+<b class="nc"><i class="no-highlight">1058</i>&nbsp;                        performBulkLoad();</b>
+<i class="no-highlight">1059</i>&nbsp;                    });
+<b class="nc"><i class="no-highlight">1060</i>&nbsp;        } catch (Throwable cause) {</b>
+<b class="nc"><i class="no-highlight">1061</i>&nbsp;           SnapDataException exception = new SnapDataException(cause,</b>
+<i class="no-highlight">1062</i>&nbsp;                    ERR_BATCH_PROCESS)
+<b class="nc"><i class="no-highlight">1063</i>&nbsp;                    .withReason(cause.getMessage())</b>
+<b class="nc"><i class="no-highlight">1064</i>&nbsp;                    .withResolution(ERR_BATCH_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">1065</i>&nbsp;            for (Document document : documents) {</b>
+<b class="nc"><i class="no-highlight">1066</i>&nbsp;                errorViews.write(exception, document);</b>
+<b class="nc"><i class="no-highlight">1067</i>&nbsp;            }</b>
+<i class="no-highlight">1068</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">1069</i>&nbsp;            documents.clear();</b>
+<b class="nc"><i class="no-highlight">1070</i>&nbsp;        }</b>
+<i class="no-highlight">1071</i>&nbsp;    }
+<i class="no-highlight">1072</i>&nbsp;
+<i class="no-highlight">1073</i>&nbsp;    @Override
+<i class="no-highlight">1074</i>&nbsp;    public void handle(LifecycleEvent lifecycleEvent) {
+<b class="nc"><i class="no-highlight">1075</i>&nbsp;        switch (lifecycleEvent) {</b>
+<i class="no-highlight">1076</i>&nbsp;            case SUCCESS:
+<i class="no-highlight">1077</i>&nbsp;                // If user has unchecked &quot;Execute during preview&quot; checkbox then simply return
+<b class="nc"><i class="no-highlight">1078</i>&nbsp;                if (!executeDuringPreview) {</b>
+<i class="no-highlight">1079</i>&nbsp;                    return;
+<i class="no-highlight">1080</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1081</i>&nbsp;                if (uploadType.equals(UPLOAD_TYPE_INCOMING_DOCS)) {</b>
+<b class="nc"><i class="no-highlight">1082</i>&nbsp;                    if (batching) {</b>
+<b class="nc"><i class="no-highlight">1083</i>&nbsp;                        synchronized (documents) {</b>
+<b class="nc"><i class="no-highlight">1084</i>&nbsp;                            if (!documents.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">1085</i>&nbsp;                                flushBatch();</b>
+<i class="no-highlight">1086</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">1087</i>&nbsp;                            flushBatchTask.setStopFlag();</b>
+<b class="nc"><i class="no-highlight">1088</i>&nbsp;                            flushBatchTimer.cancel();</b>
+<b class="nc"><i class="no-highlight">1089</i>&nbsp;                        }</b>
+<i class="no-highlight">1090</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">1091</i>&nbsp;                        if (writeChannel == null) {</b>
+<i class="no-highlight">1092</i>&nbsp;                            // Do not perform any subsequent operation for no input documents
+<i class="no-highlight">1093</i>&nbsp;                            // The write channel will be null in that scenario
+<i class="no-highlight">1094</i>&nbsp;                            // Simply return and do nothing
+<i class="no-highlight">1095</i>&nbsp;                            return;
+<i class="no-highlight">1096</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">1097</i>&nbsp;                        closeWriter();</b>
+<b class="nc"><i class="no-highlight">1098</i>&nbsp;                        performBulkLoad();</b>
+<b class="nc"><i class="no-highlight">1099</i>&nbsp;                        deleteTempFile();</b>
+<i class="no-highlight">1100</i>&nbsp;                    }
+<i class="no-highlight">1101</i>&nbsp;                }
+<i class="no-highlight">1102</i>&nbsp;                break;
+<i class="no-highlight">1103</i>&nbsp;            case FAILURE:
+<i class="no-highlight">1104</i>&nbsp;            case CLOSE:
+<i class="no-highlight">1105</i>&nbsp;            case STOP:
+<b class="nc"><i class="no-highlight">1106</i>&nbsp;                closeWriter();</b>
+<b class="nc"><i class="no-highlight">1107</i>&nbsp;                if (batching) {</b>
+<b class="nc"><i class="no-highlight">1108</i>&nbsp;                    flushBatchTask.setStopFlag();</b>
+<b class="nc"><i class="no-highlight">1109</i>&nbsp;                    flushBatchTimer.cancel();</b>
+<i class="no-highlight">1110</i>&nbsp;                }
+<i class="no-highlight">1111</i>&nbsp;                break;
+<i class="no-highlight">1112</i>&nbsp;        }
+<i class="no-highlight">1113</i>&nbsp;    }
+<i class="no-highlight">1114</i>&nbsp;
+<i class="no-highlight">1115</i>&nbsp;    @Override
+<i class="no-highlight">1116</i>&nbsp;    public void configureForSuggest(PropertyValues propertyValues, BigInteger maxSuggestValue) {
+<b class="nc"><i class="no-highlight">1117</i>&nbsp;        configure(propertyValues);</b>
+<b class="nc"><i class="no-highlight">1118</i>&nbsp;        if (uploadType.equals(UPLOAD_TYPE_INCOMING_DOCS)) {</b>
+<b class="nc"><i class="no-highlight">1119</i>&nbsp;            executeDuringPreview = Boolean.TRUE.equals(propertyValues.get(</b>
+<i class="no-highlight">1120</i>&nbsp;                    EXECUTE_DURING_PREVIEW_PROP));
+<i class="no-highlight">1121</i>&nbsp;        }
+<i class="no-highlight">1122</i>&nbsp;    }
+<i class="no-highlight">1123</i>&nbsp;
+<i class="no-highlight">1124</i>&nbsp;    @Override
+<i class="no-highlight">1125</i>&nbsp;    public void executeForSuggest() {
+<b class="nc"><i class="no-highlight">1126</i>&nbsp;        execute();</b>
+<i class="no-highlight">1127</i>&nbsp;    }
+<i class="no-highlight">1128</i>&nbsp;
+<i class="no-highlight">1129</i>&nbsp;    private Table getTable(TableId tableId){
+<b class="nc"><i class="no-highlight">1130</i>&nbsp;        Table targetTable = null;</b>
+<i class="no-highlight">1131</i>&nbsp;        boolean isSuccess;
+<b class="nc"><i class="no-highlight">1132</i>&nbsp;        int retryCounter = 0;</b>
+<i class="no-highlight">1133</i>&nbsp;        do {
+<i class="no-highlight">1134</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">1135</i>&nbsp;                targetTable = bigQuery.getTable(tableId);</b>
+<b class="nc"><i class="no-highlight">1136</i>&nbsp;                isSuccess = true;</b>
+<b class="nc"><i class="no-highlight">1137</i>&nbsp;            } catch (BigQueryException e) {</b>
+<b class="nc"><i class="no-highlight">1138</i>&nbsp;                isSuccess = reconnectIfUnauthorizedOtherwiseHandleError(e,</b>
+<i class="no-highlight">1139</i>&nbsp;                        retryCounter);
+<b class="nc"><i class="no-highlight">1140</i>&nbsp;                bigQuery = initBigQuery();</b>
+<b class="nc"><i class="no-highlight">1141</i>&nbsp;                retryCounter++;</b>
+<b class="nc"><i class="no-highlight">1142</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1143</i>&nbsp;        } while (!isSuccess);</b>
+<b class="nc"><i class="no-highlight">1144</i>&nbsp;        return  targetTable;</b>
+<i class="no-highlight">1145</i>&nbsp;    }
+<i class="no-highlight">1146</i>&nbsp;
+<i class="no-highlight">1147</i>&nbsp;    @Override
+<i class="no-highlight">1148</i>&nbsp;    protected String getSnapName() {
+<b class="nc"><i class="no-highlight">1149</i>&nbsp;        return &quot;BigQuery-BulkLoad-CloudStorage-Snap-&quot; + SEQUENCE_GENERATOR.getAndIncrement();</b>
+<i class="no-highlight">1150</i>&nbsp;    }
+<i class="no-highlight">1151</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

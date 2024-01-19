@@ -1,0 +1,503 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Mask</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.mldatapreparation</a>
+</div>
+
+<h1>Coverage Summary for Class: Mask (com.snaplogic.snaps.mldatapreparation)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Mask</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/158)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2019, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.mldatapreparation;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.jsonpath.WalkResult;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.jsonpath.FieldNotFoundException;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.SimpleSnap;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.ConditionMatcher;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.ConditionMatcherFactory;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.DataMasker;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.DataMaskerFactory;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.mask.RemoveData;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.matcher.DateTextMatcher;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.policy.KeyValueType;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.policy.MaskMethod;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.policy.MaskPolicy;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.policy.MatchCondition;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.policy.SearchMode;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snaps.mldatapreparation.mask.policy.SuggestableProperty;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">48</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">49</i>&nbsp;import java.util.List;
+<i class="no-highlight">50</i>&nbsp;import java.util.Map;
+<i class="no-highlight">51</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">52</i>&nbsp;import java.util.regex.Matcher;
+<i class="no-highlight">53</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">54</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_COMPLETE;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MASK_FIELD;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MASK_FIELD_REASON;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MASK_FIELD_RESO;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MASK_METHOD_FORMAT;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MASK_METHOD_REASON;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MASK_METHOD_RESO;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MATCH_CONDITION_FORMAT;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MATCH_CONDITION_REASON;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MATCH_CONDITION_RESO;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MATCH_FIELD;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MATCH_FIELD_REASON;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_MATCH_FIELD_RESO;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_SEARCH_MODE;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_SEARCH_MODE_REASON;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_INVALID_SEARCH_MODE_RESO;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_DESC;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_DOC;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_FIELD_DESC;
+<i class="no-highlight">76</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_FIELD_LABEL;
+<i class="no-highlight">77</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_METHOD_DESC;
+<i class="no-highlight">78</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_METHOD_LABEL;
+<i class="no-highlight">79</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_POLICY_DESC;
+<i class="no-highlight">80</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_POLICY_LABEL;
+<i class="no-highlight">81</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_VALUE_DESC;
+<i class="no-highlight">82</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MASK_VALUE_LABEL;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MATCH_CONDITION_DESC;
+<i class="no-highlight">84</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MATCH_CONDITION_LABEL;
+<i class="no-highlight">85</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MATCH_FIELD_DESC;
+<i class="no-highlight">86</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MATCH_FIELD_LABEL;
+<i class="no-highlight">87</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MATCH_PATTERN_DESC;
+<i class="no-highlight">88</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.MATCH_PATTERN_LABEL;
+<i class="no-highlight">89</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.PATH_MASK_FIELD_DESC;
+<i class="no-highlight">90</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.PATH_MASK_FIELD_LABEL;
+<i class="no-highlight">91</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">92</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.SEARCH_MODE_DESC;
+<i class="no-highlight">93</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.SEARCH_MODE_LABEL;
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;/**
+<i class="no-highlight">96</i>&nbsp; * Mask sensitive data in document.
+<i class="no-highlight">97</i>&nbsp; *
+<i class="no-highlight">98</i>&nbsp; * @author Sanchai W.
+<i class="no-highlight">99</i>&nbsp; * @since Nov, 2019
+<i class="no-highlight">100</i>&nbsp; */
+<i class="no-highlight">101</i>&nbsp;@General(title = MASK, purpose = MASK_DESC, docLink = MASK_DOC)
+<i class="no-highlight">102</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">103</i>&nbsp;@Category(snap = SnapCategory.TRANSFORM)
+<i class="no-highlight">104</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">105</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<b class="nc"><i class="no-highlight">106</i>&nbsp;public class Mask extends SimpleSnap {</b>
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    private static final String MASK_POLICY_PROP = &quot;maskPolicy&quot;;
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    private static final String PATH_MASK_FIELD_PROP = &quot;maskFieldPath&quot;;
+<i class="no-highlight">111</i>&nbsp;    private static final String SEARCH_MODE_PROP = &quot;searchMode&quot;;
+<i class="no-highlight">112</i>&nbsp;    private static final String MATCH_FIELD_PROP = &quot;matchField&quot;;
+<i class="no-highlight">113</i>&nbsp;    private static final String MATCH_CONDITION_PROP = &quot;matchCondition&quot;;
+<i class="no-highlight">114</i>&nbsp;    private static final String MATCH_PATTERN_PROP = &quot;regexValue&quot;;
+<i class="no-highlight">115</i>&nbsp;    private static final String MASK_FIELD_PROP = &quot;maskField&quot;;
+<i class="no-highlight">116</i>&nbsp;    private static final String MASK_METHOD_PROP = &quot;maskAlgo&quot;;
+<i class="no-highlight">117</i>&nbsp;    private static final String MASK_VALUE_PROP = &quot;maskValue&quot;;
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;    private List&lt;MaskPolicy&gt; maskPolicies;
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;    @Override
+<i class="no-highlight">122</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        SnapProperty pathProperty = propertyBuilder.describe(PATH_MASK_FIELD_PROP, PATH_MASK_FIELD_LABEL, PATH_MASK_FIELD_DESC)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                .type(SnapType.JSONPATH)</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .build();</b>
+<i class="no-highlight">130</i>&nbsp;
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        SnapProperty searchTypeProperty = propertyBuilder.describe(SEARCH_MODE_PROP, SEARCH_MODE_LABEL, SEARCH_MODE_DESC)</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                .withSuggestions(</b>
+<i class="no-highlight">133</i>&nbsp;                        (suggestionBuilder, propertyValues) -&gt;
+<i class="no-highlight">134</i>&nbsp;                                suggestionBuilder.node(MASK_POLICY_PROP)
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                                        .over(SEARCH_MODE_PROP)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                                        .suggestions(createSuggestionList(SearchMode.values()))</b>
+<i class="no-highlight">137</i>&nbsp;                        , false)
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                .build();</b>
+<i class="no-highlight">140</i>&nbsp;
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        SnapProperty matchTypeProperty = propertyBuilder.describe(MATCH_FIELD_PROP, MATCH_FIELD_LABEL, MATCH_FIELD_DESC)</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                .withSuggestions(</b>
+<i class="no-highlight">143</i>&nbsp;                        (suggestionBuilder, propertyValues) -&gt;
+<i class="no-highlight">144</i>&nbsp;                                suggestionBuilder.node(MASK_POLICY_PROP)
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                                        .over(MATCH_FIELD_PROP)</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                                        .suggestions(createSuggestionList(KeyValueType.values()))</b>
+<i class="no-highlight">147</i>&nbsp;                        , false)
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                .build();</b>
+<i class="no-highlight">150</i>&nbsp;
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        SnapProperty matchCriterionProperty = propertyBuilder.describe(MATCH_CONDITION_PROP, MATCH_CONDITION_LABEL, MATCH_CONDITION_DESC)</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .withSuggestions(</b>
+<i class="no-highlight">153</i>&nbsp;                        (suggestionBuilder, propertyValues) -&gt;
+<i class="no-highlight">154</i>&nbsp;                                suggestionBuilder.node(MASK_POLICY_PROP)
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                                        .over(MATCH_CONDITION_PROP)</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                                        .suggestions(createSuggestionList(MatchCondition.values()))</b>
+<i class="no-highlight">157</i>&nbsp;                        , false)
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .build();</b>
+<i class="no-highlight">159</i>&nbsp;
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        SnapProperty regexProperty = propertyBuilder.describe(MATCH_PATTERN_PROP, MATCH_PATTERN_LABEL, MATCH_PATTERN_DESC)</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                .expression(SnapProperty.DecoratorType.ENABLED_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                .build();</b>
+<i class="no-highlight">164</i>&nbsp;
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        SnapProperty maskTypeProperty = propertyBuilder.describe(MASK_FIELD_PROP, MASK_FIELD_LABEL, MASK_FIELD_DESC)</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .withSuggestions(</b>
+<i class="no-highlight">167</i>&nbsp;                        (suggestionBuilder, propertyValues) -&gt;
+<i class="no-highlight">168</i>&nbsp;                                suggestionBuilder.node(MASK_POLICY_PROP)
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                                        .over(MASK_FIELD_PROP)</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                                        .suggestions(createSuggestionList(KeyValueType.values()))</b>
+<i class="no-highlight">171</i>&nbsp;                        , false)
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .build();</b>
+<i class="no-highlight">174</i>&nbsp;
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        SnapProperty maskAlgoProperty = propertyBuilder.describe(MASK_METHOD_PROP, MASK_METHOD_LABEL, MASK_METHOD_DESC)</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                .withSuggestions(</b>
+<i class="no-highlight">177</i>&nbsp;                        (suggestionBuilder, propertyValues) -&gt;
+<i class="no-highlight">178</i>&nbsp;                                suggestionBuilder.node(MASK_POLICY_PROP)
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                                        .over(MASK_METHOD_PROP)</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                                        .suggestions(createSuggestionList(MaskMethod.values()))</b>
+<i class="no-highlight">181</i>&nbsp;                        , false)
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .build();</b>
+<i class="no-highlight">184</i>&nbsp;
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        SnapProperty maskValue = propertyBuilder.describe(MASK_VALUE_PROP, MASK_VALUE_LABEL, MASK_VALUE_DESC)</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .schemaAware(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .expression(SnapProperty.DecoratorType.ENABLED_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                .build();</b>
+<i class="no-highlight">190</i>&nbsp;
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        propertyBuilder.describe(MASK_POLICY_PROP, MASK_POLICY_LABEL, MASK_POLICY_DESC)</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                .withEntry(pathProperty)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                .withEntry(searchTypeProperty)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .withEntry(matchTypeProperty)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                .withEntry(matchCriterionProperty)</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                .withEntry(regexProperty)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                .withEntry(maskTypeProperty)</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                .withEntry(maskAlgoProperty)</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                .withEntry(maskValue)</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .add();</b>
+<i class="no-highlight">203</i>&nbsp;
+<i class="no-highlight">204</i>&nbsp;    }
+<i class="no-highlight">205</i>&nbsp;
+<i class="no-highlight">206</i>&nbsp;    @Override
+<i class="no-highlight">207</i>&nbsp;    public void configure(final PropertyValues propertyValues) throws ConfigurationException {
+<i class="no-highlight">208</i>&nbsp;
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; maskPolicyProperties = propertyValues.get(MASK_POLICY_PROP);</b>
+<i class="no-highlight">210</i>&nbsp;
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        maskPolicies = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">212</i>&nbsp;
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        for (Map&lt;String, Map&lt;String, Object&gt;&gt; policyMap : maskPolicyProperties) {</b>
+<i class="no-highlight">214</i>&nbsp;
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            JsonPath jsonPath = propertyValues.getJsonPathFor(policyMap, PATH_MASK_FIELD_PROP);</b>
+<i class="no-highlight">216</i>&nbsp;
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            String searchModeStr = (String) policyMap.get(SEARCH_MODE_PROP).get(&quot;value&quot;);</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;            Optional&lt;SearchMode&gt; searchMode = lookup(searchModeStr, SearchMode.class);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            if (!searchMode.isPresent()) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                throw new ConfigurationException(ERR_INVALID_SEARCH_MODE).formatWith(searchModeStr)</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                        .withReason(ERR_INVALID_SEARCH_MODE_REASON)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                        .withResolution(ERR_INVALID_SEARCH_MODE_RESO);</b>
+<i class="no-highlight">223</i>&nbsp;            }
+<i class="no-highlight">224</i>&nbsp;
+<b class="nc"><i class="no-highlight">225</i>&nbsp;            String matchFieldStr = (String) policyMap.get(MATCH_FIELD_PROP).get(&quot;value&quot;);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;            Optional&lt;KeyValueType&gt; matchField = lookup(matchFieldStr, KeyValueType.class);</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;            if (!matchField.isPresent()) {</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                throw new ConfigurationException(ERR_INVALID_MATCH_FIELD).formatWith(matchFieldStr)</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                        .withReason(ERR_INVALID_MATCH_FIELD_REASON)</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                        .withResolution(ERR_INVALID_MATCH_FIELD_RESO);</b>
+<i class="no-highlight">231</i>&nbsp;            }
+<i class="no-highlight">232</i>&nbsp;
+<b class="nc"><i class="no-highlight">233</i>&nbsp;            String matchConditionStr = (String) policyMap.get(MATCH_CONDITION_PROP).get(&quot;value&quot;);</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;            Optional&lt;MatchCondition&gt; matchCondition = lookup(matchConditionStr, MatchCondition.class);</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;            if (!matchCondition.isPresent()) {</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                throw new ConfigurationException(ERR_INVALID_MATCH_CONDITION_FORMAT).formatWith(matchConditionStr)</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                        .withReason(ERR_INVALID_MATCH_CONDITION_REASON)</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                        .withResolution(ERR_INVALID_MATCH_CONDITION_RESO);</b>
+<i class="no-highlight">239</i>&nbsp;            }
+<i class="no-highlight">240</i>&nbsp;
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            ExpressionProperty matchPattern = propertyValues.getExpressionPropertyFor(policyMap, MATCH_PATTERN_PROP);</b>
+<i class="no-highlight">242</i>&nbsp;
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            String maskFieldStr = (String) policyMap.get(MASK_FIELD_PROP).get(&quot;value&quot;);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            Optional&lt;KeyValueType&gt; maskField = lookup(maskFieldStr, KeyValueType.class);</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            if (!maskField.isPresent()) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                throw new ConfigurationException(ERR_INVALID_MASK_FIELD).formatWith(maskFieldStr)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                        .withReason(ERR_INVALID_MASK_FIELD_REASON)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                        .withResolution(ERR_INVALID_MASK_FIELD_RESO);</b>
+<i class="no-highlight">249</i>&nbsp;            }
+<i class="no-highlight">250</i>&nbsp;
+<b class="nc"><i class="no-highlight">251</i>&nbsp;            String maskMethodStr = (String) policyMap.get(MASK_METHOD_PROP).get(&quot;value&quot;);</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;            Optional&lt;MaskMethod&gt; maskMethod = lookup(maskMethodStr, MaskMethod.class);</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            if (!maskMethod.isPresent()) {</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                throw new ConfigurationException(ERR_INVALID_MASK_METHOD_FORMAT).formatWith(maskMethodStr)</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                        .withReason(ERR_INVALID_MASK_METHOD_REASON)</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                        .withResolution(ERR_INVALID_MASK_METHOD_RESO);</b>
+<i class="no-highlight">257</i>&nbsp;            }
+<i class="no-highlight">258</i>&nbsp;
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            ExpressionProperty maskValue = propertyValues.getExpressionPropertyFor(policyMap, MASK_VALUE_PROP);</b>
+<i class="no-highlight">260</i>&nbsp;
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            ConditionMatcherFactory conditionMatcherFactory = new ConditionMatcherFactory();</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;            ConditionMatcher matcher = conditionMatcherFactory.createMatcher(matchField.get(), matchCondition.get(), matchPattern);</b>
+<i class="no-highlight">263</i>&nbsp;
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            Optional&lt;ExpressionProperty&gt; dateTextMatchPattern = (matcher instanceof DateTextMatcher) ? Optional.of(matchPattern) : Optional.empty();</b>
+<i class="no-highlight">265</i>&nbsp;
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            DataMaskerFactory dataMaskerFactory = new DataMaskerFactory();</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;            DataMasker masker = dataMaskerFactory.createDataMasker(maskField.get(), maskMethod.get(), maskValue, dateTextMatchPattern);</b>
+<i class="no-highlight">268</i>&nbsp;
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            MaskPolicy maskPolicy = new MaskPolicy();</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            maskPolicy.setMatcher(matcher);</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            maskPolicy.setJsonPath(jsonPath);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            maskPolicy.setSearchMode(searchMode.get());</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            maskPolicy.setMatchField(matchField.get());</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;            maskPolicy.setMaskField(maskField.get());</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;            maskPolicy.setMasker(masker);</b>
+<i class="no-highlight">276</i>&nbsp;
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            maskPolicies.add(maskPolicy);</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        }</b>
+<i class="no-highlight">279</i>&nbsp;
+<i class="no-highlight">280</i>&nbsp;    }
+<i class="no-highlight">281</i>&nbsp;
+<i class="no-highlight">282</i>&nbsp;    private boolean matchCondition(WalkResult walkResult, MaskPolicy maskPolicy, Document document) throws InvalidPathException {
+<i class="no-highlight">283</i>&nbsp;
+<i class="no-highlight">284</i>&nbsp;        Object matchValue;
+<i class="no-highlight">285</i>&nbsp;
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        if (KeyValueType.KEY.equals(maskPolicy.getMatchField())) {</b>
+<i class="no-highlight">287</i>&nbsp;
+<b class="nc"><i class="no-highlight">288</i>&nbsp;            List&lt;Object&gt; path = walkResult.getActualPath().resolvedPath(document.get());</b>
+<i class="no-highlight">289</i>&nbsp;
+<b class="nc"><i class="no-highlight">290</i>&nbsp;            if (path.isEmpty())</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                return false;</b>
+<i class="no-highlight">292</i>&nbsp;            // Note: The resolved path will have Strings for keys or Numbers for array indexes
+<b class="nc"><i class="no-highlight">293</i>&nbsp;            matchValue = path.get(path.size() - 1).toString();</b>
+<i class="no-highlight">294</i>&nbsp;
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        } else {</b>
+<i class="no-highlight">296</i>&nbsp;
+<b class="nc"><i class="no-highlight">297</i>&nbsp;            matchValue = walkResult.getValue();</b>
+<i class="no-highlight">298</i>&nbsp;            // no match if value is null
+<b class="nc"><i class="no-highlight">299</i>&nbsp;            if (matchValue == null)</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                return false;</b>
+<i class="no-highlight">301</i>&nbsp;        }
+<i class="no-highlight">302</i>&nbsp;
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        return maskPolicy.getMatcher().match(document, matchValue);</b>
+<i class="no-highlight">304</i>&nbsp;    }
+<i class="no-highlight">305</i>&nbsp;
+<i class="no-highlight">306</i>&nbsp;    private void maskValue(WalkResult walkResult, MaskPolicy maskPolicy, Document document, Map docMap) throws InvalidPathException {
+<i class="no-highlight">307</i>&nbsp;
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        maskPolicy.getMasker().maskData(walkResult, document, docMap);</b>
+<i class="no-highlight">309</i>&nbsp;
+<i class="no-highlight">310</i>&nbsp;    }
+<i class="no-highlight">311</i>&nbsp;
+<i class="no-highlight">312</i>&nbsp;    private void processInternal(JsonPath jsonPath, MaskPolicy maskPolicy, Document document, Map docMap) throws InvalidPathException {
+<i class="no-highlight">313</i>&nbsp;        List&lt;WalkResult&gt; walkResults;
+<i class="no-highlight">314</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">315</i>&nbsp;            walkResults = jsonPath.walk(docMap);</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        } catch (FieldNotFoundException e) {</b>
+<i class="no-highlight">317</i>&nbsp;            // if field is not found, we simply return as no match at all
+<i class="no-highlight">318</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        for (WalkResult walkResult : walkResults) {</b>
+<i class="no-highlight">321</i>&nbsp;
+<b class="nc"><i class="no-highlight">322</i>&nbsp;            Object value = walkResult.getValue();</b>
+<i class="no-highlight">323</i>&nbsp;
+<b class="nc"><i class="no-highlight">324</i>&nbsp;            if (SearchMode.RECURSIVE.equals(maskPolicy.getSearchMode()) &amp;&amp; value instanceof Map) {</b>
+<i class="no-highlight">325</i>&nbsp;
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                JsonPath childrenPath = JsonPathImpl.compile(walkResult.getActualPath().toString().concat(&quot;.*&quot;));</b>
+<i class="no-highlight">327</i>&nbsp;
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                processInternal(childrenPath, maskPolicy, document, docMap);</b>
+<i class="no-highlight">329</i>&nbsp;
+<b class="nc"><i class="no-highlight">330</i>&nbsp;            } else if (SearchMode.RECURSIVE.equals(maskPolicy.getSearchMode()) &amp;&amp; value instanceof List) {</b>
+<i class="no-highlight">331</i>&nbsp;
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                JsonPath childrenPath = JsonPathImpl.compile(walkResult.getActualPath().toString().concat(&quot;[*]&quot;));</b>
+<i class="no-highlight">333</i>&nbsp;
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                processInternal(childrenPath, maskPolicy, document, docMap);</b>
+<i class="no-highlight">335</i>&nbsp;
+<i class="no-highlight">336</i>&nbsp;                // post processing to remove null value from array
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                if (maskPolicy.getMasker() instanceof RemoveData) {</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                    List&lt;Object&gt; dataList = (List&lt;Object&gt;) value;</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                    List&lt;Object&gt; newDataList = dataList.stream().filter(data -&gt; data != null).collect(Collectors.toList());</b>
+<i class="no-highlight">340</i>&nbsp;
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                    if (newDataList.isEmpty() &amp;&amp; KeyValueType.KEY.equals(maskPolicy.getMaskField())) {</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                        walkResult.getActualPath().delete(docMap);</b>
+<i class="no-highlight">343</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                        walkResult.getActualPath().write(docMap, newDataList);</b>
+<i class="no-highlight">345</i>&nbsp;                    }
+<i class="no-highlight">346</i>&nbsp;                }
+<i class="no-highlight">347</i>&nbsp;
+<b class="nc"><i class="no-highlight">348</i>&nbsp;            } else {</b>
+<i class="no-highlight">349</i>&nbsp;
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                if (matchCondition(walkResult, maskPolicy, document)) {</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                    maskValue(walkResult, maskPolicy, document, docMap);</b>
+<i class="no-highlight">352</i>&nbsp;                }
+<i class="no-highlight">353</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">354</i>&nbsp;        }</b>
+<i class="no-highlight">355</i>&nbsp;    }
+<i class="no-highlight">356</i>&nbsp;
+<i class="no-highlight">357</i>&nbsp;    @Override
+<i class="no-highlight">358</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">359</i>&nbsp;    protected void process(final Document document, final String inputViewName) {
+<i class="no-highlight">360</i>&nbsp;
+<i class="no-highlight">361</i>&nbsp;        // support no input
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        if (document == null)</b>
+<i class="no-highlight">363</i>&nbsp;            return;
+<i class="no-highlight">364</i>&nbsp;
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        Map docMap = document.get(Map.class);</b>
+<i class="no-highlight">366</i>&nbsp;
+<i class="no-highlight">367</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            for (MaskPolicy maskPolicy : maskPolicies) {</b>
+<i class="no-highlight">369</i>&nbsp;
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                JsonPath jsonPath = maskPolicy.getJsonPath();</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                processInternal(jsonPath, maskPolicy, document, docMap);</b>
+<i class="no-highlight">372</i>&nbsp;
+<b class="nc"><i class="no-highlight">373</i>&nbsp;            }</b>
+<i class="no-highlight">374</i>&nbsp;
+<b class="nc"><i class="no-highlight">375</i>&nbsp;            outputViews.write(documentUtility.newDocumentFor(document, docMap));</b>
+<i class="no-highlight">376</i>&nbsp;
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            errorViews.write(e, document);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_COMPLETE)</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;            errorViews.write(ex, document);</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;        }</b>
+<i class="no-highlight">384</i>&nbsp;
+<i class="no-highlight">385</i>&nbsp;    }
+<i class="no-highlight">386</i>&nbsp;
+<i class="no-highlight">387</i>&nbsp;    private String[] createSuggestionList(SuggestableProperty[] enumValue) {
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        return Arrays.stream(enumValue)</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                .map(searchMode -&gt; searchMode.getDisplayMessage())</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                .toArray(String[]::new);</b>
+<i class="no-highlight">391</i>&nbsp;    }
+<i class="no-highlight">392</i>&nbsp;
+<i class="no-highlight">393</i>&nbsp;    private &lt;T extends SuggestableProperty&gt; Optional&lt;T&gt; lookup(String displayMessage, Class&lt;T&gt; classObj) {
+<b class="nc"><i class="no-highlight">394</i>&nbsp;        return Arrays.stream(classObj.getEnumConstants())</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                .filter(enumValue -&gt; enumValue.getDisplayMessage().equals(displayMessage))</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                .findFirst();</b>
+<i class="no-highlight">397</i>&nbsp;    }
+<i class="no-highlight">398</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,213 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ResponseBody</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.salesforce.response</a>
+</div>
+
+<h1>Coverage Summary for Class: ResponseBody (com.snaplogic.snaps.salesforce.response)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ResponseBody</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.salesforce.response;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snaps.salesforce.request.HttpRequestHandler;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">18</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">21</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">22</i>&nbsp;import java.util.zip.GZIPInputStream;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;/**
+<i class="no-highlight">25</i>&nbsp; * This represents the Salesforce API response body and preserves the compression information. This
+<i class="no-highlight">26</i>&nbsp; * is required because some HTTP requests advertise that they accept gzip encoding. The Salesforce
+<i class="no-highlight">27</i>&nbsp; * API can optionally choose to return the content gzipped when it is in the request.
+<i class="no-highlight">28</i>&nbsp; *
+<i class="no-highlight">29</i>&nbsp; * The compression needs to be preserved so downstream consumers of the response can decide to
+<i class="no-highlight">30</i>&nbsp; * either consume the raw or decompressed bytes. For example, the {@link CSVParser} will persist the
+<i class="no-highlight">31</i>&nbsp; * compressed bytes to a temporary file. If the stream is not compressed, it will compress it before
+<i class="no-highlight">32</i>&nbsp; * persisting to disk. This minimizes I/O loads. In other locations the response should be
+<i class="no-highlight">33</i>&nbsp; * decompressed because it is immediately used to create a string object.
+<i class="no-highlight">34</i>&nbsp; *
+<i class="no-highlight">35</i>&nbsp; * The reason the gzip information is represented in this way instead of checking for the gzip
+<i class="no-highlight">36</i>&nbsp; * magic number in the header is because a non-gzip response could coincidentally start with the
+<i class="no-highlight">37</i>&nbsp; * gzip header. This method negates that risk.
+<i class="no-highlight">38</i>&nbsp; * Also, this makes it so each consumer of the stream does not have to
+<i class="no-highlight">39</i>&nbsp; * have the complication of checking for the gzip header bytes.
+<i class="no-highlight">40</i>&nbsp; */
+<i class="no-highlight">41</i>&nbsp;public class ResponseBody {
+<i class="no-highlight">42</i>&nbsp;    private InputStream rawStream;
+<i class="no-highlight">43</i>&nbsp;    private boolean isCompressed;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;    /**
+<i class="no-highlight">46</i>&nbsp;     * Creates a new response body stream object
+<i class="no-highlight">47</i>&nbsp;     *
+<i class="no-highlight">48</i>&nbsp;     * @param rawStream The response stream from the HTTP response
+<i class="no-highlight">49</i>&nbsp;     * @param encoding  The response stream encoding. No encoding and gzip are supported.
+<i class="no-highlight">50</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">51</i>&nbsp;    public ResponseBody(InputStream rawStream, String encoding) {</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;        this.rawStream = rawStream;</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;        this.isCompressed = isCompressed(encoding);</b>
+<i class="no-highlight">54</i>&nbsp;    }
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;    /**
+<i class="no-highlight">57</i>&nbsp;     * Creates a new response body stream object
+<i class="no-highlight">58</i>&nbsp;     *
+<i class="no-highlight">59</i>&nbsp;     * @param httpEntity The HTTP response body
+<i class="no-highlight">60</i>&nbsp;     * @throws IOException
+<i class="no-highlight">61</i>&nbsp;     */
+<i class="no-highlight">62</i>&nbsp;    public ResponseBody(HttpEntity httpEntity) throws IOException {
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        this(</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;                httpEntity.getContent(),</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;                httpEntity.getContentEncoding() != null ?</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;                        httpEntity.getContentEncoding().getValue() : null</b>
+<i class="no-highlight">67</i>&nbsp;        );
+<i class="no-highlight">68</i>&nbsp;    }
+<i class="no-highlight">69</i>&nbsp;
+<i class="no-highlight">70</i>&nbsp;    private boolean isCompressed(String encoding) {
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        if (StringUtils.isBlank(encoding)) {</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;            return false;</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        } else if (encoding.equalsIgnoreCase(HttpRequestHandler.GZIP)) {</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            return true;</b>
+<i class="no-highlight">75</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            throw new SnapDataException(Messages.ERR_BAD_ENCODING)</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                    .withReason(String.format(Messages.REASON_BAD_ENCODING, encoding));</b>
+<i class="no-highlight">78</i>&nbsp;        }
+<i class="no-highlight">79</i>&nbsp;    }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    public boolean isCompressed() {
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        return isCompressed;</b>
+<i class="no-highlight">83</i>&nbsp;    }
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;    /**
+<i class="no-highlight">86</i>&nbsp;     * Gets the decompressed response stream. If the data is not encoded with gzip then this is
+<i class="no-highlight">87</i>&nbsp;     * equivalent to {@link #getRawStream()}.
+<i class="no-highlight">88</i>&nbsp;     */
+<i class="no-highlight">89</i>&nbsp;    public InputStream getDecompressedStream() throws IOException {
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        if (isCompressed()) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            return new GZIPInputStream(rawStream);</b>
+<i class="no-highlight">92</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            return getRawStream();</b>
+<i class="no-highlight">94</i>&nbsp;        }
+<i class="no-highlight">95</i>&nbsp;    }
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;    /**
+<i class="no-highlight">98</i>&nbsp;     * Gets the raw byte stream returned in the HTTP response.
+<i class="no-highlight">99</i>&nbsp;     */
+<i class="no-highlight">100</i>&nbsp;    public InputStream getRawStream() {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        return rawStream;</b>
+<i class="no-highlight">102</i>&nbsp;    }
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;    public ResponseBody withRawStream(InputStream rawStream) {
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        this.rawStream = rawStream;</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        return this;</b>
+<i class="no-highlight">107</i>&nbsp;    }
+<i class="no-highlight">108</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,611 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MySqlDatabaseAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.accounts</a>
+</div>
+
+<h1>Coverage Summary for Class: MySqlDatabaseAccount (com.snaplogic.snap.api.sql.accounts)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MySqlDatabaseAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/206)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snap.api.sql.accounts;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">15</i>&nbsp;import com.jcraft.jsch.JSch;
+<i class="no-highlight">16</i>&nbsp;import com.jcraft.jsch.JSchException;
+<i class="no-highlight">17</i>&nbsp;import com.jcraft.jsch.Session;
+<i class="no-highlight">18</i>&nbsp;import com.mysql.jdbc.AbandonedConnectionCleanupThread;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.binary.KeyStoreHandler;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcDriverManager;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.MySqlQuotationHandler;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.QuotationHandler;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">35</i>&nbsp;import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+<i class="no-highlight">36</i>&nbsp;import org.jooq.SQLDialect;
+<i class="no-highlight">37</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">38</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">39</i>&nbsp;
+<i class="no-highlight">40</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">41</i>&nbsp;import java.io.StringWriter;
+<i class="no-highlight">42</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">43</i>&nbsp;import java.security.KeyStore;
+<i class="no-highlight">44</i>&nbsp;import java.security.KeyStoreException;
+<i class="no-highlight">45</i>&nbsp;import java.security.NoSuchAlgorithmException;
+<i class="no-highlight">46</i>&nbsp;import java.security.PrivateKey;
+<i class="no-highlight">47</i>&nbsp;import java.security.UnrecoverableEntryException;
+<i class="no-highlight">48</i>&nbsp;import java.security.cert.CertificateException;
+<i class="no-highlight">49</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">50</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">51</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">52</i>&nbsp;import java.util.List;
+<i class="no-highlight">53</i>&nbsp;import java.util.Map;
+<i class="no-highlight">54</i>&nbsp;import java.util.Properties;
+<i class="no-highlight">55</i>&nbsp;import java.util.Set;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;import javax.inject.Inject;
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;import me.alexpanov.net.FreePortFinder;
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snap.api.sql.DatabaseUtils.shutdownAbandonedConnectionCleanupThread;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.Constants.LOCALHOST;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.Constants.SSH_AUTH_MODE_KEYFILE;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.Constants.SSH_AUTH_MODE_PASSWORD;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.Messages.*;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;/**
+<i class="no-highlight">68</i>&nbsp; * MySql database account.
+<i class="no-highlight">69</i>&nbsp; * More on jdbc url:
+<i class="no-highlight">70</i>&nbsp; * http://dev.mysql.com/doc/refman/5.0/en/connector-j-reference-configuration-properties.html
+<i class="no-highlight">71</i>&nbsp; *
+<i class="no-highlight">72</i>&nbsp; * @author jinloes, mklumpp
+<i class="no-highlight">73</i>&nbsp; */
+<i class="no-highlight">74</i>&nbsp;@General(title = MYSQL_DATABASE_ACCOUNT_TITLE, docLink = MYSQL_DATABASE_ACCOUNT_DOC_LINK)
+<i class="no-highlight">75</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">76</i>&nbsp;@AccountCategory(type = AccountType.DATABASE)
+<b class="nc"><i class="no-highlight">77</i>&nbsp;public class MySqlDatabaseAccount extends DriverUploadDatabaseAccount {</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(MySqlDatabaseAccount.class);</b>
+<i class="no-highlight">79</i>&nbsp;    private static final String DEFAULT_DRIVER_NAME = &quot;{Default Driver mysql 5.1.29}&quot;;
+<i class="no-highlight">80</i>&nbsp;    private static final String DRIVER_CLASS_NAME_DEFAULT = &quot;com.mysql.jdbc.Driver&quot;;
+<i class="no-highlight">81</i>&nbsp;    private static final String JDBC_URL_FMT = &quot;%s%s:%s/%s&quot;;
+<i class="no-highlight">82</i>&nbsp;    private static final String JDBC_PREFIX = &quot;jdbc:mysql://&quot;;
+<i class="no-highlight">83</i>&nbsp;    private static final String REWRITE_BATCHED_STATEMENTS = &quot;rewriteBatchedStatements&quot;;
+<i class="no-highlight">84</i>&nbsp;    private static final String USE_CURSOR_FETCH = &quot;useCursorFetch&quot;;
+<i class="no-highlight">85</i>&nbsp;    private static final int MYSQL_DEFAULT_PORT = 3306;
+<i class="no-highlight">86</i>&nbsp;    private static final String SQL_RESET_DATABASE_FMT = &quot;USE %s&quot;;
+<i class="no-highlight">87</i>&nbsp;    private static final String SSH_TUNNEL_CONFIGURATION_PROP = &quot;sshTunnelConfiguration&quot;;
+<i class="no-highlight">88</i>&nbsp;    static final String AUTHENTICATION_MODE = &quot;AuthenticationMode&quot;;
+<i class="no-highlight">89</i>&nbsp;    static final String AUTH_MODE_PASSWORD = &quot;Password&quot;;
+<i class="no-highlight">90</i>&nbsp;    static final String AUTH_MODE_KEYFILE = &quot;KeyFile&quot;;
+<i class="no-highlight">91</i>&nbsp;    private static final String PRIVATE_KEY_PASSPHRASE = &quot;PassPhrase&quot;;
+<i class="no-highlight">92</i>&nbsp;    private static final String SSH_AUTH_MODE = &quot;SSH Auth Mode&quot;;
+<i class="no-highlight">93</i>&nbsp;    private static final String KEY_STORE_URL = &quot;keyStoreURL&quot;;
+<i class="no-highlight">94</i>&nbsp;    private static final String KEYSTORE_PASSWORD = &quot;keystorePassword&quot;;
+<i class="no-highlight">95</i>&nbsp;    public static final String STRICT_HOST_KEY_CHECKING = &quot;StrictHostKeyChecking&quot;;
+<i class="no-highlight">96</i>&nbsp;    public static final String NO = &quot;no&quot;;
+<b class="nc"><i class="no-highlight">97</i>&nbsp;    private static final QuotationHandler quotationHandler = new MySqlQuotationHandler();</b>
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;    private String driverClass;
+<i class="no-highlight">100</i>&nbsp;    private List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; jdbcDriverPaths;
+<i class="no-highlight">101</i>&nbsp;    private String sshUserName;
+<i class="no-highlight">102</i>&nbsp;    private String sshPassword;
+<i class="no-highlight">103</i>&nbsp;    private String sshHostName;
+<i class="no-highlight">104</i>&nbsp;    private String privateKeyPassPhrase;
+<b class="nc"><i class="no-highlight">105</i>&nbsp;    private boolean isSshTunnel = false;</b>
+<i class="no-highlight">106</i>&nbsp;    private String sshAuthType;
+<i class="no-highlight">107</i>&nbsp;    private BigInteger dbPort;
+<i class="no-highlight">108</i>&nbsp;    private String keyStoreURL;
+<i class="no-highlight">109</i>&nbsp;    private String keyStorePassword;
+<i class="no-highlight">110</i>&nbsp;    Session session;
+<i class="no-highlight">111</i>&nbsp;    Properties config;
+<b class="nc"><i class="no-highlight">112</i>&nbsp;    private int nSshPort = 22;</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;    private final int MAX_RETRIES = 3;</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;    private int retryCount = 0;</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;    private List&lt;Session&gt; sessionList = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">116</i>&nbsp;    @Inject
+<i class="no-highlight">117</i>&nbsp;    private KeyStoreHandler keyStoreHandler;
+<i class="no-highlight">118</i>&nbsp;
+<b class="nc"><i class="no-highlight">119</i>&nbsp;    static final Set&lt;String&gt; SSH_AUTH_TYPES = ImmutableSet.of(</b>
+<i class="no-highlight">120</i>&nbsp;            AUTH_MODE_PASSWORD, AUTH_MODE_KEYFILE);
+<i class="no-highlight">121</i>&nbsp;    static final String DEFAULT_SSH_AUTH_TYPE = AUTH_MODE_PASSWORD;
+<i class="no-highlight">122</i>&nbsp;    private static final String KEY_ALIAS = &quot;keyAlias&quot;;
+<i class="no-highlight">123</i>&nbsp;    private String keyAlias;
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    @Override
+<i class="no-highlight">127</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        SnapProperty driver = propertyBuilder.describe(JDBC_DRIVER_PROP,</b>
+<i class="no-highlight">129</i>&nbsp;                Messages.JDBC_DRIVER_LABEL, Messages.JDBC_DRIVER_DESC)
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                .driverBrowsing()</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        propertyBuilder.describe(JDBC_DRIVER_CLASS_PROP,</b>
+<i class="no-highlight">133</i>&nbsp;                Messages.JDBC_DRIVER_CLASS_LABEL, Messages.JDBC_DRIVER_CLASS_DESC)
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                .defaultValue(DRIVER_CLASS_NAME_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        propertyBuilder.describe(JDBC_DRIVERS_PROP,</b>
+<i class="no-highlight">137</i>&nbsp;                JDBC_DRIVERS_LABEL, JDBC_DRIVERS_DESC)
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                .withEntry(driver)</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        super.defineProperties(propertyBuilder);</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    @Override
+<i class="no-highlight">145</i>&nbsp;    public List&lt;SnapProperty&gt; createAdditionalConnectionProperties(
+<i class="no-highlight">146</i>&nbsp;            List&lt;SnapProperty&gt; sshProperties, PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        sshProperties.add(propertyBuilder.describe(SSH_TUNNEL_CONFIGURATION_PROP,</b>
+<i class="no-highlight">148</i>&nbsp;                SSH_TUNNEL_CONFIG_LABEL, SSH_TUNNEL_CONFIG_DESC)
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        sshProperties.add(propertyBuilder.describe(AUTHENTICATION_MODE, SSH_AUTH_MODE,</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                SSH_AUTH_MODE_DESC).withAllowedValues(SSH_AUTH_TYPES).defaultValue</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                (DEFAULT_SSH_AUTH_TYPE).build());</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        sshProperties.add(propertyBuilder.describe(SSH_HOSTNAME_PROP, SSH_HOSTNAME_LABEL,</b>
+<i class="no-highlight">156</i>&nbsp;                SSH_HOSTNAME_DESCRIPTION)
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.LOW)</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        sshProperties.add(propertyBuilder.describe(SSH_USERNAME_PROP, SSH_USERNAME_LABEL,</b>
+<i class="no-highlight">160</i>&nbsp;                SSH_USERNAME_DESCRIPTION)
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.MEDIUM)</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        sshProperties.add(propertyBuilder.describe(SSH_PASSWORD_PROP, SSH_PASSWORD_LABEL,</b>
+<i class="no-highlight">164</i>&nbsp;                SSH_PASSWORD_DESCRIPTION)
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .enableIf(SSH_AUTH_MODE_PASSWORD)</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        sshProperties.add(propertyBuilder.describe(KEY_STORE_URL, KEY_STORE_LABEL, KEY_STORE_DESC)</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                .fileBrowsing()</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                .enableIf(SSH_AUTH_MODE_KEYFILE)</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        sshProperties.add(propertyBuilder</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .describe(KEYSTORE_PASSWORD, KEY_STORE_PASSWORD_LABEL,</b>
+<i class="no-highlight">174</i>&nbsp;                        PASSWORD_FOR_KEYSTORE_FILE_DESC)
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                .enableIf(SSH_AUTH_MODE_KEYFILE)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        sshProperties.add(propertyBuilder.describe(KEY_ALIAS,</b>
+<i class="no-highlight">179</i>&nbsp;                KEY_ALIAS_LABEL, KEY_ALIAS_DESC)
+<i class="no-highlight">180</i>&nbsp;                // Commenting the suggestions part as platform has limitation for Composite
+<i class="no-highlight">181</i>&nbsp;                // property suggestions.
+<i class="no-highlight">182</i>&nbsp;               /* .withSuggestions((suggestionBuilder, propertyValues) -&gt; {
+<i class="no-highlight">183</i>&nbsp;                    String keystorePath = propertyValues.get(getDatabasePropertyValuePath
+<i class="no-highlight">184</i>&nbsp;                            (CONNECTION_PROPERTIES_PROP, KEY_STORE_URL));
+<i class="no-highlight">185</i>&nbsp;                    String keystorePassword = propertyValues.get(getDatabasePropertyValuePath
+<i class="no-highlight">186</i>&nbsp;                            (CONNECTION_PROPERTIES_PROP, KEYSTORE_PASSWORD));
+<i class="no-highlight">187</i>&nbsp;                    try {
+<i class="no-highlight">188</i>&nbsp;                        KeyStore keyStore = keyStoreHandler.createKeyStore(keystorePath,
+<i class="no-highlight">189</i>&nbsp;                                keystorePassword.toCharArray());
+<i class="no-highlight">190</i>&nbsp;                        suggestionBuilder.node(CONNECTION_PROPERTIES_PROP)
+<i class="no-highlight">191</i>&nbsp;                                .over(&quot;value&quot;)
+<i class="no-highlight">192</i>&nbsp;                                .over(KEY_ALIAS)
+<i class="no-highlight">193</i>&nbsp;                                .suggestions(keyStoreHandler.getPrivateKeyAliases(keyStore));
+<i class="no-highlight">194</i>&nbsp;                    } catch (IOException | KeyStoreException | NoSuchAlgorithmException |
+<i class="no-highlight">195</i>&nbsp;                            CertificateException e1) {
+<i class="no-highlight">196</i>&nbsp;                        suggestionBuilder.node(CONNECTION_PROPERTIES_PROP)
+<i class="no-highlight">197</i>&nbsp;                                .over(&quot;value&quot;)
+<i class="no-highlight">198</i>&nbsp;                                .over(KEY_ALIAS)
+<i class="no-highlight">199</i>&nbsp;                                .suggestions(new String[] {
+<i class="no-highlight">200</i>&nbsp;                                        String.format(ERR_SUGGESTING_ALIASES, e1.getMessage())
+<i class="no-highlight">201</i>&nbsp;                                });
+<i class="no-highlight">202</i>&nbsp;                    }
+<i class="no-highlight">203</i>&nbsp;                })*/
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                .enableIf(SSH_AUTH_MODE_KEYFILE)</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        sshProperties.add(propertyBuilder.describe(PRIVATE_KEY_PASSPHRASE,</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                PRIVATE_KEY_PASSPHRASE_LABEL, PRIVATE_KEY_PASSPHRASE_DESC).obfuscate()</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .enableIf(SSH_AUTH_MODE_KEYFILE)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        return sshProperties;</b>
+<i class="no-highlight">211</i>&nbsp;    }
+<i class="no-highlight">212</i>&nbsp;
+<i class="no-highlight">213</i>&nbsp;    @Override
+<i class="no-highlight">214</i>&nbsp;    public void configure(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        isSshTunnel = Boolean.TRUE.equals(propertyValues.get(getDatabasePropertyValuePath</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                (CONNECTION_PROPERTIES_PROP, SSH_TUNNEL_CONFIGURATION_PROP)));</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;        if (isSshTunnel) {</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;            readSSLProperties(propertyValues);</b>
+<i class="no-highlight">219</i>&nbsp;        }
+<i class="no-highlight">220</i>&nbsp;
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        driverClass = propertyValues.get(JDBC_DRIVER_CLASS_PROP);</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        if (StringUtils.isBlank(driverClass)) {</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            driverClass = DRIVER_CLASS_NAME_DEFAULT;</b>
+<i class="no-highlight">224</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        jdbcDriverPaths = propertyValues.get(JDBC_DRIVERS_PROP);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        super.configure(propertyValues);</b>
+<i class="no-highlight">227</i>&nbsp;    }
+<i class="no-highlight">228</i>&nbsp;
+<i class="no-highlight">229</i>&nbsp;    @Override
+<i class="no-highlight">230</i>&nbsp;    protected SnapProperty createPortProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        return propertyBuilder.describe(PORT_PROP, PORT_LABEL, PORT_DESC)</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                .defaultValue(MYSQL_DEFAULT_PORT)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                .withMinValue(PORT_MIN_VAL)</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                .dataLocationIdentifier(&quot;db.port&quot;)</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                .build();</b>
+<i class="no-highlight">238</i>&nbsp;    }
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;    @Override
+<i class="no-highlight">241</i>&nbsp;    protected String createDatabaseUrl(final String hostname, final BigInteger port,
+<i class="no-highlight">242</i>&nbsp;            final String databaseName) {
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        return String.format(JDBC_URL_FMT, JDBC_PREFIX, hostname, port, databaseName);</b>
+<i class="no-highlight">244</i>&nbsp;    }
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;    @Override
+<i class="no-highlight">247</i>&nbsp;    protected String getDefaultJDBCDriver() {
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        return null;</b>
+<i class="no-highlight">249</i>&nbsp;    }
+<i class="no-highlight">250</i>&nbsp;
+<i class="no-highlight">251</i>&nbsp;    @Override
+<i class="no-highlight">252</i>&nbsp;    protected String getDefaultJDBCClass() {
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        return null;</b>
+<i class="no-highlight">254</i>&nbsp;    }
+<i class="no-highlight">255</i>&nbsp;
+<i class="no-highlight">256</i>&nbsp;    @Override
+<i class="no-highlight">257</i>&nbsp;    protected void setupAccount(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        Properties urlProperties = databaseConfig.getUrlProperties();</b>
+<i class="no-highlight">259</i>&nbsp;        // Enable MySQL optimization for batches
+<i class="no-highlight">260</i>&nbsp;        // more can be read at http://www.jroller.com/mmatthews/entry/speeding_up_batch_inserts_for
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        if (!urlProperties.containsKey(REWRITE_BATCHED_STATEMENTS)) {</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;            urlProperties.put(REWRITE_BATCHED_STATEMENTS, Boolean.TRUE.toString().toLowerCase());</b>
+<i class="no-highlight">263</i>&nbsp;        }
+<i class="no-highlight">264</i>&nbsp;        // By default MySQL reads whole result set into memory
+<i class="no-highlight">265</i>&nbsp;        // so useCursorFetch to read rows based off of fetch size
+<i class="no-highlight">266</i>&nbsp;        // From docs: If connected to MySQL &gt; 5.0.2, and setFetchSize() &gt; 0 on a statement,
+<i class="no-highlight">267</i>&nbsp;        // should that statement use cursor-based fetching to retrieve rows?
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        urlProperties.put(USE_CURSOR_FETCH, Boolean.TRUE.toString().toLowerCase());</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        databaseConfig.setDriver(driverClass);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        databaseConfig.setJdbcOperations(JdbcOperations.MYSQL);</b>
+<i class="no-highlight">271</i>&nbsp;    }
+<i class="no-highlight">272</i>&nbsp;
+<i class="no-highlight">273</i>&nbsp;    protected void readSSLProperties(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        sshAuthType = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">275</i>&nbsp;                CONNECTION_PROPERTIES_PROP, AUTHENTICATION_MODE));
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        dbPort = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">277</i>&nbsp;                CONNECTION_PROPERTIES_PROP, PORT_PROP));
+<b class="nc"><i class="no-highlight">278</i>&nbsp;        sshUserName = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">279</i>&nbsp;                CONNECTION_PROPERTIES_PROP, SSH_USERNAME_PROP));
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        sshPassword = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">281</i>&nbsp;                CONNECTION_PROPERTIES_PROP, SSH_PASSWORD_PROP));
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        privateKeyPassPhrase = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">283</i>&nbsp;                CONNECTION_PROPERTIES_PROP, PRIVATE_KEY_PASSPHRASE));
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        sshHostName = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">285</i>&nbsp;                CONNECTION_PROPERTIES_PROP, SSH_HOSTNAME_PROP));
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        keyStoreURL = propertyValues.get(getDatabasePropertyValuePath</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                (CONNECTION_PROPERTIES_PROP, KEY_STORE_URL));</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        keyAlias = propertyValues.get(getDatabasePropertyValuePath</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                (CONNECTION_PROPERTIES_PROP, KEY_ALIAS));</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        keyStorePassword = propertyValues.get(getDatabasePropertyValuePath</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                (CONNECTION_PROPERTIES_PROP, KEYSTORE_PASSWORD));</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        if (StringUtils.isBlank(privateKeyPassPhrase)) {</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;            privateKeyPassPhrase = keyStorePassword;</b>
+<i class="no-highlight">294</i>&nbsp;        }
+<i class="no-highlight">295</i>&nbsp;
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        if (isSshTunnel) {</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;            switch (sshAuthType) {</b>
+<i class="no-highlight">298</i>&nbsp;                case AUTH_MODE_PASSWORD:
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                    if (StringUtils.isBlank(sshPassword) || StringUtils.isBlank(sshUserName) ||</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                            StringUtils.isBlank(sshHostName)) {</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                        throw new ConfigurationException(PROVIDE_ALL_DETAILS)</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                                .withReason(REASON_PASSWORD_AUTH)</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                                .withResolution(RES_VERIFY_SSH_PROPERTIES);</b>
+<i class="no-highlight">304</i>&nbsp;                    }
+<i class="no-highlight">305</i>&nbsp;                    break;
+<i class="no-highlight">306</i>&nbsp;                case AUTH_MODE_KEYFILE:
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                    if (StringUtils.isBlank(keyStoreURL) || StringUtils.isBlank(sshHostName) ||</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                            StringUtils.isBlank(sshUserName) || StringUtils.isBlank(keyAlias) ||</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                            StringUtils.isBlank(keyStorePassword)) {</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                        throw new ConfigurationException(SSH_PROP_EMPTY)</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                                .withReason(REASON_KEY_FILE_AUTH_MODE)</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                                .withResolution(RES_VERIFY_SSH_PROPERTIES);</b>
+<i class="no-highlight">313</i>&nbsp;                    }
+<i class="no-highlight">314</i>&nbsp;                    break;
+<i class="no-highlight">315</i>&nbsp;            }
+<i class="no-highlight">316</i>&nbsp;        }
+<i class="no-highlight">317</i>&nbsp;    }
+<i class="no-highlight">318</i>&nbsp;
+<i class="no-highlight">319</i>&nbsp;    public Session getSession(String sshUser, String sshHost, String privateKeyPem)
+<i class="no-highlight">320</i>&nbsp;            throws JSchException {
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        JSch jSch = new JSch();</b>
+<i class="no-highlight">322</i>&nbsp;
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        if (StringUtils.isNotBlank(privateKeyPem)) {</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;            jSch.addIdentity(StringUtils.EMPTY, privateKeyPem.getBytes(), null, null);</b>
+<i class="no-highlight">325</i>&nbsp;        }
+<i class="no-highlight">326</i>&nbsp;
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        Session session = createJschSession(jSch, sshUser, sshHost);</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        sessionList.add(session);</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        return session;</b>
+<i class="no-highlight">330</i>&nbsp;    }
+<i class="no-highlight">331</i>&nbsp;
+<i class="no-highlight">332</i>&nbsp;    protected Session createJschSession(JSch jSch, String strSshUser, String strSshHost)
+<i class="no-highlight">333</i>&nbsp;            throws JSchException {
+<b class="nc"><i class="no-highlight">334</i>&nbsp;        return jSch.getSession(strSshUser, strSshHost, nSshPort);</b>
+<i class="no-highlight">335</i>&nbsp;    }
+<i class="no-highlight">336</i>&nbsp;
+<i class="no-highlight">337</i>&nbsp;    public void createSshTunnel(String sshUser, String sshPassword, String sshHost,
+<i class="no-highlight">338</i>&nbsp;            String remoteDbHost, int localPort, int remoteDbPort,
+<i class="no-highlight">339</i>&nbsp;            String keyStoreURL) {
+<i class="no-highlight">340</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">341</i>&nbsp;            switch (sshAuthType) {</b>
+<i class="no-highlight">342</i>&nbsp;                case AUTH_MODE_PASSWORD:
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                    session = getSession(sshUser, sshHost, null);</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                    session.setPassword(sshPassword);</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                    break;</b>
+<i class="no-highlight">346</i>&nbsp;                case AUTH_MODE_KEYFILE:
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                    config = new Properties();</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                    KeyStore keyStore = keyStoreHandler.createKeyStore(keyStoreURL,</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                        keyStorePassword.toCharArray());</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                    PrivateKey key = keyStoreHandler.fetchPrivateKeyForAlias(keyStore,</b>
+<i class="no-highlight">351</i>&nbsp;                        keyAlias, privateKeyPassPhrase);
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                    String privateKeyPEM = getPrivateKeyPem(key);</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                    session = getSession(sshUser, sshHost, privateKeyPEM);</b>
+<i class="no-highlight">354</i>&nbsp;                    break;
+<i class="no-highlight">355</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableEntryException</b>
+<i class="no-highlight">357</i>&nbsp;                | CertificateException e) {
+<b class="nc"><i class="no-highlight">358</i>&nbsp;            throw new ConfigurationException(e, KEY_STORE_LOAD_ERROR)</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                    .withResolution(RES_KEYSTORE_ERROR);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;            throw new ConfigurationException(e, IO_ERROR)</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                    .formatWith(keyStoreURL)</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                    .withResolution(RES_IO_ERROR, keyStoreURL);</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;        } catch (JSchException e) {</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;            throw new ConfigurationException(e, INVALID_SESSION)</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                    .formatWith(keyStoreURL)</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                    .withResolution(RES_VERIFY_SSH_PROPERTIES);</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        setupConnectChannelToRemoteDb(config, session, localPort, remoteDbHost, remoteDbPort,</b>
+<i class="no-highlight">370</i>&nbsp;                keyStoreURL);
+<i class="no-highlight">371</i>&nbsp;    }
+<i class="no-highlight">372</i>&nbsp;
+<i class="no-highlight">373</i>&nbsp;    public String getPrivateKeyPem(PrivateKey key) throws IOException {
+<b class="nc"><i class="no-highlight">374</i>&nbsp;        try (StringWriter stringWriter = new StringWriter();</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;             JcaPEMWriter pemWriter = new JcaPEMWriter(stringWriter)) {</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;            pemWriter.writeObject(key);</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;            pemWriter.close();</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            return stringWriter.toString();</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;        }</b>
+<i class="no-highlight">380</i>&nbsp;    }
+<i class="no-highlight">381</i>&nbsp;
+<i class="no-highlight">382</i>&nbsp;    public void setupConnectChannelToRemoteDb(Properties config, Session session, int localPort,
+<i class="no-highlight">383</i>&nbsp;            String remoteDbHost, int remoteDbPort, String keyStoreURL) {
+<i class="no-highlight">384</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">385</i>&nbsp;            config = new Properties();</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;            config.put(STRICT_HOST_KEY_CHECKING, NO);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            session.setConfig(config);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;            session.connect();</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;            session.setPortForwardingL(localPort, remoteDbHost, remoteDbPort);</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        } catch (JSchException e) {</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            if (e.getMessage().equalsIgnoreCase(SESSION_IS_ALREADY_CONNECTED)) {</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                session.disconnect();</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                setupConnectChannelToRemoteDb(config, session, localPort, remoteDbHost,</b>
+<i class="no-highlight">394</i>&nbsp;                        remoteDbPort, keyStoreURL);
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            } else if (e.getMessage().equalsIgnoreCase(AUTH_FAIL) || e.getMessage()</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                    .equalsIgnoreCase(AUTHENTICATION_FAILED)) {</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                throw new ConfigurationException(Messages.AUTH_FAIL).withReason(INVALID_PASSWORD)</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                        .withResolution(RESOLUTION_AUTH_FAIL);</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;            } else if (e.getMessage().contains(PORT_FORWARDING) &amp;&amp; e.getMessage().contains</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                    (CANNOT_BE_BOUND)) {</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                if (retryCount &lt; MAX_RETRIES) {</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;                    retryCount++;</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;                    session.disconnect();</b>
+<i class="no-highlight">404</i>&nbsp;                    // In case the connection fails due to given port not being available then
+<i class="no-highlight">405</i>&nbsp;                    //  we will try again (for MAX_RETRIES number of times) with other available
+<i class="no-highlight">406</i>&nbsp;                    //  port
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                    int randomLocalPort = getFreeLocalPort();</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                    createSshTunnel(sshUserName, sshPassword, sshHostName,</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                            databaseConfig.getHostName(), randomLocalPort, dbPort.intValue(),</b>
+<i class="no-highlight">410</i>&nbsp;                            keyStoreURL);
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                } else {</b>
+<i class="no-highlight">412</i>&nbsp;                    // Exceeded MAX_RETRIES number of times with random free ports, so
+<i class="no-highlight">413</i>&nbsp;                    //  throwing exception
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                    throw new ConfigurationException(e.getMessage()).withReason</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                            (UNABLE_TO_ESTABLISH_SSH_CONNECTION)</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                            .withResolution(RESOLUTION_NETWORK_SETTINGS);</b>
+<i class="no-highlight">417</i>&nbsp;                }
+<i class="no-highlight">418</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">419</i>&nbsp;        }</b>
+<i class="no-highlight">420</i>&nbsp;    }
+<i class="no-highlight">421</i>&nbsp;
+<i class="no-highlight">422</i>&nbsp;    @Override
+<i class="no-highlight">423</i>&nbsp;    protected SQLDialect getSQLDialect(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        return SQLDialect.MYSQL;</b>
+<i class="no-highlight">425</i>&nbsp;    }
+<i class="no-highlight">426</i>&nbsp;
+<i class="no-highlight">427</i>&nbsp;    @Override
+<i class="no-highlight">428</i>&nbsp;    protected BigInteger normalizeFetchSize(BigInteger fetchSize) {
+<i class="no-highlight">429</i>&nbsp;        // For MySQL, any positive fetch size is converted to Integer.MIN_VALUE
+<i class="no-highlight">430</i>&nbsp;        // That is the only value which results in the result set being streamed
+<i class="no-highlight">431</i>&nbsp;        // when the result set is large. See ResultSet section of
+<i class="no-highlight">432</i>&nbsp;        // http://dev.mysql.com/doc/refman/5.0/es/connector-j-reference-implementation-notes.html
+<b class="nc"><i class="no-highlight">433</i>&nbsp;        if (fetchSize != null &amp;&amp; fetchSize.intValue() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;            return BigInteger.valueOf(Integer.MIN_VALUE);</b>
+<i class="no-highlight">435</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">436</i>&nbsp;            return fetchSize;</b>
+<i class="no-highlight">437</i>&nbsp;        }
+<i class="no-highlight">438</i>&nbsp;    }
+<i class="no-highlight">439</i>&nbsp;
+<i class="no-highlight">440</i>&nbsp;    @Override
+<i class="no-highlight">441</i>&nbsp;    public void loadDriver(final PropertyValues propertyValues,
+<i class="no-highlight">442</i>&nbsp;            final JdbcDriverManager jdbcDriverManager) {
+<b class="nc"><i class="no-highlight">443</i>&nbsp;        if (jdbcDriverPaths == null || jdbcDriverPaths.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;            jdbcDriverManager.registerDefaultDriver(DRIVER_CLASS_NAME_DEFAULT,</b>
+<i class="no-highlight">445</i>&nbsp;                    DEFAULT_DRIVER_NAME);
+<i class="no-highlight">446</i>&nbsp;            // Shutdown the abandonedConnectionCleanupThread from the current thread
+<b class="nc"><i class="no-highlight">447</i>&nbsp;            shutdownAbandonedConnectionCleanupThread(</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                    Thread.currentThread().getContextClassLoader());</b>
+<i class="no-highlight">449</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">450</i>&nbsp;            loadDriverHelper(jdbcDriverManager, driverClass, jdbcDriverPaths);</b>
+<i class="no-highlight">451</i>&nbsp;        }
+<i class="no-highlight">452</i>&nbsp;        // Shutdown the abandonedConnectionCleanupThread
+<b class="nc"><i class="no-highlight">453</i>&nbsp;        shutdownAbandonedConnectionCleanupThread(databaseConfig, jdbcDriverManager);</b>
+<i class="no-highlight">454</i>&nbsp;
+<i class="no-highlight">455</i>&nbsp;    }
+<i class="no-highlight">456</i>&nbsp;
+<i class="no-highlight">457</i>&nbsp;    @Override
+<i class="no-highlight">458</i>&nbsp;    public Connection connect() {
+<b class="nc"><i class="no-highlight">459</i>&nbsp;        if (isSshTunnel) {</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;            int localPort = getFreeLocalPort();</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;            createSshTunnel(sshUserName, sshPassword, sshHostName, databaseConfig.getHostName(),</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                localPort, dbPort.intValue(), keyStoreURL);</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;            databaseConfig.setJdbcUrl(createDatabaseUrl(LOCALHOST,</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                BigInteger.valueOf(localPort), databaseConfig.getDatabaseName()));</b>
+<i class="no-highlight">465</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">466</i>&nbsp;        return createAndReturnConnection();</b>
+<i class="no-highlight">467</i>&nbsp;    }
+<i class="no-highlight">468</i>&nbsp;
+<i class="no-highlight">469</i>&nbsp;    protected int getFreeLocalPort() {
+<b class="nc"><i class="no-highlight">470</i>&nbsp;        return FreePortFinder.findFreeLocalPort();</b>
+<i class="no-highlight">471</i>&nbsp;    }
+<i class="no-highlight">472</i>&nbsp;
+<i class="no-highlight">473</i>&nbsp;    protected Connection createAndReturnConnection() {
+<b class="nc"><i class="no-highlight">474</i>&nbsp;        Connection conn = dataSourceRegistry.getConnection(databaseConfig);</b>
+<i class="no-highlight">475</i>&nbsp;        // Reset connection&#39;s default database setting
+<b class="nc"><i class="no-highlight">476</i>&nbsp;        try (Statement stmt = conn.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;            stmt.execute(String.format(SQL_RESET_DATABASE_FMT,</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;                    quotationHandler.escape(getDatabaseConfig().getDatabaseName())));</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;            LOGGER.debug(ERROR_RESETTING_DEFAULT_DATABASE_SETTING);</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;        return conn;</b>
+<i class="no-highlight">483</i>&nbsp;    }
+<i class="no-highlight">484</i>&nbsp;
+<i class="no-highlight">485</i>&nbsp;    @Override
+<i class="no-highlight">486</i>&nbsp;    public void disconnect() {
+<b class="nc"><i class="no-highlight">487</i>&nbsp;        for (Session session : sessionList) {</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;            closeSession(session);</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;        }</b>
+<i class="no-highlight">490</i>&nbsp;        // Shutdown the abandonedConnectionCleanupThread from the default driver
+<i class="no-highlight">491</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">492</i>&nbsp;            AbandonedConnectionCleanupThread.shutdown();</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;        } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;            LOGGER.debug(&quot;AbandonedConnectionCleanupThread.shutdown() got interrupted&quot;);</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;        super.disconnect();</b>
+<i class="no-highlight">497</i>&nbsp;    }
+<i class="no-highlight">498</i>&nbsp;
+<i class="no-highlight">499</i>&nbsp;    protected void closeSession(Session session) {
+<i class="no-highlight">500</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">501</i>&nbsp;            session.disconnect();</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;            LOGGER.warn(&quot;Unable to close an instance of jsch session&quot;, e);</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;        }</b>
+<i class="no-highlight">505</i>&nbsp;    }
+<i class="no-highlight">506</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

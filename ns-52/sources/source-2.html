@@ -1,0 +1,474 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DatabricksUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.accounts.databricks.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: DatabricksUtils (com.snaplogic.snap.api.sql.accounts.databricks.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DatabricksUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/177)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql.accounts.databricks.utils;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">14</i>&nbsp;import com.google.gson.Gson;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.Singleton;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.utilities.URLEncoder;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseConfig;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.sql.DriverUploadDatabaseConfig;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.DatabaseAccountUtils;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.databricks.externallocation.AwsS3Config;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.databricks.externallocation.AzureConfig;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.databricks.externallocation.DbfsConfig;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.databricks.externallocation.ExternalLocationConfig;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.databricks.externallocation.GCSConfig;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.databricks.externallocation.JDBCLocationConfig;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.sql.parsers.DatabricksLakeHousePlatformJdbcUrlParser;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.sql.parsers.ParseResult;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">38</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">39</i>&nbsp;import org.jooq.SQLDialect;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">42</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">43</i>&nbsp;import java.net.MalformedURLException;
+<i class="no-highlight">44</i>&nbsp;import java.net.URL;
+<i class="no-highlight">45</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">46</i>&nbsp;import java.util.List;
+<i class="no-highlight">47</i>&nbsp;import java.util.Map;
+<i class="no-highlight">48</i>&nbsp;import java.util.Properties;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snap.api.sql.JdbcDriverUpload.JDBC_DRIVER_CLASS_PROP;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snap.api.sql.JdbcDriverUpload.JDBC_DRIVER_PROP;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.DatabaseAccountUtils.*;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.Messages.*;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snap.api.sql.parsers.Constants
+<i class="no-highlight">55</i>&nbsp;        .USER_SPECIFIED_JDBC_URL_DATABRICKS_LAKEHOUSE_PLATFORM;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snap.api.sql.parsers.Messages.ERR_INVALID_ACCOUNT_CONFIGURATION;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snap.api.sql.parsers.Messages.PORT_MIN_VAL;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snap.api.sql.parsers.Messages.PORT_VALUE_ERROR;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snap.api.sql.parsers.Messages.REASON_INVALID_JDBC_URL_SYNTAX;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snap.api.sql.parsers.Messages
+<i class="no-highlight">61</i>&nbsp;        .RESOLUTION_REMOVE_COLON_OR_SLASH_AT_THE_END;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snap.api.sql.parsers.Messages.RESOLUTION_SET_THE_PORT_NUMBER_CORRECTLY;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snap.api.sql.parsers.UrlUtils.appendMapEntriesToJdbcUrl;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;/**
+<i class="no-highlight">66</i>&nbsp; *
+<i class="no-highlight">67</i>&nbsp; */
+<i class="no-highlight">68</i>&nbsp;@Singleton
+<b class="nc"><i class="no-highlight">69</i>&nbsp;public class DatabricksUtils {</b>
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    @Inject
+<i class="no-highlight">72</i>&nbsp;    private DatabaseAccountUtils dbAccountUtils;
+<i class="no-highlight">73</i>&nbsp;    @Inject
+<i class="no-highlight">74</i>&nbsp;    private URLEncoder urlEncoder;
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    private static final String DATABRICKS_DRIVER_CLASS_NAME =
+<i class="no-highlight">77</i>&nbsp;            &quot;com.databricks.client.jdbc.Driver&quot;;
+<i class="no-highlight">78</i>&nbsp;    private static final String DATABRICKS_JDBC_URL_FMT = &quot;%s%s:%s/%s;transportMode=http;&quot; +
+<i class="no-highlight">79</i>&nbsp;            &quot;ssl=1;AuthMech=3&quot;;
+<i class="no-highlight">80</i>&nbsp;    private static final String SPARK_JDBC_PREFIX = &quot;jdbc:spark://&quot;;
+<i class="no-highlight">81</i>&nbsp;    private static final String DATABRICKS_JDBC_PREFIX = &quot;jdbc:databricks://&quot;;
+<i class="no-highlight">82</i>&nbsp;    private static final String DATABASE_KEY = &quot;db&quot;;
+<i class="no-highlight">83</i>&nbsp;    private static final boolean DATABRICKS_AUTO_COMMIT = true;
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;    /**
+<i class="no-highlight">86</i>&nbsp;     * Creates DBConfig information about the Databricks database connection.
+<i class="no-highlight">87</i>&nbsp;     *
+<i class="no-highlight">88</i>&nbsp;     * @param propertyValues as the property values
+<i class="no-highlight">89</i>&nbsp;     * @return database config
+<i class="no-highlight">90</i>&nbsp;     */
+<i class="no-highlight">91</i>&nbsp;    public DatabaseConfig createDatabaseConfig(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        String jdbcDriverClassName = getDriverClassName(propertyValues);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        jdbcDriverClassName = StringUtils.isBlank(jdbcDriverClassName) ?</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                DATABRICKS_DRIVER_CLASS_NAME : jdbcDriverClassName;</b>
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;        String username;
+<i class="no-highlight">97</i>&nbsp;        String password;
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        Boolean useTokenAuth = propertyValues.get(dbAccountUtils.</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                getDatabasePropertyValuePath(CONNECTION_PROPERTIES_PROP, USE_TOKEN_AUTH));</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        if (useTokenAuth) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            username = &quot;token&quot;;</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            password = propertyValues.get(dbAccountUtils.</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                    getDatabasePropertyValuePath(CONNECTION_PROPERTIES_PROP, TOKEN_PROP));</b>
+<i class="no-highlight">104</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            username = dbAccountUtils.retrieveUserName(propertyValues);</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;            password = dbAccountUtils.retrievePassword(propertyValues);</b>
+<i class="no-highlight">107</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        String jdbcUrl = dbAccountUtils.retrieveJDBCUrl(propertyValues);</b>
+<i class="no-highlight">109</i>&nbsp;
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        boolean autoJdbcDriverDownloadEnabled =</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;                propertyValues.get(dbAccountUtils.getDatabasePropertyValuePath(</b>
+<i class="no-highlight">112</i>&nbsp;                        CONNECTION_PROPERTIES_PROP, AUTO_JDBC_DRIVER_DOWNLOAD_PROP));
+<i class="no-highlight">113</i>&nbsp;
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        DatabricksLakeHousePlatformJdbcUrlParser urlParser =</b>
+<i class="no-highlight">115</i>&nbsp;                new DatabricksLakeHousePlatformJdbcUrlParser();
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        ParseResult parseResult = urlParser.parseJdbcUrlString(jdbcUrl,</b>
+<i class="no-highlight">117</i>&nbsp;                JdbcOperations.DATABRICKS_LAKEHOUSE_PLATFORM, autoJdbcDriverDownloadEnabled);
+<i class="no-highlight">118</i>&nbsp;
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        String databaseName = dbAccountUtils.retrieveDatabaseName(propertyValues);</b>
+<i class="no-highlight">120</i>&nbsp;        BigInteger port;
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        if (parseResult == null) {</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            throw new ConfigurationException(ERR_INVALID_ACCOUNT_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                    .withReason(REASON_INVALID_JDBC_URL_SYNTAX)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                    .withResolution(String.format(RESOLUTION_REMOVE_COLON_OR_SLASH_AT_THE_END,</b>
+<i class="no-highlight">125</i>&nbsp;                            &quot;spark&quot;));
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;            jdbcUrl = parseResult.getJdbcUrl();</b>
+<i class="no-highlight">129</i>&nbsp;
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            if (parseResult.getPort().compareTo(BigInteger.valueOf(PORT_MIN_VAL)) &gt;= 0) {</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                port = parseResult.getPort();</b>
+<i class="no-highlight">132</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                throw new ConfigurationException(ERR_INVALID_ACCOUNT_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                        .withReason(String.format(PORT_VALUE_ERROR, PORT_MIN_VAL))</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                        .withResolution(RESOLUTION_SET_THE_PORT_NUMBER_CORRECTLY);</b>
+<i class="no-highlight">136</i>&nbsp;            }
+<i class="no-highlight">137</i>&nbsp;
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            jdbcUrl = String.format(USER_SPECIFIED_JDBC_URL_DATABRICKS_LAKEHOUSE_PLATFORM,</b>
+<i class="no-highlight">139</i>&nbsp;                    jdbcUrl, port, databaseName, username, password);
+<i class="no-highlight">140</i>&nbsp;
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            jdbcUrl = appendMapEntriesToJdbcUrl(jdbcUrl, parseResult,</b>
+<i class="no-highlight">142</i>&nbsp;                    JdbcOperations.DATABRICKS_LAKEHOUSE_PLATFORM);
+<i class="no-highlight">143</i>&nbsp;        }
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        if (autoJdbcDriverDownloadEnabled) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            jdbcUrl = StringUtils.replace(jdbcUrl,</b>
+<i class="no-highlight">148</i>&nbsp;                    SPARK_JDBC_PREFIX,
+<i class="no-highlight">149</i>&nbsp;                    DATABRICKS_JDBC_PREFIX);
+<i class="no-highlight">150</i>&nbsp;        }
+<i class="no-highlight">151</i>&nbsp;
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        BigInteger minPoolSize = dbAccountUtils.retrieveMinPoolSize(propertyValues);</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;        BigInteger maxPoolSize = dbAccountUtils.retrieveMaxPoolSize(propertyValues);</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        BigInteger acquireIncrement = dbAccountUtils.retrieveAcquireIncrement(propertyValues);</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        BigInteger maxIdleTime = dbAccountUtils.retrieveMaxIdleTime(propertyValues);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        BigInteger checkoutTimeout = dbAccountUtils.retrieveCheckoutTimeout(propertyValues);</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        BigInteger retryAttempts = dbAccountUtils.retrieveRetryAttempts(propertyValues);</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; jdbcProperties = dbAccountUtils</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                .retrieveJdbcProperties(propertyValues);</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        BigInteger batchSize = dbAccountUtils.retrieveBatchSize(propertyValues);</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        BigInteger fetchSize = dbAccountUtils.retrieveFetchSize(propertyValues);</b>
+<i class="no-highlight">162</i>&nbsp;
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        Properties urlProps = dbAccountUtils.createUrlProperties(jdbcProperties);</b>
+<i class="no-highlight">164</i>&nbsp;
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        batchSize = (batchSize != null) ? batchSize : BigInteger.valueOf(BATCH_SIZE_DEFAULT);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        fetchSize = (fetchSize != null) ? fetchSize : BigInteger.valueOf(FETCH_SIZE_DEFAULT);</b>
+<i class="no-highlight">167</i>&nbsp;
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; jdbcDriverPaths =</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                dbAccountUtils.retrieveJdbcDriverPaths(propertyValues);</b>
+<i class="no-highlight">170</i>&nbsp;
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        DriverUploadDatabaseConfig driverConfig = new DriverUploadDatabaseConfig(</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                username, password, jdbcUrl, batchSize.intValue(), fetchSize.intValue(),</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                minPoolSize.intValue(), maxPoolSize.intValue(),</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                acquireIncrement.intValue(), maxIdleTime.intValue(),</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                checkoutTimeout.intValue(), retryAttempts.intValue(), urlProps,</b>
+<i class="no-highlight">176</i>&nbsp;                SQLDialect.DEFAULT, jdbcDriverClassName, DATABRICKS_AUTO_COMMIT, jdbcDriverPaths);
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        driverConfig.setDatabaseName(databaseName);</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        driverConfig.setPort(port);</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        return driverConfig;</b>
+<i class="no-highlight">180</i>&nbsp;    }
+<i class="no-highlight">181</i>&nbsp;
+<i class="no-highlight">182</i>&nbsp;    private String getDriverClassName(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        boolean autoJdbcDriverDownloadEnabled =</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                propertyValues.get(dbAccountUtils.getDatabasePropertyValuePath(</b>
+<i class="no-highlight">185</i>&nbsp;                        CONNECTION_PROPERTIES_PROP, AUTO_JDBC_DRIVER_DOWNLOAD_PROP));
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        if (autoJdbcDriverDownloadEnabled) {</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;            return DATABRICKS_DRIVER_CLASS_NAME;</b>
+<i class="no-highlight">188</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            String driverClass = dbAccountUtils.retrieveJdbcDriverClassName(propertyValues);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;            if (StringUtils.isBlank(driverClass)) {</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                throw new SnapDataException(JDBC_DRIVER_JAR_ERROR_MSG)</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                        .withReason(JDBC_DRIVER_JAR_ERROR_REASON)</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                        .withResolution(JDBC_DRIVER_JAR_ERROR_RESOLUTION);</b>
+<i class="no-highlight">194</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            return driverClass;</b>
+<i class="no-highlight">196</i>&nbsp;        }
+<i class="no-highlight">197</i>&nbsp;    }
+<i class="no-highlight">198</i>&nbsp;
+<i class="no-highlight">199</i>&nbsp;    /**
+<i class="no-highlight">200</i>&nbsp;     * Creates the connection properties of the account using the provided {@link PropertyBuilder}
+<i class="no-highlight">201</i>&nbsp;     *
+<i class="no-highlight">202</i>&nbsp;     * @param builder as the property builder
+<i class="no-highlight">203</i>&nbsp;     * @return Snap properties
+<i class="no-highlight">204</i>&nbsp;     */
+<i class="no-highlight">205</i>&nbsp;
+<i class="no-highlight">206</i>&nbsp;    public List&lt;SnapProperty&gt; createConnectionProperties(
+<i class="no-highlight">207</i>&nbsp;            final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        String enableManualJdbcDriverUsageCondition =</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                String.format(&quot;$.settings.%s.value.%s.value == false&quot;, CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">210</i>&nbsp;                        AUTO_JDBC_DRIVER_DOWNLOAD_PROP);
+<i class="no-highlight">211</i>&nbsp;
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        SnapProperty autoJdbcDriverDownload =</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                builder.describe(AUTO_JDBC_DRIVER_DOWNLOAD_PROP, AUTO_JDBC_DRIVER_DOWNLOAD_LABEL,</b>
+<i class="no-highlight">214</i>&nbsp;                                AUTO_JDBC_DRIVER_DOWNLOAD_DESC)
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                        .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                        .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        SnapProperty driver = builder.describe(JDBC_DRIVER_PROP, JDBC_DRIVER_LABEL,</b>
+<i class="no-highlight">219</i>&nbsp;                        JDBC_DRIVER_DESC)
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                .driverBrowsing()</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        SnapProperty driverClass = builder.describe(JDBC_DRIVER_CLASS_PROP,</b>
+<i class="no-highlight">223</i>&nbsp;                        JDBC_DRIVER_CLASS_LABEL, JDBC_DRIVER_CLASS_DESC)
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                .enableIf(enableManualJdbcDriverUsageCondition)</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                .defaultValue(DATABRICKS_DRIVER_CLASS_NAME)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;        SnapProperty drivers = builder.describe(JDBC_DRIVERS_PROP,</b>
+<i class="no-highlight">228</i>&nbsp;                        JDBC_DRIVERS_LABEL, JDBC_DRIVERS_DESC)
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                .enableIf(enableManualJdbcDriverUsageCondition)</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                .withEntry(driver)</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        SnapProperty jdbcUrl = builder.describe(JDBC_URL_PROP, JDBC_URL_LABEL, JDBC_URL_DESC)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        SnapProperty useTokenAuth = builder.describe(USE_TOKEN_AUTH,</b>
+<i class="no-highlight">237</i>&nbsp;                        USE_TOKEN_BASED_AUTH_LABEL, USE_TOKEN_BASED_AUTH_DESCRIPTION)
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                .defaultValue(Boolean.TRUE)</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                .build();</b>
+<i class="no-highlight">241</i>&nbsp;
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        String useTokenAuthIsCheckedClause =</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                String.format(&quot;$.settings.%s.value.%s.value == %s&quot;, CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">244</i>&nbsp;                        USE_TOKEN_AUTH, &quot;true&quot;);
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        String useTokenAuthIsUnCheckedClause =</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                String.format(&quot;$.settings.%s.value.%s.value == %s&quot;, CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">247</i>&nbsp;                        USE_TOKEN_AUTH, &quot;false&quot;);
+<i class="no-highlight">248</i>&nbsp;
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        SnapProperty userName = builder.describe(USERNAME_PROP, USERNAME_REQUIRED_LABEL,</b>
+<i class="no-highlight">250</i>&nbsp;                        USERNAME_DESCRIPTION)
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.MEDIUM)</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                .enableIf(useTokenAuthIsUnCheckedClause)</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        SnapProperty password = builder.describe(PASSWORD_PROP, PASSWORD_REQUIRED_LABEL,</b>
+<i class="no-highlight">255</i>&nbsp;                        PASSWORD_DESCRIPTION)
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                .enableIf(useTokenAuthIsUnCheckedClause)</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        SnapProperty token = builder.describe(TOKEN_PROP, TOKEN_LABEL, TOKEN_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                .enableIf(useTokenAuthIsCheckedClause)</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        SnapProperty databaseName = builder.describe(DATABASE_NAME_PROP,</b>
+<i class="no-highlight">266</i>&nbsp;                        DATABASE_NAME_LABEL, DATABASE_NAME_DESC)
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.LOW)</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                .dataLocationIdentifier(&quot;db.database_name&quot;)</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        return Lists.newArrayList(autoJdbcDriverDownload, driverClass, drivers, jdbcUrl,</b>
+<i class="no-highlight">272</i>&nbsp;                useTokenAuth, userName, password, token, databaseName);
+<i class="no-highlight">273</i>&nbsp;    }
+<i class="no-highlight">274</i>&nbsp;
+<i class="no-highlight">275</i>&nbsp;    public String createDatabricksDatabaseUrl(final String hostname, final BigInteger port,
+<i class="no-highlight">276</i>&nbsp;                                              String databaseName) {
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        return String.format(DATABRICKS_JDBC_URL_FMT, DATABRICKS_JDBC_PREFIX, hostname, port,</b>
+<i class="no-highlight">278</i>&nbsp;                databaseName);
+<i class="no-highlight">279</i>&nbsp;    }
+<i class="no-highlight">280</i>&nbsp;
+<i class="no-highlight">281</i>&nbsp;    public AwsS3Config createAWSConfig(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        return new AwsS3Config()</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                .setS3Bucket(dbAccountUtils.retrieveAwsS3Bucket(propertyValues))</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                .setS3Folder(dbAccountUtils.retrieveAwsS3Folder(propertyValues))</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                .setAwsAccessId(dbAccountUtils.retrieveAwsAccessId(propertyValues))</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                .setAwsSecretKey(dbAccountUtils.retrieveAwsSecretKey(propertyValues))</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                .setAwsToken(dbAccountUtils.retrieveAwsToken(propertyValues))</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                .setAwsAuthorizationType(</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                        dbAccountUtils.retrieveAwsAuthorizationType(propertyValues));</b>
+<i class="no-highlight">290</i>&nbsp;    }
+<i class="no-highlight">291</i>&nbsp;
+<i class="no-highlight">292</i>&nbsp;    public List&lt;SnapProperty&gt; createAdvancedConnectionProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        SnapProperty jdbcPropertyName = dbAccountUtils.createJdbcPropertyName(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        SnapProperty jdbcPropertyValue = dbAccountUtils.createJdbcPropertyValue(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        SnapProperty urlProperties = dbAccountUtils.createUrlProperties(propertyBuilder,</b>
+<i class="no-highlight">296</i>&nbsp;                jdbcPropertyName, jdbcPropertyValue);
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        SnapProperty batchSize = dbAccountUtils.createBatchSize(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        SnapProperty fetchSize = dbAccountUtils.createFetchSize(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        SnapProperty minPoolSize = dbAccountUtils.createMinPoolSize(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        SnapProperty maxPoolSize = dbAccountUtils.createMaxPoolSize(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        SnapProperty acquireIncrement = dbAccountUtils.createAcquireIncrement(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        SnapProperty maxIdleTime = dbAccountUtils.createMaxIdleTime(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        SnapProperty idleConnectionTestPeriod = dbAccountUtils</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                .createIdleConnectionTestPeriod(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        SnapProperty checkoutTimeout = dbAccountUtils.createCheckoutTime(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        SnapProperty retryAttempts = dbAccountUtils.createRetryAttempts(propertyBuilder);</b>
+<i class="no-highlight">307</i>&nbsp;
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        return Lists.newArrayList(</b>
+<i class="no-highlight">309</i>&nbsp;                urlProperties, batchSize, fetchSize, minPoolSize, maxPoolSize,
+<i class="no-highlight">310</i>&nbsp;                acquireIncrement, maxIdleTime, idleConnectionTestPeriod, checkoutTimeout,
+<i class="no-highlight">311</i>&nbsp;                retryAttempts);
+<i class="no-highlight">312</i>&nbsp;    }
+<i class="no-highlight">313</i>&nbsp;
+<i class="no-highlight">314</i>&nbsp;    public JDBCLocationConfig createJDBCSourceConfig(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        return new JDBCLocationConfig()</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                .setJdbcUrl(dbAccountUtils.retrieveExternalJdbcUrl(propertyValues))</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                .setUsername(dbAccountUtils.retrieveExternalJdbcUsername(propertyValues))</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                .setPassword(dbAccountUtils.retrieveExternalJdbcPassword(propertyValues));</b>
+<i class="no-highlight">319</i>&nbsp;    }
+<i class="no-highlight">320</i>&nbsp;
+<i class="no-highlight">321</i>&nbsp;    public AzureConfig createAzureConfig(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        return new AzureConfig()</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                .setAzureAccountName(dbAccountUtils.retrieveAsbAccountName(propertyValues))</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                .setAzureAccountKey(dbAccountUtils.retrieveAsbAccountKey(propertyValues))</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                .setAzureContainer(dbAccountUtils.retrieveAsbContainer(propertyValues))</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                .setAzurePath(dbAccountUtils.retrieveAsbPath(propertyValues))</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;                .setAzureAuthorizationType(dbAccountUtils</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                        .retrieveAsbAuthorizationType(propertyValues))</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                .setAzureSasToken(dbAccountUtils.retrieveUserToken(propertyValues));</b>
+<i class="no-highlight">330</i>&nbsp;    }
+<i class="no-highlight">331</i>&nbsp;
+<i class="no-highlight">332</i>&nbsp;    public GCSConfig createGcpConfig(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        String filePath = dbAccountUtils.retrieveGcsServiceAccountFilePath(propertyValues);</b>
+<i class="no-highlight">334</i>&nbsp;        URL resolvedPath;
+<i class="no-highlight">335</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">336</i>&nbsp;            resolvedPath = urlEncoder</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                    .validateAndEncodeURI(filePath).toURL();</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        } catch (MalformedURLException e) {</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;            throw new ConfigurationException(FILE_LOADING_ERROR)</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                    .withReason(e.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                    .withResolution(LOAD_FILE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;        }</b>
+<i class="no-highlight">343</i>&nbsp;
+<i class="no-highlight">344</i>&nbsp;        GcsServiceAccountConfig gcsServiceAccountConfig;
+<i class="no-highlight">345</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">346</i>&nbsp;            String read = IOUtils.toString(resolvedPath.openStream(), StandardCharsets.UTF_8);</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;            gcsServiceAccountConfig = new Gson().fromJson(read, GcsServiceAccountConfig.class);</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;            throw new ConfigurationException(FILE_PARSING_ERROR)</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                    .withReason(e.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                    .withResolution(LOAD_FILE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        return new GCSConfig()</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                .setEmail(dbAccountUtils.retrieveGcsEmail(propertyValues))</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                .setClientId(gcsServiceAccountConfig.client_id)</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                .setPrivateKey(gcsServiceAccountConfig.private_key)</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                .setPrivateKeyId(gcsServiceAccountConfig.private_key_id)</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                .setProjectId(gcsServiceAccountConfig.project_id)</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                .setBucket(dbAccountUtils.retrieveGCSBucket(propertyValues))</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                .setFolder(dbAccountUtils.retrieveGCSFolder(propertyValues))</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                .setGspAuthorizationType(dbAccountUtils</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                        .retrieveGcsAuthorizationType(propertyValues));</b>
+<i class="no-highlight">363</i>&nbsp;    }
+<i class="no-highlight">364</i>&nbsp;
+<i class="no-highlight">365</i>&nbsp;    public ExternalLocationConfig createDbfsConfig(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">366</i>&nbsp;        return new DbfsConfig()</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                .setDbfsFolder(dbAccountUtils.retrieveDbfsFolder(propertyValues));</b>
+<i class="no-highlight">368</i>&nbsp;    }
+<i class="no-highlight">369</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1476 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > DefaultMetadataProvider</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.metadata</a>
+</div>
+
+<h1>Coverage Summary for Class: DefaultMetadataProvider (com.snaplogic.snap.api.sql.metadata)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DefaultMetadataProvider</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/41)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/524)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">DefaultMetadataProvider$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/42)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/527)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014 - 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql.metadata;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.databind.ObjectMapper;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.cache.Cache;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.cache.CacheBuilder;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">18</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">19</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">20</i>&nbsp;import com.google.inject.name.Named;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.codegen.BasicSqlGrammar;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.codegen.BnfBinding;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.codegen.ConsumeException;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.codegen.GenContext;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.codegen.SqlServerGrammar;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.JsonFactoryModule;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.common.jsonpath.WalkResult;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.sql.ColumnInfoBuilder;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.sql.ColumnMetaData;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseUtils;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.sql.MetadataProvider;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.sql.TableMetaData;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.sql.operations.JdbcOperationsImpl;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.GenericQuotationHandler;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.QuotationHandler;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.sql.quotation.SqlServerQuotationHandler;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">47</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">48</i>&nbsp;import org.joda.time.DateTime;
+<i class="no-highlight">49</i>&nbsp;import org.joda.time.LocalDate;
+<i class="no-highlight">50</i>&nbsp;import org.joda.time.LocalDateTime;
+<i class="no-highlight">51</i>&nbsp;import org.jooq.tools.jdbc.JDBCUtils;
+<i class="no-highlight">52</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">53</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">56</i>&nbsp;import java.lang.reflect.Field;
+<i class="no-highlight">57</i>&nbsp;import java.lang.reflect.Modifier;
+<i class="no-highlight">58</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">59</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">60</i>&nbsp;import java.sql.DatabaseMetaData;
+<i class="no-highlight">61</i>&nbsp;import java.sql.Date;
+<i class="no-highlight">62</i>&nbsp;import java.sql.ResultSet;
+<i class="no-highlight">63</i>&nbsp;import java.sql.ResultSetMetaData;
+<i class="no-highlight">64</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">65</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">66</i>&nbsp;import java.sql.Types;
+<i class="no-highlight">67</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">68</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">69</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">70</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">71</i>&nbsp;import java.util.List;
+<i class="no-highlight">72</i>&nbsp;import java.util.Map;
+<i class="no-highlight">73</i>&nbsp;import java.util.Set;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snap.api.sql.metadata.Messages.*;
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;/**
+<i class="no-highlight">78</i>&nbsp; * Base class for DB metadata
+<i class="no-highlight">79</i>&nbsp; *
+<i class="no-highlight">80</i>&nbsp; * @author mklumpp
+<i class="no-highlight">81</i>&nbsp; * @author smudassir
+<i class="no-highlight">82</i>&nbsp; */
+<i class="no-highlight">83</i>&nbsp;public class DefaultMetadataProvider implements MetadataProvider {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;    private static final Logger log = LoggerFactory.getLogger(DefaultMetadataProvider.class);</b>
+<i class="no-highlight">85</i>&nbsp;
+<b class="nc"><i class="no-highlight">86</i>&nbsp;    protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            .registerModule(new JsonFactoryModule());</b>
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;    protected static final String CHAR_OCTET_LENGTH = &quot;CHAR_OCTET_LENGTH&quot;;
+<i class="no-highlight">90</i>&nbsp;    protected static final String COLUMN_NAME = &quot;COLUMN_NAME&quot;;
+<i class="no-highlight">91</i>&nbsp;    protected static final String DATA_TYPE = &quot;DATA_TYPE&quot;;
+<i class="no-highlight">92</i>&nbsp;    protected static final String NULLABLE = &quot;NULLABLE&quot;;
+<i class="no-highlight">93</i>&nbsp;    protected static final String INDEX_NAME = &quot;INDEX_NAME&quot;;
+<i class="no-highlight">94</i>&nbsp;    protected static final String TABLE_CAT = &quot;TABLE_CAT&quot;;
+<i class="no-highlight">95</i>&nbsp;    protected static final String TABLE_SCHEM = &quot;TABLE_SCHEM&quot;;
+<i class="no-highlight">96</i>&nbsp;    protected static final String TABLE_NAME = &quot;TABLE_NAME&quot;;
+<i class="no-highlight">97</i>&nbsp;    protected static final String COLUMN_NO_NULLS = &quot;columnNoNulls&quot;;
+<i class="no-highlight">98</i>&nbsp;    protected static final String COLUMN_NULLABLE = &quot;columnNullable&quot;;
+<i class="no-highlight">99</i>&nbsp;    protected static final String COLUMN_NULLABLE_UNKNOWN = &quot;columnNullableUnknown&quot;;
+<i class="no-highlight">100</i>&nbsp;
+<b class="nc"><i class="no-highlight">101</i>&nbsp;    private static final Set&lt;String&gt; PRIMARY_INDEX_NAME = ImmutableSet.of(&quot;PRIMARY&quot;, &quot;primary&quot;);</b>
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;    private static final char SPACE_CHAR = &#39; &#39;;
+<i class="no-highlight">104</i>&nbsp;    private static final char BEGIN_PARENTHESES = &#39;(&#39;;
+<i class="no-highlight">105</i>&nbsp;    private static final char END_PARENTHESES = &#39;)&#39;;
+<i class="no-highlight">106</i>&nbsp;    private static final char COMMA_CHAR = &#39;,&#39;;
+<i class="no-highlight">107</i>&nbsp;    private static final char DOT_CHAR = &#39;.&#39;;
+<i class="no-highlight">108</i>&nbsp;    private static final String DOT_REGEX = &quot;\\.&quot;;
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    private static final String CREATE_TABLE_COMMAND = &quot;CREATE TABLE &quot;;
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;    private static final String VARCHAR_DATATYPE = &quot;VARCHAR(32700)&quot;;
+<i class="no-highlight">113</i>&nbsp;    private static final String DB2_VARCHAR_DATATYPE = &quot;VARCHAR(2048)&quot;;
+<i class="no-highlight">114</i>&nbsp;    private static final String DERBY_VARCHAR_DATATYPE = &quot;VARCHAR(32672)&quot;;
+<i class="no-highlight">115</i>&nbsp;    private static final String INTEGER_DATATYPE = &quot;INT&quot;;
+<i class="no-highlight">116</i>&nbsp;    private static final String DOUBLE_DATATYPE = &quot;FLOAT&quot;;
+<i class="no-highlight">117</i>&nbsp;    private static final String TIMESTAMP_DATATYPE = &quot;TIMESTAMP&quot;;
+<i class="no-highlight">118</i>&nbsp;    private static final String DATE_DATATYPE = &quot;DATE&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String BOOLEAN_DATATYPE = &quot;INT&quot;;
+<i class="no-highlight">120</i>&nbsp;    private static final String DECLARATION = &quot;declaration&quot;;
+<i class="no-highlight">121</i>&nbsp;    private static final String COLUMNS = &quot;columns&quot;;
+<i class="no-highlight">122</i>&nbsp;    private static final String PRIMARY_KEY_COLUMNS = &quot;primaryKeyColumns&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String INDEX_INFO = &quot;indexInfo&quot;;
+<b class="nc"><i class="no-highlight">124</i>&nbsp;    private static final JsonPath TABLE_CAT_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">125</i>&nbsp;            &quot;$.declaration.TABLE_CAT&quot;);
+<b class="nc"><i class="no-highlight">126</i>&nbsp;    private static final JsonPath TABLE_SCHEM_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">127</i>&nbsp;            &quot;$.declaration.TABLE_SCHEM&quot;);
+<b class="nc"><i class="no-highlight">128</i>&nbsp;    private static final JsonPath TABLE_NAME_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">129</i>&nbsp;            &quot;$.declaration.TABLE_NAME&quot;);
+<b class="nc"><i class="no-highlight">130</i>&nbsp;    private static final JsonPath COLUMNS_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">131</i>&nbsp;            &quot;$.columns&quot;);
+<b class="nc"><i class="no-highlight">132</i>&nbsp;    private static final JsonPath INDEX_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">133</i>&nbsp;            &quot;$.indexInfo&quot;);
+<b class="nc"><i class="no-highlight">134</i>&nbsp;    private static final JsonPath UNIQUE_INDEX_PATH = INDEX_PATH.join(JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">135</i>&nbsp;            &quot;[?(! @[0].NON_UNIQUE)]&quot;));
+<b class="nc"><i class="no-highlight">136</i>&nbsp;    private static final JsonPath INDEX_COLUMNS = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">137</i>&nbsp;            &quot;$[*].COLUMN_NAME&quot;);
+<b class="nc"><i class="no-highlight">138</i>&nbsp;    private static final JsonPath INDEX_NAME_FROM_COL_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">139</i>&nbsp;            &quot;$[0].INDEX_NAME&quot;);
+<b class="nc"><i class="no-highlight">140</i>&nbsp;    private static final JsonPath PRIMARY_KEY_COLUMN_PATH = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">141</i>&nbsp;            &quot;$.primaryKeyColumns[*].COLUMN_NAME&quot;);
+<b class="nc"><i class="no-highlight">142</i>&nbsp;    private static final JsonPath COLUMN_DATA_TYPES = JsonPathImpl.compileStatic(</b>
+<i class="no-highlight">143</i>&nbsp;            &quot;$..DATA_TYPE&quot;);
+<i class="no-highlight">144</i>&nbsp;    private static final String TYPE_NAME = &quot;TYPE_NAME&quot;;
+<i class="no-highlight">145</i>&nbsp;    private static final String SYNONYM = &quot;SYNONYM&quot;;
+<i class="no-highlight">146</i>&nbsp;    private static final String TABLE_TYPE = &quot;TABLE_TYPE&quot;;
+<i class="no-highlight">147</i>&nbsp;    private static final String TABLE_OWNER = &quot;TABLE_OWNER&quot;;
+<i class="no-highlight">148</i>&nbsp;    private static final String FORMAT_SYNONYM =
+<i class="no-highlight">149</i>&nbsp;            &quot;select * from all_synonyms where synonym_name = &#39;%s&#39;&quot;;
+<i class="no-highlight">150</i>&nbsp;    public static final String FK_NAME = &quot;FK_NAME&quot;;
+<i class="no-highlight">151</i>&nbsp;    public static final String IMPORTED_KEYS = &quot;importedKeys&quot;;
+<i class="no-highlight">152</i>&nbsp;    public static final String UPDATE_RULE = &quot;UPDATE_RULE&quot;;
+<i class="no-highlight">153</i>&nbsp;    public static final String DELETE_RULE = &quot;DELETE_RULE&quot;;
+<i class="no-highlight">154</i>&nbsp;    public static final String IMPORTED_KEY_NO_ACTION = &quot;NO ACTION&quot;;
+<i class="no-highlight">155</i>&nbsp;    public static final String IMPORTED_KEY_CASCADE = &quot;CASCADE&quot;;
+<i class="no-highlight">156</i>&nbsp;    public static final String IMPORTED_KEY_SET_NULL = &quot;SET NULL&quot;;
+<i class="no-highlight">157</i>&nbsp;    public static final String IMPORTED_KEY_SET_DEFAULT = &quot;SET DEFAULT&quot;;
+<i class="no-highlight">158</i>&nbsp;    public static final String IMPORTED_KEY_RESTRICT = &quot;RESTRICT&quot;;
+<i class="no-highlight">159</i>&nbsp;    public static final String DEFERRABILITY = &quot;DEFERRABILITY&quot;;
+<i class="no-highlight">160</i>&nbsp;    public static final String IMPORTED_KEY_INITIALLY_DEFERRED = &quot;importedKeyInitiallyDeferred&quot;;
+<i class="no-highlight">161</i>&nbsp;    public static final String IMPORTED_KEY_INITIALLY_IMMEDIATE = &quot;importedKeyInitiallyImmediate&quot;;
+<i class="no-highlight">162</i>&nbsp;    public static final String IMPORTED_KEY_NOT_DEFERRABLE = &quot;importedKeyNotDeferrable&quot;;
+<i class="no-highlight">163</i>&nbsp;    public static final String SL_DISPLAY_SIZE = &quot;_SL_DISPLAY_SIZE&quot;;
+<i class="no-highlight">164</i>&nbsp;    public static final String SL_SCALE = &quot;_SL_SCALE&quot;;
+<i class="no-highlight">165</i>&nbsp;    public static final String SL_PRECISION = &quot;_SL_PRECISION&quot;;
+<i class="no-highlight">166</i>&nbsp;
+<i class="no-highlight">167</i>&nbsp;    private static final String SELECT_FOR_METADATA = &quot;SELECT * FROM %s WHERE 1 = 0&quot;;
+<i class="no-highlight">168</i>&nbsp;    private static final String SELECT_FOR_CASSANDRA_METADATA = &quot;SELECT * FROM %s LIMIT 1&quot;;
+<i class="no-highlight">169</i>&nbsp;    // The following types are defined in java.sql.Types, but are unlikely to &quot;just&quot; work when
+<i class="no-highlight">170</i>&nbsp;    // we&#39;re replicating a schema from one DB type to another.
+<b class="nc"><i class="no-highlight">171</i>&nbsp;    private static final Set&lt;String&gt; UNSUPPORTED_JAVA_SQL_TYPES = ImmutableSet.of(</b>
+<i class="no-highlight">172</i>&nbsp;            &quot;ARRAY&quot;, &quot;OTHER&quot;, &quot;BLOB&quot;, &quot;CLOB&quot;, &quot;DATALINK&quot;, &quot;DISTINCT&quot;, &quot;JAVA_OBJECT&quot;, &quot;NCLOB&quot;,
+<i class="no-highlight">173</i>&nbsp;            &quot;REF&quot;, &quot;ROWID&quot;, &quot;SQLXML&quot;, &quot;STRUCT&quot;);
+<i class="no-highlight">174</i>&nbsp;    // A cache that stores the BasicJdbcBinding object according to the escape char. This reduces
+<i class="no-highlight">175</i>&nbsp;    // times for creating new binding object
+<i class="no-highlight">176</i>&nbsp;    private static Cache&lt;String, BnfBinding&gt; bindingObjectCache =
+<b class="nc"><i class="no-highlight">177</i>&nbsp;            CacheBuilder.newBuilder().build();</b>
+<i class="no-highlight">178</i>&nbsp;    protected static final String VARCHAR = &quot;VARCHAR&quot;;
+<i class="no-highlight">179</i>&nbsp;    protected static final int ORACLE_ERROR_NO_SUCH_TABLE = 942;
+<i class="no-highlight">180</i>&nbsp;    public static final String NCHAR = &quot;NCHAR&quot;;
+<i class="no-highlight">181</i>&nbsp;    public static final String NVARCHAR_2 = &quot;NVARCHAR2&quot;;
+<i class="no-highlight">182</i>&nbsp;    public static final String NVARCHAR = &quot;NVARCHAR&quot;;
+<i class="no-highlight">183</i>&nbsp;    public static final String NTEXT = &quot;NTEXT&quot;;
+<i class="no-highlight">184</i>&nbsp;    public static final String SL_BINARY_LENGTH = &quot;_SL_BINARY_LENGTH&quot;;
+<i class="no-highlight">185</i>&nbsp;    public static final String COLUMN_SIZE = &quot;COLUMN_SIZE&quot;;
+<i class="no-highlight">186</i>&nbsp;    public static final String DB2_DATABASE_PRODUCT_NAME = &quot;DB2&quot;;
+<i class="no-highlight">187</i>&nbsp;    public static final String DERBY_DATABASE_PRODUCT_NAME = &quot;derby&quot;;
+<i class="no-highlight">188</i>&nbsp;    public static final String DATABASE_PRODUCT_NAME = &quot;databaseProductName&quot;;
+<i class="no-highlight">189</i>&nbsp;    public static final String DATABASE_PRODUCT_VERSION = &quot;databaseProductVersion&quot;;
+<i class="no-highlight">190</i>&nbsp;    public static final String DATABASE_MAJOR_VERSION = &quot;databaseMajorVersion&quot;;
+<i class="no-highlight">191</i>&nbsp;    public static final String DATABASE_MINOR_VERSION = &quot;databaseMinorVersion&quot;;
+<i class="no-highlight">192</i>&nbsp;    public static final String CASSANDRA = &quot;cassandra&quot;;
+<i class="no-highlight">193</i>&nbsp;    // When createTableWithColumnAsIs is true, column names should not be wrapped with double quotes
+<i class="no-highlight">194</i>&nbsp;    // in the create table statement.
+<i class="no-highlight">195</i>&nbsp;    public boolean createTableWithColumnAsIs;
+<i class="no-highlight">196</i>&nbsp;
+<b class="nc"><i class="no-highlight">197</i>&nbsp;    protected Set&lt;String&gt; primaryIndexName = PRIMARY_INDEX_NAME;</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;    protected String varcharDatatype = VARCHAR_DATATYPE;</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;    protected String integerDatatype = INTEGER_DATATYPE;</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;    protected String doubleDatatype = DOUBLE_DATATYPE;</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;    protected String timestampDatatype = TIMESTAMP_DATATYPE;</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;    protected String timestampLocalDatatype = TIMESTAMP_DATATYPE;</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;    protected String dateDatatype = DATE_DATATYPE;</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;    protected String booleanDatatype = BOOLEAN_DATATYPE;</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;    protected Map&lt;String, Object&gt; typeInfo = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;    protected Map&lt;String, String&gt; javaSqlTypeMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;    protected Set&lt;String&gt; unsupportedJavaSqlTypes = new HashSet&lt;&gt;();</b>
+<i class="no-highlight">208</i>&nbsp;    protected QuotationHandler quotationHandler;
+<i class="no-highlight">209</i>&nbsp;    private String databaseProductName;
+<i class="no-highlight">210</i>&nbsp;    /**
+<i class="no-highlight">211</i>&nbsp;     * Some drivers, the H2 one in particular, do not return correctly formed
+<i class="no-highlight">212</i>&nbsp;     * metadata, so we need to massage it a bit.  This map translates some key
+<i class="no-highlight">213</i>&nbsp;     * values from the driver&#39;s returned name to the JDBC standard one.
+<i class="no-highlight">214</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">215</i>&nbsp;    protected Map&lt;String, String&gt; metadataTableAliases =</b>
+<i class="no-highlight">216</i>&nbsp;            new ImmutableMap.Builder&lt;String, String&gt;()
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                    .build();</b>
+<i class="no-highlight">218</i>&nbsp;
+<b class="nc"><i class="no-highlight">219</i>&nbsp;    protected Map&lt;String, String&gt; metadataColumnAliases =</b>
+<i class="no-highlight">220</i>&nbsp;            new ImmutableMap.Builder&lt;String, String&gt;()
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                    .put(&quot;CHARACTER_OCTET_LENGTH&quot;, CHAR_OCTET_LENGTH)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                    .put(&quot;COLUMN_DEFAULT&quot;, &quot;COLUMN_DEF&quot;)</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                    .build();</b>
+<i class="no-highlight">224</i>&nbsp;
+<b class="nc"><i class="no-highlight">225</i>&nbsp;    protected Map&lt;String, String&gt; metadataKeyAliases =</b>
+<i class="no-highlight">226</i>&nbsp;            new ImmutableMap.Builder&lt;String, String&gt;()
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                    .put(&quot;ORDINAL_POSITION&quot;, &quot;KEY_SEQ&quot;)</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    .build();</b>
+<i class="no-highlight">229</i>&nbsp;
+<b class="nc"><i class="no-highlight">230</i>&nbsp;    protected Map&lt;String, String&gt; metadataIndexAliases =</b>
+<i class="no-highlight">231</i>&nbsp;            new ImmutableMap.Builder&lt;String, String&gt;()
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                    .build();</b>
+<i class="no-highlight">233</i>&nbsp;
+<i class="no-highlight">234</i>&nbsp;    /**
+<i class="no-highlight">235</i>&nbsp;     * Some drivers (H2) do not return all of the column metadata they&#39;re supposed
+<i class="no-highlight">236</i>&nbsp;     * to, so we&#39;ll supply some defaults so that the tests work.
+<i class="no-highlight">237</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">238</i>&nbsp;    protected Map&lt;String, Object&gt; METADATA_COLUMN_DEFAULTS = new LinkedHashMap&lt;String, Object&gt;() {{</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        put(COLUMN_SIZE, null);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        put(&quot;DECIMAL_DIGITS&quot;, null);</b>
+<i class="no-highlight">241</i>&nbsp;    }};
+<i class="no-highlight">242</i>&nbsp;
+<i class="no-highlight">243</i>&nbsp;    /**
+<i class="no-highlight">244</i>&nbsp;     * Some drivers (Oracle) return a value that is not in java.sql.Types, so we need to
+<i class="no-highlight">245</i>&nbsp;     * map from their custom enum to the real one.
+<i class="no-highlight">246</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">247</i>&nbsp;    protected Map&lt;Integer, Integer&gt; sqlTypeMapping = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">248</i>&nbsp;
+<i class="no-highlight">249</i>&nbsp;    /**
+<i class="no-highlight">250</i>&nbsp;     * Read the database type information from a JSON-encoded file resource.
+<i class="no-highlight">251</i>&nbsp;     * &lt;p&gt;
+<i class="no-highlight">252</i>&nbsp;     * XXX It would probably be best to consult the target databases getTypeInfo() method,
+<i class="no-highlight">253</i>&nbsp;     * but this will work fine in pretty much all cases.
+<i class="no-highlight">254</i>&nbsp;     *
+<i class="no-highlight">255</i>&nbsp;     * @param fileName The path to the type info file.
+<i class="no-highlight">256</i>&nbsp;     * @return A map containing type names and their definitions as returned by
+<i class="no-highlight">257</i>&nbsp;     * DatabaseMetaData.getTypeInfo
+<i class="no-highlight">258</i>&nbsp;     */
+<i class="no-highlight">259</i>&nbsp;    protected static Map&lt;String, Object&gt; readTypeInfo(String fileName) {
+<i class="no-highlight">260</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            return (Map&lt;String, Object&gt;) OBJECT_MAPPER.readValue(DefaultMetadataProvider.class.</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                    getResourceAsStream(fileName), Map.class);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            throw new SnapException(e, String.format(UNABLE_TO_OPEN_DATABASE_TYPE_INFO_FILE,</b>
+<i class="no-highlight">265</i>&nbsp;                    fileName))
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">268</i>&nbsp;        }
+<i class="no-highlight">269</i>&nbsp;    }
+<i class="no-highlight">270</i>&nbsp;
+<i class="no-highlight">271</i>&nbsp;    @Inject
+<i class="no-highlight">272</i>&nbsp;    public DefaultMetadataProvider(@Named(JdbcOperations.GENERIC) final QuotationHandler
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                                           quotationHandler) {</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        this.quotationHandler = quotationHandler;</b>
+<i class="no-highlight">275</i>&nbsp;    }
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;    @Override
+<i class="no-highlight">278</i>&nbsp;    public TableMetaData provideTableMetadataFor(final Connection conn,
+<i class="no-highlight">279</i>&nbsp;                                                 final String dbName,
+<i class="no-highlight">280</i>&nbsp;                                                 final String tableName) {
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        ResultSet tblMetaData = null;</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        if (StringUtils.isEmpty(tableName)) {</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            return new TableMetaDataImpl();</b>
+<i class="no-highlight">284</i>&nbsp;        }
+<i class="no-highlight">285</i>&nbsp;
+<i class="no-highlight">286</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">287</i>&nbsp;            List&lt;String&gt; tableParts = parseTableName(dbName, tableName);</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;            java.sql.DatabaseMetaData dbMetaData = conn.getMetaData();</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;            if (quotationHandler instanceof GenericQuotationHandler) {</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                ((GenericQuotationHandler) quotationHandler).setQuotationMarker(</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                        dbMetaData.getIdentifierQuoteString());</b>
+<i class="no-highlight">292</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">293</i>&nbsp;            tblMetaData = getTableColumns(dbMetaData,</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                    quotationHandler.unescape(tableParts.get(0)),</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                    quotationHandler.unescape(tableParts.get(1)),</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                    quotationHandler.unescape(tableParts.get(2)),</b>
+<i class="no-highlight">297</i>&nbsp;                    null);
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            return createTableMetadataFor(tblMetaData);</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;            if (DatabaseUtils.checkConnectionValidityForDB2(dbName, conn)) {</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                return provideTableMetadataFor(conn, dbName, tableName);</b>
+<i class="no-highlight">302</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">303</i>&nbsp;            throw new ExecutionException(e, RETRIEVE_TABLE_METADATA_FAILED)</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                    .formatWith(tableName)</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                    .withReason(JdbcOperationsImpl.getSQLErrorMessage(e))</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                    .withResolution(e.getMessage());</b>
+<i class="no-highlight">307</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">308</i>&nbsp;            JDBCUtils.safeClose(tblMetaData);</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        }</b>
+<i class="no-highlight">310</i>&nbsp;    }
+<i class="no-highlight">311</i>&nbsp;
+<i class="no-highlight">312</i>&nbsp;    /**
+<i class="no-highlight">313</i>&nbsp;     * Get the grammar binding from the Cache according to the quotation char set in
+<i class="no-highlight">314</i>&nbsp;     * the handler
+<i class="no-highlight">315</i>&nbsp;     *
+<i class="no-highlight">316</i>&nbsp;     */
+<i class="no-highlight">317</i>&nbsp;    private BnfBinding getGrammarBindingFor(QuotationHandler quotationHandler) {
+<i class="no-highlight">318</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            return bindingObjectCache</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                    .get(quotationHandler.getClass().getSimpleName(),</b>
+<i class="no-highlight">321</i>&nbsp;                            () -&gt; {
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                        if (quotationHandler instanceof SqlServerQuotationHandler) {</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                            return new SqlServerJdbcBinding(new SqlServerGrammar(quotationHandler));</b>
+<i class="no-highlight">324</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                        return new BasicJdbcBinding(new BasicSqlGrammar(quotationHandler));</b>
+<i class="no-highlight">326</i>&nbsp;                    });
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        } catch (java.util.concurrent.ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;            throw new ExecutionException(e, FAIL_TO_INIT_BINDING)</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">330</i>&nbsp;        }
+<i class="no-highlight">331</i>&nbsp;    }
+<i class="no-highlight">332</i>&nbsp;
+<i class="no-highlight">333</i>&nbsp;    /**
+<i class="no-highlight">334</i>&nbsp;     * Fetches columns metadata for the given table
+<i class="no-highlight">335</i>&nbsp;     *
+<i class="no-highlight">336</i>&nbsp;     * @param dbMetaData
+<i class="no-highlight">337</i>&nbsp;     * @param catalogNamePattern
+<i class="no-highlight">338</i>&nbsp;     * @param schemaNamePattern
+<i class="no-highlight">339</i>&nbsp;     * @param tableNamePattern
+<i class="no-highlight">340</i>&nbsp;     * @param columnNamePattern
+<i class="no-highlight">341</i>&nbsp;     * @return Instance of ResultSet containing metadata about given table columns
+<i class="no-highlight">342</i>&nbsp;     * @throws SQLException
+<i class="no-highlight">343</i>&nbsp;     */
+<i class="no-highlight">344</i>&nbsp;    protected ResultSet getTableColumns(DatabaseMetaData dbMetaData,
+<i class="no-highlight">345</i>&nbsp;                                        String catalogNamePattern, String schemaNamePattern,
+<i class="no-highlight">346</i>&nbsp;                                        String tableNamePattern,
+<i class="no-highlight">347</i>&nbsp;                                        String columnNamePattern) throws SQLException {
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        return dbMetaData.getColumns(catalogNamePattern,</b>
+<i class="no-highlight">349</i>&nbsp;                schemaNamePattern,
+<i class="no-highlight">350</i>&nbsp;                tableNamePattern,
+<i class="no-highlight">351</i>&nbsp;                columnNamePattern);
+<i class="no-highlight">352</i>&nbsp;    }
+<i class="no-highlight">353</i>&nbsp;
+<i class="no-highlight">354</i>&nbsp;    /**
+<i class="no-highlight">355</i>&nbsp;     * @param type The java.sql.Types integer value.
+<i class="no-highlight">356</i>&nbsp;     * @return The Field that matches the given type int.
+<i class="no-highlight">357</i>&nbsp;     */
+<i class="no-highlight">358</i>&nbsp;    private Field findSqlTypeField(int type) {
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        Class cl = Types.class;</b>
+<i class="no-highlight">360</i>&nbsp;
+<i class="no-highlight">361</i>&nbsp;        // XXX Pre-convert types from the driver that are not found in the Types class to
+<i class="no-highlight">362</i>&nbsp;        // a value that is defined.
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        if (sqlTypeMapping.containsKey(type)) {</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            type = sqlTypeMapping.get(type);</b>
+<i class="no-highlight">365</i>&nbsp;        }
+<i class="no-highlight">366</i>&nbsp;
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        for (Field field : cl.getFields()) {</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            if (!Modifier.isStatic(field.getModifiers()) ||</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                    !Modifier.isPublic(field.getModifiers())) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                continue;</b>
+<i class="no-highlight">371</i>&nbsp;            }
+<i class="no-highlight">372</i>&nbsp;
+<i class="no-highlight">373</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                if (field.getInt(null) == type) {</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                    return field;</b>
+<i class="no-highlight">376</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">377</i>&nbsp;            } catch (IllegalAccessException e) {</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                continue;</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            }</b>
+<i class="no-highlight">380</i>&nbsp;        }
+<i class="no-highlight">381</i>&nbsp;
+<b class="nc"><i class="no-highlight">382</i>&nbsp;        return null;</b>
+<i class="no-highlight">383</i>&nbsp;    }
+<i class="no-highlight">384</i>&nbsp;
+<i class="no-highlight">385</i>&nbsp;    /**
+<i class="no-highlight">386</i>&nbsp;     * Copy a result set into a map object.
+<i class="no-highlight">387</i>&nbsp;     *
+<i class="no-highlight">388</i>&nbsp;     * @param resultSet The ResultSet to copy.
+<i class="no-highlight">389</i>&nbsp;     * @return A Map object that contains the data from the ResultSet.
+<i class="no-highlight">390</i>&nbsp;     * @throws SQLException If there was a problem reading from the ResultSet.
+<i class="no-highlight">391</i>&nbsp;     */
+<i class="no-highlight">392</i>&nbsp;    private Map&lt;String, Object&gt; convertResultToMap(ResultSet resultSet,
+<i class="no-highlight">393</i>&nbsp;                                                   Map&lt;String, String&gt; aliases)
+<i class="no-highlight">394</i>&nbsp;            throws SQLException {
+<b class="nc"><i class="no-highlight">395</i>&nbsp;        ResultSetMetaData resultSetMetaData = resultSet.getMetaData();</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;        Map&lt;String, Object&gt; retval = new LinkedHashMap&lt;&gt;(resultSetMetaData.getColumnCount());</b>
+<i class="no-highlight">397</i>&nbsp;
+<b class="nc"><i class="no-highlight">398</i>&nbsp;        for (int lpc = 0; lpc &lt; resultSetMetaData.getColumnCount(); lpc++) {</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;            String columnName = resultSetMetaData.getColumnName(lpc + 1);</b>
+<i class="no-highlight">400</i>&nbsp;
+<b class="nc"><i class="no-highlight">401</i>&nbsp;            if (aliases.containsKey(columnName)) {</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;                columnName = aliases.get(columnName);</b>
+<i class="no-highlight">403</i>&nbsp;            }
+<i class="no-highlight">404</i>&nbsp;            // We do a toUpperCase here because Redshift returns columns in lowercase.
+<i class="no-highlight">405</i>&nbsp;            // (Why is it so difficult for people to implement this spec?)
+<b class="nc"><i class="no-highlight">406</i>&nbsp;            retval.put(columnName.toUpperCase(), resultSet.getObject(lpc + 1));</b>
+<i class="no-highlight">407</i>&nbsp;        }
+<i class="no-highlight">408</i>&nbsp;
+<b class="nc"><i class="no-highlight">409</i>&nbsp;        return retval;</b>
+<i class="no-highlight">410</i>&nbsp;    }
+<i class="no-highlight">411</i>&nbsp;
+<i class="no-highlight">412</i>&nbsp;    /**
+<i class="no-highlight">413</i>&nbsp;     * Convert the ResultSet from a getColumns() call into a Map.  To make
+<i class="no-highlight">414</i>&nbsp;     * the data a little easier to digest, we convert some of the enumerated
+<i class="no-highlight">415</i>&nbsp;     * values, like the java.sql.Type, into a string value.
+<i class="no-highlight">416</i>&nbsp;     *
+<i class="no-highlight">417</i>&nbsp;     * @param columnResult The getColumns() ResultSet to copy.
+<i class="no-highlight">418</i>&nbsp;     * @return A Map object with the converted contents of the ResultSet.
+<i class="no-highlight">419</i>&nbsp;     * @throws SQLException If there was a problem reading from the ResultSet.
+<i class="no-highlight">420</i>&nbsp;     */
+<i class="no-highlight">421</i>&nbsp;    public Map&lt;String, Object&gt; readColumnSchema(ResultSet columnResult) throws SQLException {
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        Map&lt;String, Object&gt; retval = convertResultToMap(columnResult, metadataColumnAliases);</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        int dataType = columnResult.getInt(DATA_TYPE);</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        Field typeField = findSqlTypeField(dataType);</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;        String typeName = (String) retval.get(TYPE_NAME);</b>
+<i class="no-highlight">426</i>&nbsp;
+<b class="nc"><i class="no-highlight">427</i>&nbsp;        if (typeField == null) {</b>
+<i class="no-highlight">428</i>&nbsp;            // The driver is returning a bogus data type value, so we&#39;ll just change
+<i class="no-highlight">429</i>&nbsp;            // it to VARCHAR(32700)
+<b class="nc"><i class="no-highlight">430</i>&nbsp;            log.warn(UNABLE_TO_FIND_JAVA_SQL_TYPE, retval);</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;            retval.put(DATA_TYPE, VARCHAR);</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;            retval.put(CHAR_OCTET_LENGTH, 32700);</b>
+<i class="no-highlight">433</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">434</i>&nbsp;            retval.put(DATA_TYPE, typeField.getName());</b>
+<i class="no-highlight">435</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">436</i>&nbsp;        switch (columnResult.getInt(NULLABLE)) {</b>
+<i class="no-highlight">437</i>&nbsp;            case java.sql.DatabaseMetaData.columnNoNulls:
+<b class="nc"><i class="no-highlight">438</i>&nbsp;                retval.put(NULLABLE, COLUMN_NO_NULLS);</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                break;</b>
+<i class="no-highlight">440</i>&nbsp;            case java.sql.DatabaseMetaData.columnNullable:
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                retval.put(NULLABLE, COLUMN_NULLABLE);</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                break;</b>
+<i class="no-highlight">443</i>&nbsp;            case java.sql.DatabaseMetaData.columnNullableUnknown:
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                retval.put(NULLABLE, COLUMN_NULLABLE_UNKNOWN);</b>
+<i class="no-highlight">445</i>&nbsp;                break;
+<i class="no-highlight">446</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">447</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; entry : METADATA_COLUMN_DEFAULTS.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;            if (!retval.containsKey(entry.getKey())) {</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                retval.put(entry.getKey(), entry.getValue());</b>
+<i class="no-highlight">450</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">451</i>&nbsp;        }</b>
+<i class="no-highlight">452</i>&nbsp;        // Workaround drivers that return a CHAR_OCTET_LENGTH when they should not.
+<b class="nc"><i class="no-highlight">453</i>&nbsp;        switch (dataType) {</b>
+<i class="no-highlight">454</i>&nbsp;            case Types.CHAR:
+<i class="no-highlight">455</i>&nbsp;            case Types.VARCHAR:
+<i class="no-highlight">456</i>&nbsp;            case Types.LONGNVARCHAR:
+<i class="no-highlight">457</i>&nbsp;            case Types.LONGVARCHAR:
+<i class="no-highlight">458</i>&nbsp;            case Types.NCHAR:
+<i class="no-highlight">459</i>&nbsp;            case Types.NVARCHAR:
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                break;</b>
+<i class="no-highlight">461</i>&nbsp;            case Types.OTHER:
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                if (typeName.equals(NCHAR) || typeName.equals(NVARCHAR_2)) {</b>
+<i class="no-highlight">463</i>&nbsp;                    // Oracle classifies these types as OTHER for some reason and the reported
+<i class="no-highlight">464</i>&nbsp;                    // length is double the original value.
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                    Number charOctetLength = (Number) retval.get(CHAR_OCTET_LENGTH);</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                    switch (typeName) {</b>
+<i class="no-highlight">467</i>&nbsp;                        case NVARCHAR_2:
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                            retval.put(DATA_TYPE, NVARCHAR);</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                            break;</b>
+<i class="no-highlight">470</i>&nbsp;                        default:
+<b class="nc"><i class="no-highlight">471</i>&nbsp;                            retval.put(DATA_TYPE, typeName);</b>
+<i class="no-highlight">472</i>&nbsp;                            break;
+<i class="no-highlight">473</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                    retval.put(CHAR_OCTET_LENGTH, charOctetLength.intValue() / 2);</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                    break;</b>
+<i class="no-highlight">476</i>&nbsp;                }
+<i class="no-highlight">477</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">478</i>&nbsp;                retval.put(CHAR_OCTET_LENGTH, null);</b>
+<i class="no-highlight">479</i>&nbsp;                break;
+<i class="no-highlight">480</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">481</i>&nbsp;        switch (dataType) {</b>
+<i class="no-highlight">482</i>&nbsp;            case Types.BIT:
+<i class="no-highlight">483</i>&nbsp;            case Types.BINARY:
+<i class="no-highlight">484</i>&nbsp;            case Types.VARBINARY:
+<i class="no-highlight">485</i>&nbsp;            case Types.LONGVARBINARY:
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                retval.put(SL_BINARY_LENGTH, retval.get(COLUMN_SIZE));</b>
+<i class="no-highlight">487</i>&nbsp;                break;
+<i class="no-highlight">488</i>&nbsp;        }
+<i class="no-highlight">489</i>&nbsp;
+<b class="nc"><i class="no-highlight">490</i>&nbsp;        return retval;</b>
+<i class="no-highlight">491</i>&nbsp;    }
+<i class="no-highlight">492</i>&nbsp;
+<i class="no-highlight">493</i>&nbsp;    /**
+<i class="no-highlight">494</i>&nbsp;     * Convert the ResultSet from an getIndexInfo() call into a Map.
+<i class="no-highlight">495</i>&nbsp;     *
+<i class="no-highlight">496</i>&nbsp;     * @param indexInfo   The Map to populate with index information.
+<i class="no-highlight">497</i>&nbsp;     * @param indexResult The ResultSet from a getIndexInfo() call.
+<i class="no-highlight">498</i>&nbsp;     * @throws SQLException If there was a problem reading from the ResultSet.
+<i class="no-highlight">499</i>&nbsp;     */
+<i class="no-highlight">500</i>&nbsp;    private void convertIndexInfo(final Map&lt;String, Object&gt; indexInfo,
+<i class="no-highlight">501</i>&nbsp;                                  final ResultSet indexResult) throws SQLException {
+<b class="nc"><i class="no-highlight">502</i>&nbsp;        while (indexResult.next()) {</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;            String indexName = indexResult.getString(INDEX_NAME);</b>
+<i class="no-highlight">504</i>&nbsp;            List&lt;Object&gt; indexKeys;
+<i class="no-highlight">505</i>&nbsp;
+<i class="no-highlight">506</i>&nbsp;            // We can&#39;t convert the map to JSON with a null key, so use an empty string.
+<b class="nc"><i class="no-highlight">507</i>&nbsp;            if (indexName == null) {</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;                indexName = &quot;&quot;;</b>
+<i class="no-highlight">509</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">510</i>&nbsp;            if (primaryIndexName.contains(indexName)) {</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                continue;</b>
+<i class="no-highlight">512</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">513</i>&nbsp;            if (indexResult.getString(COLUMN_NAME) == null) {</b>
+<i class="no-highlight">514</i>&nbsp;                // Oracle returns an index with a null COLUMN_NAME for some reason.
+<b class="nc"><i class="no-highlight">515</i>&nbsp;                continue;</b>
+<i class="no-highlight">516</i>&nbsp;            }
+<i class="no-highlight">517</i>&nbsp;            // We group the indexes by name so they&#39;re easier to process.
+<b class="nc"><i class="no-highlight">518</i>&nbsp;            indexKeys = (List&lt;Object&gt;) indexInfo.get(indexName);</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;            if (indexKeys == null) {</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;                indexKeys = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;                indexInfo.put(indexName, indexKeys);</b>
+<i class="no-highlight">522</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">523</i>&nbsp;            indexKeys.add(convertResultToMap(indexResult, metadataIndexAliases));</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;        }</b>
+<i class="no-highlight">525</i>&nbsp;    }
+<i class="no-highlight">526</i>&nbsp;
+<i class="no-highlight">527</i>&nbsp;    /**
+<i class="no-highlight">528</i>&nbsp;     * The JDBC layer returns a short-int for the action to take when
+<i class="no-highlight">529</i>&nbsp;     * a foreign key is updated or deleted.  This method tries to turn
+<i class="no-highlight">530</i>&nbsp;     * the enumerated values into SQL syntax.
+<i class="no-highlight">531</i>&nbsp;     *
+<i class="no-highlight">532</i>&nbsp;     * @param ruleName Either UPDATE_RULE or DELETE_RULE.
+<i class="no-highlight">533</i>&nbsp;     * @param rs       The ResultSet that contains the foreign key data.
+<i class="no-highlight">534</i>&nbsp;     * @param keyMap   The destination for the converted rule value.
+<i class="no-highlight">535</i>&nbsp;     * @throws SQLException If there is a problem reading the rule short-int.
+<i class="no-highlight">536</i>&nbsp;     */
+<i class="no-highlight">537</i>&nbsp;    private void convertRuleEnum(String ruleName, final ResultSet rs,
+<i class="no-highlight">538</i>&nbsp;                                 final Map&lt;String, Object&gt; keyMap) throws SQLException {
+<b class="nc"><i class="no-highlight">539</i>&nbsp;        String ruleValue = null;</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;        switch (rs.getShort(ruleName)) {</b>
+<i class="no-highlight">541</i>&nbsp;            case DatabaseMetaData.importedKeyNoAction:
+<b class="nc"><i class="no-highlight">542</i>&nbsp;                ruleValue = IMPORTED_KEY_NO_ACTION;</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                break;</b>
+<i class="no-highlight">544</i>&nbsp;            case DatabaseMetaData.importedKeyCascade:
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                ruleValue = IMPORTED_KEY_CASCADE;</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                break;</b>
+<i class="no-highlight">547</i>&nbsp;            case DatabaseMetaData.importedKeySetNull:
+<b class="nc"><i class="no-highlight">548</i>&nbsp;                ruleValue = IMPORTED_KEY_SET_NULL;</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;                break;</b>
+<i class="no-highlight">550</i>&nbsp;            case DatabaseMetaData.importedKeySetDefault:
+<b class="nc"><i class="no-highlight">551</i>&nbsp;                ruleValue = IMPORTED_KEY_SET_DEFAULT;</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;                break;</b>
+<i class="no-highlight">553</i>&nbsp;            case DatabaseMetaData.importedKeyRestrict:
+<b class="nc"><i class="no-highlight">554</i>&nbsp;                ruleValue = IMPORTED_KEY_RESTRICT;</b>
+<i class="no-highlight">555</i>&nbsp;                break;
+<i class="no-highlight">556</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">557</i>&nbsp;        keyMap.put(ruleName, ruleValue);</b>
+<i class="no-highlight">558</i>&nbsp;    }
+<i class="no-highlight">559</i>&nbsp;
+<i class="no-highlight">560</i>&nbsp;    /**
+<i class="no-highlight">561</i>&nbsp;     * The JDBC layer returns a short-int for the deferrability of a foreign
+<i class="no-highlight">562</i>&nbsp;     * key.  This method tries to turn the enumerated values into a symbolic
+<i class="no-highlight">563</i>&nbsp;     * name.
+<i class="no-highlight">564</i>&nbsp;     *
+<i class="no-highlight">565</i>&nbsp;     * @param rs     The ResultSet that contains the foreign key data.
+<i class="no-highlight">566</i>&nbsp;     * @param keyMap The destination for the converted deferrability value.
+<i class="no-highlight">567</i>&nbsp;     * @throws SQLException If there is a problem reading the short-int.
+<i class="no-highlight">568</i>&nbsp;     */
+<i class="no-highlight">569</i>&nbsp;    private void convertDeferrability(final ResultSet rs, final Map&lt;String,
+<i class="no-highlight">570</i>&nbsp;            Object&gt; keyMap) throws SQLException {
+<b class="nc"><i class="no-highlight">571</i>&nbsp;        String deferValue = null;</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;        switch (rs.getShort(DEFERRABILITY)) {</b>
+<i class="no-highlight">573</i>&nbsp;            case DatabaseMetaData.importedKeyInitiallyDeferred:
+<b class="nc"><i class="no-highlight">574</i>&nbsp;                deferValue = IMPORTED_KEY_INITIALLY_DEFERRED;</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;                break;</b>
+<i class="no-highlight">576</i>&nbsp;            case DatabaseMetaData.importedKeyInitiallyImmediate:
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                deferValue = IMPORTED_KEY_INITIALLY_IMMEDIATE;</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;                break;</b>
+<i class="no-highlight">579</i>&nbsp;            case DatabaseMetaData.importedKeyNotDeferrable:
+<b class="nc"><i class="no-highlight">580</i>&nbsp;                deferValue = IMPORTED_KEY_NOT_DEFERRABLE;</b>
+<i class="no-highlight">581</i>&nbsp;                break;
+<i class="no-highlight">582</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">583</i>&nbsp;        keyMap.put(DEFERRABILITY, deferValue);</b>
+<i class="no-highlight">584</i>&nbsp;    }
+<i class="no-highlight">585</i>&nbsp;
+<i class="no-highlight">586</i>&nbsp;    /**
+<i class="no-highlight">587</i>&nbsp;     * Read the results from a call to getImportedKeys() or getExportedKeys().
+<i class="no-highlight">588</i>&nbsp;     *
+<i class="no-highlight">589</i>&nbsp;     * @param foreignKeys The destination for the metadata.
+<i class="no-highlight">590</i>&nbsp;     * @param rs          The ResultSet that contains the foreign key data.
+<i class="no-highlight">591</i>&nbsp;     * @throws SQLException If there was a problem reading the foreign key data.
+<i class="no-highlight">592</i>&nbsp;     */
+<i class="no-highlight">593</i>&nbsp;    private void readForeignKeys(final Map&lt;String, Object&gt; foreignKeys,
+<i class="no-highlight">594</i>&nbsp;                                 final ResultSet rs) throws SQLException {
+<b class="nc"><i class="no-highlight">595</i>&nbsp;        while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;            String fkName = rs.getString(FK_NAME);</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; keys = (List&lt;Map&lt;String, Object&gt;&gt;) foreignKeys.get(fkName);</b>
+<i class="no-highlight">598</i>&nbsp;
+<b class="nc"><i class="no-highlight">599</i>&nbsp;            if (keys == null) {</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;                keys = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;                foreignKeys.put(fkName, keys);</b>
+<i class="no-highlight">602</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">603</i>&nbsp;            Map&lt;String, Object&gt; keyMap = convertResultToMap(rs, metadataKeyAliases);</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;            convertRuleEnum(UPDATE_RULE, rs, keyMap);</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;            convertRuleEnum(DELETE_RULE, rs, keyMap);</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;            convertDeferrability(rs, keyMap);</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;            keys.add(keyMap);</b>
+<b class="nc"><i class="no-highlight">608</i>&nbsp;        }</b>
+<i class="no-highlight">609</i>&nbsp;    }
+<i class="no-highlight">610</i>&nbsp;
+<i class="no-highlight">611</i>&nbsp;    /**
+<i class="no-highlight">612</i>&nbsp;     * Read information about a table from the DatabaseMetaData into a Map.
+<i class="no-highlight">613</i>&nbsp;     *
+<i class="no-highlight">614</i>&nbsp;     * @param metaData    The DatabaseMetaData to use when reading information about a table.
+<i class="no-highlight">615</i>&nbsp;     * @param tableResult The ResultSet from a getTables() call.
+<i class="no-highlight">616</i>&nbsp;     * @return A map with the table metadata.
+<i class="no-highlight">617</i>&nbsp;     * @throws SQLException If there was a problem reading the metadata.
+<i class="no-highlight">618</i>&nbsp;     */
+<i class="no-highlight">619</i>&nbsp;    private Map&lt;String, Object&gt; readTableSchema(final java.sql.DatabaseMetaData metaData,
+<i class="no-highlight">620</i>&nbsp;                                                ResultSet tableResult, String tableName)
+<i class="no-highlight">621</i>&nbsp;            throws SQLException {
+<b class="nc"><i class="no-highlight">622</i>&nbsp;        String tableCatalog = tableResult.getString(TABLE_CAT);</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;        String tableSchema = tableResult.getString(TABLE_SCHEM);</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;        Map&lt;String, Object&gt; columns = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;        Map&lt;String, Object&gt; primaryKeyColumns = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">626</i>&nbsp;        Map&lt;String, Object&gt; indexInfo = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">627</i>&nbsp;        Map&lt;String, Object&gt; importedKeys = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;        Map&lt;String, Object&gt; retval = new LinkedHashMap&lt;&gt;(2);</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;        Map&lt;String, Object&gt; declaration = convertResultToMap(tableResult, metadataTableAliases);</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;        retval.put(DECLARATION, declaration);</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;        retval.put(COLUMNS, columns);</b>
+<b class="nc"><i class="no-highlight">632</i>&nbsp;        retval.put(PRIMARY_KEY_COLUMNS, primaryKeyColumns);</b>
+<b class="nc"><i class="no-highlight">633</i>&nbsp;        retval.put(INDEX_INFO, indexInfo);</b>
+<b class="nc"><i class="no-highlight">634</i>&nbsp;        retval.put(IMPORTED_KEYS, importedKeys);</b>
+<i class="no-highlight">635</i>&nbsp;        // Unfortunately, getColumns() does not always give us all of the metadata that
+<i class="no-highlight">636</i>&nbsp;        // might be available, so we do a select to get &quot;display size&quot;, &quot;scale&quot;, and &quot;precision&quot;.
+<b class="nc"><i class="no-highlight">637</i>&nbsp;        try (Statement stmt = metaData.getConnection().createStatement()) {</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;            log.debug(GETTING_COLUMN_INFO_FOR_TABLE, tableName);</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;            if (SYNONYM.equals(declaration.get(TABLE_TYPE))) {</b>
+<i class="no-highlight">640</i>&nbsp;                // if column name is a synonym, get its real column name and get the column meta
+<i class="no-highlight">641</i>&nbsp;                // data
+<b class="nc"><i class="no-highlight">642</i>&nbsp;                getColumnsMetaFromSynonym(columns, stmt, tableSchema, tableName, metaData);</b>
+<i class="no-highlight">643</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">644</i>&nbsp;                getColumnsMetaData(columns, tableCatalog, tableSchema, tableName, metaData);</b>
+<i class="no-highlight">645</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">646</i>&nbsp;            log.debug(GETTING_RESULT_SET_METADATA_FOR_TABLE, tableName);</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;            GenContext context = new GenContext(getGrammarBindingFor(quotationHandler));</b>
+<b class="nc"><i class="no-highlight">648</i>&nbsp;            ResultSet rows = null;</b>
+<i class="no-highlight">649</i>&nbsp;            try {
+<i class="no-highlight">650</i>&nbsp;                String metaDataSelectQuery;
+<i class="no-highlight">651</i>&nbsp;                //Select query with where condition of 1 = 0 is not being supported for
+<i class="no-highlight">652</i>&nbsp;                // Cassandra db, and using limit 1.
+<b class="nc"><i class="no-highlight">653</i>&nbsp;                String productName = metaData.getDatabaseProductName().toLowerCase();</b>
+<b class="nc"><i class="no-highlight">654</i>&nbsp;                switch (productName) {</b>
+<i class="no-highlight">655</i>&nbsp;                    case CASSANDRA:
+<b class="nc"><i class="no-highlight">656</i>&nbsp;                        metaDataSelectQuery = String.format(SELECT_FOR_CASSANDRA_METADATA,</b>
+<i class="no-highlight">657</i>&nbsp;                                tableName);
+<b class="nc"><i class="no-highlight">658</i>&nbsp;                        break;</b>
+<i class="no-highlight">659</i>&nbsp;                    default:
+<b class="nc"><i class="no-highlight">660</i>&nbsp;                        metaDataSelectQuery = String.format(SELECT_FOR_METADATA,</b>
+<b class="nc"><i class="no-highlight">661</i>&nbsp;                                context.generate(BasicSqlGrammar.FQ_TABLE_NAME, retval));</b>
+<i class="no-highlight">662</i>&nbsp;                        break;
+<i class="no-highlight">663</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">664</i>&nbsp;                rows = stmt.executeQuery(metaDataSelectQuery);</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;                ResultSetMetaData resultSetMetaData = rows.getMetaData();</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;                for (int i = 1; i &lt;= resultSetMetaData.getColumnCount(); i++) {</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;                    Object object = columns.get(resultSetMetaData.getColumnName(i));</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;                    if (object instanceof Map) {</b>
+<i class="no-highlight">669</i>&nbsp;                        @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc"><i class="no-highlight">670</i>&nbsp;                        Map&lt;String, Object&gt; columnInfo = (Map&lt;String, Object&gt;) object;</b>
+<b class="nc"><i class="no-highlight">671</i>&nbsp;                        switch (resultSetMetaData.getColumnType(i)) {</b>
+<i class="no-highlight">672</i>&nbsp;                            case Types.TINYINT:
+<i class="no-highlight">673</i>&nbsp;                            case Types.SMALLINT:
+<i class="no-highlight">674</i>&nbsp;                            case Types.INTEGER:
+<i class="no-highlight">675</i>&nbsp;                            case Types.BIGINT:
+<i class="no-highlight">676</i>&nbsp;                                // scale and precision don&#39;t really apply to ints.
+<b class="nc"><i class="no-highlight">677</i>&nbsp;                                columnInfo.put(SL_DISPLAY_SIZE,</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;                                        resultSetMetaData.getColumnDisplaySize(i));</b>
+<b class="nc"><i class="no-highlight">679</i>&nbsp;                                break;</b>
+<i class="no-highlight">680</i>&nbsp;                            case Types.REAL:
+<i class="no-highlight">681</i>&nbsp;                            case Types.DECIMAL:
+<i class="no-highlight">682</i>&nbsp;                            case Types.NUMERIC:
+<i class="no-highlight">683</i>&nbsp;                            case Types.FLOAT:
+<i class="no-highlight">684</i>&nbsp;                            case Types.DOUBLE:
+<b class="nc"><i class="no-highlight">685</i>&nbsp;                                columnInfo.put(SL_DISPLAY_SIZE,</b>
+<b class="nc"><i class="no-highlight">686</i>&nbsp;                                        resultSetMetaData.getColumnDisplaySize(i));</b>
+<b class="nc"><i class="no-highlight">687</i>&nbsp;                                columnInfo.put(SL_SCALE, resultSetMetaData.getScale(i));</b>
+<b class="nc"><i class="no-highlight">688</i>&nbsp;                                columnInfo.put(SL_PRECISION, resultSetMetaData.getPrecision(i));</b>
+<b class="nc"><i class="no-highlight">689</i>&nbsp;                                break;</b>
+<i class="no-highlight">690</i>&nbsp;                            default:
+<i class="no-highlight">691</i>&nbsp;                                break;
+<i class="no-highlight">692</i>&nbsp;                        }
+<i class="no-highlight">693</i>&nbsp;                    }
+<i class="no-highlight">694</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">695</i>&nbsp;            } catch (ConsumeException e) {</b>
+<b class="nc"><i class="no-highlight">696</i>&nbsp;                throw new SnapException(e, UNABLE_TO_GENERATE_FULLY_QUALIFIED_TABLE_NAME)</b>
+<b class="nc"><i class="no-highlight">697</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                        .withResolutionAsDefect();</b>
+<i class="no-highlight">699</i>&nbsp;            } finally {
+<b class="nc"><i class="no-highlight">700</i>&nbsp;                JDBCUtils.safeClose(rows);</b>
+<b class="nc"><i class="no-highlight">701</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;        log.debug(GETTING_PRIMARY_KEYS_FOR_TABLE, tableName);</b>
+<b class="nc"><i class="no-highlight">704</i>&nbsp;        try (ResultSet rs = metaData.getPrimaryKeys(tableCatalog, tableSchema, tableName)) {</b>
+<b class="nc"><i class="no-highlight">705</i>&nbsp;            while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;                primaryKeyColumns.put(rs.getString(COLUMN_NAME), convertResultToMap(rs,</b>
+<i class="no-highlight">707</i>&nbsp;                        metadataKeyAliases));
+<i class="no-highlight">708</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">709</i>&nbsp;        }</b>
+<i class="no-highlight">710</i>&nbsp;
+<b class="nc"><i class="no-highlight">711</i>&nbsp;        log.debug(GETTING_INDEX_INFORMATION_FOR_TABLE, tableName);</b>
+<i class="no-highlight">712</i>&nbsp;        // NB: We don&#39;t care about the index stats, so we pass approximate=true here.  This
+<i class="no-highlight">713</i>&nbsp;        // also fixes issues with this call potentially taking a long time to complete.
+<b class="nc"><i class="no-highlight">714</i>&nbsp;        try (ResultSet rs = getIndexInfoResultSet(metaData, tableCatalog, tableSchema, tableName,</b>
+<i class="no-highlight">715</i>&nbsp;                false, true)) {
+<b class="nc"><i class="no-highlight">716</i>&nbsp;            convertIndexInfo(indexInfo, rs);</b>
+<b class="nc"><i class="no-highlight">717</i>&nbsp;        } catch (SQLException e) {</b>
+<i class="no-highlight">718</i>&nbsp;            // XXX Oracle&#39;s driver doesn&#39;t seem to handle table names that need to be quoted for
+<i class="no-highlight">719</i>&nbsp;            // this query...
+<i class="no-highlight">720</i>&nbsp;            // sometimes it just fails (corrupted database?) like with SNAP-3770. Since this
+<i class="no-highlight">721</i>&nbsp;            // information is rarely used and isn&#39;t critical it&#39;s better to provide incomplete
+<i class="no-highlight">722</i>&nbsp;            // information than to cause the snap to fail.
+<b class="nc"><i class="no-highlight">723</i>&nbsp;            log.warn(WARN_NO_INDEX_INFO, e);</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;            if (!metaData.getConnection().isClosed() &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">725</i>&nbsp;                    !metaData.getConnection().getAutoCommit()) {</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;                metaData.getConnection().rollback();</b>
+<i class="no-highlight">727</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">728</i>&nbsp;        }</b>
+<i class="no-highlight">729</i>&nbsp;
+<b class="nc"><i class="no-highlight">730</i>&nbsp;        if (supportsImportedKeys()) {</b>
+<i class="no-highlight">731</i>&nbsp;            // XXX Unfortunately, the Redshift server returns an error when we try to make this
+<i class="no-highlight">732</i>&nbsp;            // call, so we have to leave it out for now.
+<b class="nc"><i class="no-highlight">733</i>&nbsp;            log.debug(GETTING_IMPORTED_KEYS_FOR_TABLE, tableName);</b>
+<b class="nc"><i class="no-highlight">734</i>&nbsp;            try (ResultSet rs = metaData.getImportedKeys(tableCatalog, tableSchema, tableName)) {</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;                readForeignKeys(importedKeys, rs);</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;            } catch (SQLException e) {</b>
+<i class="no-highlight">737</i>&nbsp;                // sometimes metadata queries just fail (corrupted database?) like with SNAP-3770.
+<i class="no-highlight">738</i>&nbsp;                // Since this information is rarely used and isn&#39;t critical it&#39;s better to provide
+<i class="no-highlight">739</i>&nbsp;                // incomplete than to cause the snap to fail.
+<b class="nc"><i class="no-highlight">740</i>&nbsp;                log.warn(WARN_NO_IMPORTED_KEYS_INFO, e);</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;            }</b>
+<i class="no-highlight">742</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">743</i>&nbsp;            log.warn(DATABASE_DOES_NOT_SUPPORT_GET_IMPORTED_KEYS_METHOD, tableName);</b>
+<i class="no-highlight">744</i>&nbsp;        }
+<i class="no-highlight">745</i>&nbsp;
+<i class="no-highlight">746</i>&nbsp;        // Note: We don&#39;t do getExportedKeys because it can be really slow.  I was seeing 30+
+<i class="no-highlight">747</i>&nbsp;        // second run times on the dev-test MySQL database which had 250+ tables.
+<i class="no-highlight">748</i>&nbsp;
+<b class="nc"><i class="no-highlight">749</i>&nbsp;        retval.put(DATABASE_PRODUCT_NAME, metaData.getDatabaseProductName());</b>
+<b class="nc"><i class="no-highlight">750</i>&nbsp;        retval.put(DATABASE_PRODUCT_VERSION, metaData.getDatabaseProductVersion());</b>
+<b class="nc"><i class="no-highlight">751</i>&nbsp;        retval.put(DATABASE_MAJOR_VERSION, metaData.getDatabaseMajorVersion());</b>
+<b class="nc"><i class="no-highlight">752</i>&nbsp;        retval.put(DATABASE_MINOR_VERSION, metaData.getDatabaseMinorVersion());</b>
+<i class="no-highlight">753</i>&nbsp;
+<b class="nc"><i class="no-highlight">754</i>&nbsp;        return retval;</b>
+<i class="no-highlight">755</i>&nbsp;    }
+<i class="no-highlight">756</i>&nbsp;
+<i class="no-highlight">757</i>&nbsp;    private void getColumnsMetaFromSynonym(Map&lt;String, Object&gt; columns, Statement stmt,
+<i class="no-highlight">758</i>&nbsp;                                           String tableOwner, String synonym,
+<i class="no-highlight">759</i>&nbsp;                                           DatabaseMetaData metaData) throws SQLException {
+<i class="no-highlight">760</i>&nbsp;        // get the synonym&#39;s real table name
+<b class="nc"><i class="no-highlight">761</i>&nbsp;        ResultSet rs = stmt.executeQuery(String.format(FORMAT_SYNONYM, synonym));</b>
+<b class="nc"><i class="no-highlight">762</i>&nbsp;        String tableName = null;</b>
+<b class="nc"><i class="no-highlight">763</i>&nbsp;        String tableSchema = null;</b>
+<b class="nc"><i class="no-highlight">764</i>&nbsp;        while (rs.next()) {</b>
+<b class="nc"><i class="no-highlight">765</i>&nbsp;            if (StringUtils.equalsIgnoreCase(tableOwner, rs.getString(TABLE_OWNER))) {</b>
+<b class="nc"><i class="no-highlight">766</i>&nbsp;                tableSchema = tableOwner;</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;                tableName = rs.getString(TABLE_NAME);</b>
+<i class="no-highlight">768</i>&nbsp;            }
+<i class="no-highlight">769</i>&nbsp;        }
+<i class="no-highlight">770</i>&nbsp;        // get the column meta data
+<b class="nc"><i class="no-highlight">771</i>&nbsp;        if (StringUtils.isNotBlank(tableName) &amp;&amp; StringUtils.isNotBlank(tableSchema)) {</b>
+<b class="nc"><i class="no-highlight">772</i>&nbsp;            getColumnsMetaData(columns, null, tableSchema, tableName, metaData);</b>
+<i class="no-highlight">773</i>&nbsp;        }
+<i class="no-highlight">774</i>&nbsp;    }
+<i class="no-highlight">775</i>&nbsp;
+<i class="no-highlight">776</i>&nbsp;    protected void getColumnsMetaData(Map&lt;String, Object&gt; columns, String tableCategory,
+<i class="no-highlight">777</i>&nbsp;                                    String tableSchema, String tableName,
+<i class="no-highlight">778</i>&nbsp;                                    DatabaseMetaData metaData) throws SQLException {
+<b class="nc"><i class="no-highlight">779</i>&nbsp;        ResultSet rs = getColumnsResultSet(metaData, tableCategory, tableSchema, tableName, null);</b>
+<b class="nc"><i class="no-highlight">780</i>&nbsp;        while (rs.next()) {</b>
+<i class="no-highlight">781</i>&nbsp;            // If the table name contains underscore character(s), it is possible to get
+<i class="no-highlight">782</i>&nbsp;            // metadata for columns of another table. We want to find the
+<i class="no-highlight">783</i>&nbsp;            // exact match for the table name for each column metadata.
+<b class="nc"><i class="no-highlight">784</i>&nbsp;            if (StringUtils.equalsIgnoreCase(rs.getString(TABLE_NAME), tableName)) {</b>
+<b class="nc"><i class="no-highlight">785</i>&nbsp;                columns.put(rs.getString(COLUMN_NAME), readColumnSchema(rs));</b>
+<i class="no-highlight">786</i>&nbsp;            }
+<i class="no-highlight">787</i>&nbsp;        }
+<i class="no-highlight">788</i>&nbsp;    }
+<i class="no-highlight">789</i>&nbsp;
+<i class="no-highlight">790</i>&nbsp;    /**
+<i class="no-highlight">791</i>&nbsp;     * @return True if the JDBC driver and database supports the getImportedKeys() method.
+<i class="no-highlight">792</i>&nbsp;     * Redshift seems to be the only one at the moment.
+<i class="no-highlight">793</i>&nbsp;     */
+<i class="no-highlight">794</i>&nbsp;    protected boolean supportsImportedKeys() {
+<b class="nc"><i class="no-highlight">795</i>&nbsp;        return true;</b>
+<i class="no-highlight">796</i>&nbsp;    }
+<i class="no-highlight">797</i>&nbsp;
+<i class="no-highlight">798</i>&nbsp;    @Override
+<i class="no-highlight">799</i>&nbsp;    public Map&lt;String, Object&gt; provideRawTableMetadataFor(final Connection conn,
+<i class="no-highlight">800</i>&nbsp;                                                          final String dbName,
+<i class="no-highlight">801</i>&nbsp;                                                          final String tableName) {
+<b class="nc"><i class="no-highlight">802</i>&nbsp;        if (StringUtils.isEmpty(tableName)) {</b>
+<b class="nc"><i class="no-highlight">803</i>&nbsp;            return new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">804</i>&nbsp;        }
+<i class="no-highlight">805</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">806</i>&nbsp;            List&lt;String&gt; tableParts = parseTableName(dbName, tableName);</b>
+<b class="nc"><i class="no-highlight">807</i>&nbsp;            String tableNamePart = tableParts.get(2);</b>
+<b class="nc"><i class="no-highlight">808</i>&nbsp;            java.sql.DatabaseMetaData dbMetaData = conn.getMetaData();</b>
+<b class="nc"><i class="no-highlight">809</i>&nbsp;            try (ResultSet tableMeta = getTablesResultSet(</b>
+<i class="no-highlight">810</i>&nbsp;                    dbMetaData,
+<b class="nc"><i class="no-highlight">811</i>&nbsp;                    tableParts.get(0),</b>
+<b class="nc"><i class="no-highlight">812</i>&nbsp;                    tableParts.get(1),</b>
+<i class="no-highlight">813</i>&nbsp;                    tableNamePart,
+<i class="no-highlight">814</i>&nbsp;                    null)) {
+<b class="nc"><i class="no-highlight">815</i>&nbsp;                while (tableMeta.next()) {</b>
+<i class="no-highlight">816</i>&nbsp;                    // If the table name contains underscore character(s), it is possible to get
+<i class="no-highlight">817</i>&nbsp;                    // all tables matching the pattern. The underscore character may be used as a
+<i class="no-highlight">818</i>&nbsp;                    // matching pattern for any one character. We want to find the exact match for
+<i class="no-highlight">819</i>&nbsp;                    // the table name including the underscore character.
+<b class="nc"><i class="no-highlight">820</i>&nbsp;                    if (StringUtils.equalsIgnoreCase(tableMeta.getString(TABLE_NAME),</b>
+<i class="no-highlight">821</i>&nbsp;                            tableNamePart)) {
+<b class="nc"><i class="no-highlight">822</i>&nbsp;                        log.debug(READING_SCHEMA_FOR_TABLE, tableParts);</b>
+<b class="nc"><i class="no-highlight">823</i>&nbsp;                        return readTableSchema(dbMetaData, tableMeta, tableNamePart);</b>
+<i class="no-highlight">824</i>&nbsp;                    }
+<i class="no-highlight">825</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">826</i>&nbsp;                return new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">827</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">828</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">829</i>&nbsp;            if (DatabaseUtils.checkConnectionValidityForDB2(dbName, conn)) {</b>
+<b class="nc"><i class="no-highlight">830</i>&nbsp;                return provideRawTableMetadataFor(conn, dbName, tableName);</b>
+<i class="no-highlight">831</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">832</i>&nbsp;            throw new ExecutionException(e, RETRIEVE_TABLE_METADATA_FAILED)</b>
+<b class="nc"><i class="no-highlight">833</i>&nbsp;                    .formatWith(tableName)</b>
+<b class="nc"><i class="no-highlight">834</i>&nbsp;                    .withReason(JdbcOperationsImpl.getSQLErrorMessage(e))</b>
+<b class="nc"><i class="no-highlight">835</i>&nbsp;                    .withResolution(e.getMessage());</b>
+<i class="no-highlight">836</i>&nbsp;        }
+<i class="no-highlight">837</i>&nbsp;    }
+<i class="no-highlight">838</i>&nbsp;
+<i class="no-highlight">839</i>&nbsp;    /**
+<i class="no-highlight">840</i>&nbsp;     * Creates the metadata for the database table
+<i class="no-highlight">841</i>&nbsp;     *
+<i class="no-highlight">842</i>&nbsp;     * @param tableMetaData as the result set providing table metadata
+<i class="no-highlight">843</i>&nbsp;     * @return the wrapper object
+<i class="no-highlight">844</i>&nbsp;     */
+<i class="no-highlight">845</i>&nbsp;    public TableMetaData createTableMetadataFor(final ResultSet tableMetaData) {
+<b class="nc"><i class="no-highlight">846</i>&nbsp;        TableMetaDataImpl tableMetaData1 = new TableMetaDataImpl();</b>
+<b class="nc"><i class="no-highlight">847</i>&nbsp;        if (tableMetaData != null) {</b>
+<i class="no-highlight">848</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">849</i>&nbsp;                while (tableMetaData.next()) {</b>
+<b class="nc"><i class="no-highlight">850</i>&nbsp;                    ColumnMetaData columnMetaData = createColumnMetadataFor(tableMetaData);</b>
+<b class="nc"><i class="no-highlight">851</i>&nbsp;                    String columnName = tableMetaData.getString(COLUMN_NAME);</b>
+<b class="nc"><i class="no-highlight">852</i>&nbsp;                    if (StringUtils.isNotBlank(columnName)) {</b>
+<b class="nc"><i class="no-highlight">853</i>&nbsp;                        tableMetaData1.addColumnMetaData(columnName, columnMetaData);</b>
+<i class="no-highlight">854</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">855</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">856</i>&nbsp;            } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">857</i>&nbsp;                throw new ExecutionException(e, CREATE_TABLE_METADATA_FAILED);</b>
+<b class="nc"><i class="no-highlight">858</i>&nbsp;            }</b>
+<i class="no-highlight">859</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">860</i>&nbsp;        return tableMetaData1;</b>
+<i class="no-highlight">861</i>&nbsp;    }
+<i class="no-highlight">862</i>&nbsp;
+<i class="no-highlight">863</i>&nbsp;    @Override
+<i class="no-highlight">864</i>&nbsp;    public ColumnMetaData createColumnMetadataFor(final ResultSet tableMetaData) {
+<b class="nc"><i class="no-highlight">865</i>&nbsp;        return new ColumnMetaDataImpl(tableMetaData);</b>
+<i class="no-highlight">866</i>&nbsp;    }
+<i class="no-highlight">867</i>&nbsp;
+<i class="no-highlight">868</i>&nbsp;    public String getDatabaseProductName(Connection conn) {
+<i class="no-highlight">869</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">870</i>&nbsp;            DatabaseMetaData metaData = conn.getMetaData();</b>
+<b class="nc"><i class="no-highlight">871</i>&nbsp;            if (metaData != null) {</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;                return metaData.getDatabaseProductName();</b>
+<i class="no-highlight">873</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">874</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">875</i>&nbsp;            log.error(e.getMessage(), e);</b>
+<b class="nc"><i class="no-highlight">876</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">877</i>&nbsp;        return StringUtils.EMPTY;</b>
+<i class="no-highlight">878</i>&nbsp;    }
+<i class="no-highlight">879</i>&nbsp;
+<i class="no-highlight">880</i>&nbsp;    @Override
+<i class="no-highlight">881</i>&nbsp;    public String generateCreateTableStatement(final Connection conn, String tableName,
+<i class="no-highlight">882</i>&nbsp;                                               final Document document, final Document schema) {
+<i class="no-highlight">883</i>&nbsp;        // TODO tstack - Remove this older code to generate the &#39;CREATE TABLE&#39; statement when
+<i class="no-highlight">884</i>&nbsp;        // the newer stuff is ready-to-use
+<b class="nc"><i class="no-highlight">885</i>&nbsp;        StringBuilder buffer = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">886</i>&nbsp;        buffer.append(CREATE_TABLE_COMMAND);</b>
+<i class="no-highlight">887</i>&nbsp;
+<b class="nc"><i class="no-highlight">888</i>&nbsp;        if (useUpperCaseIdentifiers()) {</b>
+<b class="nc"><i class="no-highlight">889</i>&nbsp;            buffer.append(tableName);</b>
+<i class="no-highlight">890</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">891</i>&nbsp;            buffer.append(quoteIdentifier(tableName, 0));</b>
+<i class="no-highlight">892</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">893</i>&nbsp;        databaseProductName = getDatabaseProductName(conn);</b>
+<b class="nc"><i class="no-highlight">894</i>&nbsp;        buffer.append(SPACE_CHAR);</b>
+<b class="nc"><i class="no-highlight">895</i>&nbsp;        buffer.append(BEGIN_PARENTHESES);</b>
+<i class="no-highlight">896</i>&nbsp;
+<i class="no-highlight">897</i>&nbsp;        Map&lt;String, Object&gt; data;
+<i class="no-highlight">898</i>&nbsp;
+<b class="nc"><i class="no-highlight">899</i>&nbsp;        if (document != null) {</b>
+<b class="nc"><i class="no-highlight">900</i>&nbsp;            data = document.get(Map.class);</b>
+<i class="no-highlight">901</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">902</i>&nbsp;            data = Collections.emptyMap();</b>
+<i class="no-highlight">903</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">904</i>&nbsp;        boolean firstColumn = true;</b>
+<b class="nc"><i class="no-highlight">905</i>&nbsp;        for (String field : data.keySet()) {</b>
+<b class="nc"><i class="no-highlight">906</i>&nbsp;            if (StringUtils.isBlank(field)) {</b>
+<b class="nc"><i class="no-highlight">907</i>&nbsp;                throw new SnapDataException(UNABLE_TO_CREATE_TABLE_STATEMENT)</b>
+<b class="nc"><i class="no-highlight">908</i>&nbsp;                        .withReason(REASON_INPUT_COLUMN)</b>
+<b class="nc"><i class="no-highlight">909</i>&nbsp;                        .withResolution(RESOLUTION_INPUT_COLUMN);</b>
+<i class="no-highlight">910</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">911</i>&nbsp;            Object value = data.get(field);</b>
+<b class="nc"><i class="no-highlight">912</i>&nbsp;            String columnType = getColumnType(value);</b>
+<b class="nc"><i class="no-highlight">913</i>&nbsp;            if (columnType != null) {</b>
+<b class="nc"><i class="no-highlight">914</i>&nbsp;                if (!firstColumn) {</b>
+<b class="nc"><i class="no-highlight">915</i>&nbsp;                    buffer.append(COMMA_CHAR);</b>
+<i class="no-highlight">916</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">917</i>&nbsp;                firstColumn = false;</b>
+<b class="nc"><i class="no-highlight">918</i>&nbsp;                buffer.append(createTableWithColumnAsIs ? field : quoteIdentifier(field, 1));</b>
+<i class="no-highlight">919</i>&nbsp;
+<b class="nc"><i class="no-highlight">920</i>&nbsp;                buffer.append(SPACE_CHAR);</b>
+<b class="nc"><i class="no-highlight">921</i>&nbsp;                buffer.append(columnType);</b>
+<i class="no-highlight">922</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">923</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">924</i>&nbsp;        if (firstColumn &amp;&amp; schema == null) {</b>
+<b class="nc"><i class="no-highlight">925</i>&nbsp;            throw new SnapDataException(UNABLE_TO_CONSTRUCT_CREATE_TABLE_STATEMENT)</b>
+<b class="nc"><i class="no-highlight">926</i>&nbsp;                    .withReason(REASON_INPUT_DATA)</b>
+<b class="nc"><i class="no-highlight">927</i>&nbsp;                    .withResolution(RESOLUTION_INPUT_DATA);</b>
+<i class="no-highlight">928</i>&nbsp;        }
+<i class="no-highlight">929</i>&nbsp;
+<b class="nc"><i class="no-highlight">930</i>&nbsp;        buffer.append(END_PARENTHESES);</b>
+<i class="no-highlight">931</i>&nbsp;
+<b class="nc"><i class="no-highlight">932</i>&nbsp;        if (schema != null) {</b>
+<b class="nc"><i class="no-highlight">933</i>&nbsp;            GenContext context = new GenContext(getGrammarBindingFor(quotationHandler));</b>
+<i class="no-highlight">934</i>&nbsp;
+<i class="no-highlight">935</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">936</i>&nbsp;                Map&lt;String, Object&gt; schemaData = schema.get(Map.class);</b>
+<b class="nc"><i class="no-highlight">937</i>&nbsp;                Map&lt;String, Map&lt;String, Object&gt;&gt; columns = COLUMNS_PATH.read(schemaData);</b>
+<b class="nc"><i class="no-highlight">938</i>&nbsp;                List&lt;String&gt; tableParts = parseTableName(null, tableName);</b>
+<i class="no-highlight">939</i>&nbsp;                Set&lt;Object&gt; columnNames;
+<i class="no-highlight">940</i>&nbsp;
+<b class="nc"><i class="no-highlight">941</i>&nbsp;                TABLE_CAT_PATH.write(schema.get(), tableParts.get(0));</b>
+<b class="nc"><i class="no-highlight">942</i>&nbsp;                TABLE_SCHEM_PATH.write(schema.get(), tableParts.get(1));</b>
+<b class="nc"><i class="no-highlight">943</i>&nbsp;                TABLE_NAME_PATH.write(schema.get(), tableParts.get(2));</b>
+<i class="no-highlight">944</i>&nbsp;
+<b class="nc"><i class="no-highlight">945</i>&nbsp;                columnNames = checkSchemaTypes(conn, schemaData, columns);</b>
+<b class="nc"><i class="no-highlight">946</i>&nbsp;                removePrimaryKeyIndex(schemaData);</b>
+<b class="nc"><i class="no-highlight">947</i>&nbsp;                if (MapUtils.isEmpty(columns)) {</b>
+<i class="no-highlight">948</i>&nbsp;                    // If there are no column metadata from the second input view, create table
+<i class="no-highlight">949</i>&nbsp;                    // from the input data of the first input view.
+<b class="nc"><i class="no-highlight">950</i>&nbsp;                    addDocFieldsToSchema(tableParts, data, columns, columnNames);</b>
+<i class="no-highlight">951</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">952</i>&nbsp;                return context.generate(BasicSqlGrammar.ROOT, schema.get());</b>
+<b class="nc"><i class="no-highlight">953</i>&nbsp;            } catch (ConsumeException e) {</b>
+<b class="nc"><i class="no-highlight">954</i>&nbsp;                throw new ExecutionException(e, UNABLE_TO_CONSTRUCT_CREATE_TABLE_STATEMENT)</b>
+<b class="nc"><i class="no-highlight">955</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">956</i>&nbsp;                        .withResolution(PLEASE_SUPPLY_THE_MISSING_DATA);</b>
+<b class="nc"><i class="no-highlight">957</i>&nbsp;            } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">958</i>&nbsp;                throw new ExecutionException(e, UNABLE_TO_UPDATE_JDBC_METADATA_TABLE_NAME)</b>
+<b class="nc"><i class="no-highlight">959</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">960</i>&nbsp;                        .withResolution(e.getResolution());</b>
+<i class="no-highlight">961</i>&nbsp;            }
+<i class="no-highlight">962</i>&nbsp;        }
+<i class="no-highlight">963</i>&nbsp;
+<b class="nc"><i class="no-highlight">964</i>&nbsp;        return buffer.toString();</b>
+<i class="no-highlight">965</i>&nbsp;    }
+<i class="no-highlight">966</i>&nbsp;
+<i class="no-highlight">967</i>&nbsp;    /**
+<i class="no-highlight">968</i>&nbsp;     * Ensures that the columns in the schema have types that are understood by the target
+<i class="no-highlight">969</i>&nbsp;     * database implementation.
+<i class="no-highlight">970</i>&nbsp;     *
+<i class="no-highlight">971</i>&nbsp;     * @param conn
+<i class="no-highlight">972</i>&nbsp;     * @param schemaData
+<i class="no-highlight">973</i>&nbsp;     * @param columns    The columns in the database.
+<i class="no-highlight">974</i>&nbsp;     * @return The column names.
+<i class="no-highlight">975</i>&nbsp;     */
+<i class="no-highlight">976</i>&nbsp;    private Set&lt;Object&gt; checkSchemaTypes(final Connection conn,
+<i class="no-highlight">977</i>&nbsp;                                         final Map&lt;String, Object&gt; schemaData,
+<i class="no-highlight">978</i>&nbsp;                                         final Map&lt;String, Map&lt;String, Object&gt;&gt; columns) {
+<i class="no-highlight">979</i>&nbsp;        String targetDatabaseName;
+<i class="no-highlight">980</i>&nbsp;        Object srcDatabaseName;
+<b class="nc"><i class="no-highlight">981</i>&nbsp;        Set&lt;Object&gt; retval = new HashSet&lt;&gt;();</b>
+<i class="no-highlight">982</i>&nbsp;
+<b class="nc"><i class="no-highlight">983</i>&nbsp;        srcDatabaseName = schemaData.get(DATABASE_PRODUCT_NAME);</b>
+<i class="no-highlight">984</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">985</i>&nbsp;            targetDatabaseName = conn.getMetaData().getDatabaseProductName();</b>
+<b class="nc"><i class="no-highlight">986</i>&nbsp;        } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">987</i>&nbsp;            throw new ExecutionException(e, UNABLE_TO_GET_DATABASE_METADATA)</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;                    .withReason(JdbcOperationsImpl.getSQLErrorMessage(e))</b>
+<b class="nc"><i class="no-highlight">989</i>&nbsp;                    .withResolution(e.getMessage());</b>
+<b class="nc"><i class="no-highlight">990</i>&nbsp;        }</b>
+<i class="no-highlight">991</i>&nbsp;
+<i class="no-highlight">992</i>&nbsp;        try {
+<i class="no-highlight">993</i>&nbsp;            // Do simple conversions of the java.sql.Types for columns.  For example,
+<i class="no-highlight">994</i>&nbsp;            // databases that don&#39;t support TINYINT probably support SMALLINT.
+<b class="nc"><i class="no-highlight">995</i>&nbsp;            for (WalkResult walkResult : COLUMN_DATA_TYPES.walk(columns)) {</b>
+<b class="nc"><i class="no-highlight">996</i>&nbsp;                String altJavaType = javaSqlTypeMap.get(walkResult.getValue());</b>
+<i class="no-highlight">997</i>&nbsp;
+<b class="nc"><i class="no-highlight">998</i>&nbsp;                if (altJavaType == null) {</b>
+<b class="nc"><i class="no-highlight">999</i>&nbsp;                    continue;</b>
+<i class="no-highlight">1000</i>&nbsp;                }
+<i class="no-highlight">1001</i>&nbsp;
+<b class="nc"><i class="no-highlight">1002</i>&nbsp;                walkResult.setValue(altJavaType);</b>
+<b class="nc"><i class="no-highlight">1003</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1004</i>&nbsp;        } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">1005</i>&nbsp;            throw new ExecutionException(e, UNABLE_TO_WALK_COLUMN_DATA_TYPES)</b>
+<b class="nc"><i class="no-highlight">1006</i>&nbsp;                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">1007</i>&nbsp;        }</b>
+<i class="no-highlight">1008</i>&nbsp;
+<i class="no-highlight">1009</i>&nbsp;        // Make sure the column types from the source database are valid in the target.
+<b class="nc"><i class="no-highlight">1010</i>&nbsp;        for (Map&lt;String, Object&gt; column : columns.values()) {</b>
+<b class="nc"><i class="no-highlight">1011</i>&nbsp;            String typeName = (String) column.get(TYPE_NAME);</b>
+<i class="no-highlight">1012</i>&nbsp;
+<b class="nc"><i class="no-highlight">1013</i>&nbsp;            retval.add(column.get(COLUMN_NAME));</b>
+<b class="nc"><i class="no-highlight">1014</i>&nbsp;            if (typeName == null || !typeInfo.containsKey(typeName.toLowerCase())) {</b>
+<i class="no-highlight">1015</i>&nbsp;                // We should be able to use the corresponding JDBC type in the target.
+<b class="nc"><i class="no-highlight">1016</i>&nbsp;                String dataType = (String) column.get(DATA_TYPE);</b>
+<b class="nc"><i class="no-highlight">1017</i>&nbsp;                Object columnName = column.get(COLUMN_NAME);</b>
+<b class="nc"><i class="no-highlight">1018</i>&nbsp;                log.debug(COLUMN_HAS_UNKNOWN_TYPE, columnName, typeName, dataType);</b>
+<b class="nc"><i class="no-highlight">1019</i>&nbsp;                if (targetDatabaseName.equals(srcDatabaseName)) {</b>
+<b class="nc"><i class="no-highlight">1020</i>&nbsp;                    log.debug(SRC_AND_TARGET_ARE_THE_SAME);</b>
+<b class="nc"><i class="no-highlight">1021</i>&nbsp;                } else if (UNSUPPORTED_JAVA_SQL_TYPES.contains(dataType.toUpperCase()) ||</b>
+<b class="nc"><i class="no-highlight">1022</i>&nbsp;                        unsupportedJavaSqlTypes.contains(dataType.toUpperCase())) {</b>
+<b class="nc"><i class="no-highlight">1023</i>&nbsp;                    throw new ExecutionException(UNABLE_TO_CONVERT_COLUMN)</b>
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;                            .formatWith(typeName, columnName, dataType)</b>
+<b class="nc"><i class="no-highlight">1025</i>&nbsp;                            .withReason(TARGET_DATABASE_DOES_NOT_SUPPORT_THE_GIVEN_DATA_TYPE)</b>
+<b class="nc"><i class="no-highlight">1026</i>&nbsp;                            .withResolution(UNABLE_TO_CONVERT_RESOLUTION);</b>
+<i class="no-highlight">1027</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">1028</i>&nbsp;                    column.put(TYPE_NAME, dataType);</b>
+<i class="no-highlight">1029</i>&nbsp;                }
+<i class="no-highlight">1030</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1031</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1032</i>&nbsp;        return retval;</b>
+<i class="no-highlight">1033</i>&nbsp;    }
+<i class="no-highlight">1034</i>&nbsp;
+<i class="no-highlight">1035</i>&nbsp;    /**
+<i class="no-highlight">1036</i>&nbsp;     * The indexInfo() result typically includes the index created to implement the primary
+<i class="no-highlight">1037</i>&nbsp;     * keys for a table, so there is no need to include this index when generating the CREATE
+<i class="no-highlight">1038</i>&nbsp;     * TABLE statement.
+<i class="no-highlight">1039</i>&nbsp;     *
+<i class="no-highlight">1040</i>&nbsp;     * @param schemaData The JDBC schema dump.
+<i class="no-highlight">1041</i>&nbsp;     * @throws InvalidPathException If there was a problem accessing the schema.
+<i class="no-highlight">1042</i>&nbsp;     */
+<i class="no-highlight">1043</i>&nbsp;    private void removePrimaryKeyIndex(final Map&lt;String, Object&gt; schemaData)
+<i class="no-highlight">1044</i>&nbsp;            throws InvalidPathException {
+<b class="nc"><i class="no-highlight">1045</i>&nbsp;        Set&lt;String&gt; primaryKeys = new HashSet&lt;&gt;(PRIMARY_KEY_COLUMN_PATH.&lt;List&lt;String&gt;&gt;read(</b>
+<b class="nc"><i class="no-highlight">1046</i>&nbsp;                schemaData, Collections.emptyList()));</b>
+<b class="nc"><i class="no-highlight">1047</i>&nbsp;        Map&lt;String, Object&gt; indexInfo = (Map&lt;String, Object&gt;) schemaData.get(INDEX_INFO);</b>
+<i class="no-highlight">1048</i>&nbsp;
+<b class="nc"><i class="no-highlight">1049</i>&nbsp;        for (List index : UNIQUE_INDEX_PATH.&lt;List&lt;List&gt;&gt;read(schemaData)) {</b>
+<b class="nc"><i class="no-highlight">1050</i>&nbsp;            Set&lt;String&gt; indexKeys = new HashSet&lt;&gt;(INDEX_COLUMNS.&lt;List&lt;String&gt;&gt;read(index));</b>
+<i class="no-highlight">1051</i>&nbsp;
+<b class="nc"><i class="no-highlight">1052</i>&nbsp;            if (indexKeys.equals(primaryKeys)) {</b>
+<b class="nc"><i class="no-highlight">1053</i>&nbsp;                indexInfo.remove(INDEX_NAME_FROM_COL_PATH.read(index));</b>
+<i class="no-highlight">1054</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;        }</b>
+<i class="no-highlight">1056</i>&nbsp;    }
+<i class="no-highlight">1057</i>&nbsp;
+<i class="no-highlight">1058</i>&nbsp;    /**
+<i class="no-highlight">1059</i>&nbsp;     * Adds fields mentioned in a document to the schema for a to-be-created table.
+<i class="no-highlight">1060</i>&nbsp;     * The most basic flow for replicating a table just connects a Select snap to
+<i class="no-highlight">1061</i>&nbsp;     * an Insert snap.  However, if the user adds new fields to the rows that are
+<i class="no-highlight">1062</i>&nbsp;     * being inserted, then we should automatically update the schema to accommodate
+<i class="no-highlight">1063</i>&nbsp;     * the new fields.
+<i class="no-highlight">1064</i>&nbsp;     *
+<i class="no-highlight">1065</i>&nbsp;     * @param tableParts  The table category, schema, and name.
+<i class="no-highlight">1066</i>&nbsp;     * @param data        The document data.
+<i class="no-highlight">1067</i>&nbsp;     * @param columns     The columns in the schema.
+<i class="no-highlight">1068</i>&nbsp;     * @param columnNames The columnNames in the schema.
+<i class="no-highlight">1069</i>&nbsp;     */
+<i class="no-highlight">1070</i>&nbsp;    private void addDocFieldsToSchema(final List&lt;String&gt; tableParts, final Map&lt;String, Object&gt; data,
+<i class="no-highlight">1071</i>&nbsp;                                      final Map&lt;String, Map&lt;String, Object&gt;&gt; columns,
+<i class="no-highlight">1072</i>&nbsp;                                      final Set&lt;Object&gt; columnNames) {
+<i class="no-highlight">1073</i>&nbsp;        // Check for fields that are in the doc, but not in the schema.
+<b class="nc"><i class="no-highlight">1074</i>&nbsp;        for (String field : data.keySet()) {</b>
+<b class="nc"><i class="no-highlight">1075</i>&nbsp;            if (columnNames.contains(field)) {</b>
+<b class="nc"><i class="no-highlight">1076</i>&nbsp;                continue;</b>
+<i class="no-highlight">1077</i>&nbsp;            }
+<i class="no-highlight">1078</i>&nbsp;
+<i class="no-highlight">1079</i>&nbsp;            // TODO tstack - Can we get the input view schema and use that to determine
+<i class="no-highlight">1080</i>&nbsp;            // the types instead of an actual value?
+<b class="nc"><i class="no-highlight">1081</i>&nbsp;            Object value = data.get(field);</b>
+<b class="nc"><i class="no-highlight">1082</i>&nbsp;            ColumnInfoBuilder columnInfo = getColumnInfo(value);</b>
+<b class="nc"><i class="no-highlight">1083</i>&nbsp;            if (columnInfo != null) {</b>
+<b class="nc"><i class="no-highlight">1084</i>&nbsp;                Map&lt;String, Object&gt; columnMap = columnInfo</b>
+<b class="nc"><i class="no-highlight">1085</i>&nbsp;                        .withPair(TABLE_CAT, tableParts.get(0))</b>
+<b class="nc"><i class="no-highlight">1086</i>&nbsp;                        .withPair(TABLE_SCHEM, tableParts.get(1))</b>
+<b class="nc"><i class="no-highlight">1087</i>&nbsp;                        .withPair(TABLE_NAME, tableParts.get(2))</b>
+<b class="nc"><i class="no-highlight">1088</i>&nbsp;                        .withPair(COLUMN_NAME, field)</b>
+<b class="nc"><i class="no-highlight">1089</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">1090</i>&nbsp;                if (columnMap.get(ColumnInfoBuilder.REMARKS) == null) {</b>
+<b class="nc"><i class="no-highlight">1091</i>&nbsp;                    columnMap.put(ColumnInfoBuilder.REMARKS,</b>
+<i class="no-highlight">1092</i>&nbsp;                            COLUMN_AUTO_GENERATED_DURING_INSERT_BULK_LOAD);
+<i class="no-highlight">1093</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1094</i>&nbsp;                log.debug(GENERATED_COLUMN_METADATA_BASED_ON_INPUT, field, columnMap);</b>
+<b class="nc"><i class="no-highlight">1095</i>&nbsp;                columns.put(field, columnMap);</b>
+<i class="no-highlight">1096</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1097</i>&nbsp;        }</b>
+<i class="no-highlight">1098</i>&nbsp;    }
+<i class="no-highlight">1099</i>&nbsp;
+<i class="no-highlight">1100</i>&nbsp;    @Override
+<i class="no-highlight">1101</i>&nbsp;    public String getColumnType(final Object value) {
+<b class="nc"><i class="no-highlight">1102</i>&nbsp;        if (value instanceof List || value instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">1103</i>&nbsp;            return null;</b>
+<i class="no-highlight">1104</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1105</i>&nbsp;            if (StringUtils.startsWithIgnoreCase(databaseProductName, DB2_DATABASE_PRODUCT_NAME)) {</b>
+<b class="nc"><i class="no-highlight">1106</i>&nbsp;                return DB2_VARCHAR_DATATYPE;</b>
+<b class="nc"><i class="no-highlight">1107</i>&nbsp;            } else if (StringUtils.containsIgnoreCase(databaseProductName,</b>
+<i class="no-highlight">1108</i>&nbsp;                    DERBY_DATABASE_PRODUCT_NAME)) {
+<b class="nc"><i class="no-highlight">1109</i>&nbsp;                return DERBY_VARCHAR_DATATYPE;</b>
+<i class="no-highlight">1110</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">1111</i>&nbsp;                return VARCHAR_DATATYPE;</b>
+<i class="no-highlight">1112</i>&nbsp;            }
+<i class="no-highlight">1113</i>&nbsp;        }
+<i class="no-highlight">1114</i>&nbsp;    }
+<i class="no-highlight">1115</i>&nbsp;
+<i class="no-highlight">1116</i>&nbsp;    protected String getDefaultColumnType(final Object value) {
+<b class="nc"><i class="no-highlight">1117</i>&nbsp;        if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">1118</i>&nbsp;            return varcharDatatype;</b>
+<b class="nc"><i class="no-highlight">1119</i>&nbsp;        } else if (value instanceof BigInteger ||</b>
+<i class="no-highlight">1120</i>&nbsp;                value instanceof Long || value instanceof Integer || value instanceof Short) {
+<b class="nc"><i class="no-highlight">1121</i>&nbsp;            return integerDatatype;</b>
+<b class="nc"><i class="no-highlight">1122</i>&nbsp;        } else if (value instanceof Number) {</b>
+<b class="nc"><i class="no-highlight">1123</i>&nbsp;            return doubleDatatype;</b>
+<b class="nc"><i class="no-highlight">1124</i>&nbsp;        } else if (value instanceof DateTime) {</b>
+<b class="nc"><i class="no-highlight">1125</i>&nbsp;            return timestampDatatype;</b>
+<b class="nc"><i class="no-highlight">1126</i>&nbsp;        } else if (value instanceof LocalDateTime) {</b>
+<b class="nc"><i class="no-highlight">1127</i>&nbsp;            return timestampLocalDatatype;</b>
+<b class="nc"><i class="no-highlight">1128</i>&nbsp;        } else if (value instanceof Date || value instanceof LocalDate) {</b>
+<b class="nc"><i class="no-highlight">1129</i>&nbsp;            return dateDatatype;</b>
+<b class="nc"><i class="no-highlight">1130</i>&nbsp;        } else if (value instanceof Boolean) {</b>
+<b class="nc"><i class="no-highlight">1131</i>&nbsp;            return booleanDatatype;</b>
+<b class="nc"><i class="no-highlight">1132</i>&nbsp;        } else if (value instanceof Map || value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">1133</i>&nbsp;            return null;</b>
+<i class="no-highlight">1134</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1135</i>&nbsp;            return varcharDatatype;</b>
+<i class="no-highlight">1136</i>&nbsp;        }
+<i class="no-highlight">1137</i>&nbsp;    }
+<i class="no-highlight">1138</i>&nbsp;
+<i class="no-highlight">1139</i>&nbsp;    @Override
+<i class="no-highlight">1140</i>&nbsp;    public ColumnInfoBuilder getColumnInfo(final Object value) {
+<b class="nc"><i class="no-highlight">1141</i>&nbsp;        if (value instanceof List || value instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">1142</i>&nbsp;            return null;</b>
+<i class="no-highlight">1143</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1144</i>&nbsp;            return getDefaultColumnInfo(value);</b>
+<i class="no-highlight">1145</i>&nbsp;        }
+<i class="no-highlight">1146</i>&nbsp;    }
+<i class="no-highlight">1147</i>&nbsp;
+<i class="no-highlight">1148</i>&nbsp;    protected ColumnInfoBuilder getDefaultColumnInfo(final Object value) {
+<b class="nc"><i class="no-highlight">1149</i>&nbsp;        if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">1150</i>&nbsp;            return new ColumnInfoBuilder();</b>
+<b class="nc"><i class="no-highlight">1151</i>&nbsp;        } else if (value instanceof BigInteger ||</b>
+<i class="no-highlight">1152</i>&nbsp;                value instanceof Long || value instanceof Integer || value instanceof Short) {
+<b class="nc"><i class="no-highlight">1153</i>&nbsp;            return new ColumnInfoBuilder()</b>
+<b class="nc"><i class="no-highlight">1154</i>&nbsp;                    .withType(integerDatatype);</b>
+<b class="nc"><i class="no-highlight">1155</i>&nbsp;        } else if (value instanceof Number) {</b>
+<b class="nc"><i class="no-highlight">1156</i>&nbsp;            return new ColumnInfoBuilder()</b>
+<b class="nc"><i class="no-highlight">1157</i>&nbsp;                    .withType(doubleDatatype);</b>
+<b class="nc"><i class="no-highlight">1158</i>&nbsp;        } else if (value instanceof DateTime) {</b>
+<b class="nc"><i class="no-highlight">1159</i>&nbsp;            return new ColumnInfoBuilder()</b>
+<b class="nc"><i class="no-highlight">1160</i>&nbsp;                    .withType(timestampDatatype);</b>
+<b class="nc"><i class="no-highlight">1161</i>&nbsp;        } else if (value instanceof LocalDateTime) {</b>
+<b class="nc"><i class="no-highlight">1162</i>&nbsp;            return new ColumnInfoBuilder()</b>
+<b class="nc"><i class="no-highlight">1163</i>&nbsp;                    .withType(timestampLocalDatatype);</b>
+<b class="nc"><i class="no-highlight">1164</i>&nbsp;        } else if (value instanceof Date || value instanceof LocalDate) {</b>
+<b class="nc"><i class="no-highlight">1165</i>&nbsp;            return new ColumnInfoBuilder()</b>
+<b class="nc"><i class="no-highlight">1166</i>&nbsp;                    .withType(dateDatatype);</b>
+<b class="nc"><i class="no-highlight">1167</i>&nbsp;        } else if (value instanceof Boolean) {</b>
+<b class="nc"><i class="no-highlight">1168</i>&nbsp;            return new ColumnInfoBuilder()</b>
+<b class="nc"><i class="no-highlight">1169</i>&nbsp;                    .withType(booleanDatatype);</b>
+<b class="nc"><i class="no-highlight">1170</i>&nbsp;        } else if (value instanceof Map || value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">1171</i>&nbsp;            return null;</b>
+<i class="no-highlight">1172</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1173</i>&nbsp;            return new ColumnInfoBuilder();</b>
+<i class="no-highlight">1174</i>&nbsp;        }
+<i class="no-highlight">1175</i>&nbsp;    }
+<i class="no-highlight">1176</i>&nbsp;
+<i class="no-highlight">1177</i>&nbsp;    @Override
+<i class="no-highlight">1178</i>&nbsp;    public List&lt;String&gt; parseTableName(String dbName, String tableName) {
+<i class="no-highlight">1179</i>&nbsp;        // If the table name itself contains &quot;.&quot;, that is a special case which is not handled
+<i class="no-highlight">1180</i>&nbsp;        // currently (should not be very common since most databases disallow dots in
+<i class="no-highlight">1181</i>&nbsp;        // identifiers, unless escaped by quotes).
+<b class="nc"><i class="no-highlight">1182</i>&nbsp;        String[] dbObjects = quotationHandler.splitFullyQualifiedName(tableName, 0);</b>
+<b class="nc"><i class="no-highlight">1183</i>&nbsp;        return parseFullyQualifiedTableName(dbObjects, dbName, tableName);</b>
+<i class="no-highlight">1184</i>&nbsp;    }
+<i class="no-highlight">1185</i>&nbsp;
+<i class="no-highlight">1186</i>&nbsp;    /**
+<i class="no-highlight">1187</i>&nbsp;     * Whether the database uses catalog instead of schema for database metadata calls.
+<i class="no-highlight">1188</i>&nbsp;     *
+<i class="no-highlight">1189</i>&nbsp;     * @return false (overridden to be true for MySQL)
+<i class="no-highlight">1190</i>&nbsp;     */
+<i class="no-highlight">1191</i>&nbsp;    protected boolean useSchemaAsCatalog() {
+<b class="nc"><i class="no-highlight">1192</i>&nbsp;        return false;</b>
+<i class="no-highlight">1193</i>&nbsp;    }
+<i class="no-highlight">1194</i>&nbsp;
+<i class="no-highlight">1195</i>&nbsp;    /**
+<i class="no-highlight">1196</i>&nbsp;     * Whether the database treats unquoted identifiers as upper case by default.
+<i class="no-highlight">1197</i>&nbsp;     *
+<i class="no-highlight">1198</i>&nbsp;     * @return false (overridden to be true for Oracle)
+<i class="no-highlight">1199</i>&nbsp;     */
+<i class="no-highlight">1200</i>&nbsp;    protected boolean useUpperCaseIdentifiers() {
+<b class="nc"><i class="no-highlight">1201</i>&nbsp;        return false;</b>
+<i class="no-highlight">1202</i>&nbsp;    }
+<i class="no-highlight">1203</i>&nbsp;
+<i class="no-highlight">1204</i>&nbsp;    /**
+<i class="no-highlight">1205</i>&nbsp;     * Whether the database treats unquoted identifiers as lower case by default.
+<i class="no-highlight">1206</i>&nbsp;     *
+<i class="no-highlight">1207</i>&nbsp;     * @return false (overridden to be true for Redshift)
+<i class="no-highlight">1208</i>&nbsp;     */
+<i class="no-highlight">1209</i>&nbsp;    protected boolean useLowerCaseIdentifiers() {
+<b class="nc"><i class="no-highlight">1210</i>&nbsp;        return false;</b>
+<i class="no-highlight">1211</i>&nbsp;    }
+<i class="no-highlight">1212</i>&nbsp;
+<i class="no-highlight">1213</i>&nbsp;    /**
+<i class="no-highlight">1214</i>&nbsp;     * Quote an identifier as required by the database. a.b.c returns &quot;a&quot;.&quot;b&quot;.&quot;c&quot;
+<i class="no-highlight">1215</i>&nbsp;     *
+<i class="no-highlight">1216</i>&nbsp;     * @param identifier - the identifier to quote
+<i class="no-highlight">1217</i>&nbsp;     * @param maxSplit   - max number of split names for dot, should be 1 for column name,
+<i class="no-highlight">1218</i>&nbsp;     *                     0 means no limit
+<i class="no-highlight">1219</i>&nbsp;     * @return the quoted identifier
+<i class="no-highlight">1220</i>&nbsp;     */
+<i class="no-highlight">1221</i>&nbsp;    public String quoteIdentifier(String identifier, int maxSplit) {
+<b class="nc"><i class="no-highlight">1222</i>&nbsp;        String[] parts = quotationHandler.splitFullyQualifiedName(identifier, maxSplit);</b>
+<b class="nc"><i class="no-highlight">1223</i>&nbsp;        for (int i = 0; i &lt; parts.length; i++) {</b>
+<b class="nc"><i class="no-highlight">1224</i>&nbsp;            if (!quotationHandler.isEscaped(parts[i])) {</b>
+<b class="nc"><i class="no-highlight">1225</i>&nbsp;                parts[i] = quotationHandler.escape(parts[i]);</b>
+<i class="no-highlight">1226</i>&nbsp;            }
+<i class="no-highlight">1227</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1228</i>&nbsp;        return StringUtils.join(parts, DOT_CHAR);</b>
+<i class="no-highlight">1229</i>&nbsp;    }
+<i class="no-highlight">1230</i>&nbsp;
+<i class="no-highlight">1231</i>&nbsp;    @Override
+<i class="no-highlight">1232</i>&nbsp;    public String normalize(String input) {
+<b class="nc"><i class="no-highlight">1233</i>&nbsp;        if (input == null) {</b>
+<b class="nc"><i class="no-highlight">1234</i>&nbsp;            return input;</b>
+<b class="nc"><i class="no-highlight">1235</i>&nbsp;        } else if (quotationHandler.isEscaped(input)) {</b>
+<b class="nc"><i class="no-highlight">1236</i>&nbsp;            input = quotationHandler.unescape(input);</b>
+<b class="nc"><i class="no-highlight">1237</i>&nbsp;        } else if (useUpperCaseIdentifiers()) {</b>
+<b class="nc"><i class="no-highlight">1238</i>&nbsp;            input = input.toUpperCase();</b>
+<b class="nc"><i class="no-highlight">1239</i>&nbsp;        } else if (useLowerCaseIdentifiers()) {</b>
+<b class="nc"><i class="no-highlight">1240</i>&nbsp;            input = input.toLowerCase();</b>
+<i class="no-highlight">1241</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1242</i>&nbsp;        return input;</b>
+<i class="no-highlight">1243</i>&nbsp;    }
+<i class="no-highlight">1244</i>&nbsp;
+<i class="no-highlight">1245</i>&nbsp;    public String getName() {
+<b class="nc"><i class="no-highlight">1246</i>&nbsp;        return JdbcOperationsImpl.GENERIC;</b>
+<i class="no-highlight">1247</i>&nbsp;    }
+<i class="no-highlight">1248</i>&nbsp;
+<i class="no-highlight">1249</i>&nbsp;    /**
+<i class="no-highlight">1250</i>&nbsp;     * Fetches IndexInfo from the given database for the given table
+<i class="no-highlight">1251</i>&nbsp;     *
+<i class="no-highlight">1252</i>&nbsp;     * @param metadata
+<i class="no-highlight">1253</i>&nbsp;     * @param catalog
+<i class="no-highlight">1254</i>&nbsp;     * @param schema
+<i class="no-highlight">1255</i>&nbsp;     * @param table
+<i class="no-highlight">1256</i>&nbsp;     * @param unique
+<i class="no-highlight">1257</i>&nbsp;     * @param approximate
+<i class="no-highlight">1258</i>&nbsp;     * @return instance of ResultSet containing IndexInfo
+<i class="no-highlight">1259</i>&nbsp;     * @throws SQLException
+<i class="no-highlight">1260</i>&nbsp;     */
+<i class="no-highlight">1261</i>&nbsp;    protected ResultSet getIndexInfoResultSet(DatabaseMetaData metadata, String catalog,
+<i class="no-highlight">1262</i>&nbsp;                                              String schema, String table, boolean unique,
+<i class="no-highlight">1263</i>&nbsp;                                              boolean approximate) throws SQLException {
+<b class="nc"><i class="no-highlight">1264</i>&nbsp;        return metadata.getIndexInfo(catalog, schema, table, unique, approximate);</b>
+<i class="no-highlight">1265</i>&nbsp;    }
+<i class="no-highlight">1266</i>&nbsp;
+<i class="no-highlight">1267</i>&nbsp;    /**
+<i class="no-highlight">1268</i>&nbsp;     * Fetches list of tables from database metadata satisfying the given parameters
+<i class="no-highlight">1269</i>&nbsp;     *
+<i class="no-highlight">1270</i>&nbsp;     * @param dbMetaData
+<i class="no-highlight">1271</i>&nbsp;     * @param catalog
+<i class="no-highlight">1272</i>&nbsp;     * @param schemaPattern
+<i class="no-highlight">1273</i>&nbsp;     * @param tableNamePattern
+<i class="no-highlight">1274</i>&nbsp;     * @param types
+<i class="no-highlight">1275</i>&nbsp;     * @return instance of Result Set containing tables meta data
+<i class="no-highlight">1276</i>&nbsp;     * @throws SQLException
+<i class="no-highlight">1277</i>&nbsp;     */
+<i class="no-highlight">1278</i>&nbsp;    protected ResultSet getTablesResultSet(DatabaseMetaData dbMetaData, String catalog,
+<i class="no-highlight">1279</i>&nbsp;                                           String schemaPattern, String tableNamePattern,
+<i class="no-highlight">1280</i>&nbsp;                                           String[] types) throws SQLException {
+<b class="nc"><i class="no-highlight">1281</i>&nbsp;        return dbMetaData.getTables(catalog, schemaPattern, tableNamePattern, types);</b>
+<i class="no-highlight">1282</i>&nbsp;    }
+<i class="no-highlight">1283</i>&nbsp;
+<i class="no-highlight">1284</i>&nbsp;    /**
+<i class="no-highlight">1285</i>&nbsp;     * Fetches information about columns for the given table
+<i class="no-highlight">1286</i>&nbsp;     *
+<i class="no-highlight">1287</i>&nbsp;     * @param dbMetaData
+<i class="no-highlight">1288</i>&nbsp;     * @param catalog
+<i class="no-highlight">1289</i>&nbsp;     * @param schemaPattern
+<i class="no-highlight">1290</i>&nbsp;     * @param tableNamePattern
+<i class="no-highlight">1291</i>&nbsp;     * @param columnNamePattern
+<i class="no-highlight">1292</i>&nbsp;     * @return instance of ResultSet containing columns info
+<i class="no-highlight">1293</i>&nbsp;     * @throws SQLException
+<i class="no-highlight">1294</i>&nbsp;     */
+<i class="no-highlight">1295</i>&nbsp;    protected ResultSet getColumnsResultSet(DatabaseMetaData dbMetaData, String catalog,
+<i class="no-highlight">1296</i>&nbsp;                                            String schemaPattern, String tableNamePattern,
+<i class="no-highlight">1297</i>&nbsp;                                            String columnNamePattern)
+<i class="no-highlight">1298</i>&nbsp;            throws SQLException {
+<b class="nc"><i class="no-highlight">1299</i>&nbsp;        return dbMetaData.getColumns(catalog, schemaPattern, tableNamePattern, columnNamePattern);</b>
+<i class="no-highlight">1300</i>&nbsp;    }
+<i class="no-highlight">1301</i>&nbsp;
+<i class="no-highlight">1302</i>&nbsp;    /***
+<i class="no-highlight">1303</i>&nbsp;     *
+<i class="no-highlight">1304</i>&nbsp;     *  Method to parse fully qualified table name
+<i class="no-highlight">1305</i>&nbsp;     */
+<i class="no-highlight">1306</i>&nbsp;    protected List&lt;String&gt; parseFullyQualifiedTableName(String[] dbObjects, String dbName,
+<i class="no-highlight">1307</i>&nbsp;            String tableName){
+<b class="nc"><i class="no-highlight">1308</i>&nbsp;        String schema = null;</b>
+<b class="nc"><i class="no-highlight">1309</i>&nbsp;        String catalog = null;</b>
+<i class="no-highlight">1310</i>&nbsp;        String table;
+<b class="nc"><i class="no-highlight">1311</i>&nbsp;        List&lt;String&gt; result = Lists.newArrayListWithCapacity(3);</b>
+<b class="nc"><i class="no-highlight">1312</i>&nbsp;        switch (dbObjects.length) {</b>
+<i class="no-highlight">1313</i>&nbsp;            case 1:
+<b class="nc"><i class="no-highlight">1314</i>&nbsp;                table = dbObjects[0];</b>
+<b class="nc"><i class="no-highlight">1315</i>&nbsp;                break;</b>
+<i class="no-highlight">1316</i>&nbsp;            case 2:
+<b class="nc"><i class="no-highlight">1317</i>&nbsp;                if (useSchemaAsCatalog()) {</b>
+<b class="nc"><i class="no-highlight">1318</i>&nbsp;                    catalog = dbObjects[0];</b>
+<i class="no-highlight">1319</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">1320</i>&nbsp;                    schema = dbObjects[0];</b>
+<i class="no-highlight">1321</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1322</i>&nbsp;                table = dbObjects[1];</b>
+<b class="nc"><i class="no-highlight">1323</i>&nbsp;                break;</b>
+<i class="no-highlight">1324</i>&nbsp;            case 3:
+<b class="nc"><i class="no-highlight">1325</i>&nbsp;                if (useSchemaAsCatalog()) {</b>
+<b class="nc"><i class="no-highlight">1326</i>&nbsp;                    catalog = dbObjects[0];</b>
+<b class="nc"><i class="no-highlight">1327</i>&nbsp;                    schema = dbObjects[1];</b>
+<i class="no-highlight">1328</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">1329</i>&nbsp;                    schema = dbObjects[0];</b>
+<b class="nc"><i class="no-highlight">1330</i>&nbsp;                    catalog = dbObjects[1];</b>
+<i class="no-highlight">1331</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1332</i>&nbsp;                table = dbObjects[2];</b>
+<b class="nc"><i class="no-highlight">1333</i>&nbsp;                break;</b>
+<i class="no-highlight">1334</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">1335</i>&nbsp;                throw new ExecutionException(</b>
+<b class="nc"><i class="no-highlight">1336</i>&nbsp;                        String.format(ERROR_INVALID_TABLE_NAME, tableName))</b>
+<b class="nc"><i class="no-highlight">1337</i>&nbsp;                        .withReason(ERROR_INVALID_TABLE_NAME_REASON)</b>
+<b class="nc"><i class="no-highlight">1338</i>&nbsp;                        .withResolution(ERROR_INVALID_TABLE_NAME_RESOLUTION);</b>
+<i class="no-highlight">1339</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1340</i>&nbsp;        result.add(normalize(catalog));</b>
+<b class="nc"><i class="no-highlight">1341</i>&nbsp;        result.add(normalize(schema));</b>
+<b class="nc"><i class="no-highlight">1342</i>&nbsp;        result.add(normalize(table));</b>
+<b class="nc"><i class="no-highlight">1343</i>&nbsp;        return result;</b>
+<i class="no-highlight">1344</i>&nbsp;    }
+<i class="no-highlight">1345</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

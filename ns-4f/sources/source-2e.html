@@ -1,0 +1,1027 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > RedshiftDatabaseAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.sql.accounts</a>
+</div>
+
+<h1>Coverage Summary for Class: RedshiftDatabaseAccount (com.snaplogic.snap.api.sql.accounts)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RedshiftDatabaseAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/43)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/424)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013 - 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.sql.accounts;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.AmazonClientException;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.auth.AWSCredentials;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.auth.BasicSessionCredentials;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.s3.AmazonS3Client;
+<i class="no-highlight">19</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">20</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.utilities.URLEncoder;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.binary.UrlUtils;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.fs.JfsUtils;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseConfig;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.sql.DriverUploadDatabaseConfig;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcDriverManager;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.sql.config.HadoopConfig;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.sql.config.HiveConfig;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.sql.config.KerberosConfig;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.sql.config.SSLConfig;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snaps.sql.SimpleSqlSnap;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">47</i>&nbsp;import org.jooq.SQLDialect;
+<i class="no-highlight">48</i>&nbsp;import org.jooq.tools.jdbc.JDBCUtils;
+<i class="no-highlight">49</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">50</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">53</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">54</i>&nbsp;import java.sql.DatabaseMetaData;
+<i class="no-highlight">55</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">56</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">57</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">58</i>&nbsp;import java.util.List;
+<i class="no-highlight">59</i>&nbsp;import java.util.Map;
+<i class="no-highlight">60</i>&nbsp;import java.util.Properties;
+<i class="no-highlight">61</i>&nbsp;import java.util.regex.Matcher;
+<i class="no-highlight">62</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.IAM_CREDENTIAL_FOR_S3;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snap.api.sql.DatabaseUtils.NULL;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.Constants.CHECK_JDBC_URL_SOURCE_SNAP_GENERATED;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.Messages.*;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;/**
+<i class="no-highlight">70</i>&nbsp; * Redshift database account.
+<i class="no-highlight">71</i>&nbsp; *
+<i class="no-highlight">72</i>&nbsp; * @author akidave
+<i class="no-highlight">73</i>&nbsp; */
+<i class="no-highlight">74</i>&nbsp;@General(title = REDSHIFT_DATABASE_ACCOUNT_TITLE, docLink = REDSHIFT_DATABASE_ACCOUNT_DOC_LINK)
+<i class="no-highlight">75</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">76</i>&nbsp;@AccountCategory(type = AccountType.DATABASE)
+<b class="nc"><i class="no-highlight">77</i>&nbsp;public class RedshiftDatabaseAccount extends DriverUploadDatabaseAccount {</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(RedshiftDatabaseAccount.class);</b>
+<i class="no-highlight">79</i>&nbsp;    private static final String ACCESS_KEY_ID_PROP = &quot;accessKeyId&quot;;
+<i class="no-highlight">80</i>&nbsp;    private static final String SECRET_KEY_PROP = &quot;secretKey&quot;;
+<i class="no-highlight">81</i>&nbsp;    private static final String SECURITY_TOKEN_PROP = &quot;securityToken&quot;;
+<i class="no-highlight">82</i>&nbsp;    private static final String BUCKET_PROP = &quot;bucket&quot;;
+<i class="no-highlight">83</i>&nbsp;    private static final String S3_FOLDER_PROP = &quot;s3Folder&quot;;
+<i class="no-highlight">84</i>&nbsp;    private static final String IAM_ROLE_NAME_REDSHIFT_PROP = &quot;iamRoleName&quot;;
+<i class="no-highlight">85</i>&nbsp;    protected static final String REGION_PROP = &quot;regionName&quot;;
+<i class="no-highlight">86</i>&nbsp;    private static final String AWS_ACCOUNT_ID_REDSHIFT_PROP = &quot;awsAccountID&quot;;
+<i class="no-highlight">87</i>&nbsp;    private static final String URL_SEPARATOR = &quot;/&quot;;
+<i class="no-highlight">88</i>&nbsp;    protected static final String JDBC_URL_FMT = &quot;%s%s:%s/%s?tcpKeepAlive=true&quot;;
+<b class="nc"><i class="no-highlight">89</i>&nbsp;    protected String JDBC_PREFIX = &quot;jdbc:redshift://&quot;;</b>
+<i class="no-highlight">90</i>&nbsp;    private static final String DRIVER_CLASS_NAME = &quot;com.amazon.redshift.jdbc42.Driver&quot;;
+<i class="no-highlight">91</i>&nbsp;    private static final String POSTGRESQL_DRIVER_CLASS_NAME = &quot;org.postgresql.Driver&quot;;
+<i class="no-highlight">92</i>&nbsp;    private static final int REDSHIFT_DEFAULT_PORT = 5439;
+<i class="no-highlight">93</i>&nbsp;    private static final String DRIVER_INFO = &quot;Redshift driver info: %s ||| %s&quot;;
+<i class="no-highlight">94</i>&nbsp;    protected static final String OPEN_SOURCE_SUB_PROTOCOL_OVERRIDE =
+<i class="no-highlight">95</i>&nbsp;            &quot;OpenSourceSubProtocolOverride&quot;;
+<i class="no-highlight">96</i>&nbsp;    protected static final String OVERRIDE_FMT = &quot;%s?&quot; + OPEN_SOURCE_SUB_PROTOCOL_OVERRIDE + &quot;=%s&quot;;
+<i class="no-highlight">97</i>&nbsp;    private static final String SQL_RESET_SEARCH_PATH_FMT = &quot;RESET search_path&quot;;
+<i class="no-highlight">98</i>&nbsp;    private static final String IAM_PROPERTIES_REDSHIFT_PROP = &quot;iamProperties&quot;;
+<i class="no-highlight">99</i>&nbsp;    private static final String JDBC_URL_PROP = &quot;jdbcUrl&quot;;
+<i class="no-highlight">100</i>&nbsp;    private static final String JDBC_DRIVERS_PROP = &quot;JdbcDriversProp&quot;;
+<i class="no-highlight">101</i>&nbsp;
+<i class="no-highlight">102</i>&nbsp;    private static final String KEY_TRUST_PASSWORD = &quot;keyTrustPassword&quot;;
+<i class="no-highlight">103</i>&nbsp;    private static final String TRUST_STORE_URL = &quot;trustStoreURL&quot;;
+<i class="no-highlight">104</i>&nbsp;    private static final int IDLE_CONNECTION_TEST_PERIOD_IN_MIN_DEFAULT = 5;
+<i class="no-highlight">105</i>&nbsp;    private static final int NON_NEGATIVE_INT = 0;
+<b class="nc"><i class="no-highlight">106</i>&nbsp;    private static final BigInteger DEFAULT_RETRY_ATTEMPTS = BigInteger.ZERO;</b>
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    private static final String REDSHIFT_SERVERLESS_IDENTIFER = &quot;.redshift-serverless.&quot;;
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    // common redshift serverless generated iam role names
+<b class="nc"><i class="no-highlight">111</i>&nbsp;    private static Pattern redshiftServerlessIamRolePattern = Pattern.compile(</b>
+<i class="no-highlight">112</i>&nbsp;        &quot;^AmazonRedshift-CommandsAccess(Role|Policy)-\\d{8}T\\d{6}$&quot;);
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    private String awsAccessId;
+<i class="no-highlight">115</i>&nbsp;    private String awsSecretKey;
+<i class="no-highlight">116</i>&nbsp;    private String awsSecurityToken;
+<i class="no-highlight">117</i>&nbsp;    protected String s3Bucket;
+<i class="no-highlight">118</i>&nbsp;    protected String s3Folder;
+<i class="no-highlight">119</i>&nbsp;    protected String awsAccountIDRedshift;
+<i class="no-highlight">120</i>&nbsp;    protected String iamRoleNameRedshift;
+<i class="no-highlight">121</i>&nbsp;    protected String regionName;
+<i class="no-highlight">122</i>&nbsp;    private String driverClass;
+<i class="no-highlight">123</i>&nbsp;    private List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; jdbcDriverPaths;
+<i class="no-highlight">124</i>&nbsp;    protected String jdbcUrl;
+<i class="no-highlight">125</i>&nbsp;    protected boolean staging;
+<i class="no-highlight">126</i>&nbsp;    // redshift serverless instance
+<i class="no-highlight">127</i>&nbsp;    protected boolean serverless;
+<i class="no-highlight">128</i>&nbsp;
+<i class="no-highlight">129</i>&nbsp;    private String trustStoreURL;
+<i class="no-highlight">130</i>&nbsp;    private String trustStorePassword;
+<i class="no-highlight">131</i>&nbsp;    @Inject
+<i class="no-highlight">132</i>&nbsp;    private URLEncoder urlEncoder;
+<i class="no-highlight">133</i>&nbsp;
+<i class="no-highlight">134</i>&nbsp;    protected List&lt;SnapProperty&gt; defineSslProperties(final List&lt;SnapProperty&gt; connectionProperties,
+<i class="no-highlight">135</i>&nbsp;        final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        connectionProperties.add(propertyBuilder</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            .describe(TRUST_STORE_URL, TRUST_STORE_LABEL, TRUST_STORE_DESC)</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            .fileBrowsing()</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            .build());</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        connectionProperties.add(propertyBuilder</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            .describe(KEY_TRUST_PASSWORD, TRUST_PASSWORD_LABEL, TRUST_PASSWORD_DESC)</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            .expression()</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            .obfuscate()</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            .build());</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        return connectionProperties;</b>
+<i class="no-highlight">146</i>&nbsp;    }
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;    protected void readSslProperties(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        trustStoreURL = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">150</i>&nbsp;            CONNECTION_PROPERTIES_PROP, TRUST_STORE_URL));
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        ExpressionProperty trustStorePasswordExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">153</i>&nbsp;                CONNECTION_PROPERTIES_PROP, KEY_TRUST_PASSWORD));
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        trustStorePassword = trustStorePasswordExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;        if (StringUtils.isBlank(trustStorePassword) &amp;&amp; StringUtils.isNotBlank(trustStoreURL)) {</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                throw new ConfigurationException(PASSWORD_IS_REQUIRED)</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                    .withResolution(PASSWORD_IS_EXPIRED_RES);</b>
+<i class="no-highlight">158</i>&nbsp;        }
+<i class="no-highlight">159</i>&nbsp;    }
+<i class="no-highlight">160</i>&nbsp;
+<i class="no-highlight">161</i>&nbsp;    protected String generateSSLArgs() {
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        List&lt;String&gt; sslArgs = new ArrayList&lt;&gt;(2);</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        if (trustStoreURL != null) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            String trustStore = String.format(&quot;%s=%s&quot;, RedShiftSSLFactory.SSL_TRUSTSTORE_PROP,</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                urlEncoder.validateAndEncodeURI(trustStoreURL));</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;            sslArgs.add(trustStore);</b>
+<i class="no-highlight">167</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        if (StringUtils.isNotBlank(trustStorePassword)) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            String trustStorePwd = String.format(&quot;%s=%s&quot;,</b>
+<i class="no-highlight">170</i>&nbsp;                RedShiftSSLFactory.SSL_KEYSTORE_PASSWORD_PROP,
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                urlEncoder.encodeURI(trustStorePassword));</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;            sslArgs.add(trustStorePwd);</b>
+<i class="no-highlight">173</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        return String.join(&quot;&amp;&quot;, sslArgs);</b>
+<i class="no-highlight">175</i>&nbsp;    }
+<i class="no-highlight">176</i>&nbsp;
+<i class="no-highlight">177</i>&nbsp;    @Override
+<i class="no-highlight">178</i>&nbsp;    protected SnapProperty createHostNameProperty(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        SnapProperty hostName = propertyBuilder.describe(HOSTNAME_PROP, REDSHIFT_HOSTNAME_LABEL,</b>
+<i class="no-highlight">180</i>&nbsp;                REDSHIFT_HOSTNAME_DESCRIPTION)
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.LOW)</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .dataLocationIdentifier(&quot;redshift.hostname&quot;)</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        return hostName;</b>
+<i class="no-highlight">187</i>&nbsp;    }
+<i class="no-highlight">188</i>&nbsp;
+<i class="no-highlight">189</i>&nbsp;    @Override
+<i class="no-highlight">190</i>&nbsp;    protected SnapProperty createPortProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        return propertyBuilder.describe(PORT_PROP, PORT_LABEL, PORT_DESC)</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                .defaultValue(REDSHIFT_DEFAULT_PORT)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                .withMinValue(PORT_MIN_VAL)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                .dataLocationIdentifier(&quot;db.port&quot;)</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                .build();</b>
+<i class="no-highlight">199</i>&nbsp;    }
+<i class="no-highlight">200</i>&nbsp;
+<i class="no-highlight">201</i>&nbsp;    @Override
+<i class="no-highlight">202</i>&nbsp;    protected List&lt;SnapProperty&gt; createUserProperties(List&lt;SnapProperty&gt; connectionProperties,
+<i class="no-highlight">203</i>&nbsp;                                                      PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        connectionProperties.add(propertyBuilder.describe(USERNAME_PROP, USERNAME_LABEL,</b>
+<i class="no-highlight">205</i>&nbsp;                USERNAME_DESCRIPTION)
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.MEDIUM)</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        connectionProperties.add(propertyBuilder.describe(PASSWORD_PROP, PASSWORD_LABEL,</b>
+<i class="no-highlight">210</i>&nbsp;                PASSWORD_DESCRIPTION)
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        return connectionProperties;</b>
+<i class="no-highlight">215</i>&nbsp;    }
+<i class="no-highlight">216</i>&nbsp;
+<i class="no-highlight">217</i>&nbsp;    @Override
+<i class="no-highlight">218</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        SnapProperty driver = propertyBuilder.describe(JDBC_DRIVER_PROP,</b>
+<i class="no-highlight">220</i>&nbsp;                Messages.JDBC_DRIVER_LABEL, Messages.JDBC_DRIVER_DESC)
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                .driverBrowsing()</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        propertyBuilder.describe(JDBC_DRIVER_CLASS_PROP,</b>
+<i class="no-highlight">224</i>&nbsp;                Messages.JDBC_DRIVER_CLASS_LABEL, Messages.JDBC_DRIVER_CLASS_DESC)
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                .defaultValue(DRIVER_CLASS_NAME)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        propertyBuilder.describe(JDBC_DRIVERS_PROP,</b>
+<i class="no-highlight">229</i>&nbsp;                JDBC_DRIVERS_LABEL, JDBC_DRIVERS_DESC)
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                .withEntry(driver)</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        propertyBuilder.describe(JDBC_URL_PROP, Messages.JDBC_URL_LABEL, Messages.JDBC_URL_DESC)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.LOW)</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        super.defineProperties(propertyBuilder);</b>
+<i class="no-highlight">238</i>&nbsp;    }
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;    @Override
+<i class="no-highlight">241</i>&nbsp;    public List&lt;SnapProperty&gt; createAdditionalConnectionProperties(
+<i class="no-highlight">242</i>&nbsp;            List&lt;SnapProperty&gt; connectionProperties, PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        defineAdditionalPropertiesBeforeS3(connectionProperties, propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        PropertyBuilder bucketPropertyBuilder = propertyBuilder</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                .describe(BUCKET_PROP, BUCKET_KEY_LABEL, BUCKET_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.LOW)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                .dataLocationIdentifier(&quot;redshift.s3_bucket&quot;);</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        connectionProperties.add(bucketPropertyBuilder.build());</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        PropertyBuilder folderPropertyBuilder = propertyBuilder.describe(S3_FOLDER_PROP,</b>
+<i class="no-highlight">251</i>&nbsp;                S3_FOLDER_LABEL, S3_FOLDER_DESC)
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.LOW)</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                .dataLocationIdentifier(&quot;redshift.s3_folder&quot;);</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        connectionProperties.add(folderPropertyBuilder.build());</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        defineRegion(propertyBuilder, connectionProperties);</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        defineS3Properties(propertyBuilder, connectionProperties);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        return connectionProperties;</b>
+<i class="no-highlight">259</i>&nbsp;    }
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;    @Override
+<i class="no-highlight">262</i>&nbsp;    protected SnapProperty createDatabaseNameProperty(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        PropertyBuilder databaseNamePropertyBuilder = propertyBuilder.describe(DATABASE_NAME_PROP,</b>
+<i class="no-highlight">264</i>&nbsp;                DATABASE_NAME_LABEL, DATABASE_NAME_DESC);
+<i class="no-highlight">265</i>&nbsp;
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        databaseNamePropertyBuilder = databaseNamePropertyBuilder.expression();</b>
+<i class="no-highlight">267</i>&nbsp;
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        if (isDatabaseNameRequired()) {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            databaseNamePropertyBuilder = databaseNamePropertyBuilder.required();</b>
+<i class="no-highlight">270</i>&nbsp;        }
+<i class="no-highlight">271</i>&nbsp;
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        databaseNamePropertyBuilder = databaseNamePropertyBuilder</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.LOW)</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                .dataLocationIdentifier(&quot;db.database_name&quot;);</b>
+<i class="no-highlight">275</i>&nbsp;
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        if (isUserProvidedJdbcUrlPropertyNeeded()) {</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            databaseNamePropertyBuilder = databaseNamePropertyBuilder</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                    .enableIf(CHECK_JDBC_URL_SOURCE_SNAP_GENERATED);</b>
+<i class="no-highlight">279</i>&nbsp;        }
+<i class="no-highlight">280</i>&nbsp;
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        return databaseNamePropertyBuilder.build();</b>
+<i class="no-highlight">282</i>&nbsp;    }
+<i class="no-highlight">283</i>&nbsp;
+<i class="no-highlight">284</i>&nbsp;    @Override
+<i class="no-highlight">285</i>&nbsp;    protected void createAdvancedProperties(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        SnapProperty autoCommit = builder.describe(AUTO_COMMIT_PROP, AUTO_COMMIT_LABEL,</b>
+<i class="no-highlight">287</i>&nbsp;                AUTO_COMMIT_DESCRIPTION)
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                .defaultValue(SimpleSqlSnap.AUTO_COMMIT_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        SnapProperty evictConnectionOnClose = createEvictConnectionOnCloseProperty(builder).build();</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        SnapProperty batchSize = builder.describe(BATCH_SIZE_PROP, BATCH_SIZE_LABEL,</b>
+<i class="no-highlight">293</i>&nbsp;                BATCH_SIZE_DESC)
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                .defaultValue(SimpleSqlSnap.BATCH_SIZE_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        SnapProperty fetchSize = builder.describe(FETCH_SIZE_PROP, FETCH_SIZE_LABEL,</b>
+<i class="no-highlight">300</i>&nbsp;                FETCH_SIZE_DESC)
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                .defaultValue(FETCH_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        SnapProperty minPoolSize = builder.describe(MIN_POOL_SIZE_PROP, MIN_POOL_SIZE_LABEL,</b>
+<i class="no-highlight">307</i>&nbsp;                MIN_POOL_SIZE_DESCRIPTION)
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                .defaultValue(SimpleSqlSnap.MIN_POOL_SIZE_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                .withMinValue(NON_NEGATIVE_INT)</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                .hide()</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        SnapProperty maxPoolSize = builder.describe(MAX_POOL_SIZE_PROP, MAX_POOL_SIZE_LABEL,</b>
+<i class="no-highlight">315</i>&nbsp;                MAX_POOL_SIZE_DESCRIPTION)
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                .defaultValue(SimpleSqlSnap.MAX_POOL_SIZE_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                .withMinValue(NON_NEGATIVE_INT)</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                .build();</b>
+<i class="no-highlight">322</i>&nbsp;        // Hide it because there is no corresponding parameter in HikariCP.
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        SnapProperty acquireIncrement = builder.describe(ACQUIRE_INCREMENT_PROP,</b>
+<i class="no-highlight">324</i>&nbsp;                ACQUIRE_INCREMENT_LABEL, ACQUIRE_INCREMENT_DESC)
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                .defaultValue(SimpleSqlSnap.ACQUIRE_INCREMENT_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;                .withMinValue(NON_NEGATIVE_INT)</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                .hide()</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;        SnapProperty maxIdleTime = builder.describe(MAX_IDLE_TIME_PROP, MAX_IDLE_TIME_LABEL,</b>
+<i class="no-highlight">333</i>&nbsp;                MAX_IDLE_TIME_DESC)
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                .defaultValue(SimpleSqlSnap.MAX_IDLE_TIME_MINUTE_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                .withMinValue(NON_NEGATIVE_INT)</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;        SnapProperty idleConnectionTestPeriod = builder.describe(IDLE_CONNECTION_TEST_PERIOD_PROP,</b>
+<i class="no-highlight">341</i>&nbsp;                IDLE_CONNECTION_TEST_PERIOD_LABEL, IDLE_CONNECTION_TEST_PERIOD_DESC)
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                .defaultValue(IDLE_CONNECTION_TEST_PERIOD_IN_MIN_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                .withMinValue(NON_NEGATIVE_INT)</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        SnapProperty checkoutTimeout = builder.describe(CHECKOUT_TIMEOUT_PROP,</b>
+<i class="no-highlight">349</i>&nbsp;                CHECKOUT_TIMEOUT_LABEL, CHECKOUT_TIMEOUT_DESC)
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                .defaultValue(SimpleSqlSnap.CHECKOUT_TIMEOUT_MILLISEC_DEFAULT)</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                .withMinValue(NON_NEGATIVE_INT)</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        SnapProperty jdbcPropertyName = builder.describe(URL_PROPERTY_NAME_PROP,</b>
+<i class="no-highlight">357</i>&nbsp;                URL_PROPERTY_NAME_LABEL, URL_PROPERTY_NAME_DESC)
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        SnapProperty jdbcPropertyValue = builder.describe(URL_PROPERTY_VALUE_PROP,</b>
+<i class="no-highlight">361</i>&nbsp;                URL_PROPERTY_VALUE_LABEL, URL_PROPERTY_VALUE_DESC)
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                .sensitivity(SnapProperty.SensitivityLevel.LOW)</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                .build();</b>
+<i class="no-highlight">365</i>&nbsp;        // Hide it because there is no corresponding parameter in HikariCP.
+<b class="nc"><i class="no-highlight">366</i>&nbsp;        SnapProperty retryAttempts = builder.describe(RETRY_ATTEMPTS_PROP, RETRY_ATTEMPTS_LABEL,</b>
+<i class="no-highlight">367</i>&nbsp;                RETRY_ATTEMPTS_DESC)
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                .withMinValue(BigInteger.ZERO.intValue())</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                .defaultValue(DEFAULT_RETRY_ATTEMPTS)</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                .hide()</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;        SnapProperty urlProperties = builder.describe(URL_PROPERTIES_PROP,</b>
+<i class="no-highlight">374</i>&nbsp;                URL_PROPERTIES_LABEL, URL_PROPERTIES_DESC)
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                .withEntry(jdbcPropertyName)</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                .withEntry(jdbcPropertyValue)</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                .defaultValue(createURLPropertyDefaults())</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;        builder = builder.describe(ADVANCED_PROPERTIES_PROP, ADVANCED_PROPERTIES_LABEL,</b>
+<i class="no-highlight">381</i>&nbsp;                ADVANCED_PROPERTIES_DESCRIPTION)
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                .withEntry(autoCommit)</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                .withEntry(evictConnectionOnClose)</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                .withEntry(batchSize)</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                .withEntry(fetchSize)</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                .withEntry(minPoolSize)</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                .withEntry(maxPoolSize)</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                .withEntry(acquireIncrement)</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                .withEntry(maxIdleTime)</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                .withEntry(idleConnectionTestPeriod)</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                .withEntry(checkoutTimeout)</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                .withEntry(retryAttempts)</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                .withEntry(urlProperties);</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;        builder.add();</b>
+<i class="no-highlight">396</i>&nbsp;    }
+<i class="no-highlight">397</i>&nbsp;
+<i class="no-highlight">398</i>&nbsp;    protected void defineAdditionalPropertiesBeforeS3(List&lt;SnapProperty&gt; connectionProperties,
+<i class="no-highlight">399</i>&nbsp;            PropertyBuilder propertyBuilder) {
+<i class="no-highlight">400</i>&nbsp;        // NO OP
+<i class="no-highlight">401</i>&nbsp;    }
+<i class="no-highlight">402</i>&nbsp;
+<i class="no-highlight">403</i>&nbsp;    protected void defineRegion(final PropertyBuilder propertyBuilder,
+<i class="no-highlight">404</i>&nbsp;            List&lt;SnapProperty&gt; connectionProperties) {
+<i class="no-highlight">405</i>&nbsp;        // NO OP
+<i class="no-highlight">406</i>&nbsp;    }
+<i class="no-highlight">407</i>&nbsp;
+<i class="no-highlight">408</i>&nbsp;    /**
+<i class="no-highlight">409</i>&nbsp;     * Validates the account config given by the user
+<i class="no-highlight">410</i>&nbsp;     *
+<i class="no-highlight">411</i>&nbsp;     */
+<i class="no-highlight">412</i>&nbsp;    public void validateAccountSetup() {
+<i class="no-highlight">413</i>&nbsp;        AmazonS3Client s3Client;
+<i class="no-highlight">414</i>&nbsp;
+<b class="nc"><i class="no-highlight">415</i>&nbsp;        if ((StringUtils.isBlank(awsAccessId) || NULL.equalsIgnoreCase(awsAccessId)) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                (StringUtils.isBlank(awsSecretKey) || NULL.equalsIgnoreCase(awsSecretKey))) {</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;            String ec2CredentialForS3 = System.getProperty(IAM_CREDENTIAL_FOR_S3);</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            if (Boolean.parseBoolean(ec2CredentialForS3)) {</b>
+<i class="no-highlight">419</i>&nbsp;                // let AWS SDK get S3 credential from EC2 metadata
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                s3Client = new AmazonS3Client(new InstanceProfileCredentialsProvider(),</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                        UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">422</i>&nbsp;            } else {
+<i class="no-highlight">423</i>&nbsp;                return;
+<i class="no-highlight">424</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">425</i>&nbsp;        } else {</b>
+<i class="no-highlight">426</i>&nbsp;            AWSCredentials awsCredentials;
+<b class="nc"><i class="no-highlight">427</i>&nbsp;            if (StringUtils.isBlank(awsSecurityToken) || NULL.equalsIgnoreCase(awsSecurityToken)) {</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                awsCredentials = new BasicAWSCredentials(awsAccessId, awsSecretKey);</b>
+<i class="no-highlight">429</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                awsCredentials = new BasicSessionCredentials(awsAccessId,</b>
+<i class="no-highlight">431</i>&nbsp;                        awsSecretKey, awsSecurityToken);
+<i class="no-highlight">432</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">433</i>&nbsp;            s3Client = new AmazonS3Client(awsCredentials, UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">434</i>&nbsp;        }
+<i class="no-highlight">435</i>&nbsp;
+<i class="no-highlight">436</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">437</i>&nbsp;            s3Bucket = JfsUtils.updateS3RegionInfo(s3Bucket, s3Client);</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;            if (!StringUtils.isBlank(s3Bucket)) {</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;                if (!s3Client.doesBucketExist(s3Bucket)) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                    throw new ExecutionException(ERROR_BUCKET_NOT_EXISTS)</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                            .withReason(ERROR_BUCKET_EXPECTED)</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                            .withResolution(ENSURE_BUCKET_EXISTS);</b>
+<i class="no-highlight">443</i>&nbsp;                }
+<i class="no-highlight">444</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">445</i>&nbsp;        } catch (AmazonClientException ae) {</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;            throw new ExecutionException(ae, ERROR_S3_ACCESS)</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                    .withReason(ae.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                    .withResolution(ERROR_S3_CREDS);</b>
+<i class="no-highlight">449</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">450</i>&nbsp;            s3Client.shutdown();</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;        }</b>
+<i class="no-highlight">452</i>&nbsp;    }
+<i class="no-highlight">453</i>&nbsp;
+<i class="no-highlight">454</i>&nbsp;    /**
+<i class="no-highlight">455</i>&nbsp;     * Setter for {@param staging}
+<i class="no-highlight">456</i>&nbsp;     * @param value
+<i class="no-highlight">457</i>&nbsp;     */
+<i class="no-highlight">458</i>&nbsp;    public void setStaging(boolean value) {
+<b class="nc"><i class="no-highlight">459</i>&nbsp;        staging = value;</b>
+<i class="no-highlight">460</i>&nbsp;    }
+<i class="no-highlight">461</i>&nbsp;
+<i class="no-highlight">462</i>&nbsp;    protected void defineS3Properties(final PropertyBuilder propertyBuilder,
+<i class="no-highlight">463</i>&nbsp;            List&lt;SnapProperty&gt; connectionProperties) {
+<i class="no-highlight">464</i>&nbsp;        // define Access Key ID, and Access Key Secret
+<b class="nc"><i class="no-highlight">465</i>&nbsp;        connectionProperties.add(</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                propertyBuilder.describe(ACCESS_KEY_ID_PROP,</b>
+<i class="no-highlight">467</i>&nbsp;                        ACCESS_KEY_ID_LABEL, ACCESS_KEY_ID_DESC)
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                        .obfuscate()</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                        .expression()</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                        .build());</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        connectionProperties.add(</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                propertyBuilder.describe(SECRET_KEY_PROP, SECRET_KEY_LABEL, SECRET_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                        .obfuscate()</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                        .expression()</b>
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                        .build());</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;        connectionProperties.add(</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;                propertyBuilder.describe(SECURITY_TOKEN_PROP, SECURITY_TOKEN_LABEL,</b>
+<i class="no-highlight">478</i>&nbsp;                        SECURITY_TOKEN_DESC)
+<b class="nc"><i class="no-highlight">479</i>&nbsp;                        .obfuscate()</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                        .expression()</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                        .build());</b>
+<i class="no-highlight">482</i>&nbsp;    }
+<i class="no-highlight">483</i>&nbsp;
+<i class="no-highlight">484</i>&nbsp;    @Override
+<i class="no-highlight">485</i>&nbsp;    protected String getDefaultJDBCDriver() {
+<b class="nc"><i class="no-highlight">486</i>&nbsp;        return null;</b>
+<i class="no-highlight">487</i>&nbsp;    }
+<i class="no-highlight">488</i>&nbsp;
+<i class="no-highlight">489</i>&nbsp;    @Override
+<i class="no-highlight">490</i>&nbsp;    protected String getDefaultJDBCClass() {
+<b class="nc"><i class="no-highlight">491</i>&nbsp;        return null;</b>
+<i class="no-highlight">492</i>&nbsp;    }
+<i class="no-highlight">493</i>&nbsp;
+<i class="no-highlight">494</i>&nbsp;    @Override
+<i class="no-highlight">495</i>&nbsp;    public void loadDriver(final PropertyValues propertyValues,
+<i class="no-highlight">496</i>&nbsp;            final JdbcDriverManager jdbcDriverManager) {
+<b class="nc"><i class="no-highlight">497</i>&nbsp;        loadDriverHelper(jdbcDriverManager, driverClass, jdbcDriverPaths);</b>
+<i class="no-highlight">498</i>&nbsp;    }
+<i class="no-highlight">499</i>&nbsp;
+<i class="no-highlight">500</i>&nbsp;    @Override
+<i class="no-highlight">501</i>&nbsp;    public void createOtherProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">502</i>&nbsp;        buildIAMRolePropertiesForRedshift(propertyBuilder, true);</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;        buildIAMRolePropertiesForBucket(propertyBuilder);</b>
+<i class="no-highlight">504</i>&nbsp;    }
+<i class="no-highlight">505</i>&nbsp;
+<i class="no-highlight">506</i>&nbsp;    /**
+<i class="no-highlight">507</i>&nbsp;     * Defines additional properties related to IAM role to be used for the bulk load operation
+<i class="no-highlight">508</i>&nbsp;     *
+<i class="no-highlight">509</i>&nbsp;     * @param propertyBuilder
+<i class="no-highlight">510</i>&nbsp;     * @param region
+<i class="no-highlight">511</i>&nbsp;     */
+<i class="no-highlight">512</i>&nbsp;    protected void buildIAMRolePropertiesForRedshift(final PropertyBuilder propertyBuilder,
+<i class="no-highlight">513</i>&nbsp;            boolean region) {
+<b class="nc"><i class="no-highlight">514</i>&nbsp;        List&lt;SnapProperty&gt; iamPropertiesRedshift = Lists.newArrayListWithCapacity(3);</b>
+<i class="no-highlight">515</i>&nbsp;
+<i class="no-highlight">516</i>&nbsp;        // builds AWS Account ID property
+<b class="nc"><i class="no-highlight">517</i>&nbsp;        iamPropertiesRedshift.add(propertyBuilder.describe(AWS_ACCOUNT_ID_REDSHIFT_PROP,</b>
+<i class="no-highlight">518</i>&nbsp;                AWS_ACCOUNT_ID_REDSHIFT_LABEL, AWS_ACCOUNT_ID_REDSHIFT_DESC)
+<b class="nc"><i class="no-highlight">519</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;                .build());</b>
+<i class="no-highlight">521</i>&nbsp;        // builds IAM role name property
+<b class="nc"><i class="no-highlight">522</i>&nbsp;        iamPropertiesRedshift.add(propertyBuilder.describe(IAM_ROLE_NAME_REDSHIFT_PROP,</b>
+<i class="no-highlight">523</i>&nbsp;                IAM_ROLE_NAME_REDSHIFT_LABEL, IAM_ROLE_NAME_REDSHIFT_DESC)
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                .build());</b>
+<b class="nc"><i class="no-highlight">526</i>&nbsp;        if (region) {</b>
+<i class="no-highlight">527</i>&nbsp;            // builds region name property
+<b class="nc"><i class="no-highlight">528</i>&nbsp;            iamPropertiesRedshift.add(propertyBuilder.describe(REGION_PROP, REGION_LABEL,</b>
+<i class="no-highlight">529</i>&nbsp;                    REGION_DESC)
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                    .expression()</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                    .build());</b>
+<i class="no-highlight">532</i>&nbsp;        }
+<i class="no-highlight">533</i>&nbsp;        // add the above properties as a group &quot;IAM properties&quot;
+<b class="nc"><i class="no-highlight">534</i>&nbsp;        PropertyBuilder iamPropertiesBuilder = propertyBuilder</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                .describe(IAM_PROPERTIES_REDSHIFT_PROP, IAM_PROPERTIES_REDSHIFT_LABEL,</b>
+<i class="no-highlight">536</i>&nbsp;                        IAM_PROPERTIES_REDSHIFT_DESC)
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                .type(SnapType.COMPOSITE);</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;        for (SnapProperty iamProperty : iamPropertiesRedshift) {</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;            iamPropertiesBuilder = iamPropertiesBuilder.withEntry(iamProperty);</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;        iamPropertiesBuilder.add();</b>
+<i class="no-highlight">542</i>&nbsp;    }
+<i class="no-highlight">543</i>&nbsp;
+<i class="no-highlight">544</i>&nbsp;    protected void buildIAMRolePropertiesForBucket(final PropertyBuilder propertyBuilder) {
+<i class="no-highlight">545</i>&nbsp;        // NO OP
+<i class="no-highlight">546</i>&nbsp;    }
+<i class="no-highlight">547</i>&nbsp;
+<i class="no-highlight">548</i>&nbsp;    @Override
+<i class="no-highlight">549</i>&nbsp;    protected SQLDialect getSQLDialect(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">550</i>&nbsp;        return SQLDialect.POSTGRES;</b>
+<i class="no-highlight">551</i>&nbsp;    }
+<i class="no-highlight">552</i>&nbsp;
+<i class="no-highlight">553</i>&nbsp;    @Override
+<i class="no-highlight">554</i>&nbsp;    protected String createDatabaseUrl(final String hostname, final BigInteger port,
+<i class="no-highlight">555</i>&nbsp;            final String databaseName) {
+<b class="nc"><i class="no-highlight">556</i>&nbsp;        if (StringUtils.isBlank(jdbcUrl)) {</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;            String url = String.format(JDBC_URL_FMT, JDBC_PREFIX, hostname, port, databaseName);</b>
+<i class="no-highlight">558</i>&nbsp;            // Setting OpenSourceSubProtocolOverride property to true prevents Amazon Redshift
+<i class="no-highlight">559</i>&nbsp;            // driver from overriding the postgres driver, it must be added to the url string so
+<i class="no-highlight">560</i>&nbsp;            // so that connection pool can pick the right driver during initializing.
+<b class="nc"><i class="no-highlight">561</i>&nbsp;            String overrideRedshiftDriverProp = databaseConfig.getUrlProperties().getProperty</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;                    (OPEN_SOURCE_SUB_PROTOCOL_OVERRIDE);</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;            if (overrideRedshiftDriverProp != null) {</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;                url = String.format(OVERRIDE_FMT, url, overrideRedshiftDriverProp);</b>
+<i class="no-highlight">565</i>&nbsp;            } else {
+<i class="no-highlight">566</i>&nbsp;                //Enable Postgresql driver when using postgresql class.
+<b class="nc"><i class="no-highlight">567</i>&nbsp;                if (POSTGRESQL_DRIVER_CLASS_NAME.equals(driverClass)) {</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                    url = String.format(OVERRIDE_FMT, url, true);</b>
+<i class="no-highlight">569</i>&nbsp;                } else {
+<i class="no-highlight">570</i>&nbsp;                    // Enable Amazon redshift driver by default.
+<b class="nc"><i class="no-highlight">571</i>&nbsp;                    url = String.format(OVERRIDE_FMT, url, false);</b>
+<i class="no-highlight">572</i>&nbsp;                }
+<i class="no-highlight">573</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">574</i>&nbsp;            return url;</b>
+<i class="no-highlight">575</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">576</i>&nbsp;            return jdbcUrl;</b>
+<i class="no-highlight">577</i>&nbsp;        }
+<i class="no-highlight">578</i>&nbsp;    }
+<i class="no-highlight">579</i>&nbsp;
+<i class="no-highlight">580</i>&nbsp;    @Override
+<i class="no-highlight">581</i>&nbsp;    public void configure(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">582</i>&nbsp;        ExpressionProperty driverClassExpr = propertyValues.getAsExpression(JDBC_DRIVER_CLASS_PROP);</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;        driverClass = driverClassExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;        if (StringUtils.isBlank(driverClass)) {</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;            driverClass = DRIVER_CLASS_NAME;</b>
+<i class="no-highlight">586</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">587</i>&nbsp;        if (POSTGRESQL_DRIVER_CLASS_NAME.equals(driverClass)) {</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;            JDBC_PREFIX = &quot;jdbc:postgresql://&quot;;</b>
+<i class="no-highlight">589</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">590</i>&nbsp;        ExpressionProperty jdbcUrlExpr = propertyValues.getAsExpression(JDBC_URL_PROP);</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;        jdbcUrl = jdbcUrlExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">592</i>&nbsp;        jdbcDriverPaths = propertyValues.get(JDBC_DRIVERS_PROP);</b>
+<b class="nc"><i class="no-highlight">593</i>&nbsp;        ExpressionProperty usernameExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">595</i>&nbsp;                CONNECTION_PROPERTIES_PROP, USERNAME_PROP));
+<b class="nc"><i class="no-highlight">596</i>&nbsp;        String username = usernameExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;        ExpressionProperty passwordExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">599</i>&nbsp;                CONNECTION_PROPERTIES_PROP, PASSWORD_PROP));
+<b class="nc"><i class="no-highlight">600</i>&nbsp;        String password = passwordExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;        ExpressionProperty hostnameExpr = propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;                getDatabasePropertyValuePath(</b>
+<i class="no-highlight">603</i>&nbsp;                CONNECTION_PROPERTIES_PROP, HOSTNAME_PROP));
+<b class="nc"><i class="no-highlight">604</i>&nbsp;        String hostname = hostnameExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;        BigInteger port = getIntegerPropertyValue(propertyValues, CONNECTION_PROPERTIES_PROP,</b>
+<i class="no-highlight">606</i>&nbsp;                PORT_PROP);
+<b class="nc"><i class="no-highlight">607</i>&nbsp;        ExpressionProperty databaseNameExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">608</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">609</i>&nbsp;                CONNECTION_PROPERTIES_PROP, DATABASE_NAME_PROP));
+<b class="nc"><i class="no-highlight">610</i>&nbsp;        String databaseName = databaseNameExpr.eval(null);</b>
+<i class="no-highlight">611</i>&nbsp;
+<b class="nc"><i class="no-highlight">612</i>&nbsp;        String jdbcSource = propertyValues.get(JDBC_URL_SOURCE_PROP);</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;        String customJdbcUrl = readAndValidateConfig(hostname, port, databaseName, jdbcSource,</b>
+<i class="no-highlight">614</i>&nbsp;                propertyValues);
+<i class="no-highlight">615</i>&nbsp;
+<b class="nc"><i class="no-highlight">616</i>&nbsp;        if (port != null) {</b>
+<b class="nc"><i class="no-highlight">617</i>&nbsp;            portNumber = port.intValue();</b>
+<i class="no-highlight">618</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">619</i>&nbsp;        BigInteger batchSize = getIntegerPropertyValue(propertyValues, ADVANCED_PROPERTIES_PROP,</b>
+<i class="no-highlight">620</i>&nbsp;                BATCH_SIZE_PROP);
+<b class="nc"><i class="no-highlight">621</i>&nbsp;        BigInteger fetchSize = getIntegerPropertyValue(propertyValues, ADVANCED_PROPERTIES_PROP,</b>
+<i class="no-highlight">622</i>&nbsp;                FETCH_SIZE_PROP);
+<b class="nc"><i class="no-highlight">623</i>&nbsp;        BigInteger maxPoolSize = getIntegerPropertyValue(propertyValues, ADVANCED_PROPERTIES_PROP,</b>
+<i class="no-highlight">624</i>&nbsp;                MAX_POOL_SIZE_PROP);
+<b class="nc"><i class="no-highlight">625</i>&nbsp;        BigInteger acquireIncrement = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">626</i>&nbsp;                ADVANCED_PROPERTIES_PROP, ACQUIRE_INCREMENT_PROP));
+<b class="nc"><i class="no-highlight">627</i>&nbsp;        BigInteger maxIdleTime = getIntegerPropertyValue(propertyValues, ADVANCED_PROPERTIES_PROP,</b>
+<i class="no-highlight">628</i>&nbsp;                MAX_IDLE_TIME_PROP);
+<b class="nc"><i class="no-highlight">629</i>&nbsp;        BigInteger idleTimeTestPeriod = getIntegerPropertyValue(</b>
+<i class="no-highlight">630</i>&nbsp;                propertyValues, ADVANCED_PROPERTIES_PROP,
+<i class="no-highlight">631</i>&nbsp;                IDLE_CONNECTION_TEST_PERIOD_PROP);
+<b class="nc"><i class="no-highlight">632</i>&nbsp;        BigInteger checkoutTimeout = getIntegerPropertyValue(</b>
+<i class="no-highlight">633</i>&nbsp;                propertyValues, ADVANCED_PROPERTIES_PROP,
+<i class="no-highlight">634</i>&nbsp;                CHECKOUT_TIMEOUT_PROP);
+<b class="nc"><i class="no-highlight">635</i>&nbsp;        BigInteger retryAttempts = propertyValues.getInt(getDatabasePropertyValuePath</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;                (ADVANCED_PROPERTIES_PROP, RETRY_ATTEMPTS_PROP));</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;        Boolean autoCommit = propertyValues.get(getDatabasePropertyValuePath</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;                (ADVANCED_PROPERTIES_PROP, AUTO_COMMIT_PROP));</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;        Boolean evictConnectionOnClose = propertyValues.getBoolean(getDatabasePropertyValuePath</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;                (ADVANCED_PROPERTIES_PROP, EVICT_CONNECTION_ON_CLOSE_PROP), false);</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; jdbcProperties = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">642</i>&nbsp;                ADVANCED_PROPERTIES_PROP, URL_PROPERTIES_PROP));
+<i class="no-highlight">643</i>&nbsp;
+<b class="nc"><i class="no-highlight">644</i>&nbsp;        HadoopConfig hadoopConfig = hadoopConfigUI.getHadoopConfig(propertyValues);</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;        HiveConfig hiveConfig = hiveConfigUI.getHiveConfig(propertyValues);</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;        KerberosConfig kerberosConfig =</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                kerberosConfigUI.getKerberosConfig(propertyValues, hadoopConfig);</b>
+<b class="nc"><i class="no-highlight">648</i>&nbsp;        SSLConfig sslConfig = sslConfigUI.getSSLConfig(propertyValues, hadoopConfig);</b>
+<i class="no-highlight">649</i>&nbsp;
+<b class="nc"><i class="no-highlight">650</i>&nbsp;        Properties urlProperties = createUrlProperties(jdbcProperties);</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;        SQLDialect dialect = getSQLDialect(propertyValues);</b>
+<b class="nc"><i class="no-highlight">652</i>&nbsp;        fetchSize = normalizeFetchSize(fetchSize);</b>
+<b class="nc"><i class="no-highlight">653</i>&nbsp;        databaseConfig = createDatabaseConfig(propertyValues, username, password, null,</b>
+<b class="nc"><i class="no-highlight">654</i>&nbsp;                batchSize.intValue(),</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;                fetchSize.intValue(), SimpleSqlSnap.MIN_POOL_SIZE_DEFAULT, maxPoolSize.intValue(),</b>
+<b class="nc"><i class="no-highlight">656</i>&nbsp;                acquireIncrement.intValue(), maxIdleTime.intValue(), checkoutTimeout.intValue(),</b>
+<b class="nc"><i class="no-highlight">657</i>&nbsp;                retryAttempts.intValue(), dialect, idleTimeTestPeriod.intValue(), urlProperties,</b>
+<b class="nc"><i class="no-highlight">658</i>&nbsp;                autoCommit, databaseName, hadoopConfig, hiveConfig, kerberosConfig, sslConfig);</b>
+<b class="nc"><i class="no-highlight">659</i>&nbsp;        setupAccount(propertyValues);</b>
+<b class="nc"><i class="no-highlight">660</i>&nbsp;        databaseConfig.setJdbcUrl(getJdbcUrlToBeUsed(hostname, port, databaseName, customJdbcUrl,</b>
+<i class="no-highlight">661</i>&nbsp;                jdbcSource));
+<b class="nc"><i class="no-highlight">662</i>&nbsp;        databaseConfig.setHostName(hostname);</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;        databaseConfig.setPort(port);</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;        databaseConfig.setEvictConnectionOnClose(evictConnectionOnClose);</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;        this.serverless = isRedshiftServerless(databaseConfig);</b>
+<i class="no-highlight">666</i>&nbsp;    }
+<i class="no-highlight">667</i>&nbsp;
+<i class="no-highlight">668</i>&nbsp;    private boolean isRedshiftServerless(DatabaseConfig databaseConfig) {
+<b class="nc"><i class="no-highlight">669</i>&nbsp;        String jdbcUrl = databaseConfig.getJdbcUrl();</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;        if (jdbcUrl != null &amp;&amp; jdbcUrl.contains(REDSHIFT_SERVERLESS_IDENTIFER)) {</b>
+<b class="nc"><i class="no-highlight">671</i>&nbsp;            return true;</b>
+<i class="no-highlight">672</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">673</i>&nbsp;        return false;</b>
+<i class="no-highlight">674</i>&nbsp;    }
+<i class="no-highlight">675</i>&nbsp;
+<i class="no-highlight">676</i>&nbsp;    public boolean isServerless() {
+<b class="nc"><i class="no-highlight">677</i>&nbsp;        return serverless;</b>
+<i class="no-highlight">678</i>&nbsp;    }
+<i class="no-highlight">679</i>&nbsp;
+<i class="no-highlight">680</i>&nbsp;    @Override
+<i class="no-highlight">681</i>&nbsp;    protected DatabaseConfig createDatabaseConfig(final PropertyValues propertyValues,
+<i class="no-highlight">682</i>&nbsp;            final String username, final String password, final String jdbcUrl,
+<i class="no-highlight">683</i>&nbsp;            final int batchSize, final int fetchSize, final int minimumIdle,
+<i class="no-highlight">684</i>&nbsp;            final int maximumPoolSize, final int acquireIncrement, final int maxLifetime,
+<i class="no-highlight">685</i>&nbsp;            final int connectionTimeout, final int retryAttempts, final SQLDialect dialect,
+<i class="no-highlight">686</i>&nbsp;            final int idleTimeout, final Properties urlProperties, final boolean autoCommit,
+<i class="no-highlight">687</i>&nbsp;            final String databaseName, final HadoopConfig hadoopConfig,
+<i class="no-highlight">688</i>&nbsp;            final HiveConfig hiveConfig, final KerberosConfig kerberosConfig,
+<i class="no-highlight">689</i>&nbsp;            final SSLConfig sslConfig) {
+<b class="nc"><i class="no-highlight">690</i>&nbsp;        return new DriverUploadDatabaseConfig(username, password,</b>
+<i class="no-highlight">691</i>&nbsp;                jdbcUrl, batchSize, fetchSize, minimumIdle, maximumPoolSize, acquireIncrement,
+<i class="no-highlight">692</i>&nbsp;                maxLifetime, connectionTimeout, retryAttempts, dialect, idleTimeout,
+<i class="no-highlight">693</i>&nbsp;                urlProperties, autoCommit, databaseName, hadoopConfig, hiveConfig,
+<i class="no-highlight">694</i>&nbsp;                kerberosConfig, sslConfig, jdbcDriverPaths);
+<i class="no-highlight">695</i>&nbsp;    }
+<i class="no-highlight">696</i>&nbsp;
+<i class="no-highlight">697</i>&nbsp;    @Override
+<i class="no-highlight">698</i>&nbsp;    public void setupAccount(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">699</i>&nbsp;        databaseConfig.setDriver(driverClass);</b>
+<b class="nc"><i class="no-highlight">700</i>&nbsp;        databaseConfig.setJdbcUrl(jdbcUrl);</b>
+<b class="nc"><i class="no-highlight">701</i>&nbsp;        readS3Properties(propertyValues);</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;        ExpressionProperty s3BucketExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">704</i>&nbsp;                CONNECTION_PROPERTIES_PROP, BUCKET_PROP));
+<b class="nc"><i class="no-highlight">705</i>&nbsp;        s3Bucket = s3BucketExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;        ExpressionProperty s3FolderExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">708</i>&nbsp;                CONNECTION_PROPERTIES_PROP, S3_FOLDER_PROP));
+<b class="nc"><i class="no-highlight">709</i>&nbsp;        s3Folder = s3FolderExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">710</i>&nbsp;        if (StringUtils.isBlank(s3Bucket)) {</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;            s3Bucket = StringUtils.EMPTY;</b>
+<i class="no-highlight">712</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">713</i>&nbsp;        if (StringUtils.isBlank(s3Folder)) {</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;            s3Folder = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">715</i>&nbsp;        } else if (!s3Folder.endsWith(URL_SEPARATOR)) {</b>
+<b class="nc"><i class="no-highlight">716</i>&nbsp;            s3Folder.concat(URL_SEPARATOR);</b>
+<i class="no-highlight">717</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">718</i>&nbsp;        readIAMRolePropertiesForRedshift(propertyValues, true);</b>
+<b class="nc"><i class="no-highlight">719</i>&nbsp;        readRegion(propertyValues);</b>
+<b class="nc"><i class="no-highlight">720</i>&nbsp;        readIAMRolePropertiesForBucket(propertyValues);</b>
+<b class="nc"><i class="no-highlight">721</i>&nbsp;        databaseConfig.setJdbcOperations(JdbcOperations.REDSHIFT);</b>
+<i class="no-highlight">722</i>&nbsp;    }
+<i class="no-highlight">723</i>&nbsp;
+<i class="no-highlight">724</i>&nbsp;    protected void readS3Properties(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">725</i>&nbsp;        ExpressionProperty awsAccessIdExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">727</i>&nbsp;                CONNECTION_PROPERTIES_PROP, ACCESS_KEY_ID_PROP));
+<b class="nc"><i class="no-highlight">728</i>&nbsp;        awsAccessId = awsAccessIdExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">729</i>&nbsp;        ExpressionProperty awsSecretKeyExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">730</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">731</i>&nbsp;                CONNECTION_PROPERTIES_PROP, SECRET_KEY_PROP));
+<b class="nc"><i class="no-highlight">732</i>&nbsp;        awsSecretKey = awsSecretKeyExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">733</i>&nbsp;        ExpressionProperty awsSecurityTokenExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">734</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">735</i>&nbsp;                        CONNECTION_PROPERTIES_PROP, SECURITY_TOKEN_PROP));
+<b class="nc"><i class="no-highlight">736</i>&nbsp;        awsSecurityToken = awsSecurityTokenExpr.eval(null);</b>
+<i class="no-highlight">737</i>&nbsp;    }
+<i class="no-highlight">738</i>&nbsp;
+<i class="no-highlight">739</i>&nbsp;    protected void readRegion(final PropertyValues propertyValues) {
+<i class="no-highlight">740</i>&nbsp;        // NO OP
+<i class="no-highlight">741</i>&nbsp;    }
+<i class="no-highlight">742</i>&nbsp;
+<i class="no-highlight">743</i>&nbsp;    protected void readIAMRolePropertiesForBucket(final PropertyValues propertyValues) {
+<i class="no-highlight">744</i>&nbsp;        // NO OP
+<i class="no-highlight">745</i>&nbsp;    }
+<i class="no-highlight">746</i>&nbsp;
+<i class="no-highlight">747</i>&nbsp;    /**
+<i class="no-highlight">748</i>&nbsp;     * Reads additional properties related to IAM role to be used for the bulk load operation
+<i class="no-highlight">749</i>&nbsp;     *
+<i class="no-highlight">750</i>&nbsp;     * @param propertyValues
+<i class="no-highlight">751</i>&nbsp;     */
+<i class="no-highlight">752</i>&nbsp;    protected void readIAMRolePropertiesForRedshift(final PropertyValues propertyValues,
+<i class="no-highlight">753</i>&nbsp;            boolean region) {
+<b class="nc"><i class="no-highlight">754</i>&nbsp;        ExpressionProperty awsAccountIDRedshiftExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">755</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">756</i>&nbsp;                IAM_PROPERTIES_REDSHIFT_PROP, AWS_ACCOUNT_ID_REDSHIFT_PROP));
+<b class="nc"><i class="no-highlight">757</i>&nbsp;        awsAccountIDRedshift = awsAccountIDRedshiftExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">758</i>&nbsp;        ExpressionProperty iamRoleNameRedshiftExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">759</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">760</i>&nbsp;                IAM_PROPERTIES_REDSHIFT_PROP, IAM_ROLE_NAME_REDSHIFT_PROP));
+<b class="nc"><i class="no-highlight">761</i>&nbsp;        iamRoleNameRedshift = iamRoleNameRedshiftExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">762</i>&nbsp;        if (region) {</b>
+<b class="nc"><i class="no-highlight">763</i>&nbsp;            ExpressionProperty regionNameExpr = propertyValues</b>
+<b class="nc"><i class="no-highlight">764</i>&nbsp;                    .getAsExpression(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">765</i>&nbsp;                    IAM_PROPERTIES_REDSHIFT_PROP, REGION_PROP));
+<b class="nc"><i class="no-highlight">766</i>&nbsp;            regionName = regionNameExpr.eval(null);</b>
+<i class="no-highlight">767</i>&nbsp;        }
+<i class="no-highlight">768</i>&nbsp;    }
+<i class="no-highlight">769</i>&nbsp;
+<i class="no-highlight">770</i>&nbsp;    /**
+<i class="no-highlight">771</i>&nbsp;     * Get the AWS access Id.
+<i class="no-highlight">772</i>&nbsp;     *
+<i class="no-highlight">773</i>&nbsp;     * @return access id
+<i class="no-highlight">774</i>&nbsp;     */
+<i class="no-highlight">775</i>&nbsp;    public String getAWSAccessId() {
+<b class="nc"><i class="no-highlight">776</i>&nbsp;        return awsAccessId;</b>
+<i class="no-highlight">777</i>&nbsp;    }
+<i class="no-highlight">778</i>&nbsp;
+<i class="no-highlight">779</i>&nbsp;    /**
+<i class="no-highlight">780</i>&nbsp;     * Get the AWS secret key.
+<i class="no-highlight">781</i>&nbsp;     *
+<i class="no-highlight">782</i>&nbsp;     * @return secret key
+<i class="no-highlight">783</i>&nbsp;     */
+<i class="no-highlight">784</i>&nbsp;    public String getAWSSecretKey() {
+<b class="nc"><i class="no-highlight">785</i>&nbsp;        return awsSecretKey;</b>
+<i class="no-highlight">786</i>&nbsp;    }
+<i class="no-highlight">787</i>&nbsp;
+<i class="no-highlight">788</i>&nbsp;    /**
+<i class="no-highlight">789</i>&nbsp;     * Get the AWS security token.
+<i class="no-highlight">790</i>&nbsp;     *
+<i class="no-highlight">791</i>&nbsp;     * @return security token
+<i class="no-highlight">792</i>&nbsp;     */
+<i class="no-highlight">793</i>&nbsp;    public String getAwsSecurityToken() {
+<b class="nc"><i class="no-highlight">794</i>&nbsp;        return awsSecurityToken;</b>
+<i class="no-highlight">795</i>&nbsp;    }
+<i class="no-highlight">796</i>&nbsp;
+<i class="no-highlight">797</i>&nbsp;    /**
+<i class="no-highlight">798</i>&nbsp;     * Get the S3 bucket name.
+<i class="no-highlight">799</i>&nbsp;     *
+<i class="no-highlight">800</i>&nbsp;     * @return bucket name
+<i class="no-highlight">801</i>&nbsp;     */
+<i class="no-highlight">802</i>&nbsp;    public String getBucketName() {
+<b class="nc"><i class="no-highlight">803</i>&nbsp;        return s3Bucket;</b>
+<i class="no-highlight">804</i>&nbsp;    }
+<i class="no-highlight">805</i>&nbsp;
+<i class="no-highlight">806</i>&nbsp;    /**
+<i class="no-highlight">807</i>&nbsp;     * Get the S3 folder path.
+<i class="no-highlight">808</i>&nbsp;     *
+<i class="no-highlight">809</i>&nbsp;     * @return S3 folder path
+<i class="no-highlight">810</i>&nbsp;     */
+<i class="no-highlight">811</i>&nbsp;    public String getFolderPath() {
+<b class="nc"><i class="no-highlight">812</i>&nbsp;        return s3Folder;</b>
+<i class="no-highlight">813</i>&nbsp;    }
+<i class="no-highlight">814</i>&nbsp;
+<i class="no-highlight">815</i>&nbsp;    @Override
+<i class="no-highlight">816</i>&nbsp;    public Connection validate(final Void arg) {
+<b class="nc"><i class="no-highlight">817</i>&nbsp;        Connection conn = null;</b>
+<i class="no-highlight">818</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">819</i>&nbsp;            conn = connect();</b>
+<i class="no-highlight">820</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">821</i>&nbsp;            JDBCUtils.safeClose(conn);</b>
+<b class="nc"><i class="no-highlight">822</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">823</i>&nbsp;        validateAccountSetup();</b>
+<b class="nc"><i class="no-highlight">824</i>&nbsp;        return null;</b>
+<i class="no-highlight">825</i>&nbsp;    }
+<i class="no-highlight">826</i>&nbsp;
+<i class="no-highlight">827</i>&nbsp;    @Override
+<i class="no-highlight">828</i>&nbsp;    public Connection connect() {
+<b class="nc"><i class="no-highlight">829</i>&nbsp;        Connection conn = super.connect();</b>
+<i class="no-highlight">830</i>&nbsp;        // Reset connection&#39;s search_path setting
+<b class="nc"><i class="no-highlight">831</i>&nbsp;        try (Statement stmt = conn.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">832</i>&nbsp;            stmt.execute(SQL_RESET_SEARCH_PATH_FMT);</b>
+<b class="nc"><i class="no-highlight">833</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">834</i>&nbsp;            LOGGER.error(ERROR_RESETTING_SEARCH_PATH_SETTING);</b>
+<b class="nc"><i class="no-highlight">835</i>&nbsp;        }</b>
+<i class="no-highlight">836</i>&nbsp;        DatabaseMetaData metaData;
+<i class="no-highlight">837</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">838</i>&nbsp;            metaData = conn.getMetaData();</b>
+<b class="nc"><i class="no-highlight">839</i>&nbsp;            LOGGER.debug(String.format(DRIVER_INFO, metaData.getDriverName(), metaData</b>
+<b class="nc"><i class="no-highlight">840</i>&nbsp;                    .getDriverVersion()));</b>
+<b class="nc"><i class="no-highlight">841</i>&nbsp;        } catch (SQLException e) {</b>
+<i class="no-highlight">842</i>&nbsp;            // no op
+<b class="nc"><i class="no-highlight">843</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">844</i>&nbsp;        return conn;</b>
+<i class="no-highlight">845</i>&nbsp;    }
+<i class="no-highlight">846</i>&nbsp;
+<i class="no-highlight">847</i>&nbsp;    /**
+<i class="no-highlight">848</i>&nbsp;     * Fetches the AWS account ID
+<i class="no-highlight">849</i>&nbsp;     *
+<i class="no-highlight">850</i>&nbsp;     * @return account ID
+<i class="no-highlight">851</i>&nbsp;     */
+<i class="no-highlight">852</i>&nbsp;    public String getAwsAccountID() {
+<b class="nc"><i class="no-highlight">853</i>&nbsp;        return awsAccountIDRedshift;</b>
+<i class="no-highlight">854</i>&nbsp;    }
+<i class="no-highlight">855</i>&nbsp;
+<i class="no-highlight">856</i>&nbsp;    /**
+<i class="no-highlight">857</i>&nbsp;     * Fetches the IAM role name
+<i class="no-highlight">858</i>&nbsp;     *
+<i class="no-highlight">859</i>&nbsp;     * @return role name
+<i class="no-highlight">860</i>&nbsp;     */
+<i class="no-highlight">861</i>&nbsp;    public String getIAMRoleName() {
+<b class="nc"><i class="no-highlight">862</i>&nbsp;        return iamRoleNameRedshift;</b>
+<i class="no-highlight">863</i>&nbsp;    }
+<i class="no-highlight">864</i>&nbsp;
+<i class="no-highlight">865</i>&nbsp;    public String getIAMRoleNameForRedshiftType() {
+<b class="nc"><i class="no-highlight">866</i>&nbsp;        if (isServerless() &amp;&amp; iamRoleNameRedshift != null) {</b>
+<b class="nc"><i class="no-highlight">867</i>&nbsp;            Matcher matcher = redshiftServerlessIamRolePattern.matcher(iamRoleNameRedshift);</b>
+<b class="nc"><i class="no-highlight">868</i>&nbsp;            if (matcher.find()) {</b>
+<b class="nc"><i class="no-highlight">869</i>&nbsp;                return &quot;service-role/&quot; + iamRoleNameRedshift;</b>
+<i class="no-highlight">870</i>&nbsp;            }
+<i class="no-highlight">871</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">872</i>&nbsp;        return iamRoleNameRedshift;</b>
+<i class="no-highlight">873</i>&nbsp;    }
+<i class="no-highlight">874</i>&nbsp;
+<i class="no-highlight">875</i>&nbsp;    /**
+<i class="no-highlight">876</i>&nbsp;     * Fetches the region name
+<i class="no-highlight">877</i>&nbsp;     *
+<i class="no-highlight">878</i>&nbsp;     * @return region name
+<i class="no-highlight">879</i>&nbsp;     */
+<i class="no-highlight">880</i>&nbsp;    public String getRegionName() {
+<b class="nc"><i class="no-highlight">881</i>&nbsp;        return regionName;</b>
+<i class="no-highlight">882</i>&nbsp;    }
+<i class="no-highlight">883</i>&nbsp;
+<i class="no-highlight">884</i>&nbsp;    protected void setupSsl() {
+<b class="nc"><i class="no-highlight">885</i>&nbsp;        String sslArgs = generateSSLArgs();</b>
+<b class="nc"><i class="no-highlight">886</i>&nbsp;        String sslFactory = RedShiftSSLFactory.class.getName();</b>
+<b class="nc"><i class="no-highlight">887</i>&nbsp;        databaseConfig</b>
+<b class="nc"><i class="no-highlight">888</i>&nbsp;                .getUrlProperties()</b>
+<b class="nc"><i class="no-highlight">889</i>&nbsp;                .setProperty(RedShiftSSLFactory.SSL_FACTORY_PROP, sslFactory);</b>
+<b class="nc"><i class="no-highlight">890</i>&nbsp;        databaseConfig</b>
+<b class="nc"><i class="no-highlight">891</i>&nbsp;            .getUrlProperties()</b>
+<b class="nc"><i class="no-highlight">892</i>&nbsp;            .setProperty(RedShiftSSLFactory.SSL_FACTORY_ARGS_PROP, sslArgs);</b>
+<b class="nc"><i class="no-highlight">893</i>&nbsp;        databaseConfig.setJdbcOperations(JdbcOperations.REDSHIFT);</b>
+<i class="no-highlight">894</i>&nbsp;    }
+<i class="no-highlight">895</i>&nbsp;
+<i class="no-highlight">896</i>&nbsp;    /**
+<i class="no-highlight">897</i>&nbsp;     * Getter for {@param staging}
+<i class="no-highlight">898</i>&nbsp;     * @return
+<i class="no-highlight">899</i>&nbsp;     */
+<i class="no-highlight">900</i>&nbsp;    public boolean isStaging() {
+<b class="nc"><i class="no-highlight">901</i>&nbsp;        return staging;</b>
+<i class="no-highlight">902</i>&nbsp;    }
+<i class="no-highlight">903</i>&nbsp;
+<i class="no-highlight">904</i>&nbsp;    protected BigInteger getIntegerPropertyValue(PropertyValues propertyValues,
+<i class="no-highlight">905</i>&nbsp;                                                 String parentProperty, String property) {
+<b class="nc"><i class="no-highlight">906</i>&nbsp;        ExpressionProperty expr = propertyValues</b>
+<b class="nc"><i class="no-highlight">907</i>&nbsp;                .getAsExpression(getDatabasePropertyValuePath(parentProperty, property));</b>
+<b class="nc"><i class="no-highlight">908</i>&nbsp;        Object value = expr.eval(null);</b>
+<b class="nc"><i class="no-highlight">909</i>&nbsp;        if (value != null) {</b>
+<b class="nc"><i class="no-highlight">910</i>&nbsp;            if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">911</i>&nbsp;                return new BigInteger((String) value);</b>
+<b class="nc"><i class="no-highlight">912</i>&nbsp;            } else if (value instanceof BigInteger) {</b>
+<b class="nc"><i class="no-highlight">913</i>&nbsp;                return (BigInteger) value;</b>
+<i class="no-highlight">914</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">915</i>&nbsp;            throw new SnapDataException(ERR_INVALID_VALUE)</b>
+<b class="nc"><i class="no-highlight">916</i>&nbsp;                    .formatWith(PORT_PROP)</b>
+<b class="nc"><i class="no-highlight">917</i>&nbsp;                    .withReason(REASON_INTEGER_STRING)</b>
+<b class="nc"><i class="no-highlight">918</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">919</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">920</i>&nbsp;        return null;</b>
+<i class="no-highlight">921</i>&nbsp;    }
+<i class="no-highlight">922</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1539 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OpenApiHelper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.openapi</a>
+</div>
+
+<h1>Coverage Summary for Class: OpenApiHelper (com.snaplogic.snap.openapi)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OpenApiHelper</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/38)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/719)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.openapi;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.fasterxml.jackson.core.JsonProcessingException;
+<i class="no-highlight">14</i>&nbsp;import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.jsonpath.JsonPath;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.jsonpath.JsonPathImpl;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.DocumentUtility;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.schema.api.ObjectSchema;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.view.DocumentOutputView;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">28</i>&nbsp;import org.apache.commons.lang3.SerializationUtils;
+<i class="no-highlight">29</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">30</i>&nbsp;import org.apache.http.Header;
+<i class="no-highlight">31</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">32</i>&nbsp;import org.apache.http.client.methods.HttpDelete;
+<i class="no-highlight">33</i>&nbsp;import org.apache.http.client.methods.HttpGet;
+<i class="no-highlight">34</i>&nbsp;import org.apache.http.client.methods.HttpHead;
+<i class="no-highlight">35</i>&nbsp;import org.apache.http.client.methods.HttpOptions;
+<i class="no-highlight">36</i>&nbsp;import org.apache.http.client.methods.HttpPatch;
+<i class="no-highlight">37</i>&nbsp;import org.apache.http.client.methods.HttpPost;
+<i class="no-highlight">38</i>&nbsp;import org.apache.http.client.methods.HttpPut;
+<i class="no-highlight">39</i>&nbsp;import org.apache.http.client.methods.HttpUriRequest;
+<i class="no-highlight">40</i>&nbsp;import org.apache.http.client.utils.URIBuilder;
+<i class="no-highlight">41</i>&nbsp;import org.apache.http.entity.ByteArrayEntity;
+<i class="no-highlight">42</i>&nbsp;import org.apache.http.entity.ContentType;
+<i class="no-highlight">43</i>&nbsp;import org.apache.http.message.BasicHeader;
+<i class="no-highlight">44</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">45</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import java.io.Serializable;
+<i class="no-highlight">48</i>&nbsp;import java.net.URI;
+<i class="no-highlight">49</i>&nbsp;import java.net.URISyntaxException;
+<i class="no-highlight">50</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">51</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">52</i>&nbsp;import java.util.Base64;
+<i class="no-highlight">53</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">54</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">55</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">56</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">57</i>&nbsp;import java.util.List;
+<i class="no-highlight">58</i>&nbsp;import java.util.Map;
+<i class="no-highlight">59</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">60</i>&nbsp;import java.util.Set;
+<i class="no-highlight">61</i>&nbsp;import java.util.TreeMap;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snap.openapi.Constants.*;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snap.openapi.HttpUtils.OBJECT_MAPPER;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snap.openapi.Messages.*;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snap.openapi.Utilities.convertRefToJsonPath;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snap.openapi.Utilities.encodeUriWithQuery;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snap.openapi.Utilities.getBoolean;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snap.openapi.Utilities.getListFrom;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snap.openapi.Utilities.getMapAt;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snap.openapi.Utilities.union;
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;import static javax.ws.rs.core.HttpHeaders.CONTENT_DISPOSITION;
+<i class="no-highlight">74</i>&nbsp;import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+<i class="no-highlight">75</i>&nbsp;import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
+<i class="no-highlight">76</i>&nbsp;import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+<i class="no-highlight">77</i>&nbsp;import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+<i class="no-highlight">78</i>&nbsp;import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+<i class="no-highlight">79</i>&nbsp;import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
+<i class="no-highlight">80</i>&nbsp;import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;/**
+<i class="no-highlight">83</i>&nbsp; * Processes OpenAPI specification 2.0 and 3.0.
+<i class="no-highlight">84</i>&nbsp; */
+<i class="no-highlight">85</i>&nbsp;@SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">86</i>&nbsp;public class OpenApiHelper {
+<b class="nc"><i class="no-highlight">87</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(OpenApiHelper.class);</b>
+<i class="no-highlight">88</i>&nbsp;    private static final String PATH_PARAM_PATTERN = &quot;{%s}&quot;;
+<i class="no-highlight">89</i>&nbsp;    private static final String FORMAT_WRAP = &quot;[&#39;%s&#39;]&quot;;
+<i class="no-highlight">90</i>&nbsp;    private static final String FORMAT_FORM_DATA = &quot;--%s&quot; + NEW_LINE +
+<i class="no-highlight">91</i>&nbsp;            CONTENT_DISPOSITION + &quot;: form-data; name=\&quot;%s%s\&quot;&quot; + NEW_LINE +
+<i class="no-highlight">92</i>&nbsp;            &quot;%s&quot; + NEW_LINE +
+<i class="no-highlight">93</i>&nbsp;            &quot;%s&quot; + NEW_LINE;
+<i class="no-highlight">94</i>&nbsp;    private static final String FORMAT_FILENAME = &quot;\&quot;; filename=\&quot;%s&quot;;
+<i class="no-highlight">95</i>&nbsp;    private static final String FORMAT_CONTENT_TYPE = CONTENT_TYPE + &quot;: %s; charset=\&quot;%s\&quot;&quot;
+<i class="no-highlight">96</i>&nbsp;            + NEW_LINE;
+<i class="no-highlight">97</i>&nbsp;    private static final String NULL_VALUE_OF_KEY = &quot;%s=null&quot;;
+<i class="no-highlight">98</i>&nbsp;    private static final String DEFAULT_FILE_CONTENT_KEY = &quot;file&quot;;
+<i class="no-highlight">99</i>&nbsp;    private static final String DEFAULT_FILENAME_KEY = &quot;name&quot;;
+<i class="no-highlight">100</i>&nbsp;    private static final String FORMAT_REF_NAME = &quot;|%s|&quot;;
+<i class="no-highlight">101</i>&nbsp;    private boolean isVersion2;
+<b class="nc"><i class="no-highlight">102</i>&nbsp;    private String multipartFileContentKey = DEFAULT_FILE_CONTENT_KEY;</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;    private String multipartFilenameKey = DEFAULT_FILENAME_KEY;</b>
+<i class="no-highlight">104</i>&nbsp;    private String multipartFilename;
+<b class="nc"><i class="no-highlight">105</i>&nbsp;    private String charset = StandardCharsets.UTF_8.name().toLowerCase();</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;    private TreeMap&lt;String, Object&gt; parameterMap = new TreeMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;    private TreeMap&lt;String, Object&gt; referenceMap = new TreeMap&lt;&gt;();</b>
+<i class="no-highlight">108</i>&nbsp;    private Map&lt;String, Object&gt; resolvedV3OpenApiSpec;
+<i class="no-highlight">109</i>&nbsp;    private Map&lt;String, Object&gt; v2CompatibleOpenApiSpec;
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    /**
+<i class="no-highlight">112</i>&nbsp;     * Processes OpenAPI specification 2.0 and 3.0.
+<i class="no-highlight">113</i>&nbsp;     *
+<i class="no-highlight">114</i>&nbsp;     * @param resolvedV3OpenApiSpec - OpenAPI specification in Map data
+<i class="no-highlight">115</i>&nbsp;     */
+<i class="no-highlight">116</i>&nbsp;    public OpenApiHelper(Map&lt;String, Object&gt; resolvedV3OpenApiSpec) {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        this(resolvedV3OpenApiSpec, null);</b>
+<i class="no-highlight">118</i>&nbsp;    }
+<i class="no-highlight">119</i>&nbsp;
+<i class="no-highlight">120</i>&nbsp;    /**
+<i class="no-highlight">121</i>&nbsp;     * This constructor is for populating v2CompatibleOpenApiSpec, needed for 2nd Output view
+<i class="no-highlight">122</i>&nbsp;     * @param resolvedV3OpenApiSpec
+<i class="no-highlight">123</i>&nbsp;     * @param v2CompatibleOpenApiSpec
+<i class="no-highlight">124</i>&nbsp;     */
+<i class="no-highlight">125</i>&nbsp;    public OpenApiHelper(Map&lt;String, Object&gt; resolvedV3OpenApiSpec,
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                         Map&lt;String, Object&gt; v2CompatibleOpenApiSpec) {</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        this.resolvedV3OpenApiSpec = resolvedV3OpenApiSpec;</b>
+<i class="no-highlight">128</i>&nbsp;        // check if spec is 2.0
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        Object openapiVersion = resolvedV3OpenApiSpec.get(SWAGGER);</b>
+<i class="no-highlight">130</i>&nbsp;        // some specs use &quot;swagger&quot; key for OpenAPI version field, others &quot;openapi&quot;
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        openapiVersion = openapiVersion == null ? resolvedV3OpenApiSpec.get(OPENAPI) :</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                openapiVersion;</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        if (openapiVersion instanceof String &amp;&amp; ((String) openapiVersion).startsWith(VERSION2)) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            isVersion2 = true;</b>
+<i class="no-highlight">135</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        this.v2CompatibleOpenApiSpec = Objects.requireNonNullElse(v2CompatibleOpenApiSpec,</b>
+<i class="no-highlight">137</i>&nbsp;                resolvedV3OpenApiSpec);
+<i class="no-highlight">138</i>&nbsp;    }
+<i class="no-highlight">139</i>&nbsp;
+<i class="no-highlight">140</i>&nbsp;    /**
+<i class="no-highlight">141</i>&nbsp;     * Generates input schema suggest for OpenAPI 3.0.
+<i class="no-highlight">142</i>&nbsp;     *
+<i class="no-highlight">143</i>&nbsp;     * @param provider      - schema provider
+<i class="no-highlight">144</i>&nbsp;     * @param builder       - schema builder
+<i class="no-highlight">145</i>&nbsp;     * @param operationSpec - part of the OpenAPI spec for selected path and operation
+<i class="no-highlight">146</i>&nbsp;     *
+<i class="no-highlight">147</i>&nbsp;     * @throws InvalidPathException if an invalid JSON path is given
+<i class="no-highlight">148</i>&nbsp;     */
+<i class="no-highlight">149</i>&nbsp;    public void getInputSchemaSuggest(final SchemaProvider provider, SchemaBuilder builder,
+<i class="no-highlight">150</i>&nbsp;            Map&lt;String, Object&gt; operationSpec) throws InvalidPathException {
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        getInputSchemaSuggest(provider, builder, operationSpec, null);</b>
+<i class="no-highlight">152</i>&nbsp;    }
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;    /**
+<i class="no-highlight">155</i>&nbsp;     * Generates input schema suggest for OpenAPI 3.0.
+<i class="no-highlight">156</i>&nbsp;     *
+<i class="no-highlight">157</i>&nbsp;     * @param provider         - schema provider
+<i class="no-highlight">158</i>&nbsp;     * @param builder          - schema builder
+<i class="no-highlight">159</i>&nbsp;     * @param operationSpec    - part of the OpenAPI spec for selected path and operation
+<i class="no-highlight">160</i>&nbsp;     * @param commonParameters - common parameter spec for all operations in the selected path
+<i class="no-highlight">161</i>&nbsp;     *
+<i class="no-highlight">162</i>&nbsp;     * @throws InvalidPathException if an invalid JSON path is given
+<i class="no-highlight">163</i>&nbsp;     */
+<i class="no-highlight">164</i>&nbsp;    public void getInputSchemaSuggest(final SchemaProvider provider, SchemaBuilder builder,
+<i class="no-highlight">165</i>&nbsp;            Map&lt;String, Object&gt; operationSpec, List&lt;Map&lt;String, Object&gt;&gt; commonParameters)
+<i class="no-highlight">166</i>&nbsp;            throws InvalidPathException {
+<i class="no-highlight">167</i>&nbsp;        // combine common parameter spec and the operation parameter spec
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        Object paramSpec = readJsonPath(operationSpec, PARAMETERS);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        List&lt;Object&gt; parameters = union(paramSpec, commonParameters);</b>
+<i class="no-highlight">170</i>&nbsp;        // process schema for parameters in path, query and header
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        ObjectSchema params = provider.createSchema(SnapType.COMPOSITE, PARAMETERS);</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        ObjectSchema pathParams = provider.createSchema(SnapType.COMPOSITE, PATH);</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        ObjectSchema queryParams = provider.createSchema(SnapType.COMPOSITE, QUERY);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        ObjectSchema headerParams = provider.createSchema(SnapType.COMPOSITE, HEADER);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        for (Object object : parameters) {</b>
+<i class="no-highlight">176</i>&nbsp;            Map&lt;String, Object&gt; parameter;
+<b class="nc"><i class="no-highlight">177</i>&nbsp;            if (object instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                parameter = (Map&lt;String, Object&gt;) object;</b>
+<i class="no-highlight">179</i>&nbsp;            } else {
+<i class="no-highlight">180</i>&nbsp;                continue;
+<i class="no-highlight">181</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            if (parameter.containsKey(REF) &amp;&amp; parameter.get(REF) != null) {</b>
+<i class="no-highlight">183</i>&nbsp;                // it is possible the parameter spec can get from $ref
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                String ref = (String) parameter.get(REF);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                parameter = getRefSpec(ref, false);</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                if (MapUtils.isEmpty(parameter)){</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                    parameter = getRefSpec(ref, true);</b>
+<i class="no-highlight">188</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                String refName = ref.substring(ref.lastIndexOf(&#39;/&#39;) + 1);</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                parameterMap.put(refName, parameter);</b>
+<i class="no-highlight">191</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            String paramName = (String) parameter.get(NAME);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            String in = (String) parameter.get(IN);</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;            boolean required = getBoolean(parameter.get(REQUIRED));</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            String type = buildJsonPath(SCHEMA, TYPE).read(parameter);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            SnapType snapType = getSnapType(type);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            Schema schema = provider.createSchema(snapType, paramName);</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            schema.setRequired(required);</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;            if (SnapType.TABLE == snapType) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                Object value = readJsonPath(parameter, SCHEMA, ITEMS, TYPE);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                    Schema child = provider.createSchema(getSnapType((String) value), null);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                    ((ObjectSchema) schema).addChild(child);</b>
+<i class="no-highlight">204</i>&nbsp;                }
+<i class="no-highlight">205</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">206</i>&nbsp;            switch (in.toLowerCase()) {</b>
+<i class="no-highlight">207</i>&nbsp;                case QUERY:
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                    queryParams.addChild(schema);</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                    break;</b>
+<i class="no-highlight">210</i>&nbsp;                case PATH:
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                    pathParams.addChild(schema);</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                    break;</b>
+<i class="no-highlight">213</i>&nbsp;                case HEADER:
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                    headerParams.addChild(schema);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                    break;</b>
+<i class="no-highlight">216</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                    LOG.warn(&quot;Unsupported parameter type: {}&quot;, in);</b>
+<i class="no-highlight">218</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        if (pathParams.getSize() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;            params.addChild(pathParams);</b>
+<i class="no-highlight">222</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        if (queryParams.getSize() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            params.addChild(queryParams);</b>
+<i class="no-highlight">225</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">226</i>&nbsp;        if (headerParams.getSize() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;            params.addChild(headerParams);</b>
+<i class="no-highlight">228</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        if (params.getSize() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            builder.withChildSchema(params);</b>
+<i class="no-highlight">231</i>&nbsp;        }
+<i class="no-highlight">232</i>&nbsp;        // process schema for request body
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        Map&lt;String, Object&gt; contentSpec = null;</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        if (buildJsonPath(REQUEST_BODY, CONTENT).existsIn(operationSpec)) {</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;            contentSpec = buildJsonPath(REQUEST_BODY, CONTENT).read(operationSpec);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        } else if (buildJsonPath(REQUEST_BODY, REF).existsIn(operationSpec)) {</b>
+<i class="no-highlight">237</i>&nbsp;            // Microsoft Business Central OpenAPI 3.0 spec for &quot;POST /companies({company_id})/
+<i class="no-highlight">238</i>&nbsp;            // employees&quot; has &quot;$ref&quot; directly under &quot;requestBody&quot;. The following code supports
+<i class="no-highlight">239</i>&nbsp;            // the way Microsoft implemented their spec.
+<b class="nc"><i class="no-highlight">240</i>&nbsp;            String ref = buildJsonPath(REQUEST_BODY, REF).read(operationSpec);</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            Map&lt;String, Object&gt; refSpec = getRefSpec(ref, false);</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;            if (MapUtils.isEmpty(refSpec)){</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                refSpec = getRefSpec(ref, true);</b>
+<i class="no-highlight">244</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            if (refSpec.containsKey(CONTENT)) {</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                contentSpec = (Map&lt;String, Object&gt;) refSpec.get(CONTENT);</b>
+<i class="no-highlight">247</i>&nbsp;            }
+<i class="no-highlight">248</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        if (MapUtils.isNotEmpty(contentSpec)) {</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;            boolean required = getBoolean(readJsonPath(operationSpec, REQUEST_BODY, REQUIRED));</b>
+<i class="no-highlight">251</i>&nbsp;            // get content type, JSON or XML
+<i class="no-highlight">252</i>&nbsp;            String contentType;
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            if (contentSpec.containsKey(APPLICATION_JSON)) {</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                contentType = APPLICATION_JSON;</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;            } else if (contentSpec.containsKey(APPLICATION_XML)) {</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                contentType = APPLICATION_XML;</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            } else if (contentSpec.containsKey(APPLICATION_OCTET_STREAM)) {</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                contentType = APPLICATION_OCTET_STREAM;</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            } else if (contentSpec.containsKey(APPLICATION_FORM_URLENCODED)) {</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;                contentType = APPLICATION_FORM_URLENCODED;</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            } else if (contentSpec.containsKey(MULTIPART_FORM_DATA)) {</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                contentType = MULTIPART_FORM_DATA;</b>
+<i class="no-highlight">263</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                LOG.warn(&quot;Unsupported content type for request body: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                        contentSpec.keySet());</b>
+<i class="no-highlight">266</i>&nbsp;                return;
+<i class="no-highlight">267</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">268</i>&nbsp;            if (StringUtils.isNotBlank(contentType)) {</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                JsonPath refPath = buildJsonPath(contentType, SCHEMA, REF);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                ObjectSchema requestBody = null;</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                if (refPath.existsIn(contentSpec) &amp;&amp; refPath.read(contentSpec) != null) {</b>
+<i class="no-highlight">272</i>&nbsp;                    // get content schema reference
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                    String schemaRef = refPath.read(contentSpec);</b>
+<i class="no-highlight">274</i>&nbsp;                    // create request body schema from #Ref
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                    requestBody = createSchemaFromRef(provider, REQUEST_BODY, required,</b>
+<i class="no-highlight">276</i>&nbsp;                            schemaRef, null);
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                    JsonPath typePath = buildJsonPath(contentType, SCHEMA, TYPE);</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                    if (typePath.existsIn(contentSpec)) {</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                        String type = typePath.read(contentSpec);</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                        SnapType snapType = getSnapType(type);</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                        requestBody = provider.createSchema(snapType, REQUEST_BODY);</b>
+<i class="no-highlight">283</i>&nbsp;                        // request body may be a list of maps
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                        if (snapType.equals(SnapType.TABLE)) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                            Map&lt;String, Object&gt; itemsSpec =</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                                    getSpec(contentSpec, contentType, SCHEMA, ITEMS);</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                            if (itemsSpec != null) {</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                                Object refValue = itemsSpec.get(REF);</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                                if (refValue != null) {</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                                    Schema child = createSchemaFromRef(provider, null, required,</b>
+<i class="no-highlight">291</i>&nbsp;                                            (String) refValue, null);
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                                    requestBody.addChild(child);</b>
+<i class="no-highlight">293</i>&nbsp;                                }
+<i class="no-highlight">294</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                        } else if (snapType.equals(SnapType.COMPOSITE)) {</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                            Map&lt;String, Object&gt; schemaSpec =</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                                    getSpec(contentSpec, contentType, SCHEMA);</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;                            List&lt;String&gt; requiredFields = schemaSpec.containsKey(REQUIRED) ?</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                                    (List&lt;String&gt;) schemaSpec.get(REQUIRED) : new ArrayList&lt;&gt;(0);</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                            Map&lt;String, Object&gt; propertiesSpec =</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                                    (Map&lt;String, Object&gt;) schemaSpec.get(PROPERTIES);</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                            createSchemaFromSpec(provider, propertiesSpec, requiredFields,</b>
+<i class="no-highlight">303</i>&nbsp;                                    requestBody, false, null);
+<i class="no-highlight">304</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                    } else if (buildJsonPath(contentType, SCHEMA, PROPERTIES)</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                            .existsIn(contentSpec)) {</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                        requestBody = provider.createSchema(SnapType.COMPOSITE, REQUEST_BODY);</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                        Map&lt;String, Object&gt; schemaSpec = getSpec(contentSpec, contentType, SCHEMA);</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                        List&lt;String&gt; requiredFields = schemaSpec.containsKey(REQUIRED) ?</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                                (List&lt;String&gt;) schemaSpec.get(REQUIRED) : new ArrayList&lt;&gt;(0);</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                        Map&lt;String, Object&gt; propertiesSpec =</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                                (Map&lt;String, Object&gt;) schemaSpec.get(PROPERTIES);</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                        requestBody = createSchemaFromSpec(provider, propertiesSpec,</b>
+<i class="no-highlight">314</i>&nbsp;                                requiredFields, requestBody, false, null);
+<i class="no-highlight">315</i>&nbsp;                    }
+<i class="no-highlight">316</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                if (requestBody != null) {</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                    builder.withChildSchema(requestBody);</b>
+<i class="no-highlight">319</i>&nbsp;                }
+<i class="no-highlight">320</i>&nbsp;            }
+<i class="no-highlight">321</i>&nbsp;        }
+<i class="no-highlight">322</i>&nbsp;    }
+<i class="no-highlight">323</i>&nbsp;
+<i class="no-highlight">324</i>&nbsp;    /**
+<i class="no-highlight">325</i>&nbsp;     * Generates input schema suggest for OpenAPI 2.0.
+<i class="no-highlight">326</i>&nbsp;     *
+<i class="no-highlight">327</i>&nbsp;     * @param provider      - schema provider
+<i class="no-highlight">328</i>&nbsp;     * @param builder       - schema builder
+<i class="no-highlight">329</i>&nbsp;     * @param operationSpec - part of the OpenAPI spec for selected path and operation
+<i class="no-highlight">330</i>&nbsp;     *
+<i class="no-highlight">331</i>&nbsp;     * @throws InvalidPathException if an invalid JSON path is given
+<i class="no-highlight">332</i>&nbsp;     */
+<i class="no-highlight">333</i>&nbsp;    public void getInputSchemaSuggestV2(SchemaProvider provider, SchemaBuilder builder,
+<i class="no-highlight">334</i>&nbsp;            Map&lt;String, Object&gt; operationSpec) throws InvalidPathException {
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        getInputSchemaSuggestV2(provider, builder, operationSpec, null);</b>
+<i class="no-highlight">336</i>&nbsp;    }
+<i class="no-highlight">337</i>&nbsp;
+<i class="no-highlight">338</i>&nbsp;    /**
+<i class="no-highlight">339</i>&nbsp;     * Generates input schema suggest for OpenAPI 2.0.
+<i class="no-highlight">340</i>&nbsp;     *
+<i class="no-highlight">341</i>&nbsp;     * @param provider         - schema provider
+<i class="no-highlight">342</i>&nbsp;     * @param builder          - schema builder
+<i class="no-highlight">343</i>&nbsp;     * @param operationSpec    - part of the OpenAPI spec for selected path and operation
+<i class="no-highlight">344</i>&nbsp;     * @param commonParameters - common parameter spec for all operations in the selected path
+<i class="no-highlight">345</i>&nbsp;     *
+<i class="no-highlight">346</i>&nbsp;     * @throws InvalidPathException if an invalid JSON path is given
+<i class="no-highlight">347</i>&nbsp;     */
+<i class="no-highlight">348</i>&nbsp;    public void getInputSchemaSuggestV2(SchemaProvider provider, SchemaBuilder builder,
+<i class="no-highlight">349</i>&nbsp;            Map&lt;String, Object&gt; operationSpec, List&lt;Map&lt;String, Object&gt;&gt; commonParameters)
+<i class="no-highlight">350</i>&nbsp;            throws InvalidPathException {
+<i class="no-highlight">351</i>&nbsp;        // combine common parameter spec and the operation parameter spec
+<b class="nc"><i class="no-highlight">352</i>&nbsp;        Object paramSpec = readJsonPath(operationSpec, PARAMETERS);</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        List&lt;Object&gt; parameters = union(paramSpec, commonParameters);</b>
+<i class="no-highlight">354</i>&nbsp;        // process schema for parameters in path, query, header and requestBody
+<b class="nc"><i class="no-highlight">355</i>&nbsp;        ObjectSchema params = provider.createSchema(SnapType.COMPOSITE, PARAMETERS);</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        ObjectSchema pathParams = provider.createSchema(SnapType.COMPOSITE, PATH);</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        ObjectSchema queryParams = provider.createSchema(SnapType.COMPOSITE, QUERY);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        ObjectSchema headerParams = provider.createSchema(SnapType.COMPOSITE, HEADER);</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        ObjectSchema requestBody = null;</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        for (Object object : parameters) {</b>
+<i class="no-highlight">361</i>&nbsp;            Map&lt;String, Object&gt; parameter;
+<b class="nc"><i class="no-highlight">362</i>&nbsp;            if (object instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                parameter = (Map&lt;String, Object&gt;) object;</b>
+<i class="no-highlight">364</i>&nbsp;            } else {
+<i class="no-highlight">365</i>&nbsp;                continue;
+<i class="no-highlight">366</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">367</i>&nbsp;            if (parameter.containsKey(REF)) {</b>
+<i class="no-highlight">368</i>&nbsp;                // it is possible the parameter spec can get from $ref
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                String ref = (String) parameter.get(REF);</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                parameter = getRefSpec(ref, false);</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                if (MapUtils.isEmpty(parameter)){</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                    parameter = getRefSpec(ref, true);</b>
+<i class="no-highlight">373</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                String refName = ref.substring(ref.lastIndexOf(&#39;/&#39;) + 1);</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;                parameterMap.put(refName, parameter);</b>
+<i class="no-highlight">376</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">377</i>&nbsp;            String paramName = (String) parameter.get(NAME);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            String in = (String) parameter.get(IN);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            boolean required = getBoolean(parameter.get(REQUIRED));</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            if (BODY.equals(in) || FORM_DATA.equals(in)) {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                ObjectSchema returnValue = createRequestBodySchemaV2(provider, parameter,</b>
+<i class="no-highlight">382</i>&nbsp;                        required, requestBody);
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                if (requestBody == null &amp;&amp; returnValue != null) {</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                    requestBody = returnValue;</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                    builder.withChildSchema(requestBody);</b>
+<i class="no-highlight">386</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                String type = buildJsonPath(TYPE).read(parameter);</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                SnapType snapType = getSnapType(type);</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                Schema schema = provider.createSchema(snapType, paramName);</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                schema.setRequired(required);</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                if (SnapType.TABLE == snapType) {</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                    Object value = readJsonPath(parameter, ITEMS, TYPE);</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                    if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                        Schema child = provider.createSchema(getSnapType((String) value), null);</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                        ((ObjectSchema) schema).addChild(child);</b>
+<i class="no-highlight">397</i>&nbsp;                    }
+<i class="no-highlight">398</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">399</i>&nbsp;                switch (in.toLowerCase()) {</b>
+<i class="no-highlight">400</i>&nbsp;                    case QUERY:
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                        queryParams.addChild(schema);</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;                        break;</b>
+<i class="no-highlight">403</i>&nbsp;                    case PATH:
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                        pathParams.addChild(schema);</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                        break;</b>
+<i class="no-highlight">406</i>&nbsp;                    case HEADER:
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                        headerParams.addChild(schema);</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                        break;</b>
+<i class="no-highlight">409</i>&nbsp;                    default:
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                        LOG.warn(&quot;Unsupported parameter type: {}&quot;, in);</b>
+<i class="no-highlight">411</i>&nbsp;                }
+<i class="no-highlight">412</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">413</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;        if (pathParams.getSize() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;            params.addChild(pathParams);</b>
+<i class="no-highlight">416</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">417</i>&nbsp;        if (queryParams.getSize() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            params.addChild(queryParams);</b>
+<i class="no-highlight">419</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        if (headerParams.getSize() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;            params.addChild(headerParams);</b>
+<i class="no-highlight">422</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        if (params.getSize() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;            builder.withChildSchema(params);</b>
+<i class="no-highlight">425</i>&nbsp;        }
+<i class="no-highlight">426</i>&nbsp;    }
+<i class="no-highlight">427</i>&nbsp;
+<i class="no-highlight">428</i>&nbsp;    /**
+<i class="no-highlight">429</i>&nbsp;     * Here in the 2nd output view, we need some of the data from the unresolved spec, so we are
+<i class="no-highlight">430</i>&nbsp;     * using the v2CompatibleOpenApiSpec which is the unresolved spec. The resolved spec from the
+<i class="no-highlight">431</i>&nbsp;     * SwaggerParser library is converting the spec first into v3 form and then giving us the
+<i class="no-highlight">432</i>&nbsp;     * result data. We could potentially move to supporting only v3 OpenApi spec, to optimize the
+<i class="no-highlight">433</i>&nbsp;     * existing performance of the snap. That would impact the existing pipelines, so we are not
+<i class="no-highlight">434</i>&nbsp;     * moving with that change in the current PR. We have logged a separate ticket to investigate
+<i class="no-highlight">435</i>&nbsp;     * on that in future. Copying the link to that ticket here :
+<i class="no-highlight">436</i>&nbsp;     * https://mysnaplogic.atlassian.net/browse/SNAP-9524
+<i class="no-highlight">437</i>&nbsp;     */
+<i class="no-highlight">438</i>&nbsp;    /**
+<i class="no-highlight">439</i>&nbsp;     * Writes part of OpenAPI specifications for selected path &amp; operation, and all objects
+<i class="no-highlight">440</i>&nbsp;     * referenced in the Snap.
+<i class="no-highlight">441</i>&nbsp;     *
+<i class="no-highlight">442</i>&nbsp;     * @param openApiPath      - selected path
+<i class="no-highlight">443</i>&nbsp;     * @param operation        - selected operation
+<i class="no-highlight">444</i>&nbsp;     * @param secondOutputView - second output view
+<i class="no-highlight">445</i>&nbsp;     * @param documentUtility  - documentUtility
+<i class="no-highlight">446</i>&nbsp;     */
+<i class="no-highlight">447</i>&nbsp;    public void outputOperationSpec(String openApiPath, String operation,
+<i class="no-highlight">448</i>&nbsp;            DocumentOutputView secondOutputView, DocumentUtility documentUtility) {
+<b class="nc"><i class="no-highlight">449</i>&nbsp;        if (secondOutputView != null) {</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;            Map&lt;String, Object&gt; operationSpec = (Map&lt;String, Object&gt;) readJsonPath</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;                    (v2CompatibleOpenApiSpec, PATHS, openApiPath, operation);</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;            TreeMap&lt;String, Object&gt; localRefMap = new TreeMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;            if (MapUtils.isNotEmpty(operationSpec)) {</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                Map&lt;String, Object&gt; spec = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                Object openapiVersion = resolvedV3OpenApiSpec.get(SWAGGER);</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                openapiVersion = openapiVersion == null ? resolvedV3OpenApiSpec.get(OPENAPI)</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                        : openapiVersion;</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                spec.put(OPENAPI, openapiVersion);</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                writeJsonPath(spec, operationSpec, PATHS, openApiPath, operation);</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                if (!parameterMap.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                    spec.put(PARAMETERS, parameterMap);</b>
+<i class="no-highlight">462</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                if (isVersion2) {</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                    spec.put(DEFINITIONS, localRefMap);</b>
+<i class="no-highlight">465</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                    spec.put(COMPONENTS, localRefMap);</b>
+<i class="no-highlight">467</i>&nbsp;                }
+<i class="no-highlight">468</i>&nbsp;                // check responses spec for #ref
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                collectReferenceSpecs((Map&lt;String, Object&gt;) operationSpec.get(RESPONSES),</b>
+<i class="no-highlight">470</i>&nbsp;                        localRefMap);
+<b class="nc"><i class="no-highlight">471</i>&nbsp;                mergeMaps(localRefMap, referenceMap);</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                secondOutputView.write(documentUtility.newDocument(spec));</b>
+<i class="no-highlight">473</i>&nbsp;            }
+<i class="no-highlight">474</i>&nbsp;        }
+<i class="no-highlight">475</i>&nbsp;    }
+<i class="no-highlight">476</i>&nbsp;
+<i class="no-highlight">477</i>&nbsp;    private void mergeMaps(Map&lt;String, Object&gt; map1, Map&lt;String, Object&gt; map2){
+<b class="nc"><i class="no-highlight">478</i>&nbsp;        for (String elem : map1.keySet()){</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;            if (!map2.containsKey(elem)){</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                map2.put(elem, map1.get(elem));</b>
+<i class="no-highlight">481</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">482</i>&nbsp;                Map&lt;String, Object&gt; value1 = (Map&lt;String, Object&gt;) map1.get(elem);</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;                Map&lt;String, Object&gt; value2 = (Map&lt;String, Object&gt;) map2.get(elem);</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;                if (value1.size() &gt; value2.size()){</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;                    map2.put(elem, value1);</b>
+<i class="no-highlight">486</i>&nbsp;                }
+<i class="no-highlight">487</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">488</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;        for (String elem : map2.keySet()){</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            if (!map1.containsKey(elem)){</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                map1.put(elem, map2.get(elem));</b>
+<i class="no-highlight">492</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">493</i>&nbsp;        }</b>
+<i class="no-highlight">494</i>&nbsp;    }
+<i class="no-highlight">495</i>&nbsp;
+<i class="no-highlight">496</i>&nbsp;    private void collectReferenceSpecs(Map&lt;String, Object&gt; spec,
+<i class="no-highlight">497</i>&nbsp;                                       TreeMap&lt;String, Object&gt; localRefMap) {
+<b class="nc"><i class="no-highlight">498</i>&nbsp;        if (spec.containsKey(REF)) {</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;            String ref = (String) spec.get(REF);</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;            Map&lt;String, Object&gt; refSpec = getRefSpec(ref, true);</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;            String refKey = ref.substring(ref.lastIndexOf(&#39;/&#39;) + 1);</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;            if (!localRefMap.containsKey(refKey)) {</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;                localRefMap.put(refKey, refSpec);</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;                collectReferenceSpecs(refSpec, localRefMap);</b>
+<i class="no-highlight">505</i>&nbsp;            }
+<i class="no-highlight">506</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">507</i>&nbsp;        for (Object value : spec.values()) {</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;            if (value instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;                collectReferenceSpecs((Map&lt;String, Object&gt;) value, localRefMap);</b>
+<b class="nc"><i class="no-highlight">510</i>&nbsp;            } else if (value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                for (Object item : (List&lt;Object&gt;) value) {</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                    if (item instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                        collectReferenceSpecs((Map&lt;String, Object&gt;) item, localRefMap);</b>
+<i class="no-highlight">514</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">515</i>&nbsp;                }</b>
+<i class="no-highlight">516</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">517</i>&nbsp;        }</b>
+<i class="no-highlight">518</i>&nbsp;    }
+<i class="no-highlight">519</i>&nbsp;
+<i class="no-highlight">520</i>&nbsp;    protected Map&lt;String, Object&gt; getRefSpec(String ref, boolean getFromOtherSpec) {
+<i class="no-highlight">521</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">522</i>&nbsp;            if (ref != null) {</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                ref = convertRefToJsonPath(ref);</b>
+<i class="no-highlight">524</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                return MapUtils.EMPTY_MAP;</b>
+<i class="no-highlight">526</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">527</i>&nbsp;            JsonPath jsonPath = JsonPathImpl.compile(ref);</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;            if (getFromOtherSpec) {</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                if (jsonPath.read(v2CompatibleOpenApiSpec) != null) {</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                    return JsonPathImpl.compile(ref).read(v2CompatibleOpenApiSpec);</b>
+<i class="no-highlight">531</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                    return MapUtils.EMPTY_MAP;</b>
+<i class="no-highlight">533</i>&nbsp;                }
+<i class="no-highlight">534</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                if (jsonPath.read(resolvedV3OpenApiSpec) != null) {</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;                    return JsonPathImpl.compile(ref).read(resolvedV3OpenApiSpec);</b>
+<i class="no-highlight">537</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                    return MapUtils.EMPTY_MAP;</b>
+<i class="no-highlight">539</i>&nbsp;                }
+<i class="no-highlight">540</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">541</i>&nbsp;        } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;            return MapUtils.EMPTY_MAP;</b>
+<i class="no-highlight">543</i>&nbsp;        }
+<i class="no-highlight">544</i>&nbsp;    }
+<i class="no-highlight">545</i>&nbsp;
+<i class="no-highlight">546</i>&nbsp;    private ObjectSchema createRequestBodySchemaV2(SchemaProvider provider,
+<i class="no-highlight">547</i>&nbsp;            Map&lt;String, Object&gt; spec, boolean required, ObjectSchema requestBody)
+<i class="no-highlight">548</i>&nbsp;        throws InvalidPathException {
+<b class="nc"><i class="no-highlight">549</i>&nbsp;        JsonPath refPath = buildJsonPath(SCHEMA, REF);</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;        if (refPath.existsIn(spec) &amp;&amp; refPath.read(spec) != null) {</b>
+<i class="no-highlight">551</i>&nbsp;                // get content schema reference
+<b class="nc"><i class="no-highlight">552</i>&nbsp;                String schemaRef = refPath.read(spec);</b>
+<i class="no-highlight">553</i>&nbsp;                // ceate request body schema from #Ref
+<b class="nc"><i class="no-highlight">554</i>&nbsp;                requestBody = createSchemaFromRef(provider,</b>
+<i class="no-highlight">555</i>&nbsp;                        REQUEST_BODY, required, schemaRef, null);
+<b class="nc"><i class="no-highlight">556</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;            JsonPath typePath = buildJsonPath(SCHEMA, TYPE);</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;            if (!typePath.existsIn(spec)) {</b>
+<b class="nc"><i class="no-highlight">559</i>&nbsp;                typePath = buildJsonPath(TYPE);</b>
+<i class="no-highlight">560</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">561</i>&nbsp;            if (typePath.existsIn(spec)) {</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;                String type = typePath.read(spec);</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;                SnapType snapType = getSnapType(type);</b>
+<i class="no-highlight">564</i>&nbsp;                // request body may be a list of maps
+<b class="nc"><i class="no-highlight">565</i>&nbsp;                if (snapType.equals(SnapType.TABLE)) {</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                    Map&lt;String, Object&gt; itemsSpec = getSpec(spec, SCHEMA, ITEMS);</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;                    if (itemsSpec != null) {</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                        Object refValue = itemsSpec.get(REF);</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                        if (refValue != null) {</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;                            requestBody = provider.createSchema(snapType, REQUEST_BODY);</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;                            Schema child = createSchemaFromRef(provider, REQUEST_BODY,</b>
+<i class="no-highlight">572</i>&nbsp;                                    required, (String) refValue, null);
+<b class="nc"><i class="no-highlight">573</i>&nbsp;                            requestBody.addChild(child);</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;                        } else if (itemsSpec.containsKey(TYPE)) {</b>
+<b class="nc"><i class="no-highlight">575</i>&nbsp;                            requestBody = provider.createSchema(getSnapType(OBJECT), REQUEST_BODY);</b>
+<b class="nc"><i class="no-highlight">576</i>&nbsp;                            Schema child = provider</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                                    .createSchema(snapType, spec.get(NAME).toString());</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;                            type = itemsSpec.get(TYPE).toString();</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                            Schema grandchild = provider.createSchema(getSnapType(type),</b>
+<i class="no-highlight">580</i>&nbsp;                                    StringUtils.EMPTY);
+<b class="nc"><i class="no-highlight">581</i>&nbsp;                            ((ObjectSchema) child).addChild(grandchild);</b>
+<b class="nc"><i class="no-highlight">582</i>&nbsp;                            requestBody.addChild(child);</b>
+<i class="no-highlight">583</i>&nbsp;                        }
+<i class="no-highlight">584</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">585</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;                    Object name = spec.get(NAME);</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                    if (name instanceof String &amp;&amp; StringUtils.isNotBlank((String) name)) {</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;                        if (BODY.equalsIgnoreCase((String) name)) {</b>
+<b class="nc"><i class="no-highlight">589</i>&nbsp;                            if (requestBody == null) {</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;                                requestBody = provider.createSchema(snapType, REQUEST_BODY);</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                                requestBody.setRequired(required);</b>
+<i class="no-highlight">592</i>&nbsp;                            }
+<i class="no-highlight">593</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                            if (requestBody == null) {</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;                                requestBody = provider.createSchema(getSnapType(OBJECT),</b>
+<i class="no-highlight">596</i>&nbsp;                                        REQUEST_BODY);
+<i class="no-highlight">597</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                            Schema child = provider.createSchema(snapType, (String) name);</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;                            child.setRequired(required);</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;                            requestBody.addChild(child);</b>
+<i class="no-highlight">601</i>&nbsp;                        }
+<i class="no-highlight">602</i>&nbsp;                    }
+<i class="no-highlight">603</i>&nbsp;                }
+<i class="no-highlight">604</i>&nbsp;            }
+<i class="no-highlight">605</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">606</i>&nbsp;        return requestBody;</b>
+<i class="no-highlight">607</i>&nbsp;    }
+<i class="no-highlight">608</i>&nbsp;
+<i class="no-highlight">609</i>&nbsp;    /**
+<i class="no-highlight">610</i>&nbsp;     * Builds input schema by traversing OpenAPI spec.
+<i class="no-highlight">611</i>&nbsp;     *
+<i class="no-highlight">612</i>&nbsp;     * @param schemaProvider - schema provider object to build schema tree
+<i class="no-highlight">613</i>&nbsp;     * @param name           - schema name
+<i class="no-highlight">614</i>&nbsp;     * @param required       - true if it is a required field
+<i class="no-highlight">615</i>&nbsp;     * @param ref            - value of &#39;#ref&#39; key in the spec
+<i class="no-highlight">616</i>&nbsp;     * @param refChain       - chain of references in recursive calls, needed to avoid stack
+<i class="no-highlight">617</i>&nbsp;     *                      overflow, format: |ref1||ref2||re3||...||refN|
+<i class="no-highlight">618</i>&nbsp;     *
+<i class="no-highlight">619</i>&nbsp;     * @return schema object
+<i class="no-highlight">620</i>&nbsp;     * @throws InvalidPathException if it fails to build schema
+<i class="no-highlight">621</i>&nbsp;     */
+<i class="no-highlight">622</i>&nbsp;    private ObjectSchema createSchemaFromRef(SchemaProvider schemaProvider, String name,
+<i class="no-highlight">623</i>&nbsp;            boolean required, String ref, String refChain)
+<i class="no-highlight">624</i>&nbsp;            throws InvalidPathException {
+<i class="no-highlight">625</i>&nbsp;        // create object schema
+<b class="nc"><i class="no-highlight">626</i>&nbsp;        ObjectSchema schema = schemaProvider.createSchema(SnapType.COMPOSITE, name);</b>
+<b class="nc"><i class="no-highlight">627</i>&nbsp;        schema.setRequired(required);</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;        return createChildSchemaFromRef(schemaProvider, schema, ref, refChain);</b>
+<i class="no-highlight">629</i>&nbsp;    }
+<i class="no-highlight">630</i>&nbsp;
+<i class="no-highlight">631</i>&nbsp;    private ObjectSchema createChildSchemaFromRef(SchemaProvider schemaProvider,
+<i class="no-highlight">632</i>&nbsp;            ObjectSchema schema, String ref, String refChain) throws InvalidPathException {
+<i class="no-highlight">633</i>&nbsp;        // get schema spec by using #ref from OpenAPI spec
+<b class="nc"><i class="no-highlight">634</i>&nbsp;        ref = convertRefToJsonPath(ref);</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;        Map&lt;String, Object&gt; refSpec = getMapAt(resolvedV3OpenApiSpec, ref);</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;        String refName = ref.substring(ref.lastIndexOf(&#39;.&#39;) + 1);</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;        String refNameWrapped = String.format(FORMAT_REF_NAME, refName);</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;        referenceMap.put(refName, refSpec);</b>
+<i class="no-highlight">639</i>&nbsp;        // If a loop is found in the ref chain, it will end recursive call.
+<b class="nc"><i class="no-highlight">640</i>&nbsp;        boolean isLoop = StringUtils.contains(refChain, refNameWrapped);</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;        refChain = StringUtils.join(refChain, refNameWrapped);</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;        List&lt;String&gt; requiredFields = refSpec.containsKey(REQUIRED) ?</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;                (List&lt;String&gt;) refSpec.get(REQUIRED) : new ArrayList&lt;&gt;(0);</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;        Map&lt;String, Object&gt; propertiesSpec =</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                (Map&lt;String, Object&gt;) refSpec.get(PROPERTIES);</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;        if (propertiesSpec != null) {</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;            return createSchemaFromSpec(schemaProvider, propertiesSpec, requiredFields, schema,</b>
+<i class="no-highlight">648</i>&nbsp;                    isLoop, refChain);
+<b class="nc"><i class="no-highlight">649</i>&nbsp;        } else if (refSpec.get(TYPE) instanceof String) {</b>
+<b class="nc"><i class="no-highlight">650</i>&nbsp;            SnapType snapType = getSnapType((String) refSpec.get(TYPE));</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;            return schemaProvider.createSchema(snapType, schema.getName());</b>
+<b class="nc"><i class="no-highlight">652</i>&nbsp;        } else if (refSpec.get(ALL_OF) instanceof List) {</b>
+<b class="nc"><i class="no-highlight">653</i>&nbsp;            for (Map&lt;String, Object&gt; spec : (List&lt;Map&lt;String, Object&gt;&gt;) refSpec.get(ALL_OF)) {</b>
+<b class="nc"><i class="no-highlight">654</i>&nbsp;                if (spec.containsKey(REF) &amp;&amp; spec.get(REF) != null) {</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;                        createChildSchemaFromRef(schemaProvider, schema, (String) spec.get(REF),</b>
+<i class="no-highlight">656</i>&nbsp;                                refChain);
+<b class="nc"><i class="no-highlight">657</i>&nbsp;                } else if (spec.containsKey(PROPERTIES)) {</b>
+<b class="nc"><i class="no-highlight">658</i>&nbsp;                    Object value = spec.get(REQUIRED);</b>
+<b class="nc"><i class="no-highlight">659</i>&nbsp;                    if (value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">660</i>&nbsp;                        requiredFields.addAll((List&lt;String&gt;) value);</b>
+<i class="no-highlight">661</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">662</i>&nbsp;                    createSchemaFromSpec(schemaProvider, (Map&lt;String, Object&gt;) spec.get(PROPERTIES),</b>
+<i class="no-highlight">663</i>&nbsp;                            requiredFields, schema, isLoop, refChain);
+<i class="no-highlight">664</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">665</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;            return schema;</b>
+<i class="no-highlight">667</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">668</i>&nbsp;        return null;</b>
+<i class="no-highlight">669</i>&nbsp;    }
+<i class="no-highlight">670</i>&nbsp;
+<i class="no-highlight">671</i>&nbsp;    private ObjectSchema createSchemaFromSpec(SchemaProvider schemaProvider,
+<i class="no-highlight">672</i>&nbsp;            Map&lt;String, Object&gt; spec, List&lt;String&gt; requiredFields, ObjectSchema schema,
+<i class="no-highlight">673</i>&nbsp;            boolean isLoop, String refChain) throws InvalidPathException {
+<b class="nc"><i class="no-highlight">674</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; entry : spec.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;            String name = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">676</i>&nbsp;            boolean required = requiredFields.contains(name);</b>
+<b class="nc"><i class="no-highlight">677</i>&nbsp;            Map&lt;String, Object&gt; value = (Map&lt;String, Object&gt;) entry.getValue();</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;            ObjectSchema child = null;</b>
+<b class="nc"><i class="no-highlight">679</i>&nbsp;            Object refValue = value.get(REF);</b>
+<b class="nc"><i class="no-highlight">680</i>&nbsp;            if (refValue == null) {</b>
+<b class="nc"><i class="no-highlight">681</i>&nbsp;                SnapType snapType = getSnapType((String) value.get(TYPE));</b>
+<b class="nc"><i class="no-highlight">682</i>&nbsp;                child = schemaProvider.createSchema(snapType, name);</b>
+<b class="nc"><i class="no-highlight">683</i>&nbsp;                child.setRequired(required);</b>
+<b class="nc"><i class="no-highlight">684</i>&nbsp;                if (snapType.equals(SnapType.TABLE)) {</b>
+<b class="nc"><i class="no-highlight">685</i>&nbsp;                    Map&lt;String, Object&gt; itemsSpec = (Map&lt;String, Object&gt;) value.get(ITEMS);</b>
+<b class="nc"><i class="no-highlight">686</i>&nbsp;                    if (itemsSpec != null) {</b>
+<b class="nc"><i class="no-highlight">687</i>&nbsp;                        refValue = itemsSpec.get(REF);</b>
+<i class="no-highlight">688</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">689</i>&nbsp;                    Schema grandchild = null;</b>
+<b class="nc"><i class="no-highlight">690</i>&nbsp;                    if (refValue == null) {</b>
+<b class="nc"><i class="no-highlight">691</i>&nbsp;                        String type = (String) itemsSpec.get(TYPE);</b>
+<b class="nc"><i class="no-highlight">692</i>&nbsp;                        grandchild = schemaProvider.createSchema(getSnapType(type), name);</b>
+<b class="nc"><i class="no-highlight">693</i>&nbsp;                    } else if (!isLoop) {</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;                        grandchild = createSchemaFromRef(schemaProvider, name, required,</b>
+<i class="no-highlight">695</i>&nbsp;                                (String) refValue, refChain);
+<i class="no-highlight">696</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">697</i>&nbsp;                    if (grandchild != null) {</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                        child.addChild(grandchild);</b>
+<i class="no-highlight">699</i>&nbsp;                    }
+<i class="no-highlight">700</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">701</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">702</i>&nbsp;                if (!isLoop) {</b>
+<b class="nc"><i class="no-highlight">703</i>&nbsp;                    child = createSchemaFromRef(schemaProvider, name, required,</b>
+<i class="no-highlight">704</i>&nbsp;                            (String) refValue, refChain);
+<i class="no-highlight">705</i>&nbsp;                }
+<i class="no-highlight">706</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">707</i>&nbsp;            if (child != null) {</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;                schema.addChild(child);</b>
+<i class="no-highlight">709</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">710</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;        return schema;</b>
+<i class="no-highlight">712</i>&nbsp;    }
+<i class="no-highlight">713</i>&nbsp;
+<i class="no-highlight">714</i>&nbsp;    /**
+<i class="no-highlight">715</i>&nbsp;     * Return the SnapLogic type based on the type in the spec.
+<i class="no-highlight">716</i>&nbsp;     * We have a special case for float
+<i class="no-highlight">717</i>&nbsp;     *
+<i class="no-highlight">718</i>&nbsp;     * @param type Type found in spec file
+<i class="no-highlight">719</i>&nbsp;     *
+<i class="no-highlight">720</i>&nbsp;     * @return SnapLogic type
+<i class="no-highlight">721</i>&nbsp;     */
+<i class="no-highlight">722</i>&nbsp;    private SnapType getSnapType(final String type) {
+<i class="no-highlight">723</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">724</i>&nbsp;            switch (type.toLowerCase()) {</b>
+<i class="no-highlight">725</i>&nbsp;                case FLOAT:
+<b class="nc"><i class="no-highlight">726</i>&nbsp;                    return SnapType.NUMBER;</b>
+<i class="no-highlight">727</i>&nbsp;                case FILE:
+<b class="nc"><i class="no-highlight">728</i>&nbsp;                    return SnapType.STRING;</b>
+<i class="no-highlight">729</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">730</i>&nbsp;                    return SnapType.parse(type.toLowerCase());</b>
+<i class="no-highlight">731</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">732</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">733</i>&nbsp;            return SnapType.ANY;</b>
+<i class="no-highlight">734</i>&nbsp;        }
+<i class="no-highlight">735</i>&nbsp;    }
+<i class="no-highlight">736</i>&nbsp;
+<i class="no-highlight">737</i>&nbsp;    /**
+<i class="no-highlight">738</i>&nbsp;     * Builds JSON path from given nodes.
+<i class="no-highlight">739</i>&nbsp;     *
+<i class="no-highlight">740</i>&nbsp;     * @param nodes - nodes for JSON path
+<i class="no-highlight">741</i>&nbsp;     *
+<i class="no-highlight">742</i>&nbsp;     * @return JsonPath class object
+<i class="no-highlight">743</i>&nbsp;     * @throws InvalidPathException if the nodes are invalid for JSON path
+<i class="no-highlight">744</i>&nbsp;     */
+<i class="no-highlight">745</i>&nbsp;    public static JsonPath buildJsonPath(String... nodes) throws InvalidPathException {
+<b class="nc"><i class="no-highlight">746</i>&nbsp;        StringBuilder builder = new StringBuilder(DOLLAR);</b>
+<b class="nc"><i class="no-highlight">747</i>&nbsp;        for (String node : nodes) {</b>
+<b class="nc"><i class="no-highlight">748</i>&nbsp;            if (StringUtils.contains(node, &#39;.&#39;)) {</b>
+<b class="nc"><i class="no-highlight">749</i>&nbsp;                node = String.format(FORMAT_WRAP, node);</b>
+<i class="no-highlight">750</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">751</i>&nbsp;            builder.append(&#39;.&#39;).append(node);</b>
+<i class="no-highlight">752</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">753</i>&nbsp;        return JsonPathImpl.compile(builder.toString());</b>
+<i class="no-highlight">754</i>&nbsp;    }
+<i class="no-highlight">755</i>&nbsp;
+<i class="no-highlight">756</i>&nbsp;    /**
+<i class="no-highlight">757</i>&nbsp;     * Generates JSON path from given nodes and gets the value at the JSON path in the Map data.
+<i class="no-highlight">758</i>&nbsp;     *
+<i class="no-highlight">759</i>&nbsp;     * @param map   - given Map data
+<i class="no-highlight">760</i>&nbsp;     * @param nodes - nodes for JSON path
+<i class="no-highlight">761</i>&nbsp;     *
+<i class="no-highlight">762</i>&nbsp;     * @return value of the JSON path in the Map data
+<i class="no-highlight">763</i>&nbsp;     */
+<i class="no-highlight">764</i>&nbsp;    public static Object readJsonPath(Map&lt;String, Object&gt; map, String... nodes) {
+<i class="no-highlight">765</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">766</i>&nbsp;            return buildJsonPath(nodes).read(map);</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;        } catch (InvalidPathException e) {</b>
+<b class="nc"><i class="no-highlight">768</i>&nbsp;            return null;</b>
+<i class="no-highlight">769</i>&nbsp;        }
+<i class="no-highlight">770</i>&nbsp;    }
+<i class="no-highlight">771</i>&nbsp;
+<i class="no-highlight">772</i>&nbsp;    private static void writeJsonPath(Object data, Object value, String... nodes) {
+<i class="no-highlight">773</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">774</i>&nbsp;            buildJsonPath(nodes).write(data, value);</b>
+<b class="nc"><i class="no-highlight">775</i>&nbsp;        } catch (InvalidPathException e) {</b>
+<i class="no-highlight">776</i>&nbsp;            // no-op
+<b class="nc"><i class="no-highlight">777</i>&nbsp;        }</b>
+<i class="no-highlight">778</i>&nbsp;    }
+<i class="no-highlight">779</i>&nbsp;
+<i class="no-highlight">780</i>&nbsp;    private String getValueFromInput(Map&lt;String, Object&gt; data, JsonPath jsonPath,
+<i class="no-highlight">781</i>&nbsp;            boolean required) throws InvalidPathException {
+<b class="nc"><i class="no-highlight">782</i>&nbsp;        if (data != null &amp;&amp; jsonPath.existsIn(data)) {</b>
+<b class="nc"><i class="no-highlight">783</i>&nbsp;            Object value = jsonPath.read(data);</b>
+<b class="nc"><i class="no-highlight">784</i>&nbsp;            if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">785</i>&nbsp;                return (String) value;</b>
+<b class="nc"><i class="no-highlight">786</i>&nbsp;            } else if (value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">787</i>&nbsp;                String strValue = value.toString();</b>
+<b class="nc"><i class="no-highlight">788</i>&nbsp;                if (strValue.length() &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">789</i>&nbsp;                    return strValue.substring(1, strValue.length() - 1);</b>
+<i class="no-highlight">790</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">791</i>&nbsp;            } else if (value == null) {</b>
+<b class="nc"><i class="no-highlight">792</i>&nbsp;                return null;</b>
+<i class="no-highlight">793</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">794</i>&nbsp;                return value.toString();</b>
+<i class="no-highlight">795</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">796</i>&nbsp;        } else if (required) {</b>
+<b class="nc"><i class="no-highlight">797</i>&nbsp;            throw new SnapDataException(ERR_MISSING_INPUT_DATA)</b>
+<b class="nc"><i class="no-highlight">798</i>&nbsp;                .formatWith(jsonPath.toString())</b>
+<b class="nc"><i class="no-highlight">799</i>&nbsp;                .withReason(REASON_REQUIRED_FIELD)</b>
+<b class="nc"><i class="no-highlight">800</i>&nbsp;                .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">801</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">802</i>&nbsp;        return null;</b>
+<i class="no-highlight">803</i>&nbsp;    }
+<i class="no-highlight">804</i>&nbsp;
+<i class="no-highlight">805</i>&nbsp;    /**
+<i class="no-highlight">806</i>&nbsp;     * Casts input data to a Map object. Throws an exception if it is null or List object. Or else,
+<i class="no-highlight">807</i>&nbsp;     * returns an empty Map.
+<i class="no-highlight">808</i>&nbsp;     *
+<i class="no-highlight">809</i>&nbsp;     * @param input - input data
+<i class="no-highlight">810</i>&nbsp;     * @return input data as a Map object
+<i class="no-highlight">811</i>&nbsp;     */
+<i class="no-highlight">812</i>&nbsp;    public Map&lt;String, Object&gt; getAsMap(Object input) {
+<b class="nc"><i class="no-highlight">813</i>&nbsp;        if (input instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">814</i>&nbsp;            return (Map&lt;String, Object&gt;) input;</b>
+<b class="nc"><i class="no-highlight">815</i>&nbsp;        } else if (!(input == null || input instanceof List)) {</b>
+<b class="nc"><i class="no-highlight">816</i>&nbsp;            throw new SnapDataException(ERR_INVALID_INPUT_DATA)</b>
+<b class="nc"><i class="no-highlight">817</i>&nbsp;                .formatWith(input.getClass().getSimpleName())</b>
+<b class="nc"><i class="no-highlight">818</i>&nbsp;                .withReason(REASON_UNSUPPORTED_TYPE)</b>
+<b class="nc"><i class="no-highlight">819</i>&nbsp;                .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">820</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">821</i>&nbsp;        return new HashMap&lt;&gt;(0);</b>
+<i class="no-highlight">822</i>&nbsp;    }
+<i class="no-highlight">823</i>&nbsp;
+<i class="no-highlight">824</i>&nbsp;    /**
+<i class="no-highlight">825</i>&nbsp;     * Returns a subset of OpenAPI spec at the JSON path of given nodes.
+<i class="no-highlight">826</i>&nbsp;     *
+<i class="no-highlight">827</i>&nbsp;     * @param spec  - all or part of OpenAPI spec
+<i class="no-highlight">828</i>&nbsp;     * @param nodes - nodes for JSON path
+<i class="no-highlight">829</i>&nbsp;     *
+<i class="no-highlight">830</i>&nbsp;     * @return subset of OpenAPI spec at the JSON path or an empty map if the input is not a map
+<i class="no-highlight">831</i>&nbsp;     */
+<i class="no-highlight">832</i>&nbsp;    public Map&lt;String, Object&gt; getSpec(Map&lt;String, Object&gt; spec, String... nodes) {
+<b class="nc"><i class="no-highlight">833</i>&nbsp;        Object result = readJsonPath(spec, nodes);</b>
+<b class="nc"><i class="no-highlight">834</i>&nbsp;        if (result instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">835</i>&nbsp;            return (Map&lt;String, Object&gt;) result;</b>
+<i class="no-highlight">836</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">837</i>&nbsp;        return new HashMap&lt;&gt;(0);</b>
+<i class="no-highlight">838</i>&nbsp;    }
+<i class="no-highlight">839</i>&nbsp;
+<i class="no-highlight">840</i>&nbsp;    /**
+<i class="no-highlight">841</i>&nbsp;     * Prepares the path and queries of service URL by processing the parameter part of OpenAPI
+<i class="no-highlight">842</i>&nbsp;     * spec and input data.
+<i class="no-highlight">843</i>&nbsp;     *
+<i class="no-highlight">844</i>&nbsp;     * @param operationSpec - part of the OpenAPI spec for selected path and operation
+<i class="no-highlight">845</i>&nbsp;     * @param data          - input data
+<i class="no-highlight">846</i>&nbsp;     * @param serviceUrl    - service URL
+<i class="no-highlight">847</i>&nbsp;     * @param headers       - reuqest headers
+<i class="no-highlight">848</i>&nbsp;     *
+<i class="no-highlight">849</i>&nbsp;     * @return updated service URL
+<i class="no-highlight">850</i>&nbsp;     * @throws InvalidPathException if it fails in handling JSON paths
+<i class="no-highlight">851</i>&nbsp;     *         URISyntaxException   if there is any syntax error in URL
+<i class="no-highlight">852</i>&nbsp;     */
+<i class="no-highlight">853</i>&nbsp;    public String processParameters(Map&lt;String, Object&gt; operationSpec, Map&lt;String, Object&gt; data,
+<i class="no-highlight">854</i>&nbsp;            String serviceUrl, List&lt;Header&gt; headers)
+<i class="no-highlight">855</i>&nbsp;            throws InvalidPathException, URISyntaxException {
+<b class="nc"><i class="no-highlight">856</i>&nbsp;        if (operationSpec.containsKey(PARAMETERS)) {</b>
+<b class="nc"><i class="no-highlight">857</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; params = buildJsonPath(PARAMETERS).read(operationSpec);</b>
+<b class="nc"><i class="no-highlight">858</i>&nbsp;            Map&lt;String, String&gt; pathParams = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">859</i>&nbsp;            Map&lt;String, String&gt; queryParams = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">860</i>&nbsp;            Map&lt;String, String&gt; headerParams = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">861</i>&nbsp;            for (Map&lt;String, Object&gt; parameter : params) {</b>
+<b class="nc"><i class="no-highlight">862</i>&nbsp;                if (parameter.containsKey(REF)) {</b>
+<i class="no-highlight">863</i>&nbsp;                    // it is possible the parameter spec has get from $ref
+<b class="nc"><i class="no-highlight">864</i>&nbsp;                    parameter = getRefSpec((String) parameter.get(REF), false);</b>
+<b class="nc"><i class="no-highlight">865</i>&nbsp;                    if (MapUtils.isEmpty(parameter)){</b>
+<b class="nc"><i class="no-highlight">866</i>&nbsp;                        parameter = getRefSpec((String) parameter.get(REF), true);</b>
+<i class="no-highlight">867</i>&nbsp;                    }
+<i class="no-highlight">868</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">869</i>&nbsp;                String paramName = (String) parameter.get(NAME);</b>
+<b class="nc"><i class="no-highlight">870</i>&nbsp;                String in = (String) parameter.get(IN);</b>
+<b class="nc"><i class="no-highlight">871</i>&nbsp;                boolean required = getBoolean(parameter.get(REQUIRED));</b>
+<b class="nc"><i class="no-highlight">872</i>&nbsp;                JsonPath jsonPath = buildJsonPath(PARAMETERS, in, paramName);</b>
+<b class="nc"><i class="no-highlight">873</i>&nbsp;                if (BODY.equals(in) || FORM_DATA.equals(in) ||</b>
+<b class="nc"><i class="no-highlight">874</i>&nbsp;                        !required &amp;&amp; !jsonPath.existsIn(data)) {</b>
+<i class="no-highlight">875</i>&nbsp;                    // if &#39;in&#39; is &quot;body&quot;, it is OpenAPI 2.0 and should skip
+<b class="nc"><i class="no-highlight">876</i>&nbsp;                    continue;</b>
+<i class="no-highlight">877</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">878</i>&nbsp;                String value = getValueFromInput(data, jsonPath, required);</b>
+<b class="nc"><i class="no-highlight">879</i>&nbsp;                if (PATH.equalsIgnoreCase(in)) {</b>
+<b class="nc"><i class="no-highlight">880</i>&nbsp;                    pathParams.put(paramName, value);</b>
+<b class="nc"><i class="no-highlight">881</i>&nbsp;                } else if (QUERY.equalsIgnoreCase(in)) {</b>
+<b class="nc"><i class="no-highlight">882</i>&nbsp;                    queryParams.put(paramName, value);</b>
+<b class="nc"><i class="no-highlight">883</i>&nbsp;                } else if (HEADER.equalsIgnoreCase(in)) {</b>
+<b class="nc"><i class="no-highlight">884</i>&nbsp;                    headerParams.put(paramName, value);</b>
+<i class="no-highlight">885</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">886</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">887</i>&nbsp;            if (MapUtils.isNotEmpty(pathParams)) {</b>
+<b class="nc"><i class="no-highlight">888</i>&nbsp;                serviceUrl = evalPathParameters(serviceUrl, pathParams);</b>
+<i class="no-highlight">889</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">890</i>&nbsp;            if (MapUtils.isNotEmpty(queryParams)) {</b>
+<b class="nc"><i class="no-highlight">891</i>&nbsp;                URIBuilder builder = new URIBuilder(serviceUrl);</b>
+<b class="nc"><i class="no-highlight">892</i>&nbsp;                for (Map.Entry&lt;String, String&gt; entry : queryParams.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">893</i>&nbsp;                    builder.addParameter(entry.getKey(), entry.getValue());</b>
+<b class="nc"><i class="no-highlight">894</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">895</i>&nbsp;                serviceUrl = builder.build()</b>
+<b class="nc"><i class="no-highlight">896</i>&nbsp;                        .toString();</b>
+<i class="no-highlight">897</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">898</i>&nbsp;            if (MapUtils.isNotEmpty(headerParams)) {</b>
+<b class="nc"><i class="no-highlight">899</i>&nbsp;                for (Map.Entry&lt;String, String&gt; entry : headerParams.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">900</i>&nbsp;                    headers.add(new BasicHeader(entry.getKey(), entry.getValue()));</b>
+<b class="nc"><i class="no-highlight">901</i>&nbsp;                }</b>
+<i class="no-highlight">902</i>&nbsp;            }
+<i class="no-highlight">903</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">904</i>&nbsp;        return serviceUrl;</b>
+<i class="no-highlight">905</i>&nbsp;    }
+<i class="no-highlight">906</i>&nbsp;
+<i class="no-highlight">907</i>&nbsp;    /**
+<i class="no-highlight">908</i>&nbsp;     * Prepares the path and queries of service URL by processing the parameter part of OpenAPI
+<i class="no-highlight">909</i>&nbsp;     * spec and input data.
+<i class="no-highlight">910</i>&nbsp;     *
+<i class="no-highlight">911</i>&nbsp;     * @param operationSpec    - part of the OpenAPI spec for selected path and operation
+<i class="no-highlight">912</i>&nbsp;     * @param data             - input data
+<i class="no-highlight">913</i>&nbsp;     * @param serviceUrl       - service URL
+<i class="no-highlight">914</i>&nbsp;     * @param headers          - reuqest headers
+<i class="no-highlight">915</i>&nbsp;     * @param queryParams      - query params acquired from request
+<i class="no-highlight">916</i>&nbsp;     * @param commonParameters - param names common for spec
+<i class="no-highlight">917</i>&nbsp;     *
+<i class="no-highlight">918</i>&nbsp;     * @return updated service URL
+<i class="no-highlight">919</i>&nbsp;     * @throws InvalidPathException if it fails in handling JSON paths
+<i class="no-highlight">920</i>&nbsp;     */
+<i class="no-highlight">921</i>&nbsp;    public String processParameters(Map&lt;String, Object&gt; operationSpec, Map&lt;String, Object&gt; data,
+<i class="no-highlight">922</i>&nbsp;            String serviceUrl, List&lt;Header&gt; headers, Map&lt;String, String&gt; queryParams,
+<i class="no-highlight">923</i>&nbsp;            List&lt;Map&lt;String, Object&gt;&gt; commonParameters) throws InvalidPathException {
+<i class="no-highlight">924</i>&nbsp;        // combine common parameter spec and the operation parameter spec
+<b class="nc"><i class="no-highlight">925</i>&nbsp;        Object paramSpec = readJsonPath(operationSpec, PARAMETERS);</b>
+<b class="nc"><i class="no-highlight">926</i>&nbsp;        List&lt;Object&gt; parameters = union(paramSpec, commonParameters);</b>
+<i class="no-highlight">927</i>&nbsp;        // process schema for parameters in path, query and header
+<b class="nc"><i class="no-highlight">928</i>&nbsp;        Map&lt;String, String&gt; pathParams = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">929</i>&nbsp;        Map&lt;String, String&gt; headerParams = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">930</i>&nbsp;        for (Object object : parameters) {</b>
+<i class="no-highlight">931</i>&nbsp;            Map&lt;String, Object&gt; parameter;
+<b class="nc"><i class="no-highlight">932</i>&nbsp;            if (object instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">933</i>&nbsp;                parameter = (Map&lt;String, Object&gt;) object;</b>
+<i class="no-highlight">934</i>&nbsp;            } else {
+<i class="no-highlight">935</i>&nbsp;                continue;
+<i class="no-highlight">936</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">937</i>&nbsp;            if (parameter.containsKey(REF)) {</b>
+<i class="no-highlight">938</i>&nbsp;                // it is possible the parameter spec has get from $ref
+<b class="nc"><i class="no-highlight">939</i>&nbsp;                parameter = getRefSpec((String) parameter.get(REF), false);</b>
+<b class="nc"><i class="no-highlight">940</i>&nbsp;                if (MapUtils.isEmpty(parameter)){</b>
+<b class="nc"><i class="no-highlight">941</i>&nbsp;                    parameter = getRefSpec((String) parameter.get(REF), true);</b>
+<i class="no-highlight">942</i>&nbsp;                }
+<i class="no-highlight">943</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">944</i>&nbsp;            String paramName = (String) parameter.get(NAME);</b>
+<b class="nc"><i class="no-highlight">945</i>&nbsp;            String in = (String) parameter.get(IN);</b>
+<b class="nc"><i class="no-highlight">946</i>&nbsp;            if (AUTHORIZATION.equalsIgnoreCase(paramName) &amp;&amp; HEADER.equalsIgnoreCase(in)) {</b>
+<i class="no-highlight">947</i>&nbsp;                // Authorization header is not processed from the input data. It is taken
+<i class="no-highlight">948</i>&nbsp;                // care of the Snap pack account or &#39;HTTP Headers&#39; property.
+<b class="nc"><i class="no-highlight">949</i>&nbsp;                continue;</b>
+<i class="no-highlight">950</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">951</i>&nbsp;            boolean required = getBoolean(parameter.get(REQUIRED));</b>
+<b class="nc"><i class="no-highlight">952</i>&nbsp;            JsonPath jsonPath = buildJsonPath(PARAMETERS, in, paramName);</b>
+<b class="nc"><i class="no-highlight">953</i>&nbsp;            if (BODY.equals(in) || FORM_DATA.equals(in) ||</b>
+<b class="nc"><i class="no-highlight">954</i>&nbsp;                    !required &amp;&amp; !jsonPath.existsIn(data)) {</b>
+<i class="no-highlight">955</i>&nbsp;                // if &#39;in&#39; is &quot;body&quot;, it is OpenAPI 2.0 and should skip
+<b class="nc"><i class="no-highlight">956</i>&nbsp;                continue;</b>
+<i class="no-highlight">957</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">958</i>&nbsp;            String value = getValueFromInput(data, jsonPath, required);</b>
+<b class="nc"><i class="no-highlight">959</i>&nbsp;            if (PATH.equalsIgnoreCase(in)) {</b>
+<b class="nc"><i class="no-highlight">960</i>&nbsp;                pathParams.put(paramName, value);</b>
+<b class="nc"><i class="no-highlight">961</i>&nbsp;            } else if (QUERY.equalsIgnoreCase(in)) {</b>
+<i class="no-highlight">962</i>&nbsp;                // the query parameters from Snap property takes higher priority over the
+<i class="no-highlight">963</i>&nbsp;                // parameters automatically-generated from spec &amp; input data
+<b class="nc"><i class="no-highlight">964</i>&nbsp;                if (!queryParams.containsKey(paramName)) {</b>
+<b class="nc"><i class="no-highlight">965</i>&nbsp;                    queryParams.put(paramName, value);</b>
+<i class="no-highlight">966</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">967</i>&nbsp;            } else if (HEADER.equalsIgnoreCase(in)) {</b>
+<b class="nc"><i class="no-highlight">968</i>&nbsp;                headerParams.put(paramName, value);</b>
+<i class="no-highlight">969</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">970</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">971</i>&nbsp;        if (MapUtils.isNotEmpty(pathParams)) {</b>
+<b class="nc"><i class="no-highlight">972</i>&nbsp;            serviceUrl = evalPathParameters(serviceUrl, pathParams);</b>
+<i class="no-highlight">973</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">974</i>&nbsp;        if (MapUtils.isNotEmpty(headerParams)) {</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;            for (Map.Entry&lt;String, String&gt; entry : headerParams.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">976</i>&nbsp;                String name = entry.getKey();</b>
+<i class="no-highlight">977</i>&nbsp;                // the headers from Snap property take higher priority over the
+<i class="no-highlight">978</i>&nbsp;                // headers automatically-generated from spec &amp; input data
+<b class="nc"><i class="no-highlight">979</i>&nbsp;                if (!containsHeader(headers, name)) {</b>
+<b class="nc"><i class="no-highlight">980</i>&nbsp;                    headers.add(new BasicHeader(name, entry.getValue()));</b>
+<i class="no-highlight">981</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">982</i>&nbsp;            }</b>
+<i class="no-highlight">983</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">984</i>&nbsp;        return serviceUrl;</b>
+<i class="no-highlight">985</i>&nbsp;    }
+<i class="no-highlight">986</i>&nbsp;
+<i class="no-highlight">987</i>&nbsp;    private String evalPathParameters(String serviceUrl, Map&lt;String, String&gt; params) {
+<b class="nc"><i class="no-highlight">988</i>&nbsp;        Set&lt;String&gt; patterns = new LinkedHashSet&lt;&gt;(params.size());</b>
+<b class="nc"><i class="no-highlight">989</i>&nbsp;        for (String key : params.keySet()) {</b>
+<b class="nc"><i class="no-highlight">990</i>&nbsp;            patterns.add(String.format(PATH_PARAM_PATTERN, key));</b>
+<b class="nc"><i class="no-highlight">991</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">992</i>&nbsp;        return StringUtils.replaceEach(serviceUrl, patterns.toArray(new String[0]),</b>
+<b class="nc"><i class="no-highlight">993</i>&nbsp;                params.values().toArray(new String[0]));</b>
+<i class="no-highlight">994</i>&nbsp;    }
+<i class="no-highlight">995</i>&nbsp;
+<i class="no-highlight">996</i>&nbsp;    /**
+<i class="no-highlight">997</i>&nbsp;     * prepares HTTP entity and request headers by processing operation spec and input data.
+<i class="no-highlight">998</i>&nbsp;     *
+<i class="no-highlight">999</i>&nbsp;     * @param operationSpec - part of the OpenAPI spec for selected path and operation
+<i class="no-highlight">1000</i>&nbsp;     * @param input         - input data
+<i class="no-highlight">1001</i>&nbsp;     * @param headers       - request headers
+<i class="no-highlight">1002</i>&nbsp;     *
+<i class="no-highlight">1003</i>&nbsp;     * @return HttpEntity object
+<i class="no-highlight">1004</i>&nbsp;     * @throws JsonProcessingException if it fails to convert input data to JSON or XML
+<i class="no-highlight">1005</i>&nbsp;     */
+<i class="no-highlight">1006</i>&nbsp;    public HttpEntity getHttpEntity(Map&lt;String, Object&gt; operationSpec, Object input,
+<i class="no-highlight">1007</i>&nbsp;            List&lt;Header&gt; headers) throws JsonProcessingException {
+<b class="nc"><i class="no-highlight">1008</i>&nbsp;        String contentType = APPLICATION_JSON;</b>
+<b class="nc"><i class="no-highlight">1009</i>&nbsp;        if (operationSpec.containsKey(REQUEST_BODY)) {</b>
+<i class="no-highlight">1010</i>&nbsp;            // get requestBody content spec
+<b class="nc"><i class="no-highlight">1011</i>&nbsp;            Map&lt;String, Object&gt; contentSpec = getSpec(operationSpec, REQUEST_BODY, CONTENT);</b>
+<i class="no-highlight">1012</i>&nbsp;            // get content type
+<b class="nc"><i class="no-highlight">1013</i>&nbsp;            if (contentSpec.containsKey(APPLICATION_JSON)) {</b>
+<b class="nc"><i class="no-highlight">1014</i>&nbsp;                contentType = APPLICATION_JSON;</b>
+<b class="nc"><i class="no-highlight">1015</i>&nbsp;            } else if (contentSpec.containsKey(APPLICATION_XML)) {</b>
+<b class="nc"><i class="no-highlight">1016</i>&nbsp;                contentType = APPLICATION_XML;</b>
+<b class="nc"><i class="no-highlight">1017</i>&nbsp;            } else if (contentSpec.containsKey(APPLICATION_OCTET_STREAM)) {</b>
+<b class="nc"><i class="no-highlight">1018</i>&nbsp;                contentType = APPLICATION_OCTET_STREAM;</b>
+<b class="nc"><i class="no-highlight">1019</i>&nbsp;            } else if (contentSpec.containsKey(MULTIPART_FORM_DATA)) {</b>
+<b class="nc"><i class="no-highlight">1020</i>&nbsp;                contentType = MULTIPART_FORM_DATA;</b>
+<b class="nc"><i class="no-highlight">1021</i>&nbsp;            } else if (contentSpec.containsKey(APPLICATION_FORM_URLENCODED)) {</b>
+<b class="nc"><i class="no-highlight">1022</i>&nbsp;                contentType = APPLICATION_FORM_URLENCODED;</b>
+<i class="no-highlight">1023</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;                Set&lt;String&gt; types = contentSpec.keySet();</b>
+<b class="nc"><i class="no-highlight">1025</i>&nbsp;                if (LOG.isWarnEnabled()) {</b>
+<b class="nc"><i class="no-highlight">1026</i>&nbsp;                    LOG.warn(&quot;Unsupported content type: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">1027</i>&nbsp;                        StringUtils.join(types, COMMA_SEPARATOR));</b>
+<i class="no-highlight">1028</i>&nbsp;                }
+<i class="no-highlight">1029</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1030</i>&nbsp;        } else if (operationSpec.containsKey(CONSUMES)) {</b>
+<i class="no-highlight">1031</i>&nbsp;            // it is OpenAPI 2.0, the &quot;consumes&quot; field contains the expected content types
+<b class="nc"><i class="no-highlight">1032</i>&nbsp;            Object consumes = operationSpec.get(CONSUMES);</b>
+<b class="nc"><i class="no-highlight">1033</i>&nbsp;            if (consumes instanceof List) {</b>
+<b class="nc"><i class="no-highlight">1034</i>&nbsp;                List&lt;String&gt; contentTypes = (List&lt;String&gt;) consumes;</b>
+<b class="nc"><i class="no-highlight">1035</i>&nbsp;                if (contentTypes.contains(APPLICATION_JSON)) {</b>
+<b class="nc"><i class="no-highlight">1036</i>&nbsp;                    contentType = APPLICATION_JSON;</b>
+<b class="nc"><i class="no-highlight">1037</i>&nbsp;                } else if (contentTypes.contains(APPLICATION_XML)) {</b>
+<b class="nc"><i class="no-highlight">1038</i>&nbsp;                    contentType = APPLICATION_XML;</b>
+<b class="nc"><i class="no-highlight">1039</i>&nbsp;                } else if (contentTypes.contains(APPLICATION_OCTET_STREAM)) {</b>
+<b class="nc"><i class="no-highlight">1040</i>&nbsp;                    contentType = APPLICATION_OCTET_STREAM;</b>
+<b class="nc"><i class="no-highlight">1041</i>&nbsp;                } else if (contentTypes.contains(MULTIPART_FORM_DATA)) {</b>
+<b class="nc"><i class="no-highlight">1042</i>&nbsp;                    contentType = MULTIPART_FORM_DATA;</b>
+<b class="nc"><i class="no-highlight">1043</i>&nbsp;                } else if (contentTypes.contains(APPLICATION_FORM_URLENCODED)) {</b>
+<b class="nc"><i class="no-highlight">1044</i>&nbsp;                    contentType = APPLICATION_FORM_URLENCODED;</b>
+<i class="no-highlight">1045</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">1046</i>&nbsp;                    if (LOG.isWarnEnabled()) {</b>
+<b class="nc"><i class="no-highlight">1047</i>&nbsp;                        LOG.warn(&quot;Unsupported content type: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">1048</i>&nbsp;                            StringUtils.join(contentTypes, COMMA_SEPARATOR));</b>
+<i class="no-highlight">1049</i>&nbsp;                    }
+<i class="no-highlight">1050</i>&nbsp;                }
+<i class="no-highlight">1051</i>&nbsp;            }
+<i class="no-highlight">1052</i>&nbsp;        }
+<i class="no-highlight">1053</i>&nbsp;        // get content object
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;        Object content = input instanceof Map ?</b>
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;            ((Map&lt;String, Object&gt;) input).get(REQUEST_BODY) : input;</b>
+<b class="nc"><i class="no-highlight">1056</i>&nbsp;        if (content instanceof Map &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">1057</i>&nbsp;            ((Map&lt;String, Object&gt;) content).containsKey(CONTENT)) {</b>
+<b class="nc"><i class="no-highlight">1058</i>&nbsp;            content = ((Map&lt;String, Object&gt;) content).get(CONTENT);</b>
+<i class="no-highlight">1059</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1060</i>&nbsp;        if (content != null) {</b>
+<b class="nc"><i class="no-highlight">1061</i>&nbsp;            switch (contentType) {</b>
+<i class="no-highlight">1062</i>&nbsp;                case APPLICATION_JSON:
+<b class="nc"><i class="no-highlight">1063</i>&nbsp;                    content = OBJECT_MAPPER.writeValueAsString(content);</b>
+<b class="nc"><i class="no-highlight">1064</i>&nbsp;                    break;</b>
+<i class="no-highlight">1065</i>&nbsp;                case APPLICATION_XML:
+<b class="nc"><i class="no-highlight">1066</i>&nbsp;                    content = (new XmlMapper()).writeValueAsString(content);</b>
+<b class="nc"><i class="no-highlight">1067</i>&nbsp;                    break;</b>
+<i class="no-highlight">1068</i>&nbsp;                case MULTIPART_FORM_DATA:
+<b class="nc"><i class="no-highlight">1069</i>&nbsp;                    content = generateMultipart(operationSpec, input, headers);</b>
+<b class="nc"><i class="no-highlight">1070</i>&nbsp;                    break;</b>
+<i class="no-highlight">1071</i>&nbsp;                case APPLICATION_FORM_URLENCODED:
+<b class="nc"><i class="no-highlight">1072</i>&nbsp;                    content = generateFormURLEncoded(input);</b>
+<b class="nc"><i class="no-highlight">1073</i>&nbsp;                    break;</b>
+<i class="no-highlight">1074</i>&nbsp;                default:
+<i class="no-highlight">1075</i>&nbsp;                    // leave content &#39;as is&#39; if none of the above
+<i class="no-highlight">1076</i>&nbsp;            }
+<i class="no-highlight">1077</i>&nbsp;            // append charset UTF-8 by default to Content-Type
+<b class="nc"><i class="no-highlight">1078</i>&nbsp;            contentType = contentType.concat(CHARSET_UTF_8);</b>
+<i class="no-highlight">1079</i>&nbsp;            // add content-type header
+<b class="nc"><i class="no-highlight">1080</i>&nbsp;            if (!MULTIPART_FORM_DATA.equalsIgnoreCase(contentType) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">1081</i>&nbsp;                    !containsHeader(headers, CONTENT_TYPE)) {</b>
+<b class="nc"><i class="no-highlight">1082</i>&nbsp;                headers.add(new BasicHeader(CONTENT_TYPE, contentType));</b>
+<i class="no-highlight">1083</i>&nbsp;            }
+<i class="no-highlight">1084</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1085</i>&nbsp;            return null;</b>
+<i class="no-highlight">1086</i>&nbsp;        }
+<i class="no-highlight">1087</i>&nbsp;        // convert content to byte array
+<i class="no-highlight">1088</i>&nbsp;        byte[] bytes;
+<b class="nc"><i class="no-highlight">1089</i>&nbsp;        if (content instanceof String) {</b>
+<b class="nc"><i class="no-highlight">1090</i>&nbsp;            bytes = ((String) content).getBytes(StandardCharsets.UTF_8);</b>
+<b class="nc"><i class="no-highlight">1091</i>&nbsp;        } else if (content instanceof byte[]) {</b>
+<b class="nc"><i class="no-highlight">1092</i>&nbsp;            bytes = (byte[]) content;</b>
+<b class="nc"><i class="no-highlight">1093</i>&nbsp;        } else if (content instanceof java.io.Serializable) {</b>
+<b class="nc"><i class="no-highlight">1094</i>&nbsp;            bytes = SerializationUtils.serialize((Serializable) content);</b>
+<i class="no-highlight">1095</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1096</i>&nbsp;            throw new SnapDataException(ERR_INVALID_CONTENT_TYPE)</b>
+<b class="nc"><i class="no-highlight">1097</i>&nbsp;                .formatWith(content.getClass()</b>
+<b class="nc"><i class="no-highlight">1098</i>&nbsp;                    .getSimpleName())</b>
+<b class="nc"><i class="no-highlight">1099</i>&nbsp;                .withReason(REASON_NOT_SERIALIZABLE)</b>
+<b class="nc"><i class="no-highlight">1100</i>&nbsp;                .withResolution(RESOLUTION_BYTE_ARRAY);</b>
+<i class="no-highlight">1101</i>&nbsp;        }
+<i class="no-highlight">1102</i>&nbsp;        // get HttpEntity from byte array
+<b class="nc"><i class="no-highlight">1103</i>&nbsp;        return new ByteArrayEntity(bytes, ContentType.parse(contentType));</b>
+<i class="no-highlight">1104</i>&nbsp;    }
+<i class="no-highlight">1105</i>&nbsp;
+<i class="no-highlight">1106</i>&nbsp;    private String generateMultipart(Map&lt;String, Object&gt; operationSpec, Object input,
+<i class="no-highlight">1107</i>&nbsp;            List&lt;Header&gt; headers) {
+<b class="nc"><i class="no-highlight">1108</i>&nbsp;        String boundary = BOUNDARY_PREFIX.concat(String.valueOf(System.currentTimeMillis()));</b>
+<b class="nc"><i class="no-highlight">1109</i>&nbsp;        String contentType = MULTIPART_FORM_DATA.concat(&quot;; boundary=&quot;).concat(boundary);</b>
+<b class="nc"><i class="no-highlight">1110</i>&nbsp;        headers.add(new BasicHeader(CONTENT_TYPE, contentType));</b>
+<b class="nc"><i class="no-highlight">1111</i>&nbsp;        StringBuilder builder = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">1112</i>&nbsp;        if (isVersion2) {</b>
+<i class="no-highlight">1113</i>&nbsp;            // OpenAPI 2.0
+<b class="nc"><i class="no-highlight">1114</i>&nbsp;            Object parameters =  operationSpec.get(PARAMETERS);</b>
+<b class="nc"><i class="no-highlight">1115</i>&nbsp;            if (parameters instanceof List) {</b>
+<b class="nc"><i class="no-highlight">1116</i>&nbsp;                for (Map&lt;String, Object&gt; parameter : (List&lt;Map&lt;String, Object&gt;&gt;) parameters) {</b>
+<b class="nc"><i class="no-highlight">1117</i>&nbsp;                    String name = (String) parameter.get(NAME);</b>
+<b class="nc"><i class="no-highlight">1118</i>&nbsp;                    Object valueFromInput = readJsonPath((Map&lt;String, Object&gt;) input,</b>
+<i class="no-highlight">1119</i>&nbsp;                            REQUEST_BODY, name);
+<b class="nc"><i class="no-highlight">1120</i>&nbsp;                    String in = (String) parameter.get(IN);</b>
+<b class="nc"><i class="no-highlight">1121</i>&nbsp;                    if (BODY.equals(in) || FORM_DATA.equals(in)) {</b>
+<b class="nc"><i class="no-highlight">1122</i>&nbsp;                        if (StringUtils.isBlank(multipartFilename)) {</b>
+<b class="nc"><i class="no-highlight">1123</i>&nbsp;                            Object value  = readJsonPath((Map&lt;String, Object&gt;) input,</b>
+<i class="no-highlight">1124</i>&nbsp;                                    REQUEST_BODY, multipartFilenameKey);
+<b class="nc"><i class="no-highlight">1125</i>&nbsp;                            multipartFilename = value instanceof String ? (String) value : null;</b>
+<i class="no-highlight">1126</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">1127</i>&nbsp;                        Object value = readJsonPath(parameter, SCHEMA, REF);</b>
+<b class="nc"><i class="no-highlight">1128</i>&nbsp;                        if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">1129</i>&nbsp;                            generateMultipartFromRefV2((String) value, input, builder, boundary);</b>
+<b class="nc"><i class="no-highlight">1130</i>&nbsp;                        } else if (FILE.equals(parameter.get(TYPE))) {</b>
+<b class="nc"><i class="no-highlight">1131</i>&nbsp;                            String contentStr = null;</b>
+<b class="nc"><i class="no-highlight">1132</i>&nbsp;                            if (valueFromInput instanceof String) {</b>
+<b class="nc"><i class="no-highlight">1133</i>&nbsp;                                contentStr = (String) valueFromInput;</b>
+<b class="nc"><i class="no-highlight">1134</i>&nbsp;                            } else if (valueFromInput instanceof byte[]) {</b>
+<b class="nc"><i class="no-highlight">1135</i>&nbsp;                                contentStr = Base64.getEncoder()</b>
+<b class="nc"><i class="no-highlight">1136</i>&nbsp;                                        .encodeToString((byte[]) valueFromInput);</b>
+<i class="no-highlight">1137</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">1138</i>&nbsp;                            if (StringUtils.isNotBlank(contentStr)) {</b>
+<b class="nc"><i class="no-highlight">1139</i>&nbsp;                                if (StringUtils.isBlank(multipartFilename)) {</b>
+<b class="nc"><i class="no-highlight">1140</i>&nbsp;                                    multipartFilename = (String) readJsonPath((Map&lt;String, Object&gt;)</b>
+<i class="no-highlight">1141</i>&nbsp;                                            input, REQUEST_BODY, multipartFilenameKey);
+<i class="no-highlight">1142</i>&nbsp;                                }
+<b class="nc"><i class="no-highlight">1143</i>&nbsp;                                addMultipart(builder, boundary, name, contentStr, multipartFilename,</b>
+<i class="no-highlight">1144</i>&nbsp;                                        TEXT_PLAIN);
+<i class="no-highlight">1145</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">1146</i>&nbsp;                        } else if (multipartFileContentKey.equals(name)) {</b>
+<b class="nc"><i class="no-highlight">1147</i>&nbsp;                            addMultipart(builder, boundary, name, valueFromInput, multipartFilename,</b>
+<i class="no-highlight">1148</i>&nbsp;                                    TEXT_PLAIN);
+<i class="no-highlight">1149</i>&nbsp;                        }
+<i class="no-highlight">1150</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">1151</i>&nbsp;                }</b>
+<i class="no-highlight">1152</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1153</i>&nbsp;        } else {</b>
+<i class="no-highlight">1154</i>&nbsp;            // OpenAPI 3.0
+<b class="nc"><i class="no-highlight">1155</i>&nbsp;            Map&lt;String, Object&gt; multipartSpec = getSpec(operationSpec, REQUEST_BODY, CONTENT,</b>
+<i class="no-highlight">1156</i>&nbsp;                    MULTIPART_FORM_DATA);
+<b class="nc"><i class="no-highlight">1157</i>&nbsp;            String fileContentKey = null;</b>
+<b class="nc"><i class="no-highlight">1158</i>&nbsp;            if (multipartSpec.containsKey(ENCODING)) {</b>
+<b class="nc"><i class="no-highlight">1159</i>&nbsp;                Iterator&lt;String&gt; it = multipartSpec.keySet().iterator();</b>
+<b class="nc"><i class="no-highlight">1160</i>&nbsp;                if (it.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">1161</i>&nbsp;                    fileContentKey = it.next();</b>
+<i class="no-highlight">1162</i>&nbsp;                }
+<i class="no-highlight">1163</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1164</i>&nbsp;            Map&lt;String, Object&gt; inputMap = (Map&lt;String, Object&gt;) readJsonPath(</b>
+<i class="no-highlight">1165</i>&nbsp;                    (Map&lt;String, Object&gt;) input, REQUEST_BODY);
+<b class="nc"><i class="no-highlight">1166</i>&nbsp;            if (MapUtils.isEmpty(inputMap)) {</b>
+<b class="nc"><i class="no-highlight">1167</i>&nbsp;                throw new SnapDataException(ERR_GENERATE_MULTIPART)</b>
+<b class="nc"><i class="no-highlight">1168</i>&nbsp;                        .withReason(REASON_REQUEST_BODY_REQUIRED)</b>
+<b class="nc"><i class="no-highlight">1169</i>&nbsp;                        .withResolution(RESOLUTION_REQUEST_BODY);</b>
+<i class="no-highlight">1170</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1171</i>&nbsp;            Map&lt;String, Object&gt; properties = getSpec(operationSpec, REQUEST_BODY, CONTENT,</b>
+<i class="no-highlight">1172</i>&nbsp;                    MULTIPART_FORM_DATA, SCHEMA, PROPERTIES);
+<b class="nc"><i class="no-highlight">1173</i>&nbsp;            for (Map.Entry&lt;String, Object&gt; entry : properties.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">1174</i>&nbsp;                String propertyName = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">1175</i>&nbsp;                Object valueFromInput = inputMap.get(propertyName);</b>
+<b class="nc"><i class="no-highlight">1176</i>&nbsp;                Map&lt;String, Object&gt; propertyMap = (Map&lt;String, Object&gt;) entry.getValue();</b>
+<b class="nc"><i class="no-highlight">1177</i>&nbsp;                if (StringUtils.containsAny((String) propertyMap.get(FORMAT), BINARY,</b>
+<i class="no-highlight">1178</i>&nbsp;                        Constants.BASE64)) {
+<b class="nc"><i class="no-highlight">1179</i>&nbsp;                    if (fileContentKey == null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">1180</i>&nbsp;                            DEFAULT_FILE_CONTENT_KEY.equals(multipartFileContentKey)) {</b>
+<b class="nc"><i class="no-highlight">1181</i>&nbsp;                        fileContentKey = propertyName;</b>
+<i class="no-highlight">1182</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">1183</i>&nbsp;                } else if (OBJECT.equals(propertyMap.get(TYPE))) {</b>
+<b class="nc"><i class="no-highlight">1184</i>&nbsp;                    Object vale = toJSON(propertyName, valueFromInput);</b>
+<b class="nc"><i class="no-highlight">1185</i>&nbsp;                    addMultipart(builder, boundary, propertyName, vale, null, APPLICATION_JSON);</b>
+<b class="nc"><i class="no-highlight">1186</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">1187</i>&nbsp;                    addMultipart(builder, boundary, propertyName, valueFromInput, null, TEXT_PLAIN);</b>
+<i class="no-highlight">1188</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1189</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1190</i>&nbsp;            if (StringUtils.isNotBlank(fileContentKey)) {</b>
+<b class="nc"><i class="no-highlight">1191</i>&nbsp;                multipartFileContentKey = fileContentKey;</b>
+<i class="no-highlight">1192</i>&nbsp;            }
+<i class="no-highlight">1193</i>&nbsp;            // try to find the multipart upload filename from input data
+<b class="nc"><i class="no-highlight">1194</i>&nbsp;            Object value = readJsonPath((Map&lt;String, Object&gt;) input,</b>
+<i class="no-highlight">1195</i>&nbsp;                    REQUEST_BODY, multipartFilenameKey);
+<b class="nc"><i class="no-highlight">1196</i>&nbsp;            if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">1197</i>&nbsp;                multipartFilename = (String) value;</b>
+<i class="no-highlight">1198</i>&nbsp;            }
+<i class="no-highlight">1199</i>&nbsp;            // add form-data for file content
+<b class="nc"><i class="no-highlight">1200</i>&nbsp;            value = readJsonPath((Map&lt;String, Object&gt;) input,</b>
+<i class="no-highlight">1201</i>&nbsp;                    REQUEST_BODY, multipartFileContentKey);
+<b class="nc"><i class="no-highlight">1202</i>&nbsp;            if (value instanceof byte[]) {</b>
+<b class="nc"><i class="no-highlight">1203</i>&nbsp;                value = Base64.getEncoder().encodeToString((byte[]) value);</b>
+<i class="no-highlight">1204</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1205</i>&nbsp;            if (value != null) {</b>
+<b class="nc"><i class="no-highlight">1206</i>&nbsp;                addMultipart(builder, boundary, multipartFileContentKey, value, multipartFilename,</b>
+<i class="no-highlight">1207</i>&nbsp;                        TEXT_PLAIN);
+<i class="no-highlight">1208</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">1209</i>&nbsp;                throw new SnapDataException(ERR_FIND_FILE_CONTENT)</b>
+<b class="nc"><i class="no-highlight">1210</i>&nbsp;                        .withReason(String.format(NULL_VALUE_OF_KEY, multipartFileContentKey))</b>
+<b class="nc"><i class="no-highlight">1211</i>&nbsp;                        .withResolution(RESOLUTION_FILE_CONTENT);</b>
+<i class="no-highlight">1212</i>&nbsp;            }
+<i class="no-highlight">1213</i>&nbsp;        }
+<i class="no-highlight">1214</i>&nbsp;        // close multipart
+<b class="nc"><i class="no-highlight">1215</i>&nbsp;        builder.append(DASH_DASH).append(boundary).append(DASH_DASH).append(NEW_LINE);</b>
+<b class="nc"><i class="no-highlight">1216</i>&nbsp;        return builder.toString();</b>
+<i class="no-highlight">1217</i>&nbsp;    }
+<i class="no-highlight">1218</i>&nbsp;
+<i class="no-highlight">1219</i>&nbsp;    private void generateMultipartFromRefV2(String ref, Object input, StringBuilder builder,
+<i class="no-highlight">1220</i>&nbsp;            String boundary) {
+<b class="nc"><i class="no-highlight">1221</i>&nbsp;        ref = convertRefToJsonPath(ref);</b>
+<b class="nc"><i class="no-highlight">1222</i>&nbsp;        Map&lt;String, Object&gt; refSpec = getMapAt(resolvedV3OpenApiSpec, ref);</b>
+<b class="nc"><i class="no-highlight">1223</i>&nbsp;        List&lt;String&gt; requiredFields = getListFrom(refSpec, REQUIRED);</b>
+<b class="nc"><i class="no-highlight">1224</i>&nbsp;        input = input instanceof Map ? ((Map&lt;String, Object&gt;) input).get(REQUEST_BODY) :</b>
+<b class="nc"><i class="no-highlight">1225</i>&nbsp;                MapUtils.EMPTY_MAP;</b>
+<b class="nc"><i class="no-highlight">1226</i>&nbsp;        Map&lt;String, Object&gt; inputMap = input instanceof Map ? (Map&lt;String, Object&gt;) input :</b>
+<b class="nc"><i class="no-highlight">1227</i>&nbsp;                MapUtils.EMPTY_MAP;</b>
+<b class="nc"><i class="no-highlight">1228</i>&nbsp;        String content = null;</b>
+<b class="nc"><i class="no-highlight">1229</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; entry : getSpec(refSpec, PROPERTIES).entrySet()) {</b>
+<b class="nc"><i class="no-highlight">1230</i>&nbsp;            String key = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">1231</i>&nbsp;            boolean isRequired = requiredFields.contains(key);</b>
+<b class="nc"><i class="no-highlight">1232</i>&nbsp;            Object property = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">1233</i>&nbsp;            if (property instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">1234</i>&nbsp;                Object value = inputMap.get(key);</b>
+<b class="nc"><i class="no-highlight">1235</i>&nbsp;                if (value == null) {</b>
+<b class="nc"><i class="no-highlight">1236</i>&nbsp;                    if (isRequired) {</b>
+<b class="nc"><i class="no-highlight">1237</i>&nbsp;                        throw new SnapDataException(ERR_MISSING_INPUT_DATA)</b>
+<b class="nc"><i class="no-highlight">1238</i>&nbsp;                                .formatWith(key)</b>
+<b class="nc"><i class="no-highlight">1239</i>&nbsp;                                .withReason(REASON_REQUIRED_FIELD)</b>
+<b class="nc"><i class="no-highlight">1240</i>&nbsp;                                .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">1241</i>&nbsp;                    } else {
+<i class="no-highlight">1242</i>&nbsp;                        continue;
+<i class="no-highlight">1243</i>&nbsp;                    }
+<i class="no-highlight">1244</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1245</i>&nbsp;                if (((Map&lt;String, Object&gt;) property).get(REF) instanceof String) {</b>
+<b class="nc"><i class="no-highlight">1246</i>&nbsp;                    value = toJSON(key, value);</b>
+<b class="nc"><i class="no-highlight">1247</i>&nbsp;                    addMultipart(builder, boundary, key, value);</b>
+<i class="no-highlight">1248</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">1249</i>&nbsp;                    if (StringUtils.equals(multipartFileContentKey, key)) {</b>
+<b class="nc"><i class="no-highlight">1250</i>&nbsp;                        if (value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">1251</i>&nbsp;                            content = (String) value;</b>
+<b class="nc"><i class="no-highlight">1252</i>&nbsp;                        } else if (value instanceof byte[]) {</b>
+<b class="nc"><i class="no-highlight">1253</i>&nbsp;                            content = Base64.getEncoder().encodeToString((byte[]) value);</b>
+<i class="no-highlight">1254</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">1255</i>&nbsp;                    } else if (StringUtils.equals(multipartFilenameKey, key)) {</b>
+<b class="nc"><i class="no-highlight">1256</i>&nbsp;                        multipartFilename = (String) inputMap.get(key);</b>
+<b class="nc"><i class="no-highlight">1257</i>&nbsp;                        addMultipart(builder, boundary, key, value);</b>
+<i class="no-highlight">1258</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">1259</i>&nbsp;                        addMultipart(builder, boundary, key, value);</b>
+<i class="no-highlight">1260</i>&nbsp;                    }
+<i class="no-highlight">1261</i>&nbsp;                }
+<i class="no-highlight">1262</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1263</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1264</i>&nbsp;        if (StringUtils.isNotBlank(content)) {</b>
+<b class="nc"><i class="no-highlight">1265</i>&nbsp;            addMultipart(builder, boundary, multipartFileContentKey, content, multipartFilename,</b>
+<i class="no-highlight">1266</i>&nbsp;                    TEXT_PLAIN);
+<i class="no-highlight">1267</i>&nbsp;        }
+<i class="no-highlight">1268</i>&nbsp;    }
+<i class="no-highlight">1269</i>&nbsp;
+<i class="no-highlight">1270</i>&nbsp;    private Object generateFormURLEncoded(Object input) {
+<b class="nc"><i class="no-highlight">1271</i>&nbsp;        StringBuilder result = new StringBuilder();</b>
+<i class="no-highlight">1272</i>&nbsp;
+<b class="nc"><i class="no-highlight">1273</i>&nbsp;        if (input instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">1274</i>&nbsp;            Map&lt;String, Object&gt; map = (Map&lt;String, Object&gt;) ((Map&lt;String, Object&gt;) input)</b>
+<b class="nc"><i class="no-highlight">1275</i>&nbsp;                .get(REQUEST_BODY);</b>
+<i class="no-highlight">1276</i>&nbsp;
+<b class="nc"><i class="no-highlight">1277</i>&nbsp;            result.append(recursiveFollower(map));</b>
+<i class="no-highlight">1278</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1279</i>&nbsp;        return result.toString();</b>
+<i class="no-highlight">1280</i>&nbsp;    }
+<i class="no-highlight">1281</i>&nbsp;
+<i class="no-highlight">1282</i>&nbsp;    private String recursiveFollower(Map&lt;String, Object&gt; map) {
+<b class="nc"><i class="no-highlight">1283</i>&nbsp;        StringBuilder result = new StringBuilder();</b>
+<i class="no-highlight">1284</i>&nbsp;
+<i class="no-highlight">1285</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1286</i>&nbsp;            for (String key : map.keySet()) {</b>
+<b class="nc"><i class="no-highlight">1287</i>&nbsp;                Object o = map.get(key);</b>
+<b class="nc"><i class="no-highlight">1288</i>&nbsp;                if (o instanceof String) {</b>
+<b class="nc"><i class="no-highlight">1289</i>&nbsp;                    result.append(key)</b>
+<b class="nc"><i class="no-highlight">1290</i>&nbsp;                        .append(EQUALS_SIGN)</b>
+<b class="nc"><i class="no-highlight">1291</i>&nbsp;                        .append(o)</b>
+<b class="nc"><i class="no-highlight">1292</i>&nbsp;                        .append(AMPERSAND);</b>
+<b class="nc"><i class="no-highlight">1293</i>&nbsp;                } else if (o instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">1294</i>&nbsp;                    result.append(key)</b>
+<b class="nc"><i class="no-highlight">1295</i>&nbsp;                        .append(EQUALS_SIGN)</b>
+<b class="nc"><i class="no-highlight">1296</i>&nbsp;                        .append(OBJECT_MAPPER.writeValueAsString(o))</b>
+<b class="nc"><i class="no-highlight">1297</i>&nbsp;                        .append(AMPERSAND);</b>
+<b class="nc"><i class="no-highlight">1298</i>&nbsp;                } else if (o instanceof List) {</b>
+<b class="nc"><i class="no-highlight">1299</i>&nbsp;                    for (Object o1 : (List)o) {</b>
+<b class="nc"><i class="no-highlight">1300</i>&nbsp;                        if (o1 instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">1301</i>&nbsp;                            result.append(recursiveFollower((Map) o1));</b>
+<b class="nc"><i class="no-highlight">1302</i>&nbsp;                            result.append(AMPERSAND);</b>
+<i class="no-highlight">1303</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">1304</i>&nbsp;                    }</b>
+<i class="no-highlight">1305</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1306</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1307</i>&nbsp;            if (result.length() &gt;= 2) {</b>
+<b class="nc"><i class="no-highlight">1308</i>&nbsp;                result.deleteCharAt(result.length() - 1);   // remove the trailing ampersand</b>
+<i class="no-highlight">1309</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1310</i>&nbsp;        } catch (JsonProcessingException jpe) {</b>
+<b class="nc"><i class="no-highlight">1311</i>&nbsp;            LOG.debug(&quot;error processing json {}&quot;, jpe.getMessage());</b>
+<b class="nc"><i class="no-highlight">1312</i>&nbsp;        }</b>
+<i class="no-highlight">1313</i>&nbsp;
+<b class="nc"><i class="no-highlight">1314</i>&nbsp;        return result.toString();</b>
+<i class="no-highlight">1315</i>&nbsp;    }
+<i class="no-highlight">1316</i>&nbsp;
+<i class="no-highlight">1317</i>&nbsp;    private String toJSON(String key, Object value) {
+<i class="no-highlight">1318</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1319</i>&nbsp;            return OBJECT_MAPPER.writeValueAsString(value);</b>
+<b class="nc"><i class="no-highlight">1320</i>&nbsp;        } catch (JsonProcessingException e) {</b>
+<b class="nc"><i class="no-highlight">1321</i>&nbsp;            throw new SnapDataException(e, &quot;Failed to format value to JSON for %s&quot;)</b>
+<b class="nc"><i class="no-highlight">1322</i>&nbsp;                    .formatWith(key)</b>
+<b class="nc"><i class="no-highlight">1323</i>&nbsp;                    .withReason(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">1324</i>&nbsp;        }
+<i class="no-highlight">1325</i>&nbsp;    }
+<i class="no-highlight">1326</i>&nbsp;
+<i class="no-highlight">1327</i>&nbsp;    private void addMultipart(StringBuilder builder, String boundary, String paramName,
+<i class="no-highlight">1328</i>&nbsp;            Object value) {
+<b class="nc"><i class="no-highlight">1329</i>&nbsp;        addMultipart(builder, boundary, paramName, value, null, null);</b>
+<i class="no-highlight">1330</i>&nbsp;    }
+<i class="no-highlight">1331</i>&nbsp;
+<i class="no-highlight">1332</i>&nbsp;    private void addMultipart(StringBuilder builder, String boundary, String paramName,
+<i class="no-highlight">1333</i>&nbsp;            Object body, String filename, String contentType) {
+<b class="nc"><i class="no-highlight">1334</i>&nbsp;        filename = StringUtils.isBlank(filename) ? StringUtils.EMPTY :</b>
+<b class="nc"><i class="no-highlight">1335</i>&nbsp;                String.format(FORMAT_FILENAME, filename);</b>
+<b class="nc"><i class="no-highlight">1336</i>&nbsp;        contentType = StringUtils.isBlank(contentType) ? StringUtils.EMPTY :</b>
+<b class="nc"><i class="no-highlight">1337</i>&nbsp;                String.format(FORMAT_CONTENT_TYPE, contentType, charset);</b>
+<b class="nc"><i class="no-highlight">1338</i>&nbsp;        builder.append(String.format(FORMAT_FORM_DATA, boundary, paramName, filename,</b>
+<i class="no-highlight">1339</i>&nbsp;                contentType, body));
+<i class="no-highlight">1340</i>&nbsp;    }
+<i class="no-highlight">1341</i>&nbsp;
+<i class="no-highlight">1342</i>&nbsp;    /**
+<i class="no-highlight">1343</i>&nbsp;     * Gets HttpUriRequest object with given service URL and HTTP method.
+<i class="no-highlight">1344</i>&nbsp;     *
+<i class="no-highlight">1345</i>&nbsp;     * @param serviceUrl - service URL
+<i class="no-highlight">1346</i>&nbsp;     * @param method     - HTTP method
+<i class="no-highlight">1347</i>&nbsp;     * @param httpEntity - HTTP entity
+<i class="no-highlight">1348</i>&nbsp;     *
+<i class="no-highlight">1349</i>&nbsp;     * @return HttpUriRequest object
+<i class="no-highlight">1350</i>&nbsp;     */
+<i class="no-highlight">1351</i>&nbsp;    public HttpUriRequest getHttpUriRequest(String serviceUrl, String method,
+<i class="no-highlight">1352</i>&nbsp;            HttpEntity httpEntity) {
+<b class="nc"><i class="no-highlight">1353</i>&nbsp;        URI uri = encodeUriWithQuery(serviceUrl);</b>
+<b class="nc"><i class="no-highlight">1354</i>&nbsp;        return getHttpUriRequest(uri, method, httpEntity);</b>
+<i class="no-highlight">1355</i>&nbsp;    }
+<i class="no-highlight">1356</i>&nbsp;
+<i class="no-highlight">1357</i>&nbsp;    /**
+<i class="no-highlight">1358</i>&nbsp;     * Gets HttpUriRequest object with given service URL and HTTP method.
+<i class="no-highlight">1359</i>&nbsp;     *
+<i class="no-highlight">1360</i>&nbsp;     * @param uri        - service URI
+<i class="no-highlight">1361</i>&nbsp;     * @param method     - HTTP method
+<i class="no-highlight">1362</i>&nbsp;     * @param httpEntity - HTTP entity
+<i class="no-highlight">1363</i>&nbsp;     *
+<i class="no-highlight">1364</i>&nbsp;     * @return HttpUriRequest object
+<i class="no-highlight">1365</i>&nbsp;     */
+<i class="no-highlight">1366</i>&nbsp;    public HttpUriRequest getHttpUriRequest(URI uri, String method, HttpEntity httpEntity) {
+<i class="no-highlight">1367</i>&nbsp;        HttpUriRequest httpUriRequest;
+<b class="nc"><i class="no-highlight">1368</i>&nbsp;        switch (method.toUpperCase()) {</b>
+<i class="no-highlight">1369</i>&nbsp;            case HttpGet.METHOD_NAME:
+<b class="nc"><i class="no-highlight">1370</i>&nbsp;                httpUriRequest = new HttpGet(uri);</b>
+<b class="nc"><i class="no-highlight">1371</i>&nbsp;                break;</b>
+<i class="no-highlight">1372</i>&nbsp;            case HttpPost.METHOD_NAME:
+<b class="nc"><i class="no-highlight">1373</i>&nbsp;                httpUriRequest = new HttpPost(uri);</b>
+<b class="nc"><i class="no-highlight">1374</i>&nbsp;                if (httpEntity != null) {</b>
+<b class="nc"><i class="no-highlight">1375</i>&nbsp;                    ((HttpPost) httpUriRequest).setEntity(httpEntity);</b>
+<i class="no-highlight">1376</i>&nbsp;                }
+<i class="no-highlight">1377</i>&nbsp;                break;
+<i class="no-highlight">1378</i>&nbsp;            case HttpPut.METHOD_NAME:
+<b class="nc"><i class="no-highlight">1379</i>&nbsp;                httpUriRequest = new HttpPut(uri);</b>
+<b class="nc"><i class="no-highlight">1380</i>&nbsp;                if (httpEntity != null) {</b>
+<b class="nc"><i class="no-highlight">1381</i>&nbsp;                    ((HttpPut) httpUriRequest).setEntity(httpEntity);</b>
+<i class="no-highlight">1382</i>&nbsp;                }
+<i class="no-highlight">1383</i>&nbsp;                break;
+<i class="no-highlight">1384</i>&nbsp;            case HttpPatch.METHOD_NAME:
+<b class="nc"><i class="no-highlight">1385</i>&nbsp;                httpUriRequest = new HttpPatch(uri);</b>
+<b class="nc"><i class="no-highlight">1386</i>&nbsp;                if (httpEntity != null) {</b>
+<b class="nc"><i class="no-highlight">1387</i>&nbsp;                    ((HttpPatch) httpUriRequest).setEntity(httpEntity);</b>
+<i class="no-highlight">1388</i>&nbsp;                }
+<i class="no-highlight">1389</i>&nbsp;                break;
+<i class="no-highlight">1390</i>&nbsp;            case HttpDelete.METHOD_NAME:
+<b class="nc"><i class="no-highlight">1391</i>&nbsp;                httpUriRequest = new HttpDelete(uri);</b>
+<b class="nc"><i class="no-highlight">1392</i>&nbsp;                break;</b>
+<i class="no-highlight">1393</i>&nbsp;            case HttpHead.METHOD_NAME:
+<b class="nc"><i class="no-highlight">1394</i>&nbsp;                httpUriRequest = new HttpHead(uri);</b>
+<b class="nc"><i class="no-highlight">1395</i>&nbsp;                break;</b>
+<i class="no-highlight">1396</i>&nbsp;            case HttpOptions.METHOD_NAME:
+<b class="nc"><i class="no-highlight">1397</i>&nbsp;                httpUriRequest = new HttpOptions(uri);</b>
+<b class="nc"><i class="no-highlight">1398</i>&nbsp;                break;</b>
+<i class="no-highlight">1399</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">1400</i>&nbsp;                throw new SnapDataException(ERR_UNSUPPORTED_METHOD)</b>
+<b class="nc"><i class="no-highlight">1401</i>&nbsp;                    .formatWith(method)</b>
+<b class="nc"><i class="no-highlight">1402</i>&nbsp;                    .withReason(REASON_NOT_IMPLEMENTED)</b>
+<b class="nc"><i class="no-highlight">1403</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">1404</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1405</i>&nbsp;        return httpUriRequest;</b>
+<i class="no-highlight">1406</i>&nbsp;    }
+<i class="no-highlight">1407</i>&nbsp;
+<i class="no-highlight">1408</i>&nbsp;    public OpenApiHelper withMultipartFileContentKey(String multipartFileContentKey) {
+<b class="nc"><i class="no-highlight">1409</i>&nbsp;        this.multipartFileContentKey = multipartFileContentKey;</b>
+<b class="nc"><i class="no-highlight">1410</i>&nbsp;        return this;</b>
+<i class="no-highlight">1411</i>&nbsp;    }
+<i class="no-highlight">1412</i>&nbsp;
+<i class="no-highlight">1413</i>&nbsp;    public OpenApiHelper withMultipartFilenameKey(String multipartFilenameKey) {
+<b class="nc"><i class="no-highlight">1414</i>&nbsp;        this.multipartFilenameKey = multipartFilenameKey;</b>
+<b class="nc"><i class="no-highlight">1415</i>&nbsp;        return this;</b>
+<i class="no-highlight">1416</i>&nbsp;    }
+<i class="no-highlight">1417</i>&nbsp;
+<i class="no-highlight">1418</i>&nbsp;    /**
+<i class="no-highlight">1419</i>&nbsp;     * Checks if the header list contains a header with a same name.
+<i class="no-highlight">1420</i>&nbsp;     *
+<i class="no-highlight">1421</i>&nbsp;     * @param headers - list of headers
+<i class="no-highlight">1422</i>&nbsp;     * @param name    - header name
+<i class="no-highlight">1423</i>&nbsp;     *
+<i class="no-highlight">1424</i>&nbsp;     * @return true if a header with the same name exists in the list
+<i class="no-highlight">1425</i>&nbsp;     */
+<i class="no-highlight">1426</i>&nbsp;    public boolean containsHeader(List&lt;Header&gt; headers, String name) {
+<b class="nc"><i class="no-highlight">1427</i>&nbsp;        for (Header header : headers) {</b>
+<b class="nc"><i class="no-highlight">1428</i>&nbsp;            if (StringUtils.equalsIgnoreCase(header.getName(), name)) {</b>
+<b class="nc"><i class="no-highlight">1429</i>&nbsp;                return true;</b>
+<i class="no-highlight">1430</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1431</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1432</i>&nbsp;        return false;</b>
+<i class="no-highlight">1433</i>&nbsp;    }
+<i class="no-highlight">1434</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

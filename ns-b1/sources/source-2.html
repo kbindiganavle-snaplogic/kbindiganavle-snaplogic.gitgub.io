@@ -1,0 +1,331 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkWrite</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.dynamodb</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkWrite (com.snaplogic.snaps.dynamodb)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkWrite</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/93)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015 - 2021, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.dynamodb;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.AmazonClientException;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.BatchWriteItemOutcome;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.Item;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.PrimaryKey;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.dynamodbv2.document.spec.BatchWriteItemSpec;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.BatchWriteItemResult;
+<i class="no-highlight">21</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.ConsumedCapacity;
+<i class="no-highlight">22</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity;
+<i class="no-highlight">23</i>&nbsp;import com.amazonaws.services.dynamodbv2.model.WriteRequest;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.common.jsonpath.InvalidPathException;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">42</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">43</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;import java.time.Duration;
+<i class="no-highlight">46</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">47</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">48</i>&nbsp;import java.util.List;
+<i class="no-highlight">49</i>&nbsp;import java.util.Map;
+<i class="no-highlight">50</i>&nbsp;import java.util.concurrent.BlockingQueue;
+<i class="no-highlight">51</i>&nbsp;import java.util.concurrent.CompletableFuture;
+<i class="no-highlight">52</i>&nbsp;import java.util.concurrent.LinkedBlockingQueue;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.BATCH_UNPROCESSED_RETRIES;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.DELETE_REQUEST_ITEM_PATH;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.KEY;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.PUT_REQUEST_ITEM_PATH;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.RESPONSE_CONSUMED_CAPACITY_PATH;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Constants.RESPONSE_UNPROCESSED_ITEMS_PATH;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.dynamodb.DynamoDBConverter.generateResultList;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snaps.dynamodb.DynamoDBConverter.generateResultMap;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snaps.dynamodb.DynamoDBItemConverter.simplifyMap;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.BULK_WRITE_SNAP_PURPOSE;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.BULK_WRITE_SNAP_TITLE;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.ERROR_BATCH_WRITE;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.ERROR_INTERRUPT;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.ERROR_INVALID_INPUT_MAPPING;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.FINISHED_WRITE_BATCH;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.REASON_ERROR_DELETE_REQUEST;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.dynamodb.Messages.RESOLUTION_INVALID_INPUT_MAPPING;
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;/**
+<i class="no-highlight">75</i>&nbsp; * This class is a Write snap that writes data into AWS DynamoDB
+<i class="no-highlight">76</i>&nbsp; *
+<i class="no-highlight">77</i>&nbsp; * @author kgade
+<i class="no-highlight">78</i>&nbsp; */
+<i class="no-highlight">79</i>&nbsp;@General(title = BULK_WRITE_SNAP_TITLE, purpose = BULK_WRITE_SNAP_PURPOSE)
+<i class="no-highlight">80</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">81</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">82</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">83</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">84</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<b class="nc"><i class="no-highlight">85</i>&nbsp;public class BulkWrite extends DynamoBulkCommon implements InputSchemaProvider {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(BulkWrite.class);</b>
+<i class="no-highlight">87</i>&nbsp;    protected BlockingQueue&lt;BatchWriteItemSpec&gt; specQueue;
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;    @Override
+<i class="no-highlight">90</i>&nbsp;    public void definePropertiesAdditional(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        defineBatchSizeProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        defineRequestDelayProperty(propertyBuilder);</b>
+<i class="no-highlight">93</i>&nbsp;    }
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;    @Override
+<i class="no-highlight">96</i>&nbsp;    public void defineInputSchema(final SchemaProvider schemaProvider) {
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        defineInputSchemaDefault(schemaProvider);</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    @Override
+<i class="no-highlight">101</i>&nbsp;    protected void configureAdditional(PropertyValues propertyValues)
+<i class="no-highlight">102</i>&nbsp;            throws ConfigurationException {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        super.configureAdditional(propertyValues);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        readBatchSizeProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        readRequestDelayProperty(propertyValues);</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        specQueue = new LinkedBlockingQueue&lt;&gt;(threadCount * 2);</b>
+<i class="no-highlight">107</i>&nbsp;    }
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;    @Override
+<i class="no-highlight">110</i>&nbsp;    public void processDocument(Document document) {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        if (documents == null) {</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;            documents = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">113</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        documents.add(document);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        if (documents.size() == batchSize) {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            queue(documents);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            if (reqDelay &gt; 0) {</b>
+<i class="no-highlight">118</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                    Thread.sleep(Duration.ofSeconds(reqDelay).toMillis());</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                    LOGGER.error(ERROR_INTERRUPT, e);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                    Thread.currentThread().interrupt();</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                }</b>
+<i class="no-highlight">124</i>&nbsp;            }
+<i class="no-highlight">125</i>&nbsp;        }
+<i class="no-highlight">126</i>&nbsp;    }
+<i class="no-highlight">127</i>&nbsp;
+<i class="no-highlight">128</i>&nbsp;    protected void queue(List&lt;Document&gt; documents) {
+<i class="no-highlight">129</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            specQueue.put(getBatchWriteSpec(documents));</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            batchQueue.put(new ArrayList&lt;&gt;(documents));</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            documents.clear();</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            LOGGER.error(ERROR_INTERRUPT, e);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;            Thread.currentThread().interrupt();</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        } catch (SnapDataException sde) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            writeToErrorView(sde, documents);</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            documents.clear();</b>
+<i class="no-highlight">139</i>&nbsp;            return;
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        CompletableFuture&lt;Void&gt; task = CompletableFuture.runAsync(this::processBatch, executor);</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        tasks.add(task);</b>
+<i class="no-highlight">143</i>&nbsp;    }
+<i class="no-highlight">144</i>&nbsp;
+<i class="no-highlight">145</i>&nbsp;    @Override
+<i class="no-highlight">146</i>&nbsp;    protected void processBatch() {
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        int retries = BATCH_UNPROCESSED_RETRIES;</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        List&lt;Document&gt; documents = batchQueue.poll();</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        int currentBatch = batchNumber.getAndIncrement();</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        BatchWriteItemResult result = null;</b>
+<i class="no-highlight">151</i>&nbsp;
+<i class="no-highlight">152</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">153</i>&nbsp;            BatchWriteItemSpec batchWriteItemSpec = specQueue.poll();</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            BatchWriteItemOutcome outcome = dynamoDB.batchWriteItem(batchWriteItemSpec);</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;            Map&lt;String, List&lt;WriteRequest&gt;&gt; unprocessedItems = null;</b>
+<i class="no-highlight">156</i>&nbsp;            do {
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                if (MapUtils.isNotEmpty(unprocessedItems)) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                    outcome = dynamoDB.batchWriteItemUnprocessed(unprocessedItems);</b>
+<i class="no-highlight">159</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                BatchWriteItemResult batchWriteItemResult = outcome.getBatchWriteItemResult();</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                unprocessedItems = outcome.getUnprocessedItems();</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                if (result == null) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                    result = batchWriteItemResult;</b>
+<i class="no-highlight">164</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">165</i>&nbsp;            } while (MapUtils.isNotEmpty(unprocessedItems) &amp;&amp; retries-- &gt; 0);</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;            unprocessedItems.forEach(result::addUnprocessedItemsEntry);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;        } catch (AmazonClientException e) {</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            SnapDataException sde = new SnapDataException(e, ERROR_BATCH_WRITE)</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            writeToErrorView(sde, documents);</b>
+<i class="no-highlight">172</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">173</i>&nbsp;            if (result != null) {</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                writeBatchOutput(documents, result);</b>
+<i class="no-highlight">175</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        LOGGER.debug(FINISHED_WRITE_BATCH, currentBatch);</b>
+<i class="no-highlight">178</i>&nbsp;    }
+<i class="no-highlight">179</i>&nbsp;
+<i class="no-highlight">180</i>&nbsp;    private void writeBatchOutput(List&lt;Document&gt; documents, BatchWriteItemResult result) {
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        List&lt;ConsumedCapacity&gt; consumedCapacity = result.getConsumedCapacity();</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        Map&lt;String, List&lt;WriteRequest&gt;&gt; unprocessedItems = result.getUnprocessedItems();</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        Map&lt;String, Object&gt; outputMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        RESPONSE_CONSUMED_CAPACITY_PATH.writeStatic(outputMap,</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                generateResultList(consumedCapacity));</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        RESPONSE_UNPROCESSED_ITEMS_PATH.writeStatic(outputMap,</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                generateResultMap(unprocessedItems));</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        synchronized (outputViews) {</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;            outputViews.write(documentUtility.newDocument(outputMap), getLegacyDocMap(documents));</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        }</b>
+<i class="no-highlight">191</i>&nbsp;    }
+<i class="no-highlight">192</i>&nbsp;
+<i class="no-highlight">193</i>&nbsp;    private BatchWriteItemSpec getBatchWriteSpec(List&lt;Document&gt; documents) {
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        BatchWriteItemSpec batchWriteItemSpec = new BatchWriteItemSpec();</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        TableWriteItems tableWriteItems = new TableWriteItems(tableName);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        documents.stream()</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            .map(this::getDocumentContentAsMap)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            .forEach(doc -&gt; {</b>
+<i class="no-highlight">199</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                    if (PUT_REQUEST_ITEM_PATH.existsIn(doc)) {</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                        Map&lt;String, Object&gt; writeItemMap = PUT_REQUEST_ITEM_PATH.read(doc);</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                        Item item = Item.fromMap(simplifyMap(writeItemMap));</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                        tableWriteItems.addItemToPut(item);</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                    } else if (DELETE_REQUEST_ITEM_PATH.existsIn(doc)) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                        Map&lt;String, Map&lt;String, Object&gt;&gt; requestItem =</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                                DELETE_REQUEST_ITEM_PATH.read(doc);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                        Map&lt;String, Object&gt; keyMap = requestItem.get(KEY);</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                        if (keyMap == null) {</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                            throw new SnapDataException(ERROR_INVALID_INPUT_MAPPING)</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                                    .withReason(REASON_ERROR_DELETE_REQUEST)</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                                    .withResolution(RESOLUTION_INVALID_INPUT_MAPPING);</b>
+<i class="no-highlight">212</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                        PrimaryKey primaryKey = getPrimaryKey(keyMap);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                        tableWriteItems.addPrimaryKeyToDelete(primaryKey);</b>
+<i class="no-highlight">215</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                } catch (InvalidPathException | IllegalArgumentException e) {</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                    throw new SnapDataException(e, ERROR_INVALID_INPUT_MAPPING)</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                            .withResolution(RESOLUTION_INVALID_INPUT_MAPPING);</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                }</b>
+<i class="no-highlight">221</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        batchWriteItemSpec.withReturnConsumedCapacity(ReturnConsumedCapacity.TOTAL);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        batchWriteItemSpec.withTableWriteItems(tableWriteItems);</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        return batchWriteItemSpec;</b>
+<i class="no-highlight">225</i>&nbsp;    }
+<i class="no-highlight">226</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

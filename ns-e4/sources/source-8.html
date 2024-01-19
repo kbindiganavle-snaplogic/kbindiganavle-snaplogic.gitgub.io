@@ -1,0 +1,806 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkUpsertWithStreaming</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.google.bigquery</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkUpsertWithStreaming (com.snaplogic.snaps.google.bigquery)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkUpsertWithStreaming</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/371)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">BulkUpsertWithStreaming$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/35)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/372)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2023, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.google.bigquery;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.api.client.http.HttpResponseException;
+<i class="no-highlight">14</i>&nbsp;import com.google.api.client.http.HttpStatusCodes;
+<i class="no-highlight">15</i>&nbsp;import com.google.api.services.bigquery.Bigquery;
+<i class="no-highlight">16</i>&nbsp;import com.google.api.services.bigquery.Bigquery.Jobs.GetQueryResults;
+<i class="no-highlight">17</i>&nbsp;import com.google.api.services.bigquery.model.ErrorProto;
+<i class="no-highlight">18</i>&nbsp;import com.google.api.services.bigquery.model.GetQueryResultsResponse;
+<i class="no-highlight">19</i>&nbsp;import com.google.api.services.bigquery.model.Job;
+<i class="no-highlight">20</i>&nbsp;import com.google.api.services.bigquery.model.JobConfigurationQuery;
+<i class="no-highlight">21</i>&nbsp;import com.google.cloud.bigquery.BigQuery;
+<i class="no-highlight">22</i>&nbsp;import com.google.cloud.bigquery.InsertAllResponse;
+<i class="no-highlight">23</i>&nbsp;import com.google.cloud.bigquery.InsertAllRequest;
+<i class="no-highlight">24</i>&nbsp;import com.google.cloud.bigquery.BigQueryException;
+<i class="no-highlight">25</i>&nbsp;import com.google.cloud.bigquery.BigQueryError;
+<i class="no-highlight">26</i>&nbsp;import com.google.cloud.bigquery.StandardTableDefinition;
+<i class="no-highlight">27</i>&nbsp;import com.google.cloud.bigquery.Table;
+<i class="no-highlight">28</i>&nbsp;import com.google.cloud.bigquery.TableDefinition;
+<i class="no-highlight">29</i>&nbsp;import com.google.cloud.bigquery.TableId;
+<i class="no-highlight">30</i>&nbsp;import com.google.cloud.bigquery.TableInfo;
+<i class="no-highlight">31</i>&nbsp;import com.google.cloud.bigquery.Schema;
+<i class="no-highlight">32</i>&nbsp;import com.google.cloud.bigquery.Field;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.ViewCategory;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.api.LifecycleCallback;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.api.LifecycleEvent;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.api.ViewProvider;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">54</i>&nbsp;import com.snaplogic.common.properties.builders.ViewBuilder;
+<i class="no-highlight">55</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">56</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">57</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">58</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">59</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">60</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">61</i>&nbsp;import java.time.Duration;
+<i class="no-highlight">62</i>&nbsp;import java.util.List;
+<i class="no-highlight">63</i>&nbsp;import java.util.Map;
+<i class="no-highlight">64</i>&nbsp;import java.util.Set;
+<i class="no-highlight">65</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">66</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">67</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">68</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">69</i>&nbsp;import java.util.UUID;
+<i class="no-highlight">70</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.google.bigquery.Constants.*;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.google.bigquery.Messages.*;
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">75</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;@General(title = BULK_UPSERT_SNAP_TITLE, purpose = BULK_UPSERT_SNAP_DESC, docLink = DOCLINK_BULK_UPSERT)
+<i class="no-highlight">78</i>&nbsp;@Outputs(min = 0, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">79</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">80</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">81</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">82</i>&nbsp;@Category(snap = SnapCategory.WRITE)
+<b class="nc"><i class="no-highlight">83</i>&nbsp;public class BulkUpsertWithStreaming extends BigQueryWriteCommon implements ViewProvider,</b>
+<i class="no-highlight">84</i>&nbsp;        LifecycleCallback {
+<i class="no-highlight">85</i>&nbsp;    private BigQuery bigQuery;
+<i class="no-highlight">86</i>&nbsp;    private InsertAllRequest.Builder insertAllRequestBuilder;
+<i class="no-highlight">87</i>&nbsp;    private Boolean tempTableDeleted;
+<i class="no-highlight">88</i>&nbsp;    private int retryCount;
+<i class="no-highlight">89</i>&nbsp;    private long retryDelay;
+<i class="no-highlight">90</i>&nbsp;    private GetQueryResults mergeQueryResults;
+<i class="no-highlight">91</i>&nbsp;    private int successfulRecordsCount;
+<i class="no-highlight">92</i>&nbsp;    private int failedRecordsCount;
+<i class="no-highlight">93</i>&nbsp;    private List&lt;String&gt; keyColumnNames;
+<i class="no-highlight">94</i>&nbsp;    static final String RETRY_COUNT_PROP = &quot;retryCount&quot;;
+<i class="no-highlight">95</i>&nbsp;    static final String RETRY_DELAY_PROP = &quot;retryDelay&quot;;
+<i class="no-highlight">96</i>&nbsp;    static final String COLUMN_PROP = &quot;columns&quot;;
+<i class="no-highlight">97</i>&nbsp;    static final String COLUMN_NAMES_PROP = &quot;columnList&quot;;
+<i class="no-highlight">98</i>&nbsp;    static final String MERGE_UPSERT_MERGE_QUERY = &quot;MERGE %s.%s T&quot;;
+<i class="no-highlight">99</i>&nbsp;    static final String MERGE_MATCHED = &quot; WHEN MATCHED THEN&quot;;
+<i class="no-highlight">100</i>&nbsp;    static final String MERGE_UPSERT_UPDATE_SET = &quot; UPDATE SET&quot;;
+<b class="nc"><i class="no-highlight">101</i>&nbsp;    static final Logger LOGGER = LoggerFactory.getLogger(BulkLoadFromCloudStorage.class);</b>
+<i class="no-highlight">102</i>&nbsp;    private String tempTableName;
+<i class="no-highlight">103</i>&nbsp;    private static final String JOB_STATUS_DONE = &quot;DONE&quot;;
+<i class="no-highlight">104</i>&nbsp;    private static final long POLLING_INTERVAL = 5000L;
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;    @Override
+<i class="no-highlight">107</i>&nbsp;    public void defineAdditionalProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        defineDatasetIdProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        defineTableIdProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        defineStreamingProperties(propertyBuilder);</b>
+<i class="no-highlight">111</i>&nbsp;    }
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;    private void defineStreamingProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        SnapProperty columnProperty = propertyBuilder</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                .describe(COLUMN_PROP, COLUMN_LABEL, COLUMN_DESC)</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                .withSuggestions(this::suggestTableColumns)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        defineBatchSizeProperty(propertyBuilder, null, false, true);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        defineBatchTimeoutProperty(propertyBuilder, null, false, true);</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        propertyBuilder.describe(RETRY_COUNT_PROP, RETRY_COUNT_LABEL, RETRY_COUNT_DESC)</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .withMinValue(MIN_RETRY_COUNT)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                .defaultValue(DEFAULT_RETRY_COUNT)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        propertyBuilder.describe(RETRY_DELAY_PROP, RETRY_DELAY_LABEL, RETRY_DELAY_DESC)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                .withMinValue(MIN_RETRY_DELAY)</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                .defaultValue(DEFAULT_RETRY_DELAY)</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        propertyBuilder.describe(COLUMN_NAMES_PROP, COLUMN_NAMES_LABEL, COLUMN_NAMES_DESC)</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                .withEntry(columnProperty)</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                .add();</b>
+<i class="no-highlight">134</i>&nbsp;    }
+<i class="no-highlight">135</i>&nbsp;
+<i class="no-highlight">136</i>&nbsp;    @Override
+<i class="no-highlight">137</i>&nbsp;    public void configureAdditional(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        projectId = propertyValues.get(PROJECT_ID);</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        datasetId = propertyValues.get(DATASET_ID);</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        tableId = propertyValues.get(TABLE_ID);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        setObjectMapper();</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        readStreamingProperties(propertyValues);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        bigQuery = initBigQuery();</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;        checkTableConfiguration();</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        flushBatchTimer.schedule(flushBatchTask, batchTimeout,</b>
+<i class="no-highlight">146</i>&nbsp;                batchTimeout);
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        List&lt;Map&lt;String, String&gt;&gt; keyColumnList = propertyValues.get(COLUMN_NAMES_PROP);</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;        keyColumnNames = keyColumnList.stream()</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            .map(p -&gt; (String) propertyValues.getExpressionPropertyFor(p, COLUMN_PROP)</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                    .eval(null))</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            .collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        if (CollectionUtils.isEmpty(keyColumnNames)) {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;            SnapDataException e = new SnapDataException(ERR_NO_COLUMN)</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                    .withReason(ERR_NO_COLUMN_REASON)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                    .withResolution(ERR_NO_COLUMN_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            errorViews.write(e);</b>
+<i class="no-highlight">157</i>&nbsp;        }
+<i class="no-highlight">158</i>&nbsp;    }
+<i class="no-highlight">159</i>&nbsp;
+<i class="no-highlight">160</i>&nbsp;    private void readStreamingProperties(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        readBatchSizeProperty(propertyValues, false, null);</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        readBatchTimeoutProperty(propertyValues, false, null);</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        BigInteger batchTimeoutObject = propertyValues.get(BATCH_TIMEOUT_PROP);</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        batchTimeout = batchTimeoutObject == null ?</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                DEFAULT_BATCH_TIMEOUT_MILLIS :</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                batchTimeoutObject.longValue();</b>
+<i class="no-highlight">167</i>&nbsp;
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        BigInteger retryCountObject = propertyValues.get(RETRY_COUNT_PROP);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        retryCount = retryCountObject == null ?</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                DEFAULT_RETRY_COUNT :</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                retryCountObject.intValue();</b>
+<i class="no-highlight">172</i>&nbsp;
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        BigInteger retryDelayObject = propertyValues.get(RETRY_DELAY_PROP);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        retryDelay = retryDelayObject == null ?</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                DEFAULT_RETRY_DELAY :</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                retryDelayObject.longValue();</b>
+<i class="no-highlight">177</i>&nbsp;    }
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;    @Override
+<i class="no-highlight">180</i>&nbsp;    public void handle(LifecycleEvent event) {
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        switch (event) {</b>
+<i class="no-highlight">182</i>&nbsp;            case SUCCESS:
+<i class="no-highlight">183</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                    synchronized (documents) {</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                        if (!documents.isEmpty()) {</b>
+<i class="no-highlight">186</i>&nbsp;                            try {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                                doStream();</b>
+<i class="no-highlight">188</i>&nbsp;                            } finally {
+<i class="no-highlight">189</i>&nbsp;                                // Always clear the documents list so that the batch-timeout-event
+<i class="no-highlight">190</i>&nbsp;                                //  doesn&#39;t get triggered with the same documents set
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                                documents.clear();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                            }</b>
+<i class="no-highlight">193</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                        mergeQueryResults = merge();</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                        tempTableDeleted = deleteTemp();</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                        printStatistics();</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                    }</b>
+<i class="no-highlight">198</i>&nbsp;                } finally {
+<i class="no-highlight">199</i>&nbsp;                    // Ensure the timer object is nullified
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                    flushBatchTask.setStopFlag();</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                    flushBatchTimer.cancel();</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                break;</b>
+<i class="no-highlight">204</i>&nbsp;            case FAILURE:
+<i class="no-highlight">205</i>&nbsp;            case CLOSE:
+<i class="no-highlight">206</i>&nbsp;            case STOP:
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                flushBatchTask.setStopFlag();</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                flushBatchTimer.cancel();</b>
+<i class="no-highlight">209</i>&nbsp;        }
+<i class="no-highlight">210</i>&nbsp;    }
+<i class="no-highlight">211</i>&nbsp;
+<i class="no-highlight">212</i>&nbsp;    @Override
+<i class="no-highlight">213</i>&nbsp;    public void defineViews(ViewBuilder viewBuilder) {
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        viewBuilder.describe(DEFAULT_OUTPUT_VIEW_0)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                .type(ViewType.DOCUMENT)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                .add(ViewCategory.OUTPUT);</b>
+<i class="no-highlight">217</i>&nbsp;    }
+<i class="no-highlight">218</i>&nbsp;
+<i class="no-highlight">219</i>&nbsp;    @Override
+<i class="no-highlight">220</i>&nbsp;    protected void flushBatch() {
+<i class="no-highlight">221</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">222</i>&nbsp;            doStream();</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            insertAllRequestBuilder = InsertAllRequest.newBuilder(</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                    TableId.of(projectId, datasetId, tempTableName));</b>
+<i class="no-highlight">225</i>&nbsp;        } finally {
+<i class="no-highlight">226</i>&nbsp;            // Ensure the documents list is always cleared so that the batch-size-event
+<i class="no-highlight">227</i>&nbsp;            //   doesn&#39;t process the same set of documents
+<b class="nc"><i class="no-highlight">228</i>&nbsp;            documents.clear();</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        }</b>
+<i class="no-highlight">230</i>&nbsp;    }
+<i class="no-highlight">231</i>&nbsp;
+<i class="no-highlight">232</i>&nbsp;    @Override
+<i class="no-highlight">233</i>&nbsp;    protected void reset() {
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        documents.clear();</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        insertAllRequestBuilder = InsertAllRequest.newBuilder(</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                TableId.of(projectId, datasetId, tempTableName));</b>
+<i class="no-highlight">237</i>&nbsp;    }
+<i class="no-highlight">238</i>&nbsp;
+<i class="no-highlight">239</i>&nbsp;    @Override
+<i class="no-highlight">240</i>&nbsp;    protected void process(Document document, String s) {
+<b class="nc"><i class="no-highlight">241</i>&nbsp;        if (firstRecord) {</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;            firstRecord = false;</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            tempTableName = &quot;tempTableId&quot;+ UUID.randomUUID().toString().replace(&quot;-&quot;,&quot;&quot;);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            createTable(TableId.of(projectId, datasetId, tempTableName),</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                    TableId.of(projectId, datasetId, tableId), bigQuery);</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            insertAllRequestBuilder = InsertAllRequest.newBuilder(</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                    TableId.of(projectId, datasetId, tempTableName));</b>
+<i class="no-highlight">248</i>&nbsp;        }
+<i class="no-highlight">249</i>&nbsp;        Map&lt;String, Object&gt; row;
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        Object documentData = document.get();</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        if (!(documentData instanceof Map)) {</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;            SnapDataException snapDataException = new SnapDataException(ERR_INVALID_DOCUMENT_MSG)</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                    .withReason(ERR_INVALID_DOCUMENT_REASON)</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                    .withResolution(ERR_INVALID_DOCUMENT_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;            errorViews.write(snapDataException, document);</b>
+<i class="no-highlight">256</i>&nbsp;            return;
+<i class="no-highlight">257</i>&nbsp;        }
+<i class="no-highlight">258</i>&nbsp;        try {
+<i class="no-highlight">259</i>&nbsp;            // Google Big Query Streaming API doesn&#39;t accept a map with null values
+<i class="no-highlight">260</i>&nbsp;            // Processing the original input document to remove null entries if any
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            ((Map) documentData).values().removeIf(Objects::isNull);</b>
+<i class="no-highlight">262</i>&nbsp;            // Due to platform enhancement that displays numbers as json objects, we need to
+<i class="no-highlight">263</i>&nbsp;            //   get rid of extra key-value pairs generated.  Used Jackson API to do this.
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            row = objectMapper.readValue(objectMapper.writeValueAsString(documentData),</b>
+<i class="no-highlight">265</i>&nbsp;                    LinkedHashMap.class);
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        } catch (IOException e2) {</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;            LOGGER.debug(String.format(&quot;Unable to convert document %s into JSON using Jackson API&quot;,</b>
+<i class="no-highlight">268</i>&nbsp;                    document), e2);
+<i class="no-highlight">269</i>&nbsp;            // In case of Jackson API&#39;s failure, we will attempt with original map object
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            row = (Map) documentData;</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        }</b>
+<i class="no-highlight">272</i>&nbsp;        // This snap inserts the batch of documents either when the batch reaches the full size or
+<i class="no-highlight">273</i>&nbsp;        // when the batch timeout occurs (whichever is earlier).
+<i class="no-highlight">274</i>&nbsp;        // The batch size condition is handled in this main thread.
+<i class="no-highlight">275</i>&nbsp;        // This task should not proceed if the child thread is already processing the batch.
+<i class="no-highlight">276</i>&nbsp;        // This is achieved by synchronizing the code block using the shared object &quot;documents&quot;.
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        synchronized (documents) {</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;            insertAllRequestBuilder = insertAllRequestBuilder.addRow(row);</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;            documents.add(document);</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;            if (documents.size() == batchSize) {</b>
+<i class="no-highlight">281</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                    doStream();</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                    insertAllRequestBuilder = InsertAllRequest.newBuilder(</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                            TableId.of(projectId, datasetId, tempTableName));</b>
+<i class="no-highlight">285</i>&nbsp;                } finally {
+<i class="no-highlight">286</i>&nbsp;                    // Always clear the documents list so that the batch-timeout-event
+<i class="no-highlight">287</i>&nbsp;                    //   didn&#39;t process the same document set
+<i class="no-highlight">288</i>&nbsp;                    // Also, reset the timer always here as batch-size-trigger event already occurred
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                    documents.clear();</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                    resetTimerAndTask();</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                }</b>
+<i class="no-highlight">292</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        }</b>
+<i class="no-highlight">294</i>&nbsp;    }
+<i class="no-highlight">295</i>&nbsp;
+<i class="no-highlight">296</i>&nbsp;    private void doStream() {
+<b class="nc"><i class="no-highlight">297</i>&nbsp;        InsertAllResponse response = null;</b>
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        RetryPolicy&lt;Object&gt; retryPolicy = new RetryPolicy&lt;&gt;()</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                .handleIf(exception -&gt; exception instanceof BigQueryException)</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                .withDelay(Duration.ofMillis(retryDelay))</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                .withMaxRetries(retryCount)</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                .onFailedAttempt(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                    Throwable throwable = e.getLastFailure();</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                    LOGGER.debug(&quot;BulkUpsertWithStreaming failed due to the error &quot; +</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                            throwable.getMessage());</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                    if (throwable instanceof BigQueryException) {</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                        LOGGER.debug(&quot;Failure HTTP code: &quot; +</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                                ((BigQueryException) throwable).getCode());</b>
+<i class="no-highlight">309</i>&nbsp;                    }
+<i class="no-highlight">310</i>&nbsp;                })
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                .onRetry(e -&gt; {</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                    LOGGER.debug(&quot;BulkUpsertWithStreaming retry attempt &quot; +</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                            e.getAttemptCount());</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                    reloadBigQueryIf401(e.getLastFailure());</b>
+<i class="no-highlight">315</i>&nbsp;                });
+<i class="no-highlight">316</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">317</i>&nbsp;            response = Failsafe</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                    .with(retryPolicy)</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                    .get(() -&gt; bigQuery.insertAll(insertAllRequestBuilder.build()));</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        } catch (BigQueryException e) {</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;            LOGGER.error(e.getMessage(), e);</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;            deleteTemp();</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;            SnapDataException exception = new SnapDataException(e, ERR_BULK_LOAD_STREAM_MSG)</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                    .withResolution(ERR_BULK_LOAD_STREAMING_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;            writeToErrorView(exception, documents);</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;            failedRecordsCount += documents.size();</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        if (response.hasErrors()) {</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;            deleteTemp();</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;            String reasons = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;            for (Map.Entry&lt;Long, List&lt;BigQueryError&gt;&gt; errorEntry : response.getInsertErrors()</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                    .entrySet()) {</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                List&lt;BigQueryError&gt; errors = errorEntry.getValue();</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                for (BigQueryError error : errors) {</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                    reasons = reasons + error + SEMI_COLON;</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;            reasons = StringUtils.removeEnd(reasons, SEMI_COLON);</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;            SnapDataException exception = new SnapDataException(ERR_BULK_LOAD_STREAM_MSG)</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                    .withReason(reasons)</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                    .withResolution(ERR_BULK_LOAD_STREAMING_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            writeToErrorView(exception, documents);</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;            failedRecordsCount += documents.size();</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;            successfulRecordsCount += documents.size();</b>
+<i class="no-highlight">347</i>&nbsp;        }
+<i class="no-highlight">348</i>&nbsp;    }
+<i class="no-highlight">349</i>&nbsp;
+<i class="no-highlight">350</i>&nbsp;    protected Bigquery.Jobs.GetQueryResults merge() {
+<b class="nc"><i class="no-highlight">351</i>&nbsp;        List&lt;String&gt; notKeyColumnNames = new ArrayList&lt;&gt;(getColumns(projectId,datasetId,tableId));</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;        for(String s: keyColumnNames) {</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;            if(!notKeyColumnNames.contains(s)){</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                deleteTemp();</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                throw new ExecutionException(ERR_INCORRECT_COLUMN)</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                        .withReason(ERR_INCORRECT_COLUMN_REASON)</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                        .withResolution(ERR_INCORRECT_COLUMN_RESOLUTION);</b>
+<i class="no-highlight">358</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">359</i>&nbsp;            notKeyColumnNames.remove(s);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        if(notKeyColumnNames.isEmpty()){</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;            deleteTemp();</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;            throw new ExecutionException(ERR_ALL_KEY_COLUMN)</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                    .withReason(ERR_ALL_KEY_COLUMN_REASON)</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                    .withResolution(ERR_ALL_KEY_COLUMN_RESOLUTION);</b>
+<i class="no-highlight">366</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        StringBuilder mergeOn = new StringBuilder(&quot; ON&quot;);</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        for (int i = 0;i &lt; keyColumnNames.size();i++) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            String s = keyColumnNames.get(i);</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;            mergeOn.append(String.format(&quot; T.%s = S.%s&quot;,s,s));</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;            if (i &lt; keyColumnNames.size() - 1) {</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                mergeOn.append(&quot; AND&quot;);</b>
+<i class="no-highlight">373</i>&nbsp;            }
+<i class="no-highlight">374</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        StringBuilder mergeUpdate = new StringBuilder(MERGE_UPSERT_UPDATE_SET);</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;        for (int i = 0;i &lt; notKeyColumnNames.size();i++) {</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;            String s = notKeyColumnNames.get(i);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            mergeUpdate.append(String.format(&quot; %s = S.%s&quot;,s,s));</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            if (i &lt; notKeyColumnNames.size() - 1) {</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                mergeUpdate.append(&quot;,&quot;);</b>
+<i class="no-highlight">381</i>&nbsp;            }
+<i class="no-highlight">382</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">383</i>&nbsp;        List&lt;String&gt; columnNames = new ArrayList&lt;&gt;(getColumns(projectId,datasetId,tableId));</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;        StringBuilder mergeInsert = new StringBuilder(&quot; INSERT (&quot;);</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;        StringBuilder colList = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        for (int i = 0;i &lt; columnNames.size();i++) {</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            String s = columnNames.get(i);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;            colList.append(String.format(&quot; %s&quot;,s));</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;            if (i &lt; columnNames.size() - 1) {</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                colList.append(&quot;,&quot;);</b>
+<i class="no-highlight">391</i>&nbsp;            }
+<i class="no-highlight">392</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">393</i>&nbsp;        mergeInsert.append(colList).append(&quot;) VALUES(&quot;).append(colList).append(&quot;)&quot;);</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;        String mergeQuery = String.format(MERGE_UPSERT_MERGE_QUERY,datasetId,tableId) +</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                String.format(&quot; USING %s.%s S&quot;,datasetId,tempTableName) +</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                mergeOn.toString() +</b>
+<i class="no-highlight">397</i>&nbsp;                MERGE_MATCHED +
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                mergeUpdate.toString() +</b>
+<i class="no-highlight">399</i>&nbsp;                &quot; WHEN NOT MATCHED THEN&quot; +
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                mergeInsert.toString();</b>
+<i class="no-highlight">401</i>&nbsp;        boolean retryable;
+<b class="nc"><i class="no-highlight">402</i>&nbsp;        int retryCounter = 0;</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;        JobConfigurationQuery queryConfig = new JobConfigurationQuery()</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                .setQuery(mergeQuery)</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                .setUseLegacySql(false);</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        com.google.api.services.bigquery.model.Job job = new com.google.api.services.bigquery.model.Job()</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                .setConfiguration(new com.google.api.services.bigquery.model.JobConfiguration().setQuery(queryConfig));</b>
+<i class="no-highlight">408</i>&nbsp;        Bigquery.Jobs.GetQueryResults resultsRequestJob;
+<i class="no-highlight">409</i>&nbsp;        do {
+<i class="no-highlight">410</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                Job queryJob = bigquery.jobs().insert(projectId, job).execute();</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                resultsRequestJob = bigquery.jobs().getQueryResults(</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                        projectId, queryJob.getJobReference().getJobId());</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                retryable = false;</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                retryable = !reconnectIfUnauthorizedOtherwiseHandleError(e, retryCounter);</b>
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                retryCounter++;</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                resultsRequestJob = null;</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        } while (retryable);</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;        if (resultsRequestJob != null) {</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;            processQueryResponse(resultsRequestJob);</b>
+<i class="no-highlight">423</i>&nbsp;        }
+<i class="no-highlight">424</i>&nbsp;        else {
+<b class="nc"><i class="no-highlight">425</i>&nbsp;            deleteTemp();</b>
+<i class="no-highlight">426</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">427</i>&nbsp;        return resultsRequestJob;</b>
+<i class="no-highlight">428</i>&nbsp;    }
+<i class="no-highlight">429</i>&nbsp;
+<i class="no-highlight">430</i>&nbsp;    protected Boolean deleteTemp() {
+<b class="nc"><i class="no-highlight">431</i>&nbsp;        TableId tableIdObj = TableId.of(projectId, datasetId,tempTableName);</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;        Boolean deleteTable = bigQuery.delete(tableIdObj);</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;        return deleteTable;</b>
+<i class="no-highlight">434</i>&nbsp;    }
+<i class="no-highlight">435</i>&nbsp;
+<i class="no-highlight">436</i>&nbsp;    protected void processQueryResponse(GetQueryResults queryResults) {
+<b class="nc"><i class="no-highlight">437</i>&nbsp;        String pageToken = null;</b>
+<b class="nc"><i class="no-highlight">438</i>&nbsp;        int errorCount = 0;</b>
+<i class="no-highlight">439</i>&nbsp;        // This loop polls until results are present, then loops over result pages.
+<i class="no-highlight">440</i>&nbsp;        do {
+<b class="nc"><i class="no-highlight">441</i>&nbsp;            GetQueryResultsResponse queryResultsResponse = extractResults(queryResults);</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;            boolean jobComplete = false;</b>
+<i class="no-highlight">443</i>&nbsp;
+<i class="no-highlight">444</i>&nbsp;            // checking if query results are returned and job is completed
+<b class="nc"><i class="no-highlight">445</i>&nbsp;            if (queryResultsResponse != null) {</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;                jobComplete = queryResultsResponse.getJobComplete();</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                int retryCounter = 0;</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                if (!jobComplete) {</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                    boolean apiError = false;</b>
+<i class="no-highlight">450</i>&nbsp;                    // Iterating loop till we get job status as Done from GBQ API
+<i class="no-highlight">451</i>&nbsp;                    // and there was no api error
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                    while (!apiError){</b>
+<i class="no-highlight">453</i>&nbsp;                        try {
+<i class="no-highlight">454</i>&nbsp;                            /*
+<i class="no-highlight">455</i>&nbsp;                             * Polling the GBQ job api till it returns job status as Done.
+<i class="no-highlight">456</i>&nbsp;                             */
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                            Bigquery.Jobs.Get getJobRequest = bigquery.jobs().get(projectId, queryResults.getJobId());</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;                            pollJob(getJobRequest, POLLING_INTERVAL);</b>
+<i class="no-highlight">459</i>&nbsp;                            // extracting new results again from the API.
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                            queryResultsResponse = extractResults(queryResults);</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                            jobComplete = queryResultsResponse != null &amp;&amp; queryResultsResponse.getJobComplete();</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                            break;</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                        } catch (InterruptedException ex) {</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                            deleteTemp();</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                            LOGGER.error(POLLING_JOB_FAILED);</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                            SnapDataException e = new SnapDataException(ex, POLLING_JOB_FAILED)</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                                    .withReason(POLLING_JOB_FAILED_REASON)</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                                    .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                            errorViews.write(e);</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                            apiError = true;</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;                        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                            apiError = reconnectIfUnauthorizedOtherwiseHandleError(e, retryCounter);</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                            retryCounter++;</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                        }</b>
+<i class="no-highlight">475</i>&nbsp;                    }
+<i class="no-highlight">476</i>&nbsp;                }
+<i class="no-highlight">477</i>&nbsp;            }
+<i class="no-highlight">478</i>&nbsp;            // processing only if job is complete
+<b class="nc"><i class="no-highlight">479</i>&nbsp;            if (jobComplete) {</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                List&lt;ErrorProto&gt; errorList = queryResultsResponse.getErrors();</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                if (errorList != null &amp;&amp; !errorList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;                    errorCount = errorList.size();</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;                    writeToErrorView(errorList);</b>
+<i class="no-highlight">484</i>&nbsp;                }
+<i class="no-highlight">485</i>&nbsp;                /** For select query, TableRow/TableFieldSchema will be returned otherwise it will be null*/
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                pageToken = queryResultsResponse.getPageToken();</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                writeToOutputView(queryResultsResponse, errorCount);</b>
+<i class="no-highlight">488</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">489</i>&nbsp;        } while (!StringUtils.isEmpty(pageToken));</b>
+<i class="no-highlight">490</i>&nbsp;    }
+<i class="no-highlight">491</i>&nbsp;
+<i class="no-highlight">492</i>&nbsp;    protected GetQueryResultsResponse extractResults(GetQueryResults queryResults) {
+<i class="no-highlight">493</i>&nbsp;        boolean validRequest;
+<b class="nc"><i class="no-highlight">494</i>&nbsp;        int retryCounter = 0;</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;        GetQueryResultsResponse response = null;</b>
+<i class="no-highlight">496</i>&nbsp;        do {
+<i class="no-highlight">497</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                response = queryResults.execute();</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                validRequest = true;</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;            } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                validRequest = reconnectIfUnauthorizedOtherwiseHandleError(ex, retryCounter);</b>
+<b class="nc"><i class="no-highlight">502</i>&nbsp;                retryCounter++;</b>
+<b class="nc"><i class="no-highlight">503</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;        } while (!validRequest);</b>
+<b class="nc"><i class="no-highlight">505</i>&nbsp;        return response;</b>
+<i class="no-highlight">506</i>&nbsp;    }
+<i class="no-highlight">507</i>&nbsp;
+<i class="no-highlight">508</i>&nbsp;    @Override
+<i class="no-highlight">509</i>&nbsp;    protected void handleAPIError(Exception e, String error, String resolution) {
+<b class="nc"><i class="no-highlight">510</i>&nbsp;        deleteTemp();</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;        super.handleAPIError(e,error,resolution);</b>
+<i class="no-highlight">512</i>&nbsp;    }
+<i class="no-highlight">513</i>&nbsp;
+<i class="no-highlight">514</i>&nbsp;    private Job pollJob(final Bigquery.Jobs.Get request, final long interval)
+<i class="no-highlight">515</i>&nbsp;            throws IOException, InterruptedException {
+<b class="nc"><i class="no-highlight">516</i>&nbsp;        int retryCounter = 0;</b>
+<i class="no-highlight">517</i>&nbsp;        boolean validRequest;
+<b class="nc"><i class="no-highlight">518</i>&nbsp;        Job job = null;</b>
+<i class="no-highlight">519</i>&nbsp;        do {
+<i class="no-highlight">520</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">521</i>&nbsp;                job = request.execute();</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                validRequest = true;</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                while (!job.getStatus().getState().equals(JOB_STATUS_DONE)) {</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                    Thread.sleep(interval);</b>
+<i class="no-highlight">525</i>&nbsp;                    boolean validRequestDuringPoll;
+<b class="nc"><i class="no-highlight">526</i>&nbsp;                    int retryCounterDuringPoll = 0;</b>
+<i class="no-highlight">527</i>&nbsp;                    do {
+<i class="no-highlight">528</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                            job = request.execute();</b>
+<b class="nc"><i class="no-highlight">530</i>&nbsp;                            validRequestDuringPoll = true;</b>
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                        } catch (HttpResponseException e) {</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                            validRequestDuringPoll = reconnectIfUnauthorizedOtherwiseHandleError(e,</b>
+<i class="no-highlight">533</i>&nbsp;                                    retryCounterDuringPoll);
+<b class="nc"><i class="no-highlight">534</i>&nbsp;                            retryCounterDuringPoll++;</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">536</i>&nbsp;                    } while (!validRequestDuringPoll);</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;            } catch (HttpResponseException e) {</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                validRequest = reconnectIfUnauthorizedOtherwiseHandleError(e, retryCounter);</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;                retryCounter++;</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">542</i>&nbsp;        } while (!validRequest);</b>
+<i class="no-highlight">543</i>&nbsp;
+<b class="nc"><i class="no-highlight">544</i>&nbsp;        return job;</b>
+<i class="no-highlight">545</i>&nbsp;    }
+<i class="no-highlight">546</i>&nbsp;
+<i class="no-highlight">547</i>&nbsp;    private void writeToOutputView(GetQueryResultsResponse queryResultsResponse, int numberOfFailedRecords) {
+<b class="nc"><i class="no-highlight">548</i>&nbsp;        Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;        map.put(TOTAL_BYTES_PROCESSED, queryResultsResponse.getTotalBytesProcessed());</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;        Long affectedRowCount = queryResultsResponse.getNumDmlAffectedRows();</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;        if (affectedRowCount != null) {</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;            map.put(NUM_DML_AFFECTED_ROWS, affectedRowCount);</b>
+<i class="no-highlight">553</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">554</i>&nbsp;        map.put(FAILED_RECORD_COUNT, numberOfFailedRecords);</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;        outputViews.write(documentUtility.newDocument(map));</b>
+<i class="no-highlight">556</i>&nbsp;    }
+<i class="no-highlight">557</i>&nbsp;
+<i class="no-highlight">558</i>&nbsp;    private void writeToErrorView(List&lt;ErrorProto&gt; errorList) {
+<b class="nc"><i class="no-highlight">559</i>&nbsp;        Map&lt;String, Object&gt; errorMap = null;</b>
+<i class="no-highlight">560</i>&nbsp;        SnapDataException snapDataException;
+<b class="nc"><i class="no-highlight">561</i>&nbsp;        for (ErrorProto error : errorList) {</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;            errorMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;            errorMap.put(ERR_MESSAGE, error.getMessage());</b>
+<b class="nc"><i class="no-highlight">564</i>&nbsp;            errorMap.put(ERR_DEBUG_INFO, error.getDebugInfo());</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;            errorMap.put(ERR_LOCATION, error.getLocation());</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;            errorMap.put(ERR_REASON, error.getReason());</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;            snapDataException = new SnapDataException(documentUtility.newDocument(errorMap),</b>
+<i class="no-highlight">568</i>&nbsp;                    ERR_BAD_RECORD)
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                    .withReason(error.getMessage())</b>
+<b class="nc"><i class="no-highlight">570</i>&nbsp;                    .withResolution(ERR_BAD_RECORD_RESPONSE_RES);</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;            errorViews.write(snapDataException);</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;        }</b>
+<i class="no-highlight">573</i>&nbsp;    }
+<i class="no-highlight">574</i>&nbsp;
+<i class="no-highlight">575</i>&nbsp;    private void printStatistics() {
+<b class="nc"><i class="no-highlight">576</i>&nbsp;        Map&lt;String, Object&gt; result = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;        result.put(STATUS, COMPLETED);</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;        result.put(SUCCESSFUL_RECORDS_MSG, successfulRecordsCount);</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;        result.put(FAILED_RECORDS_MSG, failedRecordsCount);</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;        result.put(TEMP_TABLE_STATUS, tempTableDeleted);</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;        outputViews.write(documentUtility.newDocument(result));</b>
+<i class="no-highlight">582</i>&nbsp;    }
+<i class="no-highlight">583</i>&nbsp;
+<i class="no-highlight">584</i>&nbsp;    private void writeToErrorView(SnapDataException exception, List&lt;Document&gt; documents) {
+<b class="nc"><i class="no-highlight">585</i>&nbsp;        for (Document document : documents) {</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;            errorViews.write(exception, document);</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;        }</b>
+<i class="no-highlight">588</i>&nbsp;    }
+<i class="no-highlight">589</i>&nbsp;
+<i class="no-highlight">590</i>&nbsp;    protected Set&lt;String&gt; getColumns(String projectId, String datasetName, String tableName) {
+<i class="no-highlight">591</i>&nbsp;        try {
+<i class="no-highlight">592</i>&nbsp;            // Initialize client that will be used to send requests. This client only needs to be created
+<i class="no-highlight">593</i>&nbsp;            // once, and can be reused for multiple requests.
+<b class="nc"><i class="no-highlight">594</i>&nbsp;            TableId tableId = TableId.of(projectId, datasetName, tableName);</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;            TableInfo table = bigQuery.getTable(tableId);</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;            Set&lt;String&gt; columnNames = new HashSet&lt;&gt;();</b>
+<i class="no-highlight">597</i>&nbsp;            // Retrieve the schema and iterate through the fields
+<b class="nc"><i class="no-highlight">598</i>&nbsp;            Schema schema = table.getDefinition().getSchema();</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;            for (Field field : schema.getFields()) {</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;               columnNames.add(field.getName());</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;            return columnNames;</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;        } catch (BigQueryException e) {</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;            LOGGER.error(&quot;Table not retrieved. \n&quot; + e.toString());</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;        } catch (NullPointerException e) {</b>
+<b class="nc"><i class="no-highlight">606</i>&nbsp;            LOGGER.error(&quot;Schema not retrieved. \n&quot; + e.toString());</b>
+<b class="nc"><i class="no-highlight">607</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">608</i>&nbsp;        return new HashSet&lt;&gt;();</b>
+<i class="no-highlight">609</i>&nbsp;    }
+<i class="no-highlight">610</i>&nbsp;
+<i class="no-highlight">611</i>&nbsp;    protected void suggestTableColumns(SuggestionBuilder suggestionBuilder,
+<i class="no-highlight">612</i>&nbsp;                                       PropertyValues propertyValues) {
+<i class="no-highlight">613</i>&nbsp;        //Configure table related properties to initialize table metadata
+<b class="nc"><i class="no-highlight">614</i>&nbsp;        super.configure(propertyValues);</b>
+<b class="nc"><i class="no-highlight">615</i>&nbsp;        Set&lt;String&gt; columnsToSuggest = getColumns(projectId,datasetId,tableId);</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;        if (columnsToSuggest.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">617</i>&nbsp;            throw new ExecutionException(NO_COLUMNS_AVAILABLE);</b>
+<i class="no-highlight">618</i>&nbsp;        }
+<i class="no-highlight">619</i>&nbsp;
+<i class="no-highlight">620</i>&nbsp;        //Filter columns that have already been selected
+<b class="nc"><i class="no-highlight">621</i>&nbsp;        List&lt;ExpressionProperty&gt; rows = getTableColumns(propertyValues);</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;        rows.forEach(row -&gt; {</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;            String inputColumn = row.eval(null);</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;            if (inputColumn != null) {</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;                columnsToSuggest.remove(inputColumn);</b>
+<i class="no-highlight">626</i>&nbsp;            }
+<i class="no-highlight">627</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">628</i>&nbsp;        if (columnsToSuggest.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;            throw new ExecutionException(ERR_ALL_COLUMNS_SELECTED)</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;                    .withReason(ERR_ALL_COLUMNS_SELECTED_REASON)</b>
+<b class="nc"><i class="no-highlight">631</i>&nbsp;                    .withResolution(ERR_ALL_COLUMNS_SELECTED_RESOLUTION);</b>
+<i class="no-highlight">632</i>&nbsp;        }
+<i class="no-highlight">633</i>&nbsp;
+<b class="nc"><i class="no-highlight">634</i>&nbsp;        suggestionBuilder.node(COLUMN_NAMES_PROP)</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;                .over(COLUMN_PROP)</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;                .suggestions(columnsToSuggest.toArray(new String[columnsToSuggest.size()]));</b>
+<i class="no-highlight">637</i>&nbsp;    }
+<i class="no-highlight">638</i>&nbsp;
+<i class="no-highlight">639</i>&nbsp;    protected List&lt;ExpressionProperty&gt; getTableColumns(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">640</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; table = propertyValues.getAsExpression(COLUMN_NAMES_PROP)</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                .eval(null);</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;        final List&lt;ExpressionProperty&gt; rows = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;        if (table != null) {</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;            table.forEach(tableRow -&gt; {</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                ExpressionProperty row = propertyValues.getExpressionPropertyFor(tableRow,</b>
+<i class="no-highlight">646</i>&nbsp;                        COLUMN_PROP);
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                rows.add(row);</b>
+<i class="no-highlight">648</i>&nbsp;            });
+<i class="no-highlight">649</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">650</i>&nbsp;        return rows;</b>
+<i class="no-highlight">651</i>&nbsp;    }
+<i class="no-highlight">652</i>&nbsp;
+<i class="no-highlight">653</i>&nbsp;    private void reloadBigQueryIf401(Throwable t) {
+<b class="nc"><i class="no-highlight">654</i>&nbsp;        if ((t instanceof BigQueryException) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;                ((BigQueryException) t).getCode() == HttpStatusCodes.STATUS_CODE_UNAUTHORIZED) {</b>
+<b class="nc"><i class="no-highlight">656</i>&nbsp;            reloadAccount();</b>
+<b class="nc"><i class="no-highlight">657</i>&nbsp;            initBigQuery();</b>
+<i class="no-highlight">658</i>&nbsp;        }
+<i class="no-highlight">659</i>&nbsp;    }
+<i class="no-highlight">660</i>&nbsp;
+<i class="no-highlight">661</i>&nbsp;    protected void createTable(TableId tempTableId, TableId targetTableId,
+<i class="no-highlight">662</i>&nbsp;                               com.google.cloud.bigquery.BigQuery cloudBigQuery) {
+<i class="no-highlight">663</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">664</i>&nbsp;            Table table = bigQuery.getTable(targetTableId);</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;            Schema tableSchema = table.getDefinition().getSchema();</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;            TableDefinition tableDefinition = StandardTableDefinition.of(tableSchema);</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;            TableInfo tableInfo = TableInfo.newBuilder(tempTableId, tableDefinition).build();</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;            cloudBigQuery.create(tableInfo);</b>
+<b class="nc"><i class="no-highlight">669</i>&nbsp;        } catch (Exception e1) {</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;            throw new ExecutionException(e1, ERR_UNABLE_TO_CREATE_TABLE_MSG)</b>
+<b class="nc"><i class="no-highlight">671</i>&nbsp;                    .withReason(e1.getMessage())</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;                    .withResolution(ERR_UNABLE_TO_CREATE_TABLE_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;        }</b>
+<i class="no-highlight">674</i>&nbsp;    }
+<i class="no-highlight">675</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

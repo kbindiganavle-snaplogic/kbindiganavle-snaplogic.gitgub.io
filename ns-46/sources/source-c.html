@@ -1,0 +1,318 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > S3Utils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.s3</a>
+</div>
+
+<h1>Coverage Summary for Class: S3Utils (com.snaplogic.snap.api.s3)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">S3Utils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">S3Utils$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/26)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.s3;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.services.s3.model.ObjectMetadata;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.services.s3.model.StorageClass;
+<i class="no-highlight">15</i>&nbsp;
+<i class="no-highlight">16</i>&nbsp;import org.apache.commons.httpclient.util.URIUtil;
+<i class="no-highlight">17</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">18</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">19</i>&nbsp;import org.apache.tika.metadata.Metadata;
+<i class="no-highlight">20</i>&nbsp;import org.apache.tika.mime.MimeTypes;
+<i class="no-highlight">21</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">22</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">25</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">26</i>&nbsp;import java.util.Map;
+<i class="no-highlight">27</i>&nbsp;import java.util.Optional;
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snap.api.s3.S3ClientService.DEFAULT;
+<b class="nc"><i class="no-highlight">30</i>&nbsp;</b>
+<i class="no-highlight">31</i>&nbsp;/**
+<i class="no-highlight">32</i>&nbsp; * Utility class for s3core &amp; s3snap modules
+<i class="no-highlight">33</i>&nbsp; */
+<i class="no-highlight">34</i>&nbsp;public class S3Utils {
+<i class="no-highlight">35</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(S3Utils.class);
+<i class="no-highlight">36</i>&nbsp;    public static final String S3_PATH_FORMAT = &quot;s3:///%s/%s&quot;;
+<i class="no-highlight">37</i>&nbsp;    public static final String BYTES = &quot;bytes&quot;;
+<i class="no-highlight">38</i>&nbsp;    public static final String NONE = &quot;None&quot;;
+<i class="no-highlight">39</i>&nbsp;    public static final String S3_RETRY_SIGNATURE = &quot;s3_retry&quot;;
+<i class="no-highlight">40</i>&nbsp;    public static final String VALUE = &quot;value&quot;;
+<i class="no-highlight">41</i>&nbsp;    public static final String BUCKET = &quot;bucket&quot;;
+<i class="no-highlight">42</i>&nbsp;    public static final String OBJECT_KEY = &quot;objectKey&quot;;
+<i class="no-highlight">43</i>&nbsp;    public static final String PATH = &quot;path&quot;;
+<i class="no-highlight">44</i>&nbsp;    public static final String SIZE = &quot;size&quot;;
+<i class="no-highlight">45</i>&nbsp;    public static final String LAST_MODIFIED = &quot;lastModified&quot;;
+<i class="no-highlight">46</i>&nbsp;    public static final String OWNER_DISPLAY_NAME = &quot;ownerDisplayName&quot;;
+<i class="no-highlight">47</i>&nbsp;    public static final String OWNER_ID = &quot;ownerID&quot;;
+<i class="no-highlight">48</i>&nbsp;    public static final String DOUBLE_STAR = &quot;**&quot;;
+<i class="no-highlight">49</i>&nbsp;    public static final int LIST_PAGE_SIZE = 1000;
+<i class="no-highlight">50</i>&nbsp;    public static final String DELIMITER = &quot;/&quot;;
+<i class="no-highlight">51</i>&nbsp;    public static final String TAB_CHAR = &quot;\t&quot;;
+<i class="no-highlight">52</i>&nbsp;    public static final String TAB_STRING = &quot;\\t&quot;;
+<i class="no-highlight">53</i>&nbsp;    public static final String DOT = &quot;.&quot;;
+<i class="no-highlight">54</i>&nbsp;    public static final String DOUBLE_QUOTE = &quot;\&quot;&quot;;
+<i class="no-highlight">55</i>&nbsp;    public static final String PLUS = &quot;\\+&quot;;
+<b class="nc"><i class="no-highlight">56</i>&nbsp;    public static final String ENCODED_PLUS = &quot;%2B&quot;;</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;    public static final String COMMON_PREFIX = &quot;commonPrefix&quot;;</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;    // The StorageClass name for GlacierFlexibleRetrieval is Glacier in AWS S3 SDK API.</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;    // However, GlacierFlexibleRetrieval is preferred to Glacier for Snap UI.</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    public static final String GLACIER_FLEXIBLE_RETRIEVAL = &quot;GlacierFlexibleRetrieval&quot;;</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;    public static final String GLACIER = &quot;Glacier&quot;;</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;    // Map of StorageClass ID to StorageClass name</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;    public static final Map&lt;String, String&gt; STORAGE_CLASS_MAP = new LinkedHashMap&lt;&gt;() {{</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        put(&quot;STANDARD&quot;, &quot;Standard&quot;);</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        put(&quot;GLACIER_IR&quot;, &quot;GlacierInstantRetrieval&quot;);</b>
+<i class="no-highlight">66</i>&nbsp;        put(&quot;GLACIER&quot;, GLACIER_FLEXIBLE_RETRIEVAL);
+<i class="no-highlight">67</i>&nbsp;        put(&quot;DEEP_ARCHIVE&quot;, &quot;DeepArchive&quot;);
+<i class="no-highlight">68</i>&nbsp;        put(&quot;INTELLIGENT_TIERING&quot;, &quot;IntelligentTiering&quot;);
+<i class="no-highlight">69</i>&nbsp;        put(&quot;STANDARD_IA&quot;, &quot;StandardInfrequentAccess&quot;);
+<i class="no-highlight">70</i>&nbsp;        put(&quot;ONEZONE_IA&quot;, &quot;OneZoneInfrequentAccess&quot;);
+<i class="no-highlight">71</i>&nbsp;        put(&quot;REDUCED_REDUNDANCY&quot;, &quot;ReducedRedundancy&quot;);
+<i class="no-highlight">72</i>&nbsp;        put(&quot;OUTPOSTS&quot;, &quot;Outposts&quot;);
+<i class="no-highlight">73</i>&nbsp;    }};
+<b class="nc"><i class="no-highlight">74</i>&nbsp;    private static final MimeTypes DEFAULT_MIME_TYPES = MimeTypes.getDefaultMimeTypes();</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;    /**</b>
+<i class="no-highlight">77</i>&nbsp;     * Parses &quot;{bucketName}@{region name or endpoint}&quot; and returns a pair of bucket and region.
+<b class="nc"><i class="no-highlight">78</i>&nbsp;     * @param bucketAtRegion - {bucketName}@{region name or endpoint} or {bucketName}</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;     * @return pair of bucket and region</b>
+<i class="no-highlight">80</i>&nbsp;     */
+<i class="no-highlight">81</i>&nbsp;    public static Pair&lt;String, String&gt; parseRegion(String bucketAtRegion) {
+<i class="no-highlight">82</i>&nbsp;        int index = StringUtils.indexOf(bucketAtRegion, &#39;@&#39;);
+<i class="no-highlight">83</i>&nbsp;        String bucket = index &gt; 0 ? bucketAtRegion.substring(0, index) : bucketAtRegion;
+<i class="no-highlight">84</i>&nbsp;        String region = index &gt; 0 ? bucketAtRegion.substring(index + 1) : DEFAULT;
+<i class="no-highlight">85</i>&nbsp;        // If bucket name ends with &#39;/&#39;, strip it.
+<i class="no-highlight">86</i>&nbsp;        bucket = StringUtils.stripEnd(bucket, DELIMITER);
+<i class="no-highlight">87</i>&nbsp;        return Pair.of(bucket, region);
+<i class="no-highlight">88</i>&nbsp;    }
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;    /**
+<i class="no-highlight">91</i>&nbsp;     * Decodes the filename in the given URI
+<b class="nc"><i class="no-highlight">92</i>&nbsp;     *</b>
+<i class="no-highlight">93</i>&nbsp;     * @param strUrl - URL string to be decoded. plus symbol will be encoded.
+<i class="no-highlight">94</i>&nbsp;     * @return URL string with decoded filename
+<i class="no-highlight">95</i>&nbsp;     *
+<i class="no-highlight">96</i>&nbsp;     * @throws IOException
+<i class="no-highlight">97</i>&nbsp;     * @see com.snaplogic.snap.api.fs.JfsUtils#decode()
+<i class="no-highlight">98</i>&nbsp;     */
+<i class="no-highlight">99</i>&nbsp;    public static String decode(String strUrl) throws IOException {
+<i class="no-highlight">100</i>&nbsp;        return decode(strUrl, true);
+<i class="no-highlight">101</i>&nbsp;    }
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;    /**
+<i class="no-highlight">104</i>&nbsp;     * Decodes the filename in the given URI
+<i class="no-highlight">105</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">106</i>&nbsp;     * @param strUrl - URL string to be decoded</b>
+<i class="no-highlight">107</i>&nbsp;     * @param encodePlusSign - indicates whether to encode the plus symbol
+<i class="no-highlight">108</i>&nbsp;     * @return URL string with decoded filename
+<i class="no-highlight">109</i>&nbsp;     *
+<i class="no-highlight">110</i>&nbsp;     * @throws IOException
+<i class="no-highlight">111</i>&nbsp;     * @see com.snaplogic.snap.api.fs.JfsUtils#decode()
+<i class="no-highlight">112</i>&nbsp;     */
+<i class="no-highlight">113</i>&nbsp;    public static String decode(String strUrl, boolean encodePlusSign) throws IOException {
+<i class="no-highlight">114</i>&nbsp;        return URIUtil.decode(encodePlusSign ? encodePlusSign(strUrl) : strUrl);
+<i class="no-highlight">115</i>&nbsp;    }
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">118</i>&nbsp;     * Encodes all plus signs in the given URI</b>
+<i class="no-highlight">119</i>&nbsp;     *
+<i class="no-highlight">120</i>&nbsp;     * @param strUrl - URL string to be encoded
+<i class="no-highlight">121</i>&nbsp;     * @return URL string with encoded plus signs
+<i class="no-highlight">122</i>&nbsp;     *
+<i class="no-highlight">123</i>&nbsp;     * @see com.snaplogic.snap.api.fs.JfsUtils#encodePlusSign()
+<i class="no-highlight">124</i>&nbsp;     */
+<i class="no-highlight">125</i>&nbsp;    public static String encodePlusSign(String strUrl) {
+<i class="no-highlight">126</i>&nbsp;        return strUrl.replaceAll(PLUS, ENCODED_PLUS);
+<i class="no-highlight">127</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">128</i>&nbsp;</b>
+<i class="no-highlight">129</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">130</i>&nbsp;     * Gets a storage class name from S3 object metadata.</b>
+<i class="no-highlight">131</i>&nbsp;     * @param metadata - S3 object metadata
+<i class="no-highlight">132</i>&nbsp;     * @return storage class name
+<i class="no-highlight">133</i>&nbsp;     */
+<i class="no-highlight">134</i>&nbsp;    public static String getCurrentStorageClass(ObjectMetadata metadata) {
+<i class="no-highlight">135</i>&nbsp;        // Get the current storage-class ID .
+<i class="no-highlight">136</i>&nbsp;        String id = metadata.getStorageClass();
+<i class="no-highlight">137</i>&nbsp;        // return the current storage-class name
+<i class="no-highlight">138</i>&nbsp;        return getCurrentStorageClass(id);
+<i class="no-highlight">139</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">140</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;    /**</b>
+<i class="no-highlight">142</i>&nbsp;     * Gets a storage class name from storage class ID
+<i class="no-highlight">143</i>&nbsp;     * @param storageClassId - S3 object storage class ID
+<b class="nc"><i class="no-highlight">144</i>&nbsp;     * @return storage class name</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;     */</b>
+<i class="no-highlight">146</i>&nbsp;    public static String getCurrentStorageClass(String storageClassId) {
+<i class="no-highlight">147</i>&nbsp;        // If id is null, it is StorageClass.Standard.
+<i class="no-highlight">148</i>&nbsp;        storageClassId = Optional.ofNullable(storageClassId)
+<i class="no-highlight">149</i>&nbsp;                .orElse(StorageClass.Standard.toString());
+<i class="no-highlight">150</i>&nbsp;        // Convert the storage-class ID to its class name. If its class name
+<i class="no-highlight">151</i>&nbsp;        // is not in the storage-class map, use the id as a name.
+<i class="no-highlight">152</i>&nbsp;        String name = STORAGE_CLASS_MAP.get(storageClassId);
+<i class="no-highlight">153</i>&nbsp;        return Optional.ofNullable(name).orElse(storageClassId);
+<i class="no-highlight">154</i>&nbsp;    }
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;    /**
+<i class="no-highlight">157</i>&nbsp;     * Guesses content-type from the filename.
+<i class="no-highlight">158</i>&nbsp;     * @param filename - filename
+<i class="no-highlight">159</i>&nbsp;     * @return guessed content-type
+<i class="no-highlight">160</i>&nbsp;     */
+<i class="no-highlight">161</i>&nbsp;    public static String guessContentTypeFromName(String filename) {
+<i class="no-highlight">162</i>&nbsp;        Metadata metadata = new Metadata();
+<i class="no-highlight">163</i>&nbsp;        metadata.add(Metadata.RESOURCE_NAME_KEY, filename);
+<i class="no-highlight">164</i>&nbsp;        try {
+<i class="no-highlight">165</i>&nbsp;            // The tika library can also guess the type based on the content, which might be
+<i class="no-highlight">166</i>&nbsp;            // useful in the future.
+<i class="no-highlight">167</i>&nbsp;            return DEFAULT_MIME_TYPES.detect(null, metadata).toString();
+<i class="no-highlight">168</i>&nbsp;        } catch (IOException e) {
+<i class="no-highlight">169</i>&nbsp;            LOG.debug(&quot;Unexpected IO error during mime type detection&quot;, e);
+<i class="no-highlight">170</i>&nbsp;            return null;
+<i class="no-highlight">171</i>&nbsp;        }
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    /**
+<i class="no-highlight">175</i>&nbsp;     * Remove the first and last character if a string is enclosed by the character.
+<i class="no-highlight">176</i>&nbsp;     *
+<i class="no-highlight">177</i>&nbsp;     * @param value      - a given string
+<i class="no-highlight">178</i>&nbsp;     * @param enclosedBy - a single character in string enclosing the value
+<i class="no-highlight">179</i>&nbsp;     * @return unwrapped string
+<i class="no-highlight">180</i>&nbsp;     */
+<i class="no-highlight">181</i>&nbsp;    public static String unwrap(String value, String enclosedBy) {
+<i class="no-highlight">182</i>&nbsp;        if (StringUtils.startsWith(value, enclosedBy) &amp;&amp; value.endsWith(enclosedBy)) {
+<i class="no-highlight">183</i>&nbsp;            return value.substring(1, value.length() - 1);
+<i class="no-highlight">184</i>&nbsp;        }
+<i class="no-highlight">185</i>&nbsp;        return value;
+<i class="no-highlight">186</i>&nbsp;    }
+<i class="no-highlight">187</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

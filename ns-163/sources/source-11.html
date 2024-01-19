@@ -1,0 +1,672 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > TdchServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.teradata</a>
+</div>
+
+<h1>Coverage Summary for Class: TdchServiceImpl (com.snaplogic.snaps.teradata)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">TdchServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/200)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.teradata;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.name.Named;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseAccount;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseConfig;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseCursor;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.sql.util.ClasspathUtil;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.sql.util.ClasspathUtilImpl;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.sql.util.ProcessStreamReader;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snaps.teradata.TdchConfig.ExportPartitionMethod;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;//import org.apache.hadoop.util.Tool;
+<i class="no-highlight">28</i>&nbsp;//import org.apache.hadoop.util.ToolRunner;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">30</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import java.io.File;
+<i class="no-highlight">33</i>&nbsp;import java.io.FileOutputStream;
+<i class="no-highlight">34</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">35</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">36</i>&nbsp;import java.io.OutputStream;
+<i class="no-highlight">37</i>&nbsp;import java.io.StringWriter;
+<i class="no-highlight">38</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">39</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">40</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">41</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">42</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">43</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">44</i>&nbsp;import java.util.List;
+<i class="no-highlight">45</i>&nbsp;import java.util.Map;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import static org.apache.commons.lang3.StringUtils.isEmpty;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;/**
+<i class="no-highlight">50</i>&nbsp; * Teradata Connector for Hadoop implementation.
+<i class="no-highlight">51</i>&nbsp; *
+<i class="no-highlight">52</i>&nbsp; * Implementation note: it would be preferable to call the TDCH connector class directly
+<i class="no-highlight">53</i>&nbsp; * but we are currently unable to do so due to ClassCastException within that jar. In the
+<i class="no-highlight">54</i>&nbsp; * interrim we create a subprocess that executes the CLI version of the app. The direct call
+<i class="no-highlight">55</i>&nbsp; * code is left in place but commented out (despite the usual practice of not leaving in
+<i class="no-highlight">56</i>&nbsp; * commented-out code) since we anticipate using it in the future, this code is not already
+<i class="no-highlight">57</i>&nbsp; * in git, and it is non-trivial.
+<i class="no-highlight">58</i>&nbsp; */
+<b class="nc"><i class="no-highlight">59</i>&nbsp;public class TdchServiceImpl implements TdchService {</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(TdchServiceImpl.class);</b>
+<i class="no-highlight">61</i>&nbsp;
+<i class="no-highlight">62</i>&nbsp;    private static final String TDCH_IMPORT_CLASSNAME =
+<i class="no-highlight">63</i>&nbsp;            &quot;com.teradata.hadoop.tool.TeradataImportTool&quot;;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;    @Inject
+<i class="no-highlight">66</i>&nbsp;    private ClasspathUtil classpathUtil;
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    @Inject
+<i class="no-highlight">69</i>&nbsp;    @Named(JdbcOperations.TERADATA)
+<i class="no-highlight">70</i>&nbsp;    private JdbcOperations jdbcOperations;
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;    protected String getName() {
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        return JdbcOperations.TERADATA;</b>
+<i class="no-highlight">74</i>&nbsp;    }
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    /**
+<i class="no-highlight">77</i>&nbsp;     * Find the TDCH Tool class.
+<i class="no-highlight">78</i>&nbsp;     *
+<i class="no-highlight">79</i>&nbsp;     * @param config
+<i class="no-highlight">80</i>&nbsp;     * @return
+<i class="no-highlight">81</i>&nbsp;     * @throws ClassNotFoundException
+<i class="no-highlight">82</i>&nbsp;     */
+<i class="no-highlight">83</i>&nbsp;    Class&lt;?&gt; findImportTool(DatabaseConfig config) throws ClassNotFoundException {
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;        // find TDCH class in the SLDB classloader.
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        Class&lt;?&gt; clz = null;</b>
+<i class="no-highlight">87</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            if (config.getClassLoader() != null) {</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                clz = config.getClassLoader().loadClass(TDCH_IMPORT_CLASSNAME);</b>
+<i class="no-highlight">90</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                clz = Thread.currentThread().getContextClassLoader()</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                        .loadClass(TDCH_IMPORT_CLASSNAME);</b>
+<i class="no-highlight">93</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        } catch (ClassNotFoundException e) {</b>
+<i class="no-highlight">95</i>&nbsp;            // called if config.getClassLoader() is not null but doesn&#39;t contain TDCH jar
+<b class="nc"><i class="no-highlight">96</i>&nbsp;            clz = Thread.currentThread().getContextClassLoader().loadClass(TDCH_IMPORT_CLASSNAME);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        }</b>
+<i class="no-highlight">98</i>&nbsp;
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        if (clz == null) {</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            throw new ClassNotFoundException(&quot;unable to find &quot; + TDCH_IMPORT_CLASSNAME);</b>
+<i class="no-highlight">101</i>&nbsp;        }
+<i class="no-highlight">102</i>&nbsp;
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        Class&lt;?&gt; tool = (Class&lt;?&gt;) clz;</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        return tool;</b>
+<i class="no-highlight">105</i>&nbsp;    }
+<i class="no-highlight">106</i>&nbsp;
+<i class="no-highlight">107</i>&nbsp;    /**
+<i class="no-highlight">108</i>&nbsp;     * Perform parameter validation.
+<i class="no-highlight">109</i>&nbsp;     *
+<i class="no-highlight">110</i>&nbsp;     * FIXME SECURITY: we should have a short backlist of destinations that we definitely don&#39;t want
+<i class="no-highlight">111</i>&nbsp;     * to allow the user to overwrite. E.g., anything under /dev, /etc, /lib, more?
+<i class="no-highlight">112</i>&nbsp;     *
+<i class="no-highlight">113</i>&nbsp;     * @see com.snaplogic.snaps.teradata.TdchService#validate(
+<i class="no-highlight">114</i>&nbsp;     *      com.snaplogic.snap.api.sql.DatabaseConfig, com.snaplogic.snaps.teradata.HdfsConfig,
+<i class="no-highlight">115</i>&nbsp;     *      com.snaplogic.snaps.teradata.TdchConfig)
+<i class="no-highlight">116</i>&nbsp;     */
+<i class="no-highlight">117</i>&nbsp;    @Override
+<i class="no-highlight">118</i>&nbsp;    public void validate(DatabaseConfig dbConfig, HdfsConfig hdfsConfig, TdchConfig tdchConfig)
+<i class="no-highlight">119</i>&nbsp;            throws PartitionColumnRequiredException, PartitionColumnNotPermittedException,
+<i class="no-highlight">120</i>&nbsp;            UnableToFindTdchJarException {
+<i class="no-highlight">121</i>&nbsp;
+<i class="no-highlight">122</i>&nbsp;        //if (hdfsConfig.getDirectoryExpression().isEmpty()) {
+<i class="no-highlight">123</i>&nbsp;        //    // FIXME: add exception
+<i class="no-highlight">124</i>&nbsp;        //}
+<i class="no-highlight">125</i>&nbsp;
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        if (ExportPartitionMethod.SPLIT_BY_PARTITION</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                .equals(tdchConfig.getExportPartitionMethod())) {</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;            if (tdchConfig.getPartitionColumn() != null</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                    &amp;&amp; !tdchConfig.getPartitionColumn().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                throw new PartitionColumnNotPermittedException();</b>
+<i class="no-highlight">131</i>&nbsp;            }
+<i class="no-highlight">132</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            if (tdchConfig.getPartitionColumn() == null</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                    &amp;&amp; tdchConfig.getPartitionColumn().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                throw new PartitionColumnRequiredException();</b>
+<i class="no-highlight">136</i>&nbsp;            }
+<i class="no-highlight">137</i>&nbsp;        }
+<i class="no-highlight">138</i>&nbsp;
+<i class="no-highlight">139</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            findImportTool(dbConfig);</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        } catch (ClassNotFoundException e) {</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            throw new UnableToFindTdchJarException();</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        }</b>
+<i class="no-highlight">144</i>&nbsp;    }
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;    /**
+<i class="no-highlight">147</i>&nbsp;     * @see com.snaplogic.snaps.teradata.TdchService#performTestExecution(com.snaplogic.snap.api.Document,
+<i class="no-highlight">148</i>&nbsp;     *     java.lang.String, java.util.List, com.snaplogic.snap.api.sql.DatabaseAccount)
+<i class="no-highlight">149</i>&nbsp;     */
+<i class="no-highlight">150</i>&nbsp;    @Override
+<i class="no-highlight">151</i>&nbsp;    public void performTestExecution(Document document, String transformedSql, List&lt;Object&gt; values,
+<i class="no-highlight">152</i>&nbsp;            DatabaseAccount account) throws IOException, SQLException {
+<i class="no-highlight">153</i>&nbsp;
+<i class="no-highlight">154</i>&nbsp;        // rewrite query so we&#39;ll only request a single record. This should minimize the
+<i class="no-highlight">155</i>&nbsp;        // resources required for our test query.
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        StringBuilder sql = new StringBuilder(transformedSql);</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;        String lowerCaseSql = transformedSql.toLowerCase();</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        int idx = lowerCaseSql.indexOf(&quot;select &quot;);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        if (idx &gt;= 0) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            sql.insert(idx + 7, &quot;top 1 &quot;);</b>
+<i class="no-highlight">161</i>&nbsp;        }
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;        // this largely duplicates SimpleSqlExecuteSnap#executeQuery() but we toss away the
+<i class="no-highlight">164</i>&nbsp;        // results of the query - we just want to make sure it doesn&#39;t throw any exceptions.
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        try (DatabaseCursor cursor = jdbcOperations.executeQuery(sql.toString(), values, account,</b>
+<i class="no-highlight">166</i>&nbsp;            0, 1)) {
+<b class="nc"><i class="no-highlight">167</i>&nbsp;            if (cursor.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                cursor.fetchOne();</b>
+<i class="no-highlight">169</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        }</b>
+<i class="no-highlight">171</i>&nbsp;    }
+<i class="no-highlight">172</i>&nbsp;
+<i class="no-highlight">173</i>&nbsp;    /**
+<i class="no-highlight">174</i>&nbsp;     * @see com.snaplogic.snaps.teradata.TdchService#exportTableToHdfs(com.snaplogic.snap.api.Document
+<i class="no-highlight">175</i>&nbsp;     *      com.snaplogic.snap.api.sql.DatabaseConfig, java.lang.String,
+<i class="no-highlight">176</i>&nbsp;     *      com.snaplogic.snaps.teradata.HdfsConfig, com.snaplogic.snaps.teradata.TdchConfig)
+<i class="no-highlight">177</i>&nbsp;     */
+<i class="no-highlight">178</i>&nbsp;    @Override
+<i class="no-highlight">179</i>&nbsp;    public Map&lt;TeradataExportToHdfsField, Object&gt; exportTableToHdfs(Document document,
+<i class="no-highlight">180</i>&nbsp;            DatabaseConfig dbConfig, String table, HdfsConfig hdfsConfig, TdchConfig tdchConfig)
+<i class="no-highlight">181</i>&nbsp;            throws PartitionColumnRequiredException, PartitionColumnNotPermittedException,
+<i class="no-highlight">182</i>&nbsp;            UnableToFindTdchJarException, Exception {
+<i class="no-highlight">183</i>&nbsp;
+<i class="no-highlight">184</i>&nbsp;        // SECURITY: the UI should have already checked this but security 101 says we should
+<i class="no-highlight">185</i>&nbsp;        // never trust the UI - an attacker can talk to the server directly.
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        validate(dbConfig, hdfsConfig, tdchConfig);</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        if (isEmpty(table)) {</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;            throw new IllegalArgumentException(&quot;missing argument(s)&quot;);</b>
+<i class="no-highlight">189</i>&nbsp;        }
+<i class="no-highlight">190</i>&nbsp;
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        List&lt;String&gt; args = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">192</i>&nbsp;        // args.add(&quot;-classname&quot;);
+<i class="no-highlight">193</i>&nbsp;        // args.add(dbConfig.getDriver());
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        args.add(&quot;-url&quot;);</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        args.add(dbConfig.getJdbcUrl());</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        args.add(&quot;-username&quot;);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        args.add(dbConfig.getUsername());</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        args.add(&quot;-password&quot;);</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        args.add(dbConfig.getPassword());</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;        args.add(&quot;-targetpaths&quot;);</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        args.add(hdfsConfig.getDirectory(document));</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        args.add(&quot;-method&quot;);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        args.add(tdchConfig.getExportPartitionMethod().getMethod());</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        args.add(&quot;-fileformat&quot;);</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        args.add(tdchConfig.getFormat().getFormat());</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        args.add(&quot;-separator&quot;);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        args.add(tdchConfig.getSeparator().getSeparator());</b>
+<i class="no-highlight">208</i>&nbsp;
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        args.add(&quot;-sourcetable&quot;);</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        args.add(table);</b>
+<i class="no-highlight">211</i>&nbsp;
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        if (!ExportPartitionMethod.SPLIT_BY_PARTITION</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                .equals(tdchConfig.getExportPartitionMethod())) {</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            args.add(&quot;-splitbycolumn&quot;);</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;            args.add(tdchConfig.getPartitionColumn(document));</b>
+<i class="no-highlight">216</i>&nbsp;        }
+<i class="no-highlight">217</i>&nbsp;
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        if (!isEmpty(tdchConfig.getClientOutput())) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            args.add(&quot;-jobclientoutput&quot;);</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;            args.add(tdchConfig.getClientOutput());</b>
+<i class="no-highlight">221</i>&nbsp;        }
+<i class="no-highlight">222</i>&nbsp;
+<i class="no-highlight">223</i>&nbsp;        // copied from Teradata&#39;s TeradataImportTool#main()
+<i class="no-highlight">224</i>&nbsp;        //// Tool tool = new ConnectorImportTool();
+<i class="no-highlight">225</i>&nbsp;        //Tool tool = findImportTool(dbConfig).newInstance();
+<i class="no-highlight">226</i>&nbsp;        //int resCode = ToolRunner.run(tool, args.toArray(new String[0]));
+<i class="no-highlight">227</i>&nbsp;        //Map&lt;TeradataExportToHdfsField, Object&gt; res = new HashMap&lt;&gt;();
+<i class="no-highlight">228</i>&nbsp;        //res.put(TeradataExportToHdfsField.STATUS, resCode);
+<i class="no-highlight">229</i>&nbsp;
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        Map&lt;TeradataExportToHdfsField, Object&gt; res = runTdchExecutable(args, dbConfig);</b>
+<i class="no-highlight">231</i>&nbsp;
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        return res;</b>
+<i class="no-highlight">233</i>&nbsp;    }
+<i class="no-highlight">234</i>&nbsp;
+<i class="no-highlight">235</i>&nbsp;    /**
+<i class="no-highlight">236</i>&nbsp;     * @see com.snaplogic.snaps.teradata.TdchService#exportTableToHdfs(com.snaplogic.snap.api.Document
+<i class="no-highlight">237</i>&nbsp;     *      com.snaplogic.snap.api.sql.DatabaseConfig, java.lang.String,
+<i class="no-highlight">238</i>&nbsp;     *      com.snaplogic.snaps.teradata.HdfsConfig, com.snaplogic.snaps.teradata.TdchConfig)
+<i class="no-highlight">239</i>&nbsp;     */
+<i class="no-highlight">240</i>&nbsp;    @Override
+<i class="no-highlight">241</i>&nbsp;    public Map&lt;TeradataExportToHdfsField, Object&gt; exportQueryToHdfs(Document document,
+<i class="no-highlight">242</i>&nbsp;            DatabaseConfig dbConfig, String query, HdfsConfig hdfsConfig, TdchConfig tdchConfig)
+<i class="no-highlight">243</i>&nbsp;            throws PartitionColumnRequiredException, PartitionColumnNotPermittedException,
+<i class="no-highlight">244</i>&nbsp;            UnableToFindTdchJarException, Exception {
+<i class="no-highlight">245</i>&nbsp;
+<i class="no-highlight">246</i>&nbsp;        // SECURITY: the UI should have already checked this but security 101 says we should
+<i class="no-highlight">247</i>&nbsp;        // never trust the UI - an attacker can talk to the server directly.
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        validate(dbConfig, hdfsConfig, tdchConfig);</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        if (isEmpty(query)) {</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;            throw new IllegalArgumentException(&quot;missing argument(s)&quot;);</b>
+<i class="no-highlight">251</i>&nbsp;        }
+<i class="no-highlight">252</i>&nbsp;
+<b class="nc"><i class="no-highlight">253</i>&nbsp;        List&lt;String&gt; args = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">254</i>&nbsp;        // args.add(&quot;-classname&quot;);
+<i class="no-highlight">255</i>&nbsp;        // args.add(dbConfig.getDriver());
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        args.add(&quot;-url&quot;);</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        args.add(dbConfig.getJdbcUrl());</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        args.add(&quot;-username&quot;);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;        args.add(dbConfig.getUsername());</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        args.add(&quot;-password&quot;);</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        args.add(dbConfig.getPassword());</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;        args.add(&quot;-targetpaths&quot;);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        args.add(hdfsConfig.getDirectory(document));</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        args.add(&quot;-method&quot;);</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        args.add(tdchConfig.getExportPartitionMethod().getMethod());</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        args.add(&quot;-fileformat&quot;);</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        args.add(tdchConfig.getFormat().getFormat());</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        args.add(&quot;-separator&quot;);</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        args.add(tdchConfig.getSeparator().getSeparator());</b>
+<i class="no-highlight">270</i>&nbsp;
+<b class="nc"><i class="no-highlight">271</i>&nbsp;        args.add(&quot;-sourcequery&quot;);</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        args.add(query);</b>
+<i class="no-highlight">273</i>&nbsp;
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        if (!ExportPartitionMethod.SPLIT_BY_PARTITION</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                .equals(tdchConfig.getExportPartitionMethod())) {</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            args.add(&quot;-splitbycolumn&quot;);</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            args.add(tdchConfig.getPartitionColumn(document));</b>
+<i class="no-highlight">278</i>&nbsp;        }
+<i class="no-highlight">279</i>&nbsp;
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        if (!isEmpty(tdchConfig.getClientOutput())) {</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;            args.add(&quot;-jobclientoutput&quot;);</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;            args.add(tdchConfig.getClientOutput());</b>
+<i class="no-highlight">283</i>&nbsp;        }
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;        // copied from Teradata&#39;s TeradataImportTool#main()
+<i class="no-highlight">286</i>&nbsp;        //// Tool tool = new ConnectorImportTool();
+<i class="no-highlight">287</i>&nbsp;        //Tool tool = findImportTool(dbConfig).newInstance();
+<i class="no-highlight">288</i>&nbsp;        //int resCode = ToolRunner.run(tool, args.toArray(new String[0]));
+<i class="no-highlight">289</i>&nbsp;        //Map&lt;TeradataExportToHdfsField, Object&gt; res = new HashMap&lt;&gt;();
+<i class="no-highlight">290</i>&nbsp;        //res.put(TeradataExportToHdfsField.STATUS, resCode);
+<i class="no-highlight">291</i>&nbsp;
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        Map&lt;TeradataExportToHdfsField, Object&gt; res = runTdchExecutable(args, dbConfig);</b>
+<i class="no-highlight">293</i>&nbsp;
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        return res;</b>
+<i class="no-highlight">295</i>&nbsp;    }
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;    /**
+<i class="no-highlight">298</i>&nbsp;     * Run TDCH executable.
+<i class="no-highlight">299</i>&nbsp;     *
+<i class="no-highlight">300</i>&nbsp;     * Implementation note: the Teradata documentation refers to &quot;hadoop jar ...&quot;
+<i class="no-highlight">301</i>&nbsp;     * instead of calling java directly. This shouldn&#39;t matter since the &quot;hadoop&quot;
+<i class="no-highlight">302</i>&nbsp;     * executable is just a thin shell that sets up the environment when executing
+<i class="no-highlight">303</i>&nbsp;     * a jar. Calling java directly could potentially miss something but it avoids
+<i class="no-highlight">304</i>&nbsp;     * the need to locate the &quot;hadoop&quot; executable.
+<i class="no-highlight">305</i>&nbsp;     *
+<i class="no-highlight">306</i>&nbsp;     * @param args
+<i class="no-highlight">307</i>&nbsp;     * @return
+<i class="no-highlight">308</i>&nbsp;     * @throws ConfigurationException
+<i class="no-highlight">309</i>&nbsp;     * @throws IOException
+<i class="no-highlight">310</i>&nbsp;     */
+<i class="no-highlight">311</i>&nbsp;    public Map&lt;TeradataExportToHdfsField, Object&gt; runTdchExecutable(List&lt;String&gt; args,
+<i class="no-highlight">312</i>&nbsp;            DatabaseConfig dbConfig) throws ConfigurationException, IOException {
+<i class="no-highlight">313</i>&nbsp;
+<i class="no-highlight">314</i>&nbsp;        // create necessary configuration information.
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        final File configdir = makeConfigDirectoryForTdchExecutable();</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        final String classpath = createClasspathForTdchExecutable(configdir, dbConfig);</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        final List&lt;String&gt; envp = makeEnvironmentForTdchExecutable(classpath);</b>
+<i class="no-highlight">318</i>&nbsp;
+<i class="no-highlight">319</i>&nbsp;        // determine location of java binary.
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        final String javaHome = System.getenv(&quot;JAVA_HOME&quot;);</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        final String java = (javaHome != null) ? javaHome + &quot;/bin/java&quot; : &quot;/usr/bin/java&quot;;</b>
+<i class="no-highlight">322</i>&nbsp;
+<i class="no-highlight">323</i>&nbsp;        // prepend location of java binary and tool to argument list.
+<b class="nc"><i class="no-highlight">324</i>&nbsp;        final List&lt;String&gt; cmdlist = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;        cmdlist.add(java);</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        cmdlist.add(&quot;com.teradata.hadoop.tool.TeradataImportTool&quot;);</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        cmdlist.addAll(args);</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        final String[] cmdarray = cmdlist.toArray(new String[0]);</b>
+<i class="no-highlight">329</i>&nbsp;
+<i class="no-highlight">330</i>&nbsp;        // execute TDCH
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        final Map&lt;TeradataExportToHdfsField, Object&gt; results = runTdchExecutable(cmdarray,</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                envp.toArray(new String[0]));</b>
+<i class="no-highlight">333</i>&nbsp;
+<i class="no-highlight">334</i>&nbsp;        // list classpath
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        results.put(TeradataExportToHdfsField.CLASSPATH, classpath.toString());</b>
+<i class="no-highlight">336</i>&nbsp;
+<i class="no-highlight">337</i>&nbsp;        // list environment variables provided to process.
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        StringWriter w = new StringWriter();</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;        for (String env : envp) {</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;            w.write(env + &quot;\n&quot;);</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;        results.put(TeradataExportToHdfsField.ENVIRONMENT, w.toString());</b>
+<i class="no-highlight">343</i>&nbsp;
+<b class="nc"><i class="no-highlight">344</i>&nbsp;        return results;</b>
+<i class="no-highlight">345</i>&nbsp;    }
+<i class="no-highlight">346</i>&nbsp;
+<i class="no-highlight">347</i>&nbsp;    /**
+<i class="no-highlight">348</i>&nbsp;     * Make configuration directory for TDCH executable. At this time we only need
+<i class="no-highlight">349</i>&nbsp;     * to create a log4j.xml file so we can see the log messages on stdout.
+<i class="no-highlight">350</i>&nbsp;     */
+<i class="no-highlight">351</i>&nbsp;    File makeConfigDirectoryForTdchExecutable() throws IOException {
+<b class="nc"><i class="no-highlight">352</i>&nbsp;        final File dir = new File(System.getProperty(&quot;java.io.tmpdir&quot;));</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;        final File configdir = new File(dir, &quot;SnapLogic.TDCH.config&quot;);</b>
+<i class="no-highlight">354</i>&nbsp;
+<b class="nc"><i class="no-highlight">355</i>&nbsp;        if (!configdir.exists()) {</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            configdir.mkdirs();</b>
+<i class="no-highlight">357</i>&nbsp;        }
+<i class="no-highlight">358</i>&nbsp;
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        final File log4j = new File(configdir, &quot;log4j.xml&quot;);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        if (!log4j.exists()) {</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;            try (InputStream is = Thread.currentThread().getContextClassLoader()</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                    .getResourceAsStream(&quot;com/snaplogic/snaps/teradata/log4j.xml&quot;);</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                    OutputStream os = new FileOutputStream(log4j)) {</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                final byte[] buffer = new byte[1024];</b>
+<i class="no-highlight">365</i>&nbsp;                int len;
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                while ((len = is.read(buffer)) &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                    os.write(buffer, 0, len);</b>
+<i class="no-highlight">368</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">369</i>&nbsp;            }</b>
+<i class="no-highlight">370</i>&nbsp;        }
+<i class="no-highlight">371</i>&nbsp;
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        return configdir;</b>
+<i class="no-highlight">373</i>&nbsp;    }
+<i class="no-highlight">374</i>&nbsp;
+<i class="no-highlight">375</i>&nbsp;    /**
+<i class="no-highlight">376</i>&nbsp;     * Create classpath for TDCH executable
+<i class="no-highlight">377</i>&nbsp;     *
+<i class="no-highlight">378</i>&nbsp;     * @return classpath
+<i class="no-highlight">379</i>&nbsp;     */
+<i class="no-highlight">380</i>&nbsp;    String createClasspathForTdchExecutable(File configdir, DatabaseConfig dbConfig) {
+<i class="no-highlight">381</i>&nbsp;
+<i class="no-highlight">382</i>&nbsp;        // quick safety check in case injection failed - we prefer injection but this
+<i class="no-highlight">383</i>&nbsp;        // is a safe fallback unless the class needs its own injection.
+<i class="no-highlight">384</i>&nbsp;        // done via suggestion in https://rbcommons.com/s/snaplogic/r/17534/.
+<b class="nc"><i class="no-highlight">385</i>&nbsp;        if (classpathUtil == null) {</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;            classpathUtil = new ClasspathUtilImpl();</b>
+<i class="no-highlight">387</i>&nbsp;        }
+<i class="no-highlight">388</i>&nbsp;
+<i class="no-highlight">389</i>&nbsp;        //
+<i class="no-highlight">390</i>&nbsp;        // TDCH dependencies excluding the Hadoop client jars. We get those jars from
+<i class="no-highlight">391</i>&nbsp;        // environment variables instead of by scanning our classloader chain.
+<i class="no-highlight">392</i>&nbsp;        //
+<i class="no-highlight">393</i>&nbsp;        // @formatter:off
+<b class="nc"><i class="no-highlight">394</i>&nbsp;        final List&lt;String&gt; libs = Arrays.asList(</b>
+<i class="no-highlight">395</i>&nbsp;                &quot;commons-logging&quot;,
+<i class="no-highlight">396</i>&nbsp;                &quot;commons-collections&quot;,
+<i class="no-highlight">397</i>&nbsp;                &quot;commons-cli&quot;,
+<i class="no-highlight">398</i>&nbsp;                &quot;commons-io&quot;,
+<i class="no-highlight">399</i>&nbsp;                &quot;commons-codec&quot;,
+<i class="no-highlight">400</i>&nbsp;                &quot;commons-configuration&quot;,
+<i class="no-highlight">401</i>&nbsp;                &quot;commons-lang&quot;,
+<i class="no-highlight">402</i>&nbsp;                &quot;guava&quot;,
+<i class="no-highlight">403</i>&nbsp;                &quot;jackson-core-asl&quot;,
+<i class="no-highlight">404</i>&nbsp;                &quot;jackson-mapper-asl&quot;,
+<i class="no-highlight">405</i>&nbsp;                &quot;log4j&quot;,
+<i class="no-highlight">406</i>&nbsp;                &quot;slf4j-api&quot;,
+<i class="no-highlight">407</i>&nbsp;                &quot;slf4j-log4j12&quot;,
+<i class="no-highlight">408</i>&nbsp;                &quot;saxon-jdom&quot;,
+<i class="no-highlight">409</i>&nbsp;                &quot;saxon-xom&quot;,
+<i class="no-highlight">410</i>&nbsp;                &quot;dom4j&quot;,
+<i class="no-highlight">411</i>&nbsp;                &quot;cascading-hadoop&quot;,
+<i class="no-highlight">412</i>&nbsp;                &quot;cascading-hadoop2-mr1&quot;,
+<i class="no-highlight">413</i>&nbsp;                &quot;protobuf-java&quot;,
+<i class="no-highlight">414</i>&nbsp;                &quot;javax.servlet-api&quot;
+<i class="no-highlight">415</i>&nbsp;
+<i class="no-highlight">416</i>&nbsp;                // these should be loaded by sldb loader but this is fallback to load
+<i class="no-highlight">417</i>&nbsp;                // them from our snap classloader or platform.
+<i class="no-highlight">418</i>&nbsp;                // NOTE: commented out for now due to limitations of SLDB classloader
+<i class="no-highlight">419</i>&nbsp;                //&quot;terajdbc4&quot;,
+<i class="no-highlight">420</i>&nbsp;                //&quot;tdgssconfig&quot;,
+<i class="no-highlight">421</i>&nbsp;                //&quot;teradata-connector&quot;
+<i class="no-highlight">422</i>&nbsp;        );
+<i class="no-highlight">423</i>&nbsp;        // @formatter:on
+<i class="no-highlight">424</i>&nbsp;
+<i class="no-highlight">425</i>&nbsp;        // @formatter:off
+<b class="nc"><i class="no-highlight">426</i>&nbsp;        final List&lt;String&gt; sldbLibs = Arrays.asList(</b>
+<i class="no-highlight">427</i>&nbsp;                &quot;terajdbc4&quot;,
+<i class="no-highlight">428</i>&nbsp;                &quot;tdgssconfig&quot;,
+<i class="no-highlight">429</i>&nbsp;                &quot;teradata-connector&quot;
+<i class="no-highlight">430</i>&nbsp;        );
+<i class="no-highlight">431</i>&nbsp;        // @formatter:on
+<i class="no-highlight">432</i>&nbsp;
+<b class="nc"><i class="no-highlight">433</i>&nbsp;        final Map&lt;String, String&gt; jarMap = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">434</i>&nbsp;
+<i class="no-highlight">435</i>&nbsp;        // load teradata-specific jars from SLDB first
+<i class="no-highlight">436</i>&nbsp;        //
+<i class="no-highlight">437</i>&nbsp;        // NOTE: the current SLDB classloader names all downloaded jars
+<i class="no-highlight">438</i>&nbsp;        // Download.jar. So for now we blindly accept everything.
+<i class="no-highlight">439</i>&nbsp;        //
+<b class="nc"><i class="no-highlight">440</i>&nbsp;        if (dbConfig.getClassLoader() != null) {</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;             jarMap.putAll(classpathUtil.findClassLoaderJars(sldbLibs,</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                  dbConfig.getClassLoader()));</b>
+<i class="no-highlight">443</i>&nbsp;        }
+<i class="no-highlight">444</i>&nbsp;
+<i class="no-highlight">445</i>&nbsp;        // load any remaining jars from our snap and platform.
+<b class="nc"><i class="no-highlight">446</i>&nbsp;        libs.removeAll(jarMap.keySet());</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;        jarMap.putAll(classpathUtil.findClassLoaderJars(libs,</b>
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                Thread.currentThread().getContextClassLoader()));</b>
+<i class="no-highlight">449</i>&nbsp;
+<b class="nc"><i class="no-highlight">450</i>&nbsp;        final StringBuilder classpath = new StringBuilder();</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;        for (String jar : jarMap.values()) {</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;            classpath.append(jar);</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;            classpath.append(&quot;:&quot;);</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;        }</b>
+<i class="no-highlight">455</i>&nbsp;
+<i class="no-highlight">456</i>&nbsp;        // NOTE: now we add all jars from SLDB. This introduces a slight risk
+<i class="no-highlight">457</i>&nbsp;        // since the user may specify more than just the teradata jars - a hadoop jar
+<i class="no-highlight">458</i>&nbsp;        // could cause us some grief.
+<b class="nc"><i class="no-highlight">459</i>&nbsp;        if (dbConfig.getClassLoader() != null) {</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;            for (String jar : classpathUtil.listClassLoaderJars(dbConfig.getClassLoader())) {</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                if (jar.endsWith(&quot;Download.jar&quot;)) {</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                    classpath.append(jar);</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                    classpath.append(&quot;:&quot;);</b>
+<i class="no-highlight">464</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">465</i>&nbsp;            }</b>
+<i class="no-highlight">466</i>&nbsp;        }
+<i class="no-highlight">467</i>&nbsp;
+<i class="no-highlight">468</i>&nbsp;        // add hadoop libraries
+<b class="nc"><i class="no-highlight">469</i>&nbsp;        String path = System.getenv(&quot;CDH_HADOOP_HOME&quot;);</b>
+<b class="nc"><i class="no-highlight">470</i>&nbsp;        if (path == null) {</b>
+<b class="nc"><i class="no-highlight">471</i>&nbsp;            path = System.getenv(&quot;HADOOP_COMMON_HOME&quot;);</b>
+<i class="no-highlight">472</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">473</i>&nbsp;        if (path != null) {</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;            classpath.append(path + &quot;/*:&quot;);</b>
+<i class="no-highlight">475</i>&nbsp;        }
+<i class="no-highlight">476</i>&nbsp;
+<b class="nc"><i class="no-highlight">477</i>&nbsp;        path = System.getenv(&quot;CDH_HDFS_HOME&quot;);</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;        if (path == null) {</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;            path = System.getenv(&quot;HADOOP_HDFS_HOME&quot;);</b>
+<i class="no-highlight">480</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">481</i>&nbsp;        if (path != null) {</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;            classpath.append(path + &quot;/*:&quot;);</b>
+<i class="no-highlight">483</i>&nbsp;        }
+<i class="no-highlight">484</i>&nbsp;
+<b class="nc"><i class="no-highlight">485</i>&nbsp;        path = System.getenv(&quot;CDH_MR2_HOME&quot;);</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;        if (path == null) {</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;            path = System.getenv(&quot;HADOOP_MAPRED_HOME&quot;);</b>
+<i class="no-highlight">488</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">489</i>&nbsp;        if (path != null) {</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;            classpath.append(path + &quot;/*:&quot;);</b>
+<i class="no-highlight">491</i>&nbsp;        }
+<i class="no-highlight">492</i>&nbsp;
+<b class="nc"><i class="no-highlight">493</i>&nbsp;        path = System.getenv(&quot;CDH_YARN_HOME&quot;);</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;        if (path == null) {</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;            path = System.getenv(&quot;HADOOP_YARN_HOME&quot;);</b>
+<i class="no-highlight">496</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">497</i>&nbsp;        if (path != null) {</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;            classpath.append(path + &quot;/*:&quot;);</b>
+<i class="no-highlight">499</i>&nbsp;        }
+<i class="no-highlight">500</i>&nbsp;
+<i class="no-highlight">501</i>&nbsp;        // finally add our config directory.
+<b class="nc"><i class="no-highlight">502</i>&nbsp;        classpath.append(configdir.getAbsolutePath() + &quot;/&quot;);</b>
+<i class="no-highlight">503</i>&nbsp;
+<b class="nc"><i class="no-highlight">504</i>&nbsp;        return classpath.toString();</b>
+<i class="no-highlight">505</i>&nbsp;    }
+<i class="no-highlight">506</i>&nbsp;
+<i class="no-highlight">507</i>&nbsp;    /**
+<i class="no-highlight">508</i>&nbsp;     * Create environment variables for TDCH executable. We just need to copy the
+<i class="no-highlight">509</i>&nbsp;     * environment variables that refer to Hadoop (HADOOP_*, NM_* (HDFS), YARN_*)
+<i class="no-highlight">510</i>&nbsp;     * and CDH specifically (CDH_*). Plus the classpath and JAVA_HOME, of course.
+<i class="no-highlight">511</i>&nbsp;     *
+<i class="no-highlight">512</i>&nbsp;     * @param classpath
+<i class="no-highlight">513</i>&nbsp;     * @return
+<i class="no-highlight">514</i>&nbsp;     */
+<i class="no-highlight">515</i>&nbsp;    List&lt;String&gt; makeEnvironmentForTdchExecutable(String classpath) {
+<b class="nc"><i class="no-highlight">516</i>&nbsp;        final List&lt;String&gt; envp = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">517</i>&nbsp;
+<b class="nc"><i class="no-highlight">518</i>&nbsp;        envp.add(&quot;CLASSPATH=&quot; + classpath);</b>
+<i class="no-highlight">519</i>&nbsp;
+<b class="nc"><i class="no-highlight">520</i>&nbsp;        final List&lt;String&gt; keys = new ArrayList&lt;&gt;(System.getenv().keySet());</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;        Collections.sort(keys);</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;        for (String key : keys) {</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;            if (key.startsWith(&quot;CDH_&quot;) || key.startsWith(&quot;HADOOP_&quot;) ||</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                    key.startsWith(&quot;JAVA_&quot;) || key.startsWith(&quot;NM_&quot;) || key.startsWith(&quot;YARN_&quot;)) {</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                envp.add(key + &quot;=&quot; + System.getenv(key));</b>
+<i class="no-highlight">526</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">527</i>&nbsp;        }</b>
+<i class="no-highlight">528</i>&nbsp;
+<b class="nc"><i class="no-highlight">529</i>&nbsp;        return envp;</b>
+<i class="no-highlight">530</i>&nbsp;    }
+<i class="no-highlight">531</i>&nbsp;
+<i class="no-highlight">532</i>&nbsp;    /**
+<i class="no-highlight">533</i>&nbsp;     * Actually execute TDCH executable.
+<i class="no-highlight">534</i>&nbsp;     *
+<i class="no-highlight">535</i>&nbsp;     * @param cmdarray
+<i class="no-highlight">536</i>&nbsp;     * @param envp
+<i class="no-highlight">537</i>&nbsp;     * @return
+<i class="no-highlight">538</i>&nbsp;     */
+<i class="no-highlight">539</i>&nbsp;    Map&lt;TeradataExportToHdfsField, Object&gt; runTdchExecutable(String cmdarray[], String[] envp)
+<i class="no-highlight">540</i>&nbsp;            throws IOException {
+<i class="no-highlight">541</i>&nbsp;
+<b class="nc"><i class="no-highlight">542</i>&nbsp;        final Process p = Runtime.getRuntime().exec(cmdarray, envp);</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;        final ProcessStreamReader r1 = new ProcessStreamReader(p, p.getInputStream());</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;        final ProcessStreamReader r2 = new ProcessStreamReader(p, p.getErrorStream());</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;        r1.start();</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;        r2.start();</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;        int retCode = 0;</b>
+<i class="no-highlight">548</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">549</i>&nbsp;            retCode = p.waitFor();</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;            r1.interrupt();</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;            r1.join(200L);</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;            r2.interrupt();</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;            r2.join(200L);</b>
+<b class="nc"><i class="no-highlight">554</i>&nbsp;        } catch (InterruptedException e) {</b>
+<i class="no-highlight">555</i>&nbsp;            // ignore
+<b class="nc"><i class="no-highlight">556</i>&nbsp;        }</b>
+<i class="no-highlight">557</i>&nbsp;
+<b class="nc"><i class="no-highlight">558</i>&nbsp;        LOGGER.info(&quot;TDCH return value: {}&quot;, retCode);</b>
+<i class="no-highlight">559</i>&nbsp;
+<b class="nc"><i class="no-highlight">560</i>&nbsp;        final Map&lt;TeradataExportToHdfsField, Object&gt; results = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;        results.put(TeradataExportToHdfsField.OUT, r1.toString());</b>
+<b class="nc"><i class="no-highlight">562</i>&nbsp;        results.put(TeradataExportToHdfsField.ERR, r2.toString());</b>
+<b class="nc"><i class="no-highlight">563</i>&nbsp;        results.put(TeradataExportToHdfsField.STATUS, retCode);</b>
+<i class="no-highlight">564</i>&nbsp;
+<b class="nc"><i class="no-highlight">565</i>&nbsp;        return results;</b>
+<i class="no-highlight">566</i>&nbsp;    }
+<i class="no-highlight">567</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

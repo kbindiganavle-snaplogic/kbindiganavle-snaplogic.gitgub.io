@@ -1,0 +1,523 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BulkLoadWrapperS3</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.sql.bulkloadutils</a>
+</div>
+
+<h1>Coverage Summary for Class: BulkLoadWrapperS3 (com.snaplogic.snaps.sql.bulkloadutils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BulkLoadWrapperS3</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/141)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2019, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.sql.bulkloadutils;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.amazonaws.AmazonServiceException;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.SdkClientException;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.Maps;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.services.Disconnectable;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.fs.s3.S3EncryptionType;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseAccount;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.sql.StagingException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.sql.TableMetaData;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftCrossAccountIAMRoleAccount;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.RedshiftDatabaseAccount;
+<i class="no-highlight">25</i>&nbsp;
+<i class="no-highlight">26</i>&nbsp;import org.apache.commons.httpclient.HttpStatus;
+<i class="no-highlight">27</i>&nbsp;import org.apache.commons.io.output.CountingOutputStream;
+<i class="no-highlight">28</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">30</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import java.io.Closeable;
+<i class="no-highlight">33</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">34</i>&nbsp;import java.io.OutputStream;
+<i class="no-highlight">35</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">36</i>&nbsp;import java.net.URLConnection;
+<i class="no-highlight">37</i>&nbsp;import java.util.List;
+<i class="no-highlight">38</i>&nbsp;import java.util.Map;
+<i class="no-highlight">39</i>&nbsp;import java.util.UUID;
+<i class="no-highlight">40</i>&nbsp;import java.util.zip.GZIPOutputStream;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_CREATING_S3_FILE;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.ERROR_FIX_S3_CREDENTIALS;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.sql.bulkloadutils.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;/**
+<i class="no-highlight">47</i>&nbsp; * Wraps the loading into target db. The parallelism property defines how mean streams are open to
+<i class="no-highlight">48</i>&nbsp; * S3. The streams will be written to in round-robin mode. Each document will be written to a
+<i class="no-highlight">49</i>&nbsp; * stream, then the next document will be written to the next stream ( if parallelism &gt; 1),
+<i class="no-highlight">50</i>&nbsp; * etc. If parallelism is set to 1, then only one stream will be written to
+<i class="no-highlight">51</i>&nbsp; *
+<i class="no-highlight">52</i>&nbsp; * @author mklumpp
+<i class="no-highlight">53</i>&nbsp; */
+<i class="no-highlight">54</i>&nbsp;public class BulkLoadWrapperS3 extends AbstractBulkLoadWrapper implements Closeable {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(BulkLoadWrapperS3.class);</b>
+<i class="no-highlight">56</i>&nbsp;    private static final String COPY_COMMAND =
+<i class="no-highlight">57</i>&nbsp;            &quot;COPY %s %s FROM &#39;%s&#39; &quot; +
+<i class="no-highlight">58</i>&nbsp;                    &quot;CREDENTIALS %s &quot; +
+<i class="no-highlight">59</i>&nbsp;                    &quot;DELIMITER &#39;%c&#39; &quot; +
+<i class="no-highlight">60</i>&nbsp;                    &quot;ESCAPE ACCEPTANYDATE %s MAXERROR %d &quot; +
+<i class="no-highlight">61</i>&nbsp;                    &quot;%s %s %s %s %s %s&quot;;
+<i class="no-highlight">62</i>&nbsp;    private static final String GZIP = &quot;GZIP&quot;;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;    public BulkLoadWrapperS3(DatabaseAccount account, boolean disableCompression, String dbName,
+<i class="no-highlight">65</i>&nbsp;            String region) {
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        super(null, null, 1, null,null, true, null, null, region, null, dbName,</b>
+<i class="no-highlight">67</i>&nbsp;                disableCompression);
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        this.account = account;</b>
+<i class="no-highlight">69</i>&nbsp;    }
+<i class="no-highlight">70</i>&nbsp;
+<i class="no-highlight">71</i>&nbsp;    public BulkLoadWrapperS3(List&lt;String&gt; copyColumns, JdbcOperations jdbcOperations,
+<i class="no-highlight">72</i>&nbsp;            BigInteger parallelism, DatabaseAccount account, boolean disableCompression,
+<i class="no-highlight">73</i>&nbsp;            String dbName, String region, String awsAccessId, String awsSecretKey,
+<i class="no-highlight">74</i>&nbsp;            String sessionToken, String s3BucketWithRegion, String s3Folder,
+<i class="no-highlight">75</i>&nbsp;            TableMetaData tableMetaData) {
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        this(awsAccessId, String.format(ENCODED_SECRET_KEY, awsSecretKey, sessionToken),</b>
+<i class="no-highlight">77</i>&nbsp;                s3BucketWithRegion, s3Folder, parallelism, disableCompression, copyColumns,
+<i class="no-highlight">78</i>&nbsp;                tableMetaData, jdbcOperations, true, null, null, region, dbName, account);
+<i class="no-highlight">79</i>&nbsp;    }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;    public BulkLoadWrapperS3(String awsAccessId, String awsSecretKey, String s3BucketWithRegion,
+<i class="no-highlight">82</i>&nbsp;            String s3Folder, BigInteger parallelism, boolean disableCompression,
+<i class="no-highlight">83</i>&nbsp;            List&lt;String&gt; copyColumns, TableMetaData tableMetaData,
+<i class="no-highlight">84</i>&nbsp;            JdbcOperations jdbcOperations, boolean iamRoleEnabled, String awsAccountID,
+<i class="no-highlight">85</i>&nbsp;            String iamRoleName, String regionName, String dbName, DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        super(copyColumns, jdbcOperations, parallelism == null ? 1 : parallelism.intValue(),</b>
+<i class="no-highlight">87</i>&nbsp;                awsAccessId, awsSecretKey, iamRoleEnabled, awsAccountID, iamRoleName, regionName,
+<i class="no-highlight">88</i>&nbsp;                s3BucketWithRegion, dbName, disableCompression);
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        this.tableMetaData = tableMetaData;</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        this.s3Folder = adjustS3Folder(s3Folder);</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        s3TempFolder = getS3TempFolder(this.s3Folder, dbName);</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;        fullPaths = Lists.newArrayListWithExpectedSize(max);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        this.account = account;</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        initS3();</b>
+<i class="no-highlight">95</i>&nbsp;    }
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;    public BulkLoadWrapperS3(String awsAccessId, String awsSecretKey, String awsToken,
+<i class="no-highlight">98</i>&nbsp;            String s3BucketWithRegion, String s3Folder, BigInteger parallelism,
+<i class="no-highlight">99</i>&nbsp;            boolean disableCompression, List&lt;String&gt; copyColumns, TableMetaData tableMetaData,
+<i class="no-highlight">100</i>&nbsp;            JdbcOperations jdbcOperations, boolean iamRoleEnabled, String awsAccountID,
+<i class="no-highlight">101</i>&nbsp;            String iamRoleName, String regionName, String dbName, DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        super(copyColumns, jdbcOperations, parallelism == null ? 1 : parallelism.intValue(),</b>
+<i class="no-highlight">103</i>&nbsp;                awsAccessId, awsSecretKey, awsToken, iamRoleEnabled, awsAccountID, iamRoleName,
+<i class="no-highlight">104</i>&nbsp;                regionName, s3BucketWithRegion, dbName, disableCompression);
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        this.tableMetaData = tableMetaData;</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        this.s3Folder = adjustS3Folder(s3Folder);</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        s3TempFolder = getS3TempFolder(this.s3Folder, dbName);</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        fullPaths = Lists.newArrayListWithExpectedSize(max);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        this.account = account;</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        initS3();</b>
+<i class="no-highlight">111</i>&nbsp;    }
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;    public void configureWrapper(boolean serverSideEncryptionEnabled,
+<i class="no-highlight">114</i>&nbsp;            S3EncryptionType encryptionType, String kmsKey) {
+<i class="no-highlight">115</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            initS3OutputStreams(serverSideEncryptionEnabled, encryptionType, kmsKey);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        } catch (SdkClientException e) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            throw new StagingException(e, &quot;Failed to open S3 staging file&quot;)</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        setFullCopyCommandPath(serverSideEncryptionEnabled, encryptionType, kmsKey);</b>
+<i class="no-highlight">123</i>&nbsp;    }
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;    private void initS3OutputStreams(boolean serverSideEncryptionEnabled,
+<i class="no-highlight">126</i>&nbsp;            S3EncryptionType encryptionType, String kmsKey) {
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        for (int i = 0; i &lt; max; i++) {</b>
+<i class="no-highlight">128</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                String path = getPath(s3Folder);</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                if (!disableCompression) {</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                    path = path.concat(EXTENSION_GZ);</b>
+<i class="no-highlight">132</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                paths.add(path);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                OutputStream s3OutputStream = null;</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                if (StringUtils.isEmpty(awsToken)) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    s3OutputStream = getS3OutputStream(awsAccessId, awsSecretKey,</b>
+<i class="no-highlight">137</i>&nbsp;                            s3BucketWithRegion, path, serverSideEncryptionEnabled,
+<i class="no-highlight">138</i>&nbsp;                            encryptionType, kmsKey);
+<i class="no-highlight">139</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                    s3OutputStream = getS3OutputStream(awsAccessId, awsSecretKey, awsToken,</b>
+<i class="no-highlight">141</i>&nbsp;                            s3BucketWithRegion, path, serverSideEncryptionEnabled,
+<i class="no-highlight">142</i>&nbsp;                            encryptionType, kmsKey);
+<i class="no-highlight">143</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                if (!disableCompression) {</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                    s3OutputStream = new GZIPOutputStream(s3OutputStream);</b>
+<i class="no-highlight">146</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                CountingOutputStream countingOutputStream =</b>
+<i class="no-highlight">148</i>&nbsp;                        new CountingOutputStream(s3OutputStream);
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                String fullPath = String.format(S3_FILE_KEY_FULL_PATH, s3Bucket, path);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                fullPaths.add(fullPath);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                outputStreams.add(countingOutputStream);</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                throw new StagingException(e, ERROR_CREATING_S3_FILE)</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                        .withReason(e.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                        .withResolution(ERROR_FIX_S3_CREDENTIALS);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            }</b>
+<i class="no-highlight">157</i>&nbsp;        }
+<i class="no-highlight">158</i>&nbsp;    }
+<i class="no-highlight">159</i>&nbsp;
+<i class="no-highlight">160</i>&nbsp;    private void setFullCopyCommandPath(boolean serverSideEncryptionEnabled,
+<i class="no-highlight">161</i>&nbsp;            S3EncryptionType encryptionType, String kmsKey) {
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        if (max &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            if (dbName.equals(JdbcOperations.SNOWFLAKE)) {</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                fullCopyCommandPath = s3TempFolder;</b>
+<i class="no-highlight">165</i>&nbsp;            } else {
+<i class="no-highlight">166</i>&nbsp;                // write the manifest file
+<i class="no-highlight">167</i>&nbsp;                // {
+<i class="no-highlight">168</i>&nbsp;                //   &quot;entries&quot;: [
+<i class="no-highlight">169</i>&nbsp;                //    {&quot;url&quot;:&quot;s3://mybucket/custdata.1&quot;,&quot;mandatory&quot;:true},
+<i class="no-highlight">170</i>&nbsp;                //    {&quot;url&quot;:&quot;s3://mybucket/custdata.2&quot;,&quot;mandatory&quot;:true},
+<i class="no-highlight">171</i>&nbsp;                //    {&quot;url&quot;:&quot;s3://mybucket/custdata.3&quot;,&quot;mandatory&quot;:true}
+<i class="no-highlight">172</i>&nbsp;                //    ]
+<i class="no-highlight">173</i>&nbsp;                // }
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                Map&lt;String, Object&gt; manifestDefinition = Maps.newHashMap();</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                List&lt;Map&lt;String, Object&gt;&gt; urls = Lists.newArrayListWithExpectedSize(max);</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                manifestDefinition.put(ENTRIES, urls);</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                for (String fullPath : fullPaths) {</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                    Map&lt;String, Object&gt; entry = Maps.newHashMapWithExpectedSize(2);</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                    entry.put(URL, fullPath);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                    entry.put(MANDATORY, true);</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                    urls.add(entry);</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                String copyCommandPath = getCopyCommandPath(s3Folder);</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                try (OutputStream outputStream = getS3OutputStream(awsAccessId, awsSecretKey,</b>
+<i class="no-highlight">185</i>&nbsp;                        s3BucketWithRegion, copyCommandPath, serverSideEncryptionEnabled,
+<i class="no-highlight">186</i>&nbsp;                        encryptionType, kmsKey)) {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                    OBJECT_MAPPER.writeValue(outputStream, manifestDefinition);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                    throw new StagingException(e, ERROR_CREATING_S3_FILE)</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                            .withReason(e.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                            .withResolution(ERROR_FIX_S3_CREDENTIALS);</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                fullCopyCommandPath = String.format(S3_FILE_KEY_FULL_PATH, s3Bucket,</b>
+<i class="no-highlight">194</i>&nbsp;                        copyCommandPath);
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                paths.add(copyCommandPath);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            }</b>
+<i class="no-highlight">197</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            fullCopyCommandPath = fullPaths.get(0);</b>
+<i class="no-highlight">199</i>&nbsp;        }
+<i class="no-highlight">200</i>&nbsp;    }
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;    /**
+<i class="no-highlight">203</i>&nbsp;     * Generates path for temp s3 data file
+<i class="no-highlight">204</i>&nbsp;     *
+<i class="no-highlight">205</i>&nbsp;     * @param s3Folder
+<i class="no-highlight">206</i>&nbsp;     * @return path for temp s3 data file
+<i class="no-highlight">207</i>&nbsp;     */
+<i class="no-highlight">208</i>&nbsp;    protected String getPath(String s3Folder) {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        return String.format(FORMAT_S3_FILE_KEY, StringUtils.isBlank(s3Folder) ?</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                StringUtils.EMPTY :</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                s3Folder, dbName, UUID.randomUUID());</b>
+<i class="no-highlight">212</i>&nbsp;    }
+<i class="no-highlight">213</i>&nbsp;
+<i class="no-highlight">214</i>&nbsp;    /**
+<i class="no-highlight">215</i>&nbsp;     * Generates path for temp manifest s3 file
+<i class="no-highlight">216</i>&nbsp;     *
+<i class="no-highlight">217</i>&nbsp;     * @param s3Folder
+<i class="no-highlight">218</i>&nbsp;     * @return path for temp manifest s3 file
+<i class="no-highlight">219</i>&nbsp;     */
+<i class="no-highlight">220</i>&nbsp;    protected String getCopyCommandPath(String s3Folder) {
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        return String.format(S3_MANIFEST_FILE_KEY, StringUtils.isBlank(s3Folder) ?</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                StringUtils.EMPTY :</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                s3Folder, dbName, UUID.randomUUID());</b>
+<i class="no-highlight">224</i>&nbsp;    }
+<i class="no-highlight">225</i>&nbsp;
+<i class="no-highlight">226</i>&nbsp;    /**
+<i class="no-highlight">227</i>&nbsp;     * Generates full path for S3 temp folder
+<i class="no-highlight">228</i>&nbsp;     * @param s3Folder
+<i class="no-highlight">229</i>&nbsp;     * @param dbName
+<i class="no-highlight">230</i>&nbsp;     * @return full path for s3 temp folder
+<i class="no-highlight">231</i>&nbsp;     */
+<i class="no-highlight">232</i>&nbsp;    private String getS3TempFolder(String s3Folder, String dbName) {
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        return String.format(S3_FILE_KEY_FULL_PATH, s3Bucket,</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                String.format(TEMP_S3_LOCATION, StringUtils.isBlank(s3Folder) ?</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                        StringUtils.EMPTY :</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                        s3Folder, dbName));</b>
+<i class="no-highlight">237</i>&nbsp;    }
+<i class="no-highlight">238</i>&nbsp;
+<i class="no-highlight">239</i>&nbsp;    /**
+<i class="no-highlight">240</i>&nbsp;     * Creates the copy command
+<i class="no-highlight">241</i>&nbsp;     *
+<i class="no-highlight">242</i>&nbsp;     * @param targetTable          the target table
+<i class="no-highlight">243</i>&nbsp;     * @param columns              the columns being used
+<i class="no-highlight">244</i>&nbsp;     * @param acceptInvalidCharStr accepts invalid chars
+<i class="no-highlight">245</i>&nbsp;     * @param maxErrors            max errors allowed
+<i class="no-highlight">246</i>&nbsp;     * @param explictIds           explicit ids
+<i class="no-highlight">247</i>&nbsp;     * @param truncateColumnsStr   truncate columns
+<i class="no-highlight">248</i>&nbsp;     * @param additionalOptionsStr additional options
+<i class="no-highlight">249</i>&nbsp;     * @return the copy command
+<i class="no-highlight">250</i>&nbsp;     */
+<i class="no-highlight">251</i>&nbsp;    @Override
+<i class="no-highlight">252</i>&nbsp;    public String createCopyCommand(String targetTable, String columns,
+<i class="no-highlight">253</i>&nbsp;            String acceptInvalidCharStr, int maxErrors, String explictIds,
+<i class="no-highlight">254</i>&nbsp;            String truncateColumnsStr, String additionalOptionsStr, String stagedS3Path,
+<i class="no-highlight">255</i>&nbsp;            String stagedS3Delimiter) {
+<b class="nc"><i class="no-highlight">256</i>&nbsp;        return createCopyCommand(targetTable, columns, awsAccessId, awsSecretKey, awsToken,</b>
+<i class="no-highlight">257</i>&nbsp;                acceptInvalidCharStr, maxErrors, explictIds, truncateColumnsStr,
+<i class="no-highlight">258</i>&nbsp;                additionalOptionsStr, stagedS3Path, stagedS3Delimiter);
+<i class="no-highlight">259</i>&nbsp;    }
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;    /**
+<i class="no-highlight">262</i>&nbsp;     * Creates the copy command
+<i class="no-highlight">263</i>&nbsp;     *
+<i class="no-highlight">264</i>&nbsp;     * @param targetTable          the target table
+<i class="no-highlight">265</i>&nbsp;     * @param columns              the columns being used
+<i class="no-highlight">266</i>&nbsp;     * @param awsAccessId          the access key
+<i class="no-highlight">267</i>&nbsp;     * @param awsSecretKey         the secret key
+<i class="no-highlight">268</i>&nbsp;     * @param acceptInvalidCharStr accepts invalid chars
+<i class="no-highlight">269</i>&nbsp;     * @param maxErrors            max errors allowed
+<i class="no-highlight">270</i>&nbsp;     * @param explicitIds          explicit ids
+<i class="no-highlight">271</i>&nbsp;     * @param truncateColumnsStr   truncate columns
+<i class="no-highlight">272</i>&nbsp;     * @param additionalOptionsStr additional options
+<i class="no-highlight">273</i>&nbsp;     * @return the copy command
+<i class="no-highlight">274</i>&nbsp;     */
+<i class="no-highlight">275</i>&nbsp;    protected String createCopyCommand(String targetTable, String columns,
+<i class="no-highlight">276</i>&nbsp;            String awsAccessId, String awsSecretKey, String awsSecurityToken,
+<i class="no-highlight">277</i>&nbsp;            String acceptInvalidCharStr, int maxErrors,
+<i class="no-highlight">278</i>&nbsp;            String explicitIds, String truncateColumnsStr,
+<i class="no-highlight">279</i>&nbsp;            String additionalOptionsStr, String stagedS3Path, String stagedS3Delimiter) {
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        String gzipStr = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        if (disableCompression != Boolean.TRUE) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;            gzipStr = GZIP;</b>
+<i class="no-highlight">283</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        String manifestStr = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        if (max &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;            manifestStr = MANIFEST;</b>
+<i class="no-highlight">287</i>&nbsp;        }
+<i class="no-highlight">288</i>&nbsp;
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        return String.format(COPY_COMMAND, targetTable, getColumns(columns),</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                getS3Path(stagedS3Path), getCredentials(awsAccessId, awsSecretKey,</b>
+<i class="no-highlight">291</i>&nbsp;                        awsSecurityToken, awsAccountID, iamRoleName),
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                getS3Delimiter(stagedS3Delimiter), acceptInvalidCharStr,</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                maxErrors, gzipStr, explicitIds, truncateColumnsStr, additionalOptionsStr,</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                manifestStr, getRegion(regionName));</b>
+<i class="no-highlight">295</i>&nbsp;    }
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;    private String getColumns(String columns) {
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        return (((RedshiftDatabaseAccount) account).isStaging()) ?</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                StringUtils.EMPTY :</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                String.format(&quot;(%s)&quot;, columns);</b>
+<i class="no-highlight">301</i>&nbsp;    }
+<i class="no-highlight">302</i>&nbsp;
+<i class="no-highlight">303</i>&nbsp;    private String getS3Path(String stagedS3Path) {
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        return (((RedshiftDatabaseAccount) account).isStaging()) ?</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                stagedS3Path :</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                fullCopyCommandPath;</b>
+<i class="no-highlight">307</i>&nbsp;    }
+<i class="no-highlight">308</i>&nbsp;
+<i class="no-highlight">309</i>&nbsp;    private char getS3Delimiter(String stagedS3Delimiter) {
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        return (((RedshiftDatabaseAccount) account).isStaging()) ?</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                stagedS3Delimiter.charAt(0) :</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                DELIMITER;</b>
+<i class="no-highlight">313</i>&nbsp;    }
+<i class="no-highlight">314</i>&nbsp;
+<i class="no-highlight">315</i>&nbsp;    protected String getCredentials(String awsAccessId, String awsSecretKey,
+<i class="no-highlight">316</i>&nbsp;                                    String awsSecurityToken, String awsAccountID,
+<i class="no-highlight">317</i>&nbsp;                                    String iamRoleName) {
+<b class="nc"><i class="no-highlight">318</i>&nbsp;        return iamRoleEnabled ?</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                (account instanceof RedshiftCrossAccountIAMRoleAccount ?</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                        ((RedshiftCrossAccountIAMRoleAccount) account).getCredentials(true) :</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                        String.format(COPY_COMMAND_IAM_CREDENTIALS, awsAccountID, iamRoleName)) :</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                ((StringUtils.isNotBlank(awsSecurityToken)) ?</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                        String.format(COPY_COMMAND_DEFAULT_TEMP_CREDENTIALS, awsAccessId,</b>
+<i class="no-highlight">324</i>&nbsp;                                awsSecretKey, awsSecurityToken) :
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                String.format(COPY_COMMAND_DEFAULT_CREDENTIALS, awsAccessId, awsSecretKey));</b>
+<i class="no-highlight">326</i>&nbsp;    }
+<i class="no-highlight">327</i>&nbsp;
+<i class="no-highlight">328</i>&nbsp;    protected String getRegion(String regionName) {
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        return iamRoleEnabled &amp;&amp; StringUtils.isNotBlank(regionName) ?</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                String.format(REGION, regionName) :</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                StringUtils.EMPTY;</b>
+<i class="no-highlight">332</i>&nbsp;    }
+<i class="no-highlight">333</i>&nbsp;
+<i class="no-highlight">334</i>&nbsp;    /**
+<i class="no-highlight">335</i>&nbsp;     * Returns the s3 path that is used for the copy command
+<i class="no-highlight">336</i>&nbsp;     *
+<i class="no-highlight">337</i>&nbsp;     * @return the path
+<i class="no-highlight">338</i>&nbsp;     */
+<i class="no-highlight">339</i>&nbsp;    @Override
+<i class="no-highlight">340</i>&nbsp;    public String getCopyCommandPath() {
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        return fullCopyCommandPath;</b>
+<i class="no-highlight">342</i>&nbsp;    }
+<i class="no-highlight">343</i>&nbsp;
+<i class="no-highlight">344</i>&nbsp;    /**
+<i class="no-highlight">345</i>&nbsp;     * Remove the temp files from S3
+<i class="no-highlight">346</i>&nbsp;     */
+<i class="no-highlight">347</i>&nbsp;    @Override
+<i class="no-highlight">348</i>&nbsp;    public void cleanup() {
+<b class="nc"><i class="no-highlight">349</i>&nbsp;        if (s3Client != null) {</b>
+<i class="no-highlight">350</i>&nbsp;            // Thread.interrupted() returns interrupt status of current thread
+<i class="no-highlight">351</i>&nbsp;            // with side effect of clearing it (ie, sets it to false).
+<b class="nc"><i class="no-highlight">352</i>&nbsp;            cleanupS3(Thread.interrupted());</b>
+<i class="no-highlight">353</i>&nbsp;
+<b class="nc"><i class="no-highlight">354</i>&nbsp;            for (URLConnection urlConnection : urlConnections) {</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                if (urlConnection instanceof Disconnectable) {</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                    ((Disconnectable) urlConnection).disconnect();</b>
+<i class="no-highlight">357</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">358</i>&nbsp;            }</b>
+<i class="no-highlight">359</i>&nbsp;        }
+<i class="no-highlight">360</i>&nbsp;    }
+<i class="no-highlight">361</i>&nbsp;
+<i class="no-highlight">362</i>&nbsp;    private void cleanupS3(boolean isInterrupted) {
+<i class="no-highlight">363</i>&nbsp;        // Amazon SDK will check the thread interrupted status and raise
+<i class="no-highlight">364</i>&nbsp;        // a SdkInterruptedException if set. So, if it is set, temporarily
+<i class="no-highlight">365</i>&nbsp;        // clear it while we cleanup the S3 resources and then restore
+<i class="no-highlight">366</i>&nbsp;        // flag state when finished.
+<i class="no-highlight">367</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            for (String path : paths) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                if (doesS3ObjectExists(s3Bucket, path)) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                    s3Client.deleteObject(s3Bucket, path);</b>
+<i class="no-highlight">371</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">372</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;            s3Client.shutdown();</b>
+<i class="no-highlight">374</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">375</i>&nbsp;            if (isInterrupted) {</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                Thread.currentThread().interrupt();</b>
+<i class="no-highlight">377</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        }</b>
+<i class="no-highlight">379</i>&nbsp;    }
+<i class="no-highlight">380</i>&nbsp;
+<i class="no-highlight">381</i>&nbsp;    private boolean doesS3ObjectExists(String bucket, String key) {
+<i class="no-highlight">382</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">383</i>&nbsp;            return s3Client.doesObjectExist(bucket, key);</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;        } catch (AmazonServiceException e) {</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;            LOG.debug(String.format(&quot;Failed to check if the staging file exists, &quot; +</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                            (HttpStatus.SC_FORBIDDEN == e.getStatusCode() ? &quot;you may not &quot; +</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                                    &quot;have sufficient permission, &quot; : &quot;&quot;) + &quot;s3:///%s/%s&quot;,</b>
+<i class="no-highlight">388</i>&nbsp;                    bucket, key), e);
+<b class="nc"><i class="no-highlight">389</i>&nbsp;            return false;</b>
+<i class="no-highlight">390</i>&nbsp;        }
+<i class="no-highlight">391</i>&nbsp;    }
+<i class="no-highlight">392</i>&nbsp;
+<i class="no-highlight">393</i>&nbsp;    @Override
+<i class="no-highlight">394</i>&nbsp;    protected char getDelimiter() {
+<b class="nc"><i class="no-highlight">395</i>&nbsp;        switch (dbName) {</b>
+<i class="no-highlight">396</i>&nbsp;            case JdbcOperations.SNOWFLAKE:
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                return snowflakeDelimiter;</b>
+<i class="no-highlight">398</i>&nbsp;            case JdbcOperations.REDSHIFT:
+<b class="nc"><i class="no-highlight">399</i>&nbsp;                return DELIMITER;</b>
+<i class="no-highlight">400</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                throw new UnsupportedOperationException();</b>
+<i class="no-highlight">402</i>&nbsp;        }
+<i class="no-highlight">403</i>&nbsp;    }
+<i class="no-highlight">404</i>&nbsp;
+<i class="no-highlight">405</i>&nbsp;    @Override
+<i class="no-highlight">406</i>&nbsp;    protected void writeEncodedString(String value, OutputStream outputStream) throws IOException {
+<b class="nc"><i class="no-highlight">407</i>&nbsp;        switch (dbName) {</b>
+<i class="no-highlight">408</i>&nbsp;            case JdbcOperations.SNOWFLAKE:
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                writeEncodedStringWithDelimiter(value, outputStream, snowflakeDelimiter);</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                break;</b>
+<i class="no-highlight">411</i>&nbsp;            case JdbcOperations.REDSHIFT:
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                writeEncodedStringDefault(value, outputStream);</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                break;</b>
+<i class="no-highlight">414</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                throw new UnsupportedOperationException();</b>
+<i class="no-highlight">416</i>&nbsp;        }
+<i class="no-highlight">417</i>&nbsp;    }
+<i class="no-highlight">418</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

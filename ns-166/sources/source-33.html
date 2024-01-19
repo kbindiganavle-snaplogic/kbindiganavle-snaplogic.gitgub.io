@@ -1,0 +1,827 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > XmlParser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform</a>
+</div>
+
+<h1>Coverage Summary for Class: XmlParser (com.snaplogic.snaps.transform)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">XmlParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/19)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/317)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">XmlParser$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/319)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2012 - 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.transform;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.ctc.wstx.stax.WstxInputFactory;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.AbstractModule;
+<i class="no-highlight">16</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">17</i>&nbsp;import com.google.inject.Module;
+<i class="no-highlight">18</i>&nbsp;import com.jayway.jsonpath.JsonPath;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.DependencyManager;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.api.InputSchemaProvider;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.api.MetricsProvider;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.common.metrics.Counter;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.utilities.URLEncoder;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.BinaryInput;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.MetricsBuilder;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.SimpleBinarySnap;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.xml.SnapXMLInputFactory;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.xml.XmlUtils;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.xml.XmlUtilsImpl;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaBuilder;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snaps.transform.util.NamespaceContext;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snaps.transform.util.XmlSplitter;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snaps.transform.xml.Utils;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">56</i>&nbsp;import org.apache.commons.io.input.BOMInputStream;
+<i class="no-highlight">57</i>&nbsp;import org.apache.commons.io.input.CloseShieldInputStream;
+<i class="no-highlight">58</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">59</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">60</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">61</i>&nbsp;import org.xml.sax.SAXException;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;import java.io.BufferedInputStream;
+<i class="no-highlight">64</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">65</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">66</i>&nbsp;import java.io.PushbackInputStream;
+<i class="no-highlight">67</i>&nbsp;import java.io.StringReader;
+<i class="no-highlight">68</i>&nbsp;import java.math.BigDecimal;
+<i class="no-highlight">69</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">70</i>&nbsp;import java.net.URI;
+<i class="no-highlight">71</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">72</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">73</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">74</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">75</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">76</i>&nbsp;import java.util.List;
+<i class="no-highlight">77</i>&nbsp;import java.util.Map;
+<i class="no-highlight">78</i>&nbsp;import java.util.Set;
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;import javax.ws.rs.core.MediaType;
+<i class="no-highlight">81</i>&nbsp;import javax.xml.stream.XMLInputFactory;
+<i class="no-highlight">82</i>&nbsp;import javax.xml.stream.XMLStreamException;
+<i class="no-highlight">83</i>&nbsp;import javax.xml.transform.Result;
+<i class="no-highlight">84</i>&nbsp;import javax.xml.transform.Source;
+<i class="no-highlight">85</i>&nbsp;import javax.xml.transform.stream.StreamResult;
+<i class="no-highlight">86</i>&nbsp;import javax.xml.transform.stream.StreamSource;
+<i class="no-highlight">87</i>&nbsp;import javax.xml.validation.Validator;
+<i class="no-highlight">88</i>&nbsp;import javax.xml.xpath.XPath;
+<i class="no-highlight">89</i>&nbsp;import javax.xml.xpath.XPathExpressionException;
+<i class="no-highlight">90</i>&nbsp;import javax.xml.xpath.XPathFactory;
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;import de.odysseus.staxon.json.JsonXMLConfig;
+<i class="no-highlight">93</i>&nbsp;import de.odysseus.staxon.json.JsonXMLConfigBuilder;
+<i class="no-highlight">94</i>&nbsp;import de.odysseus.staxon.json.JsonXMLOutputFactory;
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;import net.sf.json.JSONException;
+<i class="no-highlight">97</i>&nbsp;import net.sf.json.xml.XMLSerializer;
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.*;
+<i class="no-highlight">100</i>&nbsp;
+<i class="no-highlight">101</i>&nbsp;/**
+<i class="no-highlight">102</i>&nbsp; * Snap that reads the binary data, parses the xml, splits the xml document into smaller xml
+<i class="no-highlight">103</i>&nbsp; * documents (if required) and writes out documents.
+<i class="no-highlight">104</i>&nbsp; *
+<i class="no-highlight">105</i>&nbsp; * @author ksubramanian@snaplogic.com (Karthik Subramanian)
+<i class="no-highlight">106</i>&nbsp; * @author slad@snaplogic.com (Samarth Lad)
+<i class="no-highlight">107</i>&nbsp; */
+<i class="no-highlight">108</i>&nbsp;@Version(snap = 2)
+<i class="no-highlight">109</i>&nbsp;@General(title = XML_PARSER_LABEL, purpose = XML_PARSER_DESC)
+<i class="no-highlight">110</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.BINARY})
+<i class="no-highlight">111</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">112</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">113</i>&nbsp;@Category(snap = SnapCategory.PARSE)
+<b class="nc"><i class="no-highlight">114</i>&nbsp;public class XmlParser extends SimpleBinarySnap implements MetricsProvider, DependencyManager,</b>
+<i class="no-highlight">115</i>&nbsp;        InputSchemaProvider {
+<b class="nc"><i class="no-highlight">116</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(XmlParser.class);</b>
+<i class="no-highlight">117</i>&nbsp;    private static final String PROP_NAME_VALIDATE = &quot;validate&quot;;
+<i class="no-highlight">118</i>&nbsp;    private static final String PROP_NAME_SCHEMA = &quot;schema&quot;;
+<i class="no-highlight">119</i>&nbsp;    private static final String PROP_NAME_SPLITTER_EXPRESSION = &quot;SplitterExpression&quot;;
+<i class="no-highlight">120</i>&nbsp;    private static final String PROP_NAME_NAMESPACE_CONTEXT = &quot;namespaceContext&quot;;
+<i class="no-highlight">121</i>&nbsp;    private static final String PROP_NAME_NAMESPACE_PREFIX = &quot;prefix&quot;;
+<i class="no-highlight">122</i>&nbsp;    private static final String PROP_NAME_NAMESPACE_URI = &quot;uri&quot;;
+<i class="no-highlight">123</i>&nbsp;    private static final String PROP_MATCH_DATA_TYPES = &quot;matchDataTypes&quot;;
+<i class="no-highlight">124</i>&nbsp;    private static final String DOCUMENTS = &quot;Documents&quot;;
+<b class="nc"><i class="no-highlight">125</i>&nbsp;    private static final String NAMESPACE_CONTEXT_PATH = new JsonPathBuilder(</b>
+<i class="no-highlight">126</i>&nbsp;            PROP_NAME_NAMESPACE_CONTEXT)
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            .appendAllListElements()</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;    private static final String PREFIX_PATH = new JsonPathBuilder(PROP_NAME_NAMESPACE_PREFIX)</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;    private static final String URI_PATH = new JsonPathBuilder(PROP_NAME_NAMESPACE_URI)</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            .appendValueElement()</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;    private static final XPathFactory X_PATH_FACTORY = XPathFactory.newInstance();</b>
+<i class="no-highlight">136</i>&nbsp;    private static final String DOLLAR = &quot;$&quot;;
+<i class="no-highlight">137</i>&nbsp;    private static final String XS_SCHEMA = &quot;xs:schema&quot;;
+<i class="no-highlight">138</i>&nbsp;    private static final String XSD_SCHEMA = &quot;xsd:schema&quot;;
+<i class="no-highlight">139</i>&nbsp;    private static final String XS_ELEMENT = &quot;xs:element&quot;;
+<i class="no-highlight">140</i>&nbsp;    private static final String XSD_ELEMENT = &quot;xsd:element&quot;;
+<i class="no-highlight">141</i>&nbsp;    private static final String XS_ATTRIBUTE = &quot;xs:attribute&quot;;
+<i class="no-highlight">142</i>&nbsp;    private static final String XSD_ATTRIBUTE = &quot;xsd:attribute&quot;;
+<i class="no-highlight">143</i>&nbsp;    private static final String AT_NAME = &quot;@name&quot;;
+<i class="no-highlight">144</i>&nbsp;    private static final String AT_TYPE = &quot;@type&quot;;
+<i class="no-highlight">145</i>&nbsp;    private static final String AT_BASE = &quot;@base&quot;;
+<i class="no-highlight">146</i>&nbsp;    private static final String MAX_OCCURS = &quot;@maxOccurs&quot;;
+<i class="no-highlight">147</i>&nbsp;    private static final String MAX_OCCURS_DEFAULT_VALUE = &quot;1&quot;;
+<i class="no-highlight">148</i>&nbsp;    private static final String XS_INT = &quot;xs:int&quot;;
+<i class="no-highlight">149</i>&nbsp;    private static final String XSD_INT = &quot;xsd:int&quot;;
+<i class="no-highlight">150</i>&nbsp;    private static final String XS_INTEGER = &quot;xs:integer&quot;;
+<i class="no-highlight">151</i>&nbsp;    private static final String XSD_INTEGER = &quot;xsd:integer&quot;;
+<i class="no-highlight">152</i>&nbsp;    private static final String XS_LONG = &quot;xs:long&quot;;
+<i class="no-highlight">153</i>&nbsp;    private static final String XSD_LONG = &quot;xsd:long&quot;;
+<i class="no-highlight">154</i>&nbsp;    private static final String XS_SHORT = &quot;xs:short&quot;;
+<i class="no-highlight">155</i>&nbsp;    private static final String XSD_SHORT = &quot;xsd:short&quot;;
+<i class="no-highlight">156</i>&nbsp;    private static final String XS_BYTE = &quot;xs:byte&quot;;
+<i class="no-highlight">157</i>&nbsp;    private static final String XSD_BYTE = &quot;xsd:byte&quot;;
+<i class="no-highlight">158</i>&nbsp;    private static final String XS_FLOAT = &quot;xs:float&quot;;
+<i class="no-highlight">159</i>&nbsp;    private static final String XSD_FLOAT = &quot;xsd:float&quot;;
+<i class="no-highlight">160</i>&nbsp;    private static final String XS_DOUBLE = &quot;xs:double&quot;;
+<i class="no-highlight">161</i>&nbsp;    private static final String XSD_DOUBLE = &quot;xsd:double&quot;;
+<i class="no-highlight">162</i>&nbsp;    private static final String XS_DECIMAL = &quot;xs:decimal&quot;;
+<i class="no-highlight">163</i>&nbsp;    private static final String XSD_DECIMAL = &quot;xsd:decimal&quot;;
+<i class="no-highlight">164</i>&nbsp;    private static final String XS_BOOLEAN = &quot;xs:boolean&quot;;
+<i class="no-highlight">165</i>&nbsp;    private static final String XSD_BOOLEAN = &quot;xsd:boolean&quot;;
+<i class="no-highlight">166</i>&nbsp;    private static final String FORMAT_DOT = &quot;%s.%s&quot;;
+<i class="no-highlight">167</i>&nbsp;    private Counter documentCounter;
+<i class="no-highlight">168</i>&nbsp;    private boolean shouldValidate;
+<i class="no-highlight">169</i>&nbsp;    private Validator schemaValidator;
+<i class="no-highlight">170</i>&nbsp;    private String splitterExpression;
+<i class="no-highlight">171</i>&nbsp;    private NamespaceContext namespaceContext;
+<i class="no-highlight">172</i>&nbsp;    private String optimization;
+<b class="nc"><i class="no-highlight">173</i>&nbsp;    private final XMLSerializer xmlSerializer = new XMLSerializer();</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;    private final XMLInputFactory xmlInputFactory = SnapXMLInputFactory.newInstance();</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;    private final JsonXMLConfig config = new JsonXMLConfigBuilder()</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;            .autoArray(true)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;            .multiplePI(true)</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;    private final JsonXMLOutputFactory jsonOutputFactory = new JsonXMLOutputFactory(config);</b>
+<i class="no-highlight">180</i>&nbsp;    private XmlSplitter xmlSplitter;
+<i class="no-highlight">181</i>&nbsp;    private boolean matchDataTypes;
+<b class="nc"><i class="no-highlight">182</i>&nbsp;    private Map&lt;String, String&gt; schema = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;    private boolean firstMatch = true;</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;    private Set&lt;String&gt; arrayFoundBasedOnSchema = new HashSet();</b>
+<i class="no-highlight">185</i>&nbsp;    private ExpressionProperty schemaFileProperty;
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;    @Inject
+<i class="no-highlight">188</i>&nbsp;    private URLEncoder urlEncoder;
+<i class="no-highlight">189</i>&nbsp;    @Inject
+<i class="no-highlight">190</i>&nbsp;    private XmlUtils xmlUtils;
+<i class="no-highlight">191</i>&nbsp;
+<i class="no-highlight">192</i>&nbsp;    @Override
+<i class="no-highlight">193</i>&nbsp;    public Module getManagedModule() {
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        return new AbstractModule() {</b>
+<i class="no-highlight">195</i>&nbsp;            @Override
+<i class="no-highlight">196</i>&nbsp;            protected void configure() {
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                bind(XmlUtils.class).to(XmlUtilsImpl.class);</b>
+<i class="no-highlight">198</i>&nbsp;            }
+<i class="no-highlight">199</i>&nbsp;        };
+<i class="no-highlight">200</i>&nbsp;    }
+<i class="no-highlight">201</i>&nbsp;
+<i class="no-highlight">202</i>&nbsp;    @Override
+<i class="no-highlight">203</i>&nbsp;    public void defineProperties(final PropertyBuilder propBuilder) {
+<i class="no-highlight">204</i>&nbsp;        // Property that is used to define the schema (as XSD) for the incoming data
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        propBuilder.name(PROP_NAME_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .describe(PROP_LBL_FOR_SCHEMA, PROP_DESC_FOR_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .fileBrowsing()</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .add();</b>
+<i class="no-highlight">211</i>&nbsp;        // Property that is used to define if the incoming data should be validated
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        propBuilder.name(PROP_NAME_VALIDATE)</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                .describe(PROP_LBL_VALIDATE, PROP_DESC_VALIDATE)</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%s.value != null&quot;, PROP_NAME_SCHEMA))</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                .add();</b>
+<i class="no-highlight">218</i>&nbsp;        // Property that is used to match output document data types to the given schema file
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        propBuilder.name(PROP_MATCH_DATA_TYPES)</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                .describe(LABEL_MATCH_DATA_TYPES, DESC_MATCH_DATA_TYPES)</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                .add();</b>
+<i class="no-highlight">223</i>&nbsp;        // Property that is used to define the expression that should be used to split the
+<i class="no-highlight">224</i>&nbsp;        // incoming documents
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        propBuilder.name(PROP_NAME_SPLITTER_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .describe(PROP_LBL_SPLITTER_EXPRESSION, PROP_DESC_SPLITTER_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                .optional()</b>
+<i class="no-highlight">229</i>&nbsp;                // TODO - MK: this is a bigger task, we need to parse the input and provide the
+<i class="no-highlight">230</i>&nbsp;                //            schema of the input, not the schema on the output.
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        SnapProperty prefixProperty = propBuilder.name(PROP_NAME_NAMESPACE_PREFIX)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                .describe(PROP_LBL_NAMESPACE_PREFIX, PROP_DESC_NAMESPACE_PREFIX)</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        SnapProperty uriProperty = propBuilder.name(PROP_NAME_NAMESPACE_URI)</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                .describe(PROP_LBL_NAMESPACE_URI, PROP_DESC_NAMESPACE_URI)</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        propBuilder.name(PROP_NAME_NAMESPACE_CONTEXT)</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                .describe(PROP_LBL_NAMESPACE_CONTEXT, PROP_DESC_NAMESPACE_CONTEXT)</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                .withEntry(prefixProperty)</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                .withEntry(uriProperty)</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        propBuilder.name(OPTIMIZATION_PROP)</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                .describe(OPTIMIZATION_LABEL, OPTIMIZATION_DESC)</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                .defaultValue(NONE)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                .withAllowedValues(ImmutableSet.of(NONE, MEMORY, SPEED))</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                .add();</b>
+<i class="no-highlight">250</i>&nbsp;    }
+<i class="no-highlight">251</i>&nbsp;
+<i class="no-highlight">252</i>&nbsp;    @Override
+<i class="no-highlight">253</i>&nbsp;    public void defineMetrics(final MetricsBuilder builder) {
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        documentCounter = builder.describe(XML_DOC_PROCESSED, XML_WRITTEN_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                .measuredIn(DOCUMENTS)</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                .counter();</b>
+<i class="no-highlight">257</i>&nbsp;    }
+<i class="no-highlight">258</i>&nbsp;
+<i class="no-highlight">259</i>&nbsp;    @Override
+<i class="no-highlight">260</i>&nbsp;    public void configure(final PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        xmlSerializer.setSkipWhitespace(false);</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;        xmlSerializer.setTrimSpaces(false);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        xmlSerializer.setForceTopLevelObject(true);</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        schemaFileProperty = propertyValues.getAsExpression(PROP_NAME_SCHEMA);</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        matchDataTypes = propertyValues.getBoolean(PROP_MATCH_DATA_TYPES, false);</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        shouldValidate = propertyValues.getBoolean(PROP_NAME_VALIDATE, false);</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        splitterExpression = propertyValues.get(PROP_NAME_SPLITTER_EXPRESSION);</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        if (!StringUtils.isBlank(splitterExpression)) {</b>
+<i class="no-highlight">269</i>&nbsp;            // Validate the splitter expression
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            XPath xPath = X_PATH_FACTORY.newXPath();</b>
+<i class="no-highlight">271</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                xPath.compile(splitterExpression);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;            } catch (XPathExpressionException e) {</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                throw new ConfigurationException(e, COULD_NOT_COMPILE_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                        .withResolution(PLEASE_VERIFY_THE_EXPRESSION);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;            List&lt;Map&lt;String, String&gt;&gt; namespaceContextTable = propertyValues.get(</b>
+<i class="no-highlight">278</i>&nbsp;                    NAMESPACE_CONTEXT_PATH);
+<b class="nc"><i class="no-highlight">279</i>&nbsp;            if (CollectionUtils.isNotEmpty(namespaceContextTable)) {</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                namespaceContext = new NamespaceContext();</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                for (Map&lt;String, String&gt; namespaceCtx : namespaceContextTable) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                    String prefix = JsonPath.read(namespaceCtx, PREFIX_PATH);</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                    String uri = JsonPath.read(namespaceCtx, URI_PATH);</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                    namespaceContext.put(prefix, uri);</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                }</b>
+<i class="no-highlight">286</i>&nbsp;            }
+<i class="no-highlight">287</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">288</i>&nbsp;        optimization = propertyValues.get(OPTIMIZATION_PROP);</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        optimize();</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        Utils.setMaxAttributeSize(xmlInputFactory);</b>
+<i class="no-highlight">291</i>&nbsp;    }
+<i class="no-highlight">292</i>&nbsp;
+<i class="no-highlight">293</i>&nbsp;    private void optimize() {
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        if (optimization == null) {</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;            optimization = NONE;</b>
+<i class="no-highlight">296</i>&nbsp;        }
+<i class="no-highlight">297</i>&nbsp;        // Set Woodstox ReaderConfig flags based on the Optimization property value
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        switch (optimization) {</b>
+<i class="no-highlight">299</i>&nbsp;            case MEMORY:
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                ((WstxInputFactory) xmlInputFactory).configureForLowMemUsage();</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                break;</b>
+<i class="no-highlight">302</i>&nbsp;            case SPEED:
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                ((WstxInputFactory) xmlInputFactory).configureForSpeed();</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                break;</b>
+<i class="no-highlight">305</i>&nbsp;            case NONE:
+<i class="no-highlight">306</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                xmlInputFactory.setProperty(XMLInputFactory.IS_COALESCING, true);</b>
+<i class="no-highlight">308</i>&nbsp;        }
+<i class="no-highlight">309</i>&nbsp;    }
+<i class="no-highlight">310</i>&nbsp;
+<i class="no-highlight">311</i>&nbsp;    private void evaluateSchemaFileExpression(Document header) {
+<i class="no-highlight">312</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">313</i>&nbsp;            Object object = schemaFileProperty.eval(header);</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            String schemaFile = object != null ? String.valueOf(object) : &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;            if ((matchDataTypes || shouldValidate) &amp;&amp; StringUtils.isNotBlank(schemaFile)) {</b>
+<i class="no-highlight">316</i>&nbsp;                // get data type info from xsd file
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                setSchemaFromXsd(schemaFile);</b>
+<i class="no-highlight">318</i>&nbsp;
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                if (shouldValidate) {</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                    URI schemaFileURI = urlEncoder.validateAndEncodeURI(schemaFile);</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                    schemaValidator = xmlUtils.getSchemaValidator(schemaFileURI);</b>
+<i class="no-highlight">322</i>&nbsp;                }
+<i class="no-highlight">323</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">324</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;            errorViews.write(e, header);</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        }</b>
+<i class="no-highlight">327</i>&nbsp;    }
+<i class="no-highlight">328</i>&nbsp;
+<i class="no-highlight">329</i>&nbsp;    @Override
+<i class="no-highlight">330</i>&nbsp;    protected void doWork() {
+<i class="no-highlight">331</i>&nbsp;        // do nothing if input view is not connected
+<b class="nc"><i class="no-highlight">332</i>&nbsp;        if (inputViews.isEmpty()) {</b>
+<i class="no-highlight">333</i>&nbsp;            return;
+<i class="no-highlight">334</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">335</i>&nbsp;        for (BinaryInput binaryInput : inputViews.binaryInputs(inputViews.get())) {</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;            Document header = binaryInput.getHeader();</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;            evaluateSchemaFileExpression(header);</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;            documentCounter.inc();</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;            try (BufferedInputStream resettableInputStream = new BufferedInputStream(</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                    new BOMInputStream(Channels.newInputStream(binaryInput.getChannel())));</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                 PushbackInputStream pushbackInputStream = new PushbackInputStream(</b>
+<i class="no-highlight">342</i>&nbsp;                         resettableInputStream)) {
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                if (shouldValidate) {</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                    if (schemaValidator != null) {</b>
+<i class="no-highlight">345</i>&nbsp;                        // Stream has to be opened again as the schema validator will close the
+<i class="no-highlight">346</i>&nbsp;                        // stream when the xml data is validated.
+<i class="no-highlight">347</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                            resettableInputStream.mark(Integer.MAX_VALUE);</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                            InputStream uncloseableInputStream = new CloseShieldInputStream</b>
+<i class="no-highlight">350</i>&nbsp;                                    (resettableInputStream);
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                            xmlUtils.validate(schemaValidator, uncloseableInputStream);</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                            resettableInputStream.reset();</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                        } catch (SAXException e) {</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                            LOGGER.warn(IGNORING_XML_DATA_AS_IT_DOES_NOT_CONFORM_TO_THE_SCHEMA);</b>
+<i class="no-highlight">355</i>&nbsp;                            // Writes the validation error to the error view.
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                            errorViews.write(Utils.createDataExceptionForInvalidXML(e), header);</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                            continue;</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                        }</b>
+<i class="no-highlight">359</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                        throw new ConfigurationException(NO_SCHEMA_VALIDATION_FILE_DEFINED)</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                                .withReason(NO_SCHEMA_VALIDATION_FILE_DEFINED)</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                                .withResolution(NO_SCHEMA_VALIDATION_FILE_DEFINED_RESOLUTION);</b>
+<i class="no-highlight">363</i>&nbsp;                    }
+<i class="no-highlight">364</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                if (!StringUtils.isBlank(splitterExpression)) {</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                    Source xmlSource = new StreamSource(resettableInputStream);</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                    xmlSplitter = new XmlSplitter.DefaultXmlSplitter(xmlSource,</b>
+<i class="no-highlight">368</i>&nbsp;                            splitterExpression, namespaceContext);
+<i class="no-highlight">369</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                        boolean outputWritten = false;</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                        Result result = xmlSplitter.next();</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                        while (result != null) {</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                            if (result instanceof StreamResult) {</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                                StreamResult streamResult = (StreamResult) result;</b>
+<i class="no-highlight">375</i>&nbsp;                                try {
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                                    Object data = xmlUtils.convertToJson(xmlInputFactory,</b>
+<i class="no-highlight">377</i>&nbsp;                                            jsonOutputFactory, new StreamSource(new StringReader(
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                                                    streamResult.getWriter().toString())));</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                                    if (data != null) {</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                                        if (matchDataTypes || shouldValidate) {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                                            matchDataTypesWithOutputBasedOnXSD(null, data, DOLLAR,</b>
+<i class="no-highlight">382</i>&nbsp;                                                    null,
+<i class="no-highlight">383</i>&nbsp;                                                    header);
+<i class="no-highlight">384</i>&nbsp;                                        }
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                                        writeToOutputViews(header, data);</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                                        outputWritten = true;</b>
+<i class="no-highlight">387</i>&nbsp;                                    }
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                                } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                                    SnapDataException snapDataException =</b>
+<i class="no-highlight">390</i>&nbsp;                                            new SnapDataException(e, COULD_NOT_CONVERT_XML)
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                                                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                                                    .withResolution(PLEASE_VERIFY_THE_XML);</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                                    errorViews.write(snapDataException, header);</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                                }</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                            } else {</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                                LOGGER.warn(UNEXPECTED_TRANSFORMATION_RESULT, result.getClass());</b>
+<i class="no-highlight">397</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                            result = xmlSplitter.next();</b>
+<i class="no-highlight">399</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                        if (!outputWritten) {</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                            header.acknowledge();</b>
+<i class="no-highlight">402</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">403</i>&nbsp;                    } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                        SnapDataException ex = new SnapDataException(e, ERROR_WHILE_PARSING_XML)</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                                .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                                .withResolution(PLEASE_VERIFY_THE_XML);</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;                        errorViews.write(ex);</b>
+<i class="no-highlight">408</i>&nbsp;                    } finally {
+<b class="nc"><i class="no-highlight">409</i>&nbsp;                        try {</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                            xmlSplitter.close();</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                        } catch (XMLStreamException e) {</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;                            LOGGER.warn(ERROR_WHILE_CLOSING_SPLITTER, e);</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                        }</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                    if (Utils.isNotEmpty(pushbackInputStream)) {</b>
+<i class="no-highlight">417</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                            Object data = xmlUtils.convertToJson(xmlInputFactory,</b>
+<i class="no-highlight">419</i>&nbsp;                                    jsonOutputFactory, new StreamSource(pushbackInputStream));
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                            if (data != null) {</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                                if (matchDataTypes || shouldValidate) {</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                                    matchDataTypesWithOutputBasedOnXSD(null, data, DOLLAR, null,</b>
+<i class="no-highlight">423</i>&nbsp;                                            header);
+<i class="no-highlight">424</i>&nbsp;                                }
+<b class="nc"><i class="no-highlight">425</i>&nbsp;                                writeToOutputViews(header, data);</b>
+<i class="no-highlight">426</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                        } catch (XMLStreamException | RuntimeException e) {</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                            SnapDataException snapDataException = new SnapDataException(e,</b>
+<i class="no-highlight">429</i>&nbsp;                                    FAILED_TO_CONVERT_XML_TO_JSON)
+<b class="nc"><i class="no-highlight">430</i>&nbsp;                                    .withResolution(PLEASE_CHECK_IF_THE_XML_IS_WELL_FORMED);</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                            errorViews.write(snapDataException, header);</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                        }</b>
+<i class="no-highlight">433</i>&nbsp;                    } else {
+<i class="no-highlight">434</i>&nbsp;                        // Encountered empty document.
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                        LOGGER.debug(SKIPPING_EMPTY_DOCUMENT);</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                        if (header != null) {</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;                            header.acknowledge();</b>
+<i class="no-highlight">438</i>&nbsp;                        }
+<i class="no-highlight">439</i>&nbsp;                    }
+<i class="no-highlight">440</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">441</i>&nbsp;            } catch (JSONException jsonException) {</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                SnapDataException snapDataException = new SnapDataException(jsonException,</b>
+<i class="no-highlight">443</i>&nbsp;                        UNABLE_TO_CONVERT_TO_JSON)
+<b class="nc"><i class="no-highlight">444</i>&nbsp;                        .withResolution(CHECK_IF_XML_IS_WELL_FORMED);</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;                errorViews.write(snapDataException, header);</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">447</i>&nbsp;                SnapDataException snapDataException = new SnapDataException(e,</b>
+<i class="no-highlight">448</i>&nbsp;                        EXCEPTION_WHILE_READING_THE_INCOMING_BINARY_DATA)
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                        .withReason(ERROR_WHILE_READING_INPUT_DATA);</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                errorViews.write(snapDataException, header);</b>
+<b class="nc"><i class="no-highlight">451</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">452</i>&nbsp;        }</b>
+<i class="no-highlight">453</i>&nbsp;    }
+<i class="no-highlight">454</i>&nbsp;
+<i class="no-highlight">455</i>&nbsp;    @Override
+<i class="no-highlight">456</i>&nbsp;    public void cleanup() throws ExecutionException {
+<i class="no-highlight">457</i>&nbsp;        // No-Op
+<i class="no-highlight">458</i>&nbsp;    }
+<i class="no-highlight">459</i>&nbsp;
+<i class="no-highlight">460</i>&nbsp;    /**
+<i class="no-highlight">461</i>&nbsp;     * Writes the json object to the output views.
+<i class="no-highlight">462</i>&nbsp;     *
+<i class="no-highlight">463</i>&nbsp;     * @param header
+<i class="no-highlight">464</i>&nbsp;     * @param data json object
+<i class="no-highlight">465</i>&nbsp;     */
+<i class="no-highlight">466</i>&nbsp;    private void writeToOutputViews(final Document header, final Object data) {
+<b class="nc"><i class="no-highlight">467</i>&nbsp;        outputViews.write(documentUtility.newDocumentFor(header, data));</b>
+<i class="no-highlight">468</i>&nbsp;    }
+<i class="no-highlight">469</i>&nbsp;
+<i class="no-highlight">470</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">471</i>&nbsp;    private void setSchemaFromXsd(String schemaFile) {
+<b class="nc"><i class="no-highlight">472</i>&nbsp;        try (InputStream inputStream = getSchemaInputStream(schemaFile)) {</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;            Object data = xmlUtils.convertToJson(xmlInputFactory,</b>
+<i class="no-highlight">474</i>&nbsp;                    jsonOutputFactory, new StreamSource(inputStream));
+<b class="nc"><i class="no-highlight">475</i>&nbsp;            if (data instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;                Map&lt;String, Object&gt; map = (Map&lt;String, Object&gt;) getXsOrXsd(</b>
+<i class="no-highlight">477</i>&nbsp;                        (Map&lt;String, Object&gt;) data, XS_SCHEMA, XSD_SCHEMA);
+<b class="nc"><i class="no-highlight">478</i>&nbsp;                if (map != null) {</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;                    setSchema(map, DOLLAR);</b>
+<i class="no-highlight">480</i>&nbsp;                }
+<i class="no-highlight">481</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">482</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">483</i>&nbsp;            SnapDataException ex = new SnapDataException(e, ERR_XSD_DATA_TYPE)</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;            errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;        }</b>
+<i class="no-highlight">488</i>&nbsp;    }
+<i class="no-highlight">489</i>&nbsp;
+<i class="no-highlight">490</i>&nbsp;    /**
+<i class="no-highlight">491</i>&nbsp;     * Gets an input stream from xsd schema file path
+<i class="no-highlight">492</i>&nbsp;     *
+<i class="no-highlight">493</i>&nbsp;     * @param schemaFile - xsd schema file path
+<i class="no-highlight">494</i>&nbsp;     *
+<i class="no-highlight">495</i>&nbsp;     * @return input stream
+<i class="no-highlight">496</i>&nbsp;     */
+<i class="no-highlight">497</i>&nbsp;    protected InputStream getSchemaInputStream(String schemaFile) {
+<b class="nc"><i class="no-highlight">498</i>&nbsp;        URI schemaFileURI = urlEncoder.validateAndEncodeURI(schemaFile);</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;        return xmlUtils.getInputStreamFor(schemaFileURI);</b>
+<i class="no-highlight">500</i>&nbsp;    }
+<i class="no-highlight">501</i>&nbsp;
+<i class="no-highlight">502</i>&nbsp;    // both &#39;xs:&#39; and &#39;xsd:&#39; prefixes are supported for the XML tags
+<i class="no-highlight">503</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">504</i>&nbsp;    private Object getXsOrXsd(Map&lt;String, Object&gt; map,  String xs, String xsd) {
+<b class="nc"><i class="no-highlight">505</i>&nbsp;        Object value = map.get(xs);</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;        return value == null ? map.get(xsd) : value;</b>
+<i class="no-highlight">507</i>&nbsp;    }
+<i class="no-highlight">508</i>&nbsp;
+<i class="no-highlight">509</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">510</i>&nbsp;    private void setSchema(Map&lt;String, Object&gt; element, String jsonPath) {
+<b class="nc"><i class="no-highlight">511</i>&nbsp;        String key = null;</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;        String type = null;</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;        Object value = null;</b>
+<b class="nc"><i class="no-highlight">514</i>&nbsp;        for (Map.Entry&lt;String, Object&gt; entry : element.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">515</i>&nbsp;            switch (entry.getKey()) {</b>
+<i class="no-highlight">516</i>&nbsp;                case XS_ELEMENT:
+<i class="no-highlight">517</i>&nbsp;                case XSD_ELEMENT:
+<b class="nc"><i class="no-highlight">518</i>&nbsp;                    value = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">519</i>&nbsp;                    checkTypeSetSchema(jsonPath, value);</b>
+<i class="no-highlight">520</i>&nbsp;                    return;
+<i class="no-highlight">521</i>&nbsp;                case XS_ATTRIBUTE:
+<i class="no-highlight">522</i>&nbsp;                case XSD_ATTRIBUTE:
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                    Object attribute = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                    checkTypeSetSchema(jsonPath, attribute);</b>
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                    break;</b>
+<i class="no-highlight">526</i>&nbsp;                case AT_NAME:
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                    key = (String) entry.getValue();</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                    jsonPath = String.format(FORMAT_DOT, jsonPath, key);</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;                    break;</b>
+<i class="no-highlight">530</i>&nbsp;                case MAX_OCCURS:
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                    if (key != null) {</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                        String val = (String) entry.getValue();</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;                        if (!StringUtils.equalsIgnoreCase(val, MAX_OCCURS_DEFAULT_VALUE)) {</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;                            arrayFoundBasedOnSchema.add(jsonPath);</b>
+<i class="no-highlight">535</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">536</i>&nbsp;                    }</b>
+<i class="no-highlight">537</i>&nbsp;                    break;
+<i class="no-highlight">538</i>&nbsp;                case AT_TYPE:
+<i class="no-highlight">539</i>&nbsp;                case AT_BASE:
+<b class="nc"><i class="no-highlight">540</i>&nbsp;                    type = (String) entry.getValue();</b>
+<b class="nc"><i class="no-highlight">541</i>&nbsp;                    break;</b>
+<i class="no-highlight">542</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                    Object object = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;                    if (object instanceof Map || object instanceof List) {</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                        value = object;</b>
+<i class="no-highlight">546</i>&nbsp;                    }
+<i class="no-highlight">547</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">548</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;        setTypeInSchema(jsonPath, type);</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;        if (value != null) {</b>
+<b class="nc"><i class="no-highlight">551</i>&nbsp;            checkTypeSetSchema(jsonPath, value);</b>
+<i class="no-highlight">552</i>&nbsp;        }
+<i class="no-highlight">553</i>&nbsp;    }
+<i class="no-highlight">554</i>&nbsp;
+<i class="no-highlight">555</i>&nbsp;    private void checkTypeSetSchema(String jsonPath, Object value) {
+<b class="nc"><i class="no-highlight">556</i>&nbsp;        if (value instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;            setSchema((Map&lt;String, Object&gt;) value, jsonPath);</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;        } else if (value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">559</i>&nbsp;            for (Object object : (List&lt;Object&gt;) value) {</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;                if (object instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;                    setSchema((Map&lt;String, Object&gt;) object, jsonPath);</b>
+<i class="no-highlight">562</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">563</i>&nbsp;            }</b>
+<i class="no-highlight">564</i>&nbsp;        }
+<i class="no-highlight">565</i>&nbsp;    }
+<i class="no-highlight">566</i>&nbsp;
+<i class="no-highlight">567</i>&nbsp;    private void setTypeInSchema(final String jsonPath, final String type) {
+<b class="nc"><i class="no-highlight">568</i>&nbsp;        if (type != null) {</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;            schema.putIfAbsent(jsonPath, type);</b>
+<i class="no-highlight">570</i>&nbsp;        }
+<i class="no-highlight">571</i>&nbsp;    }
+<i class="no-highlight">572</i>&nbsp;
+<i class="no-highlight">573</i>&nbsp;    @SuppressWarnings(&quot;unchecked&quot;)
+<i class="no-highlight">574</i>&nbsp;    private Object matchDataTypesWithOutputBasedOnXSD(String key, Object value, String jsonPath,
+<i class="no-highlight">575</i>&nbsp;            Map&lt;String, Object&gt;  parent, Document header) {
+<b class="nc"><i class="no-highlight">576</i>&nbsp;        if (value instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">577</i>&nbsp;            for (Map.Entry&lt;String, Object&gt; entry : ((Map&lt;String, Object&gt;) value).entrySet()) {</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;                key = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                String newPath = String.format(FORMAT_DOT, jsonPath,</b>
+<b class="nc"><i class="no-highlight">580</i>&nbsp;                        key.startsWith(&quot;@&quot;) ? key.substring(1) : key);</b>
+<b class="nc"><i class="no-highlight">581</i>&nbsp;                Object keyValue = entry.getValue();</b>
+<b class="nc"><i class="no-highlight">582</i>&nbsp;                if (arrayFoundBasedOnSchema.contains(newPath) &amp;&amp; shouldValidate) {</b>
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                    if (!(keyValue instanceof List)) {</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;                        List arrayElement = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;                        arrayElement.add(keyValue);</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;                        ((Map) value).put(key, arrayElement);</b>
+<i class="no-highlight">587</i>&nbsp;                    }
+<i class="no-highlight">588</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">589</i>&nbsp;                matchDataTypesWithOutputBasedOnXSD(key, entry.getValue(), newPath,</b>
+<i class="no-highlight">590</i>&nbsp;                        (Map&lt;String, Object&gt;) value, header);
+<b class="nc"><i class="no-highlight">591</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">592</i>&nbsp;        } else if (value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">593</i>&nbsp;            for (Object object : (List&lt;Object&gt;) value) {</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                if (object instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;                    matchDataTypesWithOutputBasedOnXSD(null, object, jsonPath, null, header);</b>
+<i class="no-highlight">596</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">597</i>&nbsp;            }</b>
+<i class="no-highlight">598</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">599</i>&nbsp;            if (matchDataTypes) {</b>
+<b class="nc"><i class="no-highlight">600</i>&nbsp;                String dataType = getDataType(jsonPath);</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;                if (dataType != null &amp;&amp; value instanceof String) {</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;                    String string = (String) value;</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;                    switch (dataType) {</b>
+<i class="no-highlight">604</i>&nbsp;                        case XS_INT:
+<i class="no-highlight">605</i>&nbsp;                        case XS_INTEGER:
+<i class="no-highlight">606</i>&nbsp;                        case XS_LONG:
+<i class="no-highlight">607</i>&nbsp;                        case XS_SHORT:
+<i class="no-highlight">608</i>&nbsp;                        case XS_BYTE:
+<i class="no-highlight">609</i>&nbsp;                        case XSD_INT:
+<i class="no-highlight">610</i>&nbsp;                        case XSD_INTEGER:
+<i class="no-highlight">611</i>&nbsp;                        case XSD_LONG:
+<i class="no-highlight">612</i>&nbsp;                        case XSD_SHORT:
+<i class="no-highlight">613</i>&nbsp;                        case XSD_BYTE:
+<i class="no-highlight">614</i>&nbsp;                            try {
+<b class="nc"><i class="no-highlight">615</i>&nbsp;                                if (StringUtils.isNotBlank(string)) {</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;                                    parent.put(key, new BigInteger(string.trim()));</b>
+<i class="no-highlight">617</i>&nbsp;                                }
+<b class="nc"><i class="no-highlight">618</i>&nbsp;                            } catch (NumberFormatException e) {</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;                                SnapDataException ex = new SnapDataException(ERR_CONVERT_TO_INTEGER)</b>
+<b class="nc"><i class="no-highlight">620</i>&nbsp;                                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                                errorViews.write(ex, header);</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;                            }</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;                            break;</b>
+<i class="no-highlight">625</i>&nbsp;                        case XS_FLOAT:
+<i class="no-highlight">626</i>&nbsp;                        case XS_DOUBLE:
+<i class="no-highlight">627</i>&nbsp;                        case XS_DECIMAL:
+<i class="no-highlight">628</i>&nbsp;                        case XSD_FLOAT:
+<i class="no-highlight">629</i>&nbsp;                        case XSD_DOUBLE:
+<i class="no-highlight">630</i>&nbsp;                        case XSD_DECIMAL:
+<i class="no-highlight">631</i>&nbsp;                            try {
+<b class="nc"><i class="no-highlight">632</i>&nbsp;                                if (StringUtils.isNotBlank(string)) {</b>
+<b class="nc"><i class="no-highlight">633</i>&nbsp;                                    parent.put(key, new BigDecimal(string.trim()));</b>
+<i class="no-highlight">634</i>&nbsp;                                }
+<b class="nc"><i class="no-highlight">635</i>&nbsp;                            } catch (NumberFormatException e) {</b>
+<b class="nc"><i class="no-highlight">636</i>&nbsp;                                SnapDataException ex = new SnapDataException(ERR_CONVERT_TO_FLOAT)</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;                                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;                                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;                                errorViews.write(ex, header);</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;                            }</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                            break;</b>
+<i class="no-highlight">642</i>&nbsp;                        case XS_BOOLEAN:
+<i class="no-highlight">643</i>&nbsp;                        case XSD_BOOLEAN:
+<b class="nc"><i class="no-highlight">644</i>&nbsp;                            parent.put(key, Boolean.valueOf(string.trim()));</b>
+<i class="no-highlight">645</i>&nbsp;                            break;
+<i class="no-highlight">646</i>&nbsp;                    }
+<i class="no-highlight">647</i>&nbsp;                }
+<i class="no-highlight">648</i>&nbsp;            }
+<i class="no-highlight">649</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">650</i>&nbsp;        return value;</b>
+<i class="no-highlight">651</i>&nbsp;    }
+<i class="no-highlight">652</i>&nbsp;
+<i class="no-highlight">653</i>&nbsp;    private String getDataType(String jsonPath) {
+<b class="nc"><i class="no-highlight">654</i>&nbsp;        if (StringUtils.isNotBlank(splitterExpression) &amp;&amp; firstMatch &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;                StringUtils.isNotBlank(jsonPath)) {</b>
+<i class="no-highlight">656</i>&nbsp;            // data-type schema map needs to be updated to support splitter
+<b class="nc"><i class="no-highlight">657</i>&nbsp;            String path = jsonPath.substring(1); // jsonPath without &#39;$&#39; prefix</b>
+<b class="nc"><i class="no-highlight">658</i>&nbsp;            String prefix = null;</b>
+<b class="nc"><i class="no-highlight">659</i>&nbsp;            int index = 0;</b>
+<b class="nc"><i class="no-highlight">660</i>&nbsp;            for (Map.Entry&lt;String, String&gt; entry : schema.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">661</i>&nbsp;                if (entry.getKey().endsWith(path)) {</b>
+<b class="nc"><i class="no-highlight">662</i>&nbsp;                    firstMatch = false;</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;                    prefix = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;                    index = prefix.indexOf(path);</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;                    prefix = prefix.substring(0, index);</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;                    break;</b>
+<i class="no-highlight">667</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">668</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">669</i>&nbsp;            if (!firstMatch &amp;&amp; prefix != null) {</b>
+<i class="no-highlight">670</i>&nbsp;                // get new data-type schema map
+<b class="nc"><i class="no-highlight">671</i>&nbsp;                Map&lt;String, String&gt; newSchema = new HashMap&lt;&gt;(schema.size());</b>
+<b class="nc"><i class="no-highlight">672</i>&nbsp;                for (Map.Entry&lt;String, String&gt; entry : schema.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;                    String key = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">674</i>&nbsp;                    if (key.startsWith(prefix)) {</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                        newSchema.put(DOLLAR.concat(key.substring(index)), entry.getValue());</b>
+<i class="no-highlight">676</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">677</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;                schema = newSchema;</b>
+<i class="no-highlight">679</i>&nbsp;            }
+<i class="no-highlight">680</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">681</i>&nbsp;        return schema.get(jsonPath);</b>
+<i class="no-highlight">682</i>&nbsp;    }
+<i class="no-highlight">683</i>&nbsp;
+<i class="no-highlight">684</i>&nbsp;    @Override
+<i class="no-highlight">685</i>&nbsp;    public void defineInputSchema(final SchemaProvider provider) {
+<b class="nc"><i class="no-highlight">686</i>&nbsp;        for (String viewName : provider.getRegisteredInputViewNames()) {</b>
+<b class="nc"><i class="no-highlight">687</i>&nbsp;            SchemaBuilder builder = provider.getSchemaBuilder(viewName);</b>
+<i class="no-highlight">688</i>&nbsp;
+<b class="nc"><i class="no-highlight">689</i>&nbsp;            Schema contentType = provider.createSchema(SnapType.STRING, &quot;content-type&quot;);</b>
+<b class="nc"><i class="no-highlight">690</i>&nbsp;            contentType.setAllowedValues(Collections.singleton(MediaType.APPLICATION_XML));</b>
+<i class="no-highlight">691</i>&nbsp;
+<b class="nc"><i class="no-highlight">692</i>&nbsp;            builder.withChildSchema(contentType)</b>
+<b class="nc"><i class="no-highlight">693</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;        }</b>
+<i class="no-highlight">695</i>&nbsp;    }
+<i class="no-highlight">696</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

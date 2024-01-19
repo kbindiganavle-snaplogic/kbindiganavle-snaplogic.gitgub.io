@@ -1,0 +1,1461 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AbstractBulkSnap</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.azuresynapsesql</a>
+</div>
+
+<h1>Coverage Summary for Class: AbstractBulkSnap (com.snaplogic.snaps.azuresynapsesql)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AbstractBulkSnap</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/64)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/630)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2022, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.azuresynapsesql;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.azure.core.exception.AzureException;
+<i class="no-highlight">14</i>&nbsp;import com.azure.core.http.policy.FixedDelayOptions;
+<i class="no-highlight">15</i>&nbsp;import com.azure.core.http.policy.RetryOptions;
+<i class="no-highlight">16</i>&nbsp;import com.azure.identity.ClientSecretCredentialBuilder;
+<i class="no-highlight">17</i>&nbsp;import com.azure.storage.blob.BlobClient;
+<i class="no-highlight">18</i>&nbsp;import com.azure.storage.blob.BlobContainerClient;
+<i class="no-highlight">19</i>&nbsp;import com.azure.storage.blob.BlobServiceClient;
+<i class="no-highlight">20</i>&nbsp;import com.azure.storage.blob.BlobServiceClientBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.azure.storage.blob.models.AccessTier;
+<i class="no-highlight">22</i>&nbsp;import com.azure.storage.blob.models.BlobHttpHeaders;
+<i class="no-highlight">23</i>&nbsp;import com.azure.storage.blob.models.BlobItem;
+<i class="no-highlight">24</i>&nbsp;import com.azure.storage.blob.models.BlobRequestConditions;
+<i class="no-highlight">25</i>&nbsp;import com.azure.storage.blob.models.ListBlobsOptions;
+<i class="no-highlight">26</i>&nbsp;import com.azure.storage.blob.models.ParallelTransferOptions;
+<i class="no-highlight">27</i>&nbsp;import com.azure.storage.common.StorageSharedKeyCredential;
+<i class="no-highlight">28</i>&nbsp;import com.azure.storage.common.Utility;
+<i class="no-highlight">29</i>&nbsp;import com.azure.storage.file.datalake.DataLakeFileClient;
+<i class="no-highlight">30</i>&nbsp;import com.azure.storage.file.datalake.DataLakeFileSystemClient;
+<i class="no-highlight">31</i>&nbsp;import com.azure.storage.file.datalake.DataLakeServiceClient;
+<i class="no-highlight">32</i>&nbsp;import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
+<i class="no-highlight">33</i>&nbsp;import com.azure.storage.file.datalake.models.ListPathsOptions;
+<i class="no-highlight">34</i>&nbsp;import com.azure.storage.file.datalake.models.PathItem;
+<i class="no-highlight">35</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">36</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">37</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.api.SuggestExecutionProvider;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.common.properties.builders.SuggestionBuilder;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">48</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">49</i>&nbsp;import com.snaplogic.snap.api.fs.JfsUtils;
+<i class="no-highlight">50</i>&nbsp;import com.snaplogic.snap.api.sql.TableMetaData;
+<i class="no-highlight">51</i>&nbsp;import com.snaplogic.snap.api.sql.accounts.AzureSynapseSQLAbstractAccount;
+<i class="no-highlight">52</i>&nbsp;import com.snaplogic.snaps.sql.SimpleSqlBulkLoadSnap;
+<i class="no-highlight">53</i>&nbsp;import com.snaplogic.snaps.sql.bulkloadutils.BulkLoadUtils;
+<i class="no-highlight">54</i>&nbsp;import com.snaplogic.util.ExpressionUtils;
+<i class="no-highlight">55</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">58</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">59</i>&nbsp;import org.jooq.tools.jdbc.JDBCUtils;
+<i class="no-highlight">60</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">61</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;import java.io.BufferedWriter;
+<i class="no-highlight">64</i>&nbsp;import java.io.File;
+<i class="no-highlight">65</i>&nbsp;import java.io.FileOutputStream;
+<i class="no-highlight">66</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">67</i>&nbsp;import java.io.OutputStreamWriter;
+<i class="no-highlight">68</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">69</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">70</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">71</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">72</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">73</i>&nbsp;import java.time.Duration;
+<i class="no-highlight">74</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">75</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">76</i>&nbsp;import java.util.List;
+<i class="no-highlight">77</i>&nbsp;import java.util.Map;
+<i class="no-highlight">78</i>&nbsp;import java.util.Set;
+<i class="no-highlight">79</i>&nbsp;import java.util.TreeSet;
+<i class="no-highlight">80</i>&nbsp;import java.util.regex.Matcher;
+<i class="no-highlight">81</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">82</i>&nbsp;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSqlConstants.AAD_USER_AUTH;
+<i class="no-highlight">84</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSqlConstants
+<i class="no-highlight">85</i>&nbsp;        .AZURE_SYNAPSE_MANAGED_IDENTITY_AUTH;
+<i class="no-highlight">86</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSqlConstants.AZURE_SYNAPSE_SAS_AUTH;
+<i class="no-highlight">87</i>&nbsp;import static com.snaplogic.snap.api.sql.accounts.AzureSqlConstants.BLOB_STORAGE;
+<i class="no-highlight">88</i>&nbsp;import static com.snaplogic.snaps.azuresynapsesql.Constants.*;
+<i class="no-highlight">89</i>&nbsp;import static com.snaplogic.snaps.azuresynapsesql.Messages.*;
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;/**
+<i class="no-highlight">92</i>&nbsp; * Super class for bulk load snaps
+<i class="no-highlight">93</i>&nbsp; */
+<b class="nc"><i class="no-highlight">94</i>&nbsp;public abstract class AbstractBulkSnap extends SimpleSqlBulkLoadSnap</b>
+<i class="no-highlight">95</i>&nbsp;        implements SuggestExecutionProvider {
+<i class="no-highlight">96</i>&nbsp;    protected static final String SOURCE_COLUMN_POSITION_PROP = &quot;sourceTableColumnPositionProp&quot;;
+<i class="no-highlight">97</i>&nbsp;    protected static final String DEFAULT_COLUMN_VALUE_PROP = &quot;defaultColumnValueProp&quot;;
+<i class="no-highlight">98</i>&nbsp;    protected static final String ADD_QUOTE_PROP = &quot;enableQuoteProp&quot;;
+<i class="no-highlight">99</i>&nbsp;    protected static final String TABLE_COLUMN_NAMES_PROP = &quot;columns&quot;;
+<i class="no-highlight">100</i>&nbsp;    protected static final String COLUMN_NAMES_PROP = &quot;columnList&quot;;
+<i class="no-highlight">101</i>&nbsp;    protected static final String FILE_FORMAT_TYPE_PROP = &quot;fileFormatType&quot;;
+<i class="no-highlight">102</i>&nbsp;    protected static final String FILE_PATTERN_PROP = &quot;filePattern&quot;;
+<i class="no-highlight">103</i>&nbsp;    protected static final String FILE_PROP = &quot;file&quot;;
+<i class="no-highlight">104</i>&nbsp;    protected static final String FILE_LIST_PROP = &quot;fileList&quot;;
+<i class="no-highlight">105</i>&nbsp;    protected static final String SUCCESS = &quot;success&quot;;
+<i class="no-highlight">106</i>&nbsp;    protected static final String PURGE_PROP = &quot;purge&quot;;
+<i class="no-highlight">107</i>&nbsp;    protected static final String TRUNCATE_PROP = &quot;truncate&quot;;
+<i class="no-highlight">108</i>&nbsp;    protected static final String DATA_SOURCE_PROP = &quot;dataSource&quot;;
+<i class="no-highlight">109</i>&nbsp;    protected static final String COPY_OPTION_PROP = &quot;copyOption&quot;;
+<i class="no-highlight">110</i>&nbsp;    protected static final String COPY_OPTIONS_LIST_PROP = &quot;copyOptionList&quot;;
+<i class="no-highlight">111</i>&nbsp;    protected static final String TRANSFER_OPTIONS_PROP = &quot;transferOptions&quot;;
+<i class="no-highlight">112</i>&nbsp;    protected static final String MAX_CONCURRENCY_PROP = &quot;maxConcurrency&quot;;
+<i class="no-highlight">113</i>&nbsp;    protected static final String BLOCK_SIZE_PROP = &quot;blockSize&quot;;
+<b class="nc"><i class="no-highlight">114</i>&nbsp;    protected static final String systemOS = System.getProperty(OS_NAME_PROPERTY);</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;    protected static final boolean IS_WIN_PLEX = systemOS.toLowerCase().contains(WINDOWS);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;    protected static final Pattern EXTFILE_PATTERN = Pattern.compile(EXTFILE_PATTERN_PROTOCOL);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;    protected static final String FILE_LIST_PATH = new JsonPathBuilder(FILE_LIST_PROP)</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            .appendAllListElements().build();</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;    protected static final String PROP_CONDITION_STAGED_FILE = String.format(PROP_CONDITION_FMT,</b>
+<i class="no-highlight">120</i>&nbsp;            DATA_SOURCE_PROP, EXTERNAL_STORAGE);
+<b class="nc"><i class="no-highlight">121</i>&nbsp;    protected static final String PROP_CONDITION_INPUTVIEW = String.format(PROP_CONDITION_FMT,</b>
+<i class="no-highlight">122</i>&nbsp;            DATA_SOURCE_PROP, INPUT_VIEW);
+<b class="nc"><i class="no-highlight">123</i>&nbsp;    protected static final String COPY_OPTION_LIST_PATH = new JsonPathBuilder</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            (COPY_OPTIONS_LIST_PROP).appendAllListElements().build();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBulkSnap.class);</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;    protected final List&lt;ExpressionProperty&gt; copyStatementArgumentExpression = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">127</i>&nbsp;    protected StringBuilder queryBuilder;
+<b class="nc"><i class="no-highlight">128</i>&nbsp;    protected volatile boolean firstRecord = true;</b>
+<i class="no-highlight">129</i>&nbsp;    protected BufferedWriter dataWriter;
+<i class="no-highlight">130</i>&nbsp;    protected String dataTmpFile;
+<i class="no-highlight">131</i>&nbsp;    protected String tmpFileName;
+<b class="nc"><i class="no-highlight">132</i>&nbsp;    protected List&lt;String&gt; copyColumns = Lists.newArrayList();</b>
+<i class="no-highlight">133</i>&nbsp;    protected String fileFormatType;
+<b class="nc"><i class="no-highlight">134</i>&nbsp;    protected volatile boolean successful = true;</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;    protected boolean escapeChars = true;</b>
+<i class="no-highlight">136</i>&nbsp;    protected boolean purge;
+<i class="no-highlight">137</i>&nbsp;    protected String dataSource;
+<i class="no-highlight">138</i>&nbsp;    @Inject
+<i class="no-highlight">139</i>&nbsp;    protected ExpressionUtils expressionUtils;
+<b class="nc"><i class="no-highlight">140</i>&nbsp;    protected boolean isInSuggest = false;</b>
+<i class="no-highlight">141</i>&nbsp;    protected String tempDir;
+<b class="nc"><i class="no-highlight">142</i>&nbsp;    protected Set&lt;String&gt; copyFileList = new TreeSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;    protected Set&lt;String&gt; purgeFileList = new TreeSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;    protected List&lt;String&gt; copyStatementArguments = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;    protected List&lt;String&gt; filePaths = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">146</i>&nbsp;    protected List&lt;String&gt; tableColumns;
+<i class="no-highlight">147</i>&nbsp;    protected BlobServiceClient bsClient;
+<i class="no-highlight">148</i>&nbsp;    protected DataLakeServiceClient adlsClient;
+<i class="no-highlight">149</i>&nbsp;    protected Connection connection;
+<i class="no-highlight">150</i>&nbsp;    protected boolean truncate;
+<i class="no-highlight">151</i>&nbsp;    protected String accountName;
+<i class="no-highlight">152</i>&nbsp;    protected String container;
+<i class="no-highlight">153</i>&nbsp;    protected String folder;
+<i class="no-highlight">154</i>&nbsp;    protected String azureSynapseCredential;
+<i class="no-highlight">155</i>&nbsp;    protected String identity;
+<i class="no-highlight">156</i>&nbsp;    protected String secret;
+<i class="no-highlight">157</i>&nbsp;    protected String externalStorage;
+<i class="no-highlight">158</i>&nbsp;    protected String authType;
+<i class="no-highlight">159</i>&nbsp;    protected String endpoint;
+<i class="no-highlight">160</i>&nbsp;    protected String filePattern;
+<i class="no-highlight">161</i>&nbsp;    protected String copyCommand;
+<i class="no-highlight">162</i>&nbsp;    protected String errFileAzureAuthType;
+<i class="no-highlight">163</i>&nbsp;    protected String errFileAzureAccountName;
+<i class="no-highlight">164</i>&nbsp;    protected String errFileAzureEndpoint;
+<i class="no-highlight">165</i>&nbsp;    protected String errFileAzureContainer;
+<i class="no-highlight">166</i>&nbsp;    protected String errFileAzureFolder;
+<i class="no-highlight">167</i>&nbsp;    protected String errAzureCredential;
+<i class="no-highlight">168</i>&nbsp;    protected String errAzureIdentity;
+<i class="no-highlight">169</i>&nbsp;    protected String errAzureSecret;
+<i class="no-highlight">170</i>&nbsp;    protected boolean isErrFileEnabled;
+<i class="no-highlight">171</i>&nbsp;    protected boolean isErrFileNewConfigEnabled;
+<i class="no-highlight">172</i>&nbsp;    protected ExpressionProperty fileFormatTypeExpression;
+<i class="no-highlight">173</i>&nbsp;    protected ExpressionProperty fileNamePatternExpression;
+<i class="no-highlight">174</i>&nbsp;    protected List&lt;ExpressionProperty&gt; filePathExpressions;
+<i class="no-highlight">175</i>&nbsp;    protected List&lt;List&lt;ExpressionProperty&gt;&gt; queryColumns;
+<i class="no-highlight">176</i>&nbsp;    protected String runtimeID;
+<i class="no-highlight">177</i>&nbsp;    protected BigInteger blockSize;
+<i class="no-highlight">178</i>&nbsp;    protected BigInteger maxConcurrency;
+<i class="no-highlight">179</i>&nbsp;    private final static FixedDelayOptions RETRY_POLICY =
+<i class="no-highlight">180</i>&nbsp;            new FixedDelayOptions(DEFAULT_MAX_RETRIES,
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                    Duration.ofSeconds(SYNAPSE_STANDARD_DEFAULT_TIMEOUT));</b>
+<i class="no-highlight">182</i>&nbsp;
+<i class="no-highlight">183</i>&nbsp;    /**
+<i class="no-highlight">184</i>&nbsp;     * @return
+<i class="no-highlight">185</i>&nbsp;     */
+<i class="no-highlight">186</i>&nbsp;    protected String getPipelineRuuid() {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        return runtimeID;</b>
+<i class="no-highlight">188</i>&nbsp;    }
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;    protected String getPropPath(String rootProp, String propertyKey) {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        try (JsonPathBuilder jsonPathBuilder = new JsonPathBuilder(rootProp)) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;            return jsonPathBuilder.appendValueElement()</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                    .appendCurrentElement(propertyKey)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        }</b>
+<i class="no-highlight">196</i>&nbsp;    }
+<i class="no-highlight">197</i>&nbsp;
+<i class="no-highlight">198</i>&nbsp;    /**
+<i class="no-highlight">199</i>&nbsp;     * Validates azure synapse account settings for bulk load operation. Other elt snaps do not
+<i class="no-highlight">200</i>&nbsp;     * need most of these properties set.
+<i class="no-highlight">201</i>&nbsp;     *
+<i class="no-highlight">202</i>&nbsp;     * @param endpoint    external storage endpoint
+<i class="no-highlight">203</i>&nbsp;     * @param accountName name of azure external storage account
+<i class="no-highlight">204</i>&nbsp;     * @param container   container in storage account
+<i class="no-highlight">205</i>&nbsp;     */
+<i class="no-highlight">206</i>&nbsp;    public static void validateAzureExternalStorageSettings(String endpoint,
+<i class="no-highlight">207</i>&nbsp;                                                            String accountName,
+<i class="no-highlight">208</i>&nbsp;                                                            String container) {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;        if (StringUtils.isBlank(endpoint)) {</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ENDPOINT)</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ENDPOINT)</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                    .withResolution(RES_BLANK_AZURE_ENDPOINT);</b>
+<i class="no-highlight">213</i>&nbsp;        }
+<i class="no-highlight">214</i>&nbsp;
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        if (StringUtils.isBlank(accountName)) {</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_ACCOUNT);</b>
+<i class="no-highlight">219</i>&nbsp;        }
+<i class="no-highlight">220</i>&nbsp;
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        if (StringUtils.isBlank(container)) {</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_CONTAINER)</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_CONTAINER)</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_CONTAINER);</b>
+<i class="no-highlight">225</i>&nbsp;        }
+<i class="no-highlight">226</i>&nbsp;    }
+<i class="no-highlight">227</i>&nbsp;
+<i class="no-highlight">228</i>&nbsp;    /**
+<i class="no-highlight">229</i>&nbsp;     * Directory location for storing temp files in local disk
+<i class="no-highlight">230</i>&nbsp;     *
+<i class="no-highlight">231</i>&nbsp;     * @param propertyValues
+<i class="no-highlight">232</i>&nbsp;     */
+<i class="no-highlight">233</i>&nbsp;    protected void setTempDir(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        tempDir = JfsUtils.getTmpDir(expressionUtils, propertyValues, errorViews)</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                .getAbsolutePath();</b>
+<i class="no-highlight">236</i>&nbsp;    }
+<i class="no-highlight">237</i>&nbsp;
+<i class="no-highlight">238</i>&nbsp;    /**
+<i class="no-highlight">239</i>&nbsp;     * Throw a config error if the schema is null
+<i class="no-highlight">240</i>&nbsp;     */
+<i class="no-highlight">241</i>&nbsp;    protected void doNullSchemaCheck() {
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        if (schemaName == null) {</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            String[] fullQualifiedNames = quotationHandler.splitFullyQualifiedName(tableName,</b>
+<i class="no-highlight">244</i>&nbsp;                    2);
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            if (fullQualifiedNames.length &lt; 2) {</b>
+<i class="no-highlight">246</i>&nbsp;                // Case that schemaName is not provided either in schema field or the table name
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                throw new ConfigurationException(ERROR_SCHEMA_NOT_SPECIFIED)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                        .withReason(ERROR_MISSING_SCHEMA_FOR_TABLE_REASON)</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                        .withResolution(ERROR_MISSING_SCHEMA_FOR_TABLE_RESOLUTION);</b>
+<i class="no-highlight">250</i>&nbsp;            }
+<i class="no-highlight">251</i>&nbsp;        }
+<i class="no-highlight">252</i>&nbsp;    }
+<i class="no-highlight">253</i>&nbsp;
+<i class="no-highlight">254</i>&nbsp;    /**
+<i class="no-highlight">255</i>&nbsp;     * Gets the table columns that have been configured for the snap
+<i class="no-highlight">256</i>&nbsp;     *
+<i class="no-highlight">257</i>&nbsp;     * @param propertyValues
+<i class="no-highlight">258</i>&nbsp;     * @return
+<i class="no-highlight">259</i>&nbsp;     */
+<i class="no-highlight">260</i>&nbsp;    protected List&lt;List&lt;ExpressionProperty&gt;&gt; getTableColumns(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; table = propertyValues.getAsExpression(COLUMN_NAMES_PROP)</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                .eval(null);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        final List&lt;List&lt;ExpressionProperty&gt;&gt; rows = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        if (table != null) {</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;            table.forEach(tableRow -&gt; {</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                ExpressionProperty name = propertyValues.getExpressionPropertyFor(tableRow,</b>
+<i class="no-highlight">267</i>&nbsp;                        TABLE_COLUMN_NAMES_PROP);
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                ExpressionProperty defaultVal = propertyValues.getExpressionPropertyFor(tableRow,</b>
+<i class="no-highlight">269</i>&nbsp;                        DEFAULT_COLUMN_VALUE_PROP);
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                ExpressionProperty colPosition = propertyValues.getExpressionPropertyFor(tableRow,</b>
+<i class="no-highlight">271</i>&nbsp;                        SOURCE_COLUMN_POSITION_PROP);
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                ExpressionProperty enableQuote = propertyValues.getExpressionPropertyFor(tableRow,</b>
+<i class="no-highlight">273</i>&nbsp;                        ADD_QUOTE_PROP);
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                List&lt;ExpressionProperty&gt; row = new ArrayList&lt;&gt;(3);</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                row.add(name);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                row.add(defaultVal);</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                row.add(colPosition);</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                row.add(enableQuote);</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                rows.add(row);</b>
+<i class="no-highlight">280</i>&nbsp;            });
+<i class="no-highlight">281</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        return rows;</b>
+<i class="no-highlight">283</i>&nbsp;    }
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;    protected void createAutoCreateTableProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        builder.describe(CREATE_TABLE_PROP, CREATE_TABLE_LABEL, CREATE_TABLE_DESC)</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                .enableIf(PROP_CONDITION_INPUTVIEW)</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                .add();</b>
+<i class="no-highlight">291</i>&nbsp;    }
+<i class="no-highlight">292</i>&nbsp;
+<i class="no-highlight">293</i>&nbsp;    protected void createPurgeProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        builder.describe(PURGE_PROP, PURGE_LABEL, PURGE_DESC)</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                .enableIf(PROP_CONDITION_STAGED_FILE)</b>
+<b class="nc"><i class="no-highlight">297</i>&nbsp;                .add();</b>
+<i class="no-highlight">298</i>&nbsp;    }
+<i class="no-highlight">299</i>&nbsp;
+<i class="no-highlight">300</i>&nbsp;    protected void createDatasourceProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        builder.describe(DATA_SOURCE_PROP, DATA_SOURCE_LABEL, DATA_SOURCE_DESC)</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                .withAllowedValues(DATA_SOURCES)</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                .defaultValue(INPUT_VIEW)</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                .add();</b>
+<i class="no-highlight">305</i>&nbsp;    }
+<i class="no-highlight">306</i>&nbsp;
+<i class="no-highlight">307</i>&nbsp;    protected void createTruncateTableProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        builder.describe(TRUNCATE_PROP, TRUNCATE_LABEL, TRUNCATE_DESC)</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                .hide()</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                .add();</b>
+<i class="no-highlight">313</i>&nbsp;    }
+<i class="no-highlight">314</i>&nbsp;
+<i class="no-highlight">315</i>&nbsp;    protected void createFileListProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        SnapProperty file = builder.describe(FILE_PROP, FILE_LABEL, FILE_DESC)</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        builder.describe(FILE_LIST_PROP, FILE_LIST_LABEL, FILE_LIST_DESC)</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                .enableIf(PROP_CONDITION_STAGED_FILE)</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                .withEntry(file)</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                .add();</b>
+<i class="no-highlight">324</i>&nbsp;    }
+<i class="no-highlight">325</i>&nbsp;
+<i class="no-highlight">326</i>&nbsp;    protected void createTableColumnProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        SnapProperty tableColumnNameProp = builder.describe(TABLE_COLUMN_NAMES_PROP,</b>
+<i class="no-highlight">328</i>&nbsp;                        TABLE_COLUMN_NAME_LABEL,
+<i class="no-highlight">329</i>&nbsp;                        TABLE_COLUMN_NAME_DESC)
+<b class="nc"><i class="no-highlight">330</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                .withSuggestions(this::suggestTableColumns)</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        SnapProperty defaultValueProp = builder.describe(DEFAULT_COLUMN_VALUE_PROP,</b>
+<i class="no-highlight">334</i>&nbsp;                        DEFAULT_COLUMN_VALUE_LABEL,
+<i class="no-highlight">335</i>&nbsp;                        DEFAULT_COLUMN_VALUE_DESC)
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        SnapProperty sourceFileColumnPositionProp = builder.describe(SOURCE_COLUMN_POSITION_PROP,</b>
+<i class="no-highlight">339</i>&nbsp;                        SOURCE_COLUMN_POSITION_LABEL,
+<i class="no-highlight">340</i>&nbsp;                        SOURCE_COLUMN_POSITION_DESC)
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                .enableIf(PROP_CONDITION_STAGED_FILE)</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        SnapProperty enableQuoteProp = builder.describe(ADD_QUOTE_PROP, ADD_QUOTE_LABEL,</b>
+<i class="no-highlight">346</i>&nbsp;                        ADD_QUOTE_DESC)
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;        builder.describe(COLUMN_NAMES_PROP, TABLE_COLUMNS_LABEL, TABLE_COLUMNS_DESC)</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                .withEntry(tableColumnNameProp)</b>
+<b class="nc"><i class="no-highlight">352</i>&nbsp;                .withEntry(defaultValueProp)</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                .withEntry(sourceFileColumnPositionProp)</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                .withEntry(enableQuoteProp)</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                .add();</b>
+<i class="no-highlight">356</i>&nbsp;    }
+<i class="no-highlight">357</i>&nbsp;
+<i class="no-highlight">358</i>&nbsp;    protected void createBlobTransferOptionsProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        SnapProperty maxConcurrency = builder.describe(MAX_CONCURRENCY_PROP, MAX_CONCURRENCY_LABEL,</b>
+<i class="no-highlight">360</i>&nbsp;                        MAX_CONCURRENCY_DESC)
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                .defaultValue(DEFAULT_MAX_CONCURRENCY)</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                .withMinValue(2)</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                .withMaxValue(20)</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        SnapProperty blockSize = builder.describe(BLOCK_SIZE_PROP, BLOCK_SIZE_LABEL,</b>
+<i class="no-highlight">368</i>&nbsp;                        BLOCK_SIZE_DESC)
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                .defaultValue(DEFAULT_BLOCK_SIZE)</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                .withMinValue(1)</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                .withMaxValue(10)</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        builder.describe(TRANSFER_OPTIONS_PROP, TRANSFER_OPTIONS_LABEL, TRANSFER_OPTIONS_DESC)</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                .enableIf(PROP_CONDITION_INPUTVIEW)</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                .withEntry(maxConcurrency)</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                .withEntry(blockSize)</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                .add();</b>
+<i class="no-highlight">381</i>&nbsp;    }
+<i class="no-highlight">382</i>&nbsp;
+<i class="no-highlight">383</i>&nbsp;    protected void createFilePatternProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">384</i>&nbsp;        builder.describe(FILE_PATTERN_PROP, FILE_PATTERN_LABEL, FILE_PATTERN_DESC)</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                .enableIf(PROP_CONDITION_STAGED_FILE)</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                .add();</b>
+<i class="no-highlight">389</i>&nbsp;    }
+<i class="no-highlight">390</i>&nbsp;
+<i class="no-highlight">391</i>&nbsp;    protected void createFileFormatTypeProperty(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">392</i>&nbsp;        builder.describe(FILE_FORMAT_TYPE_PROP, FILE_FORMAT_TYPE_LABEL, FILE_FORMAT_TYPE_DESC)</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;                .defaultValue(CSV)</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                .enableIf(PROP_CONDITION_STAGED_FILE)</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                .withAllowedValues(FILE_FORMAT_TYPE)</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                .add();</b>
+<i class="no-highlight">398</i>&nbsp;    }
+<i class="no-highlight">399</i>&nbsp;
+<i class="no-highlight">400</i>&nbsp;    /**
+<i class="no-highlight">401</i>&nbsp;     * Suggests a list of table columns. This gets all columns in the table and filters out
+<i class="no-highlight">402</i>&nbsp;     * columns that the user has been selected.
+<i class="no-highlight">403</i>&nbsp;     *
+<i class="no-highlight">404</i>&nbsp;     * @param suggestionBuilder
+<i class="no-highlight">405</i>&nbsp;     * @param propertyValues
+<i class="no-highlight">406</i>&nbsp;     */
+<i class="no-highlight">407</i>&nbsp;    protected void suggestTableColumns(SuggestionBuilder suggestionBuilder,
+<i class="no-highlight">408</i>&nbsp;                                       PropertyValues propertyValues) {
+<i class="no-highlight">409</i>&nbsp;        //Configure table related properties to initialize table metadata
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        initOperations();</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;        isInSuggest = true;</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;        super.configureSnap(propertyValues);</b>
+<b class="nc"><i class="no-highlight">413</i>&nbsp;        Set&lt;String&gt; columnsToSuggest = new HashSet&lt;&gt;(tableMetaData.keySet());</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;        if (columnsToSuggest.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;            throw new ExecutionException(NO_COLUMNS_AVAILABLE);</b>
+<i class="no-highlight">416</i>&nbsp;        }
+<i class="no-highlight">417</i>&nbsp;        //Filter columns that have already been selected
+<b class="nc"><i class="no-highlight">418</i>&nbsp;        List&lt;List&lt;ExpressionProperty&gt;&gt; rows = getTableColumns(propertyValues);</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;        rows.forEach(row -&gt; {</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;            String inputColumn = row.get(0).eval(null);</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;            if (inputColumn != null) {</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                columnsToSuggest.remove(inputColumn);</b>
+<i class="no-highlight">423</i>&nbsp;            }
+<i class="no-highlight">424</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">425</i>&nbsp;        if (columnsToSuggest.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">426</i>&nbsp;            throw new ExecutionException(ERR_ALL_COLUMNS_SELECTED)</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                    .withReason(ERR_ALL_COLUMNS_SELECTED_REASON)</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                    .withResolution(ERR_ALL_COLUMNS_SELECTED_RESOLUTION);</b>
+<i class="no-highlight">429</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">430</i>&nbsp;        suggestionBuilder.node(COLUMN_NAMES_PROP)</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                .over(TABLE_COLUMN_NAMES_PROP)</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                .suggestions(columnsToSuggest.toArray(new String[columnsToSuggest.size()]));</b>
+<i class="no-highlight">433</i>&nbsp;    }
+<i class="no-highlight">434</i>&nbsp;
+<i class="no-highlight">435</i>&nbsp;    /**
+<i class="no-highlight">436</i>&nbsp;     * Gets all the format options for the field based on database selected in account settings
+<i class="no-highlight">437</i>&nbsp;     *
+<i class="no-highlight">438</i>&nbsp;     * @param suggestionBuilder is passed to the suggestion provider to help
+<i class="no-highlight">439</i>&nbsp;     *                          with suggestion building operation.
+<i class="no-highlight">440</i>&nbsp;     * @param propertyValues    holds all the property values configured for a snap.
+<i class="no-highlight">441</i>&nbsp;     */
+<i class="no-highlight">442</i>&nbsp;    public void suggestCopyOptions(final SuggestionBuilder suggestionBuilder,
+<i class="no-highlight">443</i>&nbsp;                                   final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">444</i>&nbsp;        Set&lt;String&gt; fileFormatOpts = null;</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;        fileFormatType = propertyValues.getAsExpression(FILE_FORMAT_TYPE_PROP).eval(null);</b>
+<b class="nc"><i class="no-highlight">446</i>&nbsp;        switch (fileFormatType) {</b>
+<i class="no-highlight">447</i>&nbsp;            case CSV:
+<b class="nc"><i class="no-highlight">448</i>&nbsp;                dataSource = propertyValues.getAsExpression(DATA_SOURCE_PROP).eval(null);</b>
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                if (dataSource.equals(INPUT_VIEW)) {</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                    fileFormatOpts = FILE_FORMAT_CSV_DS_OPTIONS;</b>
+<i class="no-highlight">451</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                    fileFormatOpts = FILE_FORMAT_CSV_OPTIONS;</b>
+<i class="no-highlight">453</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                break;</b>
+<i class="no-highlight">455</i>&nbsp;            case ORC:
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                fileFormatOpts = FILE_FORMAT_ORC_OPTIONS;</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                break;</b>
+<i class="no-highlight">458</i>&nbsp;            case PARQUET:
+<b class="nc"><i class="no-highlight">459</i>&nbsp;                fileFormatOpts = FILE_FORMAT_PARQUET_OPTIONS;</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                break;</b>
+<i class="no-highlight">461</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                throw new ConfigurationException(ERR_SUGGESTING_FILE_FORMAT_OPT)</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                        .withReason(ERR_SUGGESTING_FILE_FORMAT_OPT_REASON)</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                        .withResolution(ERR_SUGGESTING_FILE_FORMAT_OPT_RESOLUTION);</b>
+<i class="no-highlight">465</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">466</i>&nbsp;        suggestionBuilder.node(COPY_OPTIONS_LIST_PROP)</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                .over(COPY_OPTION_PROP)</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                .suggestions(fileFormatOpts.toArray(</b>
+<b class="nc"><i class="no-highlight">469</i>&nbsp;                        new String[fileFormatOpts.size()]));</b>
+<i class="no-highlight">470</i>&nbsp;    }
+<i class="no-highlight">471</i>&nbsp;
+<i class="no-highlight">472</i>&nbsp;    protected void createCopyWithOptionsProperties(final PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">473</i>&nbsp;        SnapProperty fileFormatOptionProp = builder.describe(COPY_OPTION_PROP, COPY_OPTION_LABEL,</b>
+<i class="no-highlight">474</i>&nbsp;                        COPY_OPTION_DESC)
+<b class="nc"><i class="no-highlight">475</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">476</i>&nbsp;                .withSuggestions(this::suggestCopyOptions)</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;        builder.describe(COPY_OPTIONS_LIST_PROP, COPY_OPTIONS_LIST_LABEL,</b>
+<i class="no-highlight">479</i>&nbsp;                        COPY_OPTIONS_LIST_DESC)
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                .withEntry(fileFormatOptionProp)</b>
+<b class="nc"><i class="no-highlight">482</i>&nbsp;                .add();</b>
+<i class="no-highlight">483</i>&nbsp;    }
+<i class="no-highlight">484</i>&nbsp;
+<i class="no-highlight">485</i>&nbsp;    protected void retrieveExternalStorageInfo() {
+<b class="nc"><i class="no-highlight">486</i>&nbsp;        if (StringUtils.isBlank(endpoint)) {</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ENDPOINT)</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ENDPOINT)</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;                    .withResolution(RES_BLANK_AZURE_ENDPOINT);</b>
+<i class="no-highlight">490</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">491</i>&nbsp;        if (StringUtils.isBlank(accountName)) {</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_ACCOUNT);</b>
+<i class="no-highlight">495</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">496</i>&nbsp;        if (StringUtils.isBlank(container)) {</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;            throw new ConfigurationException(ERR_BLANK_AZURE_CONTAINER)</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;                    .withReason(REASON_BLANK_AZURE_CONTAINER)</b>
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                    .withResolution(RESOLUTION_BLANK_AZURE_CONTAINER);</b>
+<i class="no-highlight">500</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">501</i>&nbsp;        switch (authType) {</b>
+<i class="no-highlight">502</i>&nbsp;            case AAD_USER_AUTH:
+<b class="nc"><i class="no-highlight">503</i>&nbsp;                azureSynapseCredential = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">504</i>&nbsp;                break;</b>
+<i class="no-highlight">505</i>&nbsp;            case AZURE_SYNAPSE_MANAGED_IDENTITY_AUTH:
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                azureSynapseCredential =</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                        String.format(IDENTITY_CREDS_FORMAT, identity);</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;                break;</b>
+<i class="no-highlight">509</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">510</i>&nbsp;                azureSynapseCredential =</b>
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                        String.format(CREDS_FORMAT, identity, secret);</b>
+<i class="no-highlight">512</i>&nbsp;        }
+<i class="no-highlight">513</i>&nbsp;    }
+<i class="no-highlight">514</i>&nbsp;
+<i class="no-highlight">515</i>&nbsp;    protected void retrieveErrorFileAzureSynapseAccountInfo() {
+<b class="nc"><i class="no-highlight">516</i>&nbsp;        if (isErrFileEnabled) {</b>
+<b class="nc"><i class="no-highlight">517</i>&nbsp;            switch (errFileAzureAuthType) {</b>
+<i class="no-highlight">518</i>&nbsp;                case AAD_USER_AUTH:
+<b class="nc"><i class="no-highlight">519</i>&nbsp;                    errAzureCredential = StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">520</i>&nbsp;                    break;</b>
+<i class="no-highlight">521</i>&nbsp;                case AZURE_SYNAPSE_MANAGED_IDENTITY_AUTH:
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                    errAzureCredential =</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                            String.format(ERROR_ONLY_IDENTITY_CREDENTIAL_FORMAT,</b>
+<i class="no-highlight">524</i>&nbsp;                                    errAzureIdentity);
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                    break;</b>
+<i class="no-highlight">526</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                    errAzureCredential = String.format(ERROR_CREDENTIAL_FORMAT,</b>
+<i class="no-highlight">528</i>&nbsp;                            errAzureIdentity, errAzureSecret);
+<i class="no-highlight">529</i>&nbsp;            }
+<i class="no-highlight">530</i>&nbsp;        }
+<i class="no-highlight">531</i>&nbsp;    }
+<i class="no-highlight">532</i>&nbsp;
+<i class="no-highlight">533</i>&nbsp;    protected void addExtFilesToCopy() {
+<i class="no-highlight">534</i>&nbsp;        // For file list and inputview source, maintaining relative file paths in purgeFileList
+<i class="no-highlight">535</i>&nbsp;        // to use it for purge operation
+<b class="nc"><i class="no-highlight">536</i>&nbsp;        purgeFileList.addAll(filePaths);</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;        buildExternalFilePaths(filePaths, accountName, endpoint,</b>
+<i class="no-highlight">538</i>&nbsp;                container, folder);
+<b class="nc"><i class="no-highlight">539</i>&nbsp;        getFilesAzureSynapse();</b>
+<i class="no-highlight">540</i>&nbsp;        // Combine files from file list prop and file pattern in case user uses both options
+<b class="nc"><i class="no-highlight">541</i>&nbsp;        copyFileList.addAll(filePaths);</b>
+<i class="no-highlight">542</i>&nbsp;        // Format: ( &#39;file1&#39;,&#39;file2&#39;,&#39;file3&#39;... )
+<b class="nc"><i class="no-highlight">543</i>&nbsp;        String fileStr = String.format(FILES_FMT, StringUtils.join(copyFileList,</b>
+<i class="no-highlight">544</i>&nbsp;                COMMA_WITH_QUOTES));
+<b class="nc"><i class="no-highlight">545</i>&nbsp;        queryBuilder.append(fileStr);</b>
+<i class="no-highlight">546</i>&nbsp;    }
+<i class="no-highlight">547</i>&nbsp;
+<i class="no-highlight">548</i>&nbsp;    /**
+<i class="no-highlight">549</i>&nbsp;     * Azure Synapse COPY command does not allow to load files based on pattern matching
+<i class="no-highlight">550</i>&nbsp;     * So, we will find all the pattern of files in azure container and load them;
+<i class="no-highlight">551</i>&nbsp;     */
+<i class="no-highlight">552</i>&nbsp;    protected void getFilesAzureSynapse() {
+<b class="nc"><i class="no-highlight">553</i>&nbsp;        if (StringUtils.isNotBlank(filePattern)) {</b>
+<b class="nc"><i class="no-highlight">554</i>&nbsp;            if (StringUtils.isNotBlank(container)) {</b>
+<b class="nc"><i class="no-highlight">555</i>&nbsp;                listFilesBasedOnPattern();</b>
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                if (CollectionUtils.isEmpty(copyFileList)) {</b>
+<b class="nc"><i class="no-highlight">557</i>&nbsp;                    if (StringUtils.isNotBlank(filePattern)) {</b>
+<b class="nc"><i class="no-highlight">558</i>&nbsp;                        throw new ConfigurationException(ERR_NO_FILES_FOUND_TO_COPY_FROM)</b>
+<b class="nc"><i class="no-highlight">559</i>&nbsp;                                .withReason(REASON_NO_FILES_FOUND_TO_COPY_FROM)</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;                                .withResolution(RES_NO_FILES_FOUND_TO_COPY_FROM);</b>
+<i class="no-highlight">561</i>&nbsp;                    }
+<i class="no-highlight">562</i>&nbsp;                }
+<i class="no-highlight">563</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">564</i>&nbsp;                throw new ConfigurationException(ERR_FETCH_FILES_FROM_EXTERNAL_STORAGE)</b>
+<b class="nc"><i class="no-highlight">565</i>&nbsp;                        .withReason(REASON_FETCH_FILES_FROM_EXTERNAL_STORAGE)</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                        .withResolution(RESOLUTION_FETCH_FILES_FROM_EXTERNAL_STORAGE);</b>
+<i class="no-highlight">567</i>&nbsp;            }
+<i class="no-highlight">568</i>&nbsp;        }
+<i class="no-highlight">569</i>&nbsp;    }
+<i class="no-highlight">570</i>&nbsp;
+<i class="no-highlight">571</i>&nbsp;    void buildExternalFilePaths(List&lt;String&gt; filesList, String accountName,
+<i class="no-highlight">572</i>&nbsp;                                String endpoint, String container, String folder) {
+<b class="nc"><i class="no-highlight">573</i>&nbsp;        buildExternalFilePaths(filesList, accountName, endpoint, container, folder,</b>
+<i class="no-highlight">574</i>&nbsp;                true);
+<i class="no-highlight">575</i>&nbsp;    }
+<i class="no-highlight">576</i>&nbsp;
+<i class="no-highlight">577</i>&nbsp;    /**
+<i class="no-highlight">578</i>&nbsp;     * Creates absolute paths for each file in the list
+<i class="no-highlight">579</i>&nbsp;     *
+<i class="no-highlight">580</i>&nbsp;     * @param filesList
+<i class="no-highlight">581</i>&nbsp;     * @param accountName
+<i class="no-highlight">582</i>&nbsp;     * @param endpoint
+<i class="no-highlight">583</i>&nbsp;     * @param container
+<i class="no-highlight">584</i>&nbsp;     * @param folder
+<i class="no-highlight">585</i>&nbsp;     * @param validateFilePaths will be false for error file
+<i class="no-highlight">586</i>&nbsp;     */
+<i class="no-highlight">587</i>&nbsp;    void buildExternalFilePaths(List&lt;String&gt; filesList, String accountName, String endpoint,
+<i class="no-highlight">588</i>&nbsp;                                String container, String folder, boolean validateFilePaths) {
+<b class="nc"><i class="no-highlight">589</i>&nbsp;        if (CollectionUtils.isNotEmpty(filesList)) {</b>
+<b class="nc"><i class="no-highlight">590</i>&nbsp;            List&lt;String&gt; blobFiles = null;</b>
+<i class="no-highlight">591</i>&nbsp;            /**
+<i class="no-highlight">592</i>&nbsp;             * external file validation not required for datasource inputview
+<i class="no-highlight">593</i>&nbsp;             * so skipping blob lookup
+<i class="no-highlight">594</i>&nbsp;             */
+<b class="nc"><i class="no-highlight">595</i>&nbsp;            if (validateFilePaths &amp;&amp; EXTERNAL_STORAGE.equals(dataSource)) {</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;                blobFiles = fetchBlobFiles();</b>
+<i class="no-highlight">597</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">598</i>&nbsp;            for (String filePath : filesList) {</b>
+<i class="no-highlight">599</i>&nbsp;                String filePathReformatted;
+<b class="nc"><i class="no-highlight">600</i>&nbsp;                Matcher extFileMatcher = EXTFILE_PATTERN.matcher(filePath);</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;                if (!extFileMatcher.matches()) {</b>
+<b class="nc"><i class="no-highlight">602</i>&nbsp;                    filePathReformatted = reformatUrlFilePaths(filePath);</b>
+<b class="nc"><i class="no-highlight">603</i>&nbsp;                    StringBuilder filePathBuilder = new StringBuilder(2048);</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;                    if (StringUtils.isNotBlank(container)) {</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;                        filePathBuilder.append(StringUtils.strip(container, SLASH));</b>
+<i class="no-highlight">606</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">607</i>&nbsp;                    if (StringUtils.isNotBlank(folder)) {</b>
+<b class="nc"><i class="no-highlight">608</i>&nbsp;                        filePathBuilder.append(SLASH);</b>
+<b class="nc"><i class="no-highlight">609</i>&nbsp;                        filePathBuilder.append(StringUtils.strip(folder, SLASH));</b>
+<i class="no-highlight">610</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">611</i>&nbsp;                    if (StringUtils.isNotBlank(filePathReformatted)) {</b>
+<b class="nc"><i class="no-highlight">612</i>&nbsp;                        filePathBuilder.append(SLASH);</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;                        filePathBuilder.append(StringUtils.strip(filePathReformatted, SLASH));</b>
+<i class="no-highlight">614</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">615</i>&nbsp;                    if (CollectionUtils.isNotEmpty(blobFiles) &amp;&amp; !blobFiles.stream().anyMatch(f -&gt;</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;                            StringUtils.equalsIgnoreCase(f,</b>
+<b class="nc"><i class="no-highlight">617</i>&nbsp;                                    StringUtils.strip(StringUtils.strip(folder, SLASH) + SLASH +</b>
+<b class="nc"><i class="no-highlight">618</i>&nbsp;                                    StringUtils.strip(filePathReformatted, SLASH), SLASH)))) {</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;                        throw new ExecutionException(ERR_NO_FILES_FOUND_TO_COPY_FROM)</b>
+<b class="nc"><i class="no-highlight">620</i>&nbsp;                                .withReason(String.format(REASON_NO_FILES_FOUND,</b>
+<i class="no-highlight">621</i>&nbsp;                                        filePathReformatted,
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                                        StringUtils.strip(StringUtils.isEmpty(folder) ?</b>
+<b class="nc"><i class="no-highlight">623</i>&nbsp;                                                container : folder, SLASH)))</b>
+<b class="nc"><i class="no-highlight">624</i>&nbsp;                                .withResolution(RES_NO_FILES_FOUND);</b>
+<i class="no-highlight">625</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">626</i>&nbsp;                    String fullFilePath = String.format(EXTERNAL_FILE_FMT, accountName,</b>
+<i class="no-highlight">627</i>&nbsp;                            endpoint, filePathBuilder);
+<b class="nc"><i class="no-highlight">628</i>&nbsp;                    int index = filesList.indexOf(filePathReformatted);</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;                    filesList.set(index, fullFilePath);</b>
+<i class="no-highlight">630</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">631</i>&nbsp;            }</b>
+<i class="no-highlight">632</i>&nbsp;        }
+<i class="no-highlight">633</i>&nbsp;    }
+<i class="no-highlight">634</i>&nbsp;
+<i class="no-highlight">635</i>&nbsp;    /**
+<i class="no-highlight">636</i>&nbsp;     * Formats url
+<i class="no-highlight">637</i>&nbsp;     *
+<i class="no-highlight">638</i>&nbsp;     * @param filePath
+<i class="no-highlight">639</i>&nbsp;     * @return
+<i class="no-highlight">640</i>&nbsp;     */
+<i class="no-highlight">641</i>&nbsp;    protected String reformatUrlFilePaths(String filePath) {
+<b class="nc"><i class="no-highlight">642</i>&nbsp;        if (StringUtils.isNotBlank(filePath)) {</b>
+<b class="nc"><i class="no-highlight">643</i>&nbsp;            int index = filePath.lastIndexOf(URL_PROTOCOL_DELIM);</b>
+<b class="nc"><i class="no-highlight">644</i>&nbsp;            if (index &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                filePath = filePath.substring(index + URL_PROTOCOL_DELIM.length());</b>
+<b class="nc"><i class="no-highlight">646</i>&nbsp;                index = filePath.indexOf(SLASH);</b>
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                if (index &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">648</i>&nbsp;                    filePath = filePath.substring(++index);</b>
+<i class="no-highlight">649</i>&nbsp;                }
+<i class="no-highlight">650</i>&nbsp;            }
+<i class="no-highlight">651</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">652</i>&nbsp;        return filePath;</b>
+<i class="no-highlight">653</i>&nbsp;    }
+<i class="no-highlight">654</i>&nbsp;
+<i class="no-highlight">655</i>&nbsp;    /**
+<i class="no-highlight">656</i>&nbsp;     * Creates storage client depends on the auth type
+<i class="no-highlight">657</i>&nbsp;     */
+<i class="no-highlight">658</i>&nbsp;    protected void createAzureClient() {
+<b class="nc"><i class="no-highlight">659</i>&nbsp;        if (bsClient != null || adlsClient != null) {</b>
+<i class="no-highlight">660</i>&nbsp;            return;
+<i class="no-highlight">661</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">662</i>&nbsp;        if (authType.equalsIgnoreCase(AAD_USER_AUTH)) {</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;            if (StringUtils.isBlank(((AzureSynapseSQLAbstractAccount) account)</b>
+<b class="nc"><i class="no-highlight">664</i>&nbsp;                    .getClientId()) ||</b>
+<b class="nc"><i class="no-highlight">665</i>&nbsp;                    StringUtils.isBlank(((AzureSynapseSQLAbstractAccount) account)</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;                            .getClientSecret()) ||</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;                    StringUtils.isBlank(((AzureSynapseSQLAbstractAccount) account)</b>
+<b class="nc"><i class="no-highlight">668</i>&nbsp;                            .getTenantId())) {</b>
+<b class="nc"><i class="no-highlight">669</i>&nbsp;                throw new ConfigurationException(ERR_BLANK_AAD_CREDS)</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;                        .withReason(REASON_BLANK_AAD_CREDS)</b>
+<b class="nc"><i class="no-highlight">671</i>&nbsp;                        .withResolution(RES_BLANK_AAD_CREDS);</b>
+<i class="no-highlight">672</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">673</i>&nbsp;            createADStorageClients(accountName, ((AzureSynapseSQLAbstractAccount) account)</b>
+<b class="nc"><i class="no-highlight">674</i>&nbsp;                    .getTenantId(), ((AzureSynapseSQLAbstractAccount) account)</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                    .getClientId(), ((AzureSynapseSQLAbstractAccount) account)</b>
+<b class="nc"><i class="no-highlight">676</i>&nbsp;                    .getClientSecret(), endpoint);</b>
+<b class="nc"><i class="no-highlight">677</i>&nbsp;        } else if (authType.equalsIgnoreCase(AZURE_SYNAPSE_SAS_AUTH)) {</b>
+<b class="nc"><i class="no-highlight">678</i>&nbsp;            if (StringUtils.isBlank(((AzureSynapseSQLAbstractAccount) account)</b>
+<b class="nc"><i class="no-highlight">679</i>&nbsp;                    .getSecret())) {</b>
+<b class="nc"><i class="no-highlight">680</i>&nbsp;                throw new ConfigurationException(ERR_BLANK_SASTOKEN)</b>
+<b class="nc"><i class="no-highlight">681</i>&nbsp;                        .withReason(REASON_BLANK_SASTOKEN)</b>
+<b class="nc"><i class="no-highlight">682</i>&nbsp;                        .withResolution(RES_BLANK_SASTOKEN);</b>
+<i class="no-highlight">683</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">684</i>&nbsp;            createSASClient(accountName, endpoint,</b>
+<b class="nc"><i class="no-highlight">685</i>&nbsp;                    ((AzureSynapseSQLAbstractAccount) account).getSecret());</b>
+<i class="no-highlight">686</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">687</i>&nbsp;            if (StringUtils.isBlank(((AzureSynapseSQLAbstractAccount) account)</b>
+<b class="nc"><i class="no-highlight">688</i>&nbsp;                    .getStorageKey())) {</b>
+<b class="nc"><i class="no-highlight">689</i>&nbsp;                throw new ConfigurationException(ERR_BLANK_STORAGE_KEY)</b>
+<b class="nc"><i class="no-highlight">690</i>&nbsp;                        .withReason(REASON_BLANK_STORAGE_KEY)</b>
+<b class="nc"><i class="no-highlight">691</i>&nbsp;                        .withResolution(RES_BLANK_STORAGE_KEY);</b>
+<i class="no-highlight">692</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">693</i>&nbsp;            createSharedKeyStorageClient(accountName, endpoint,</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;                    ((AzureSynapseSQLAbstractAccount) account).getStorageKey());</b>
+<i class="no-highlight">695</i>&nbsp;        }
+<i class="no-highlight">696</i>&nbsp;    }
+<i class="no-highlight">697</i>&nbsp;
+<i class="no-highlight">698</i>&nbsp;    /**
+<i class="no-highlight">699</i>&nbsp;     * Creates AD storage service client
+<i class="no-highlight">700</i>&nbsp;     *
+<i class="no-highlight">701</i>&nbsp;     * @param accountName
+<i class="no-highlight">702</i>&nbsp;     * @param tenantId
+<i class="no-highlight">703</i>&nbsp;     * @param clientId
+<i class="no-highlight">704</i>&nbsp;     * @param clientSecret
+<i class="no-highlight">705</i>&nbsp;     * @param endpoint
+<i class="no-highlight">706</i>&nbsp;     */
+<i class="no-highlight">707</i>&nbsp;    protected void createADStorageClients(String accountName, String tenantId,
+<i class="no-highlight">708</i>&nbsp;                                          String clientId, String clientSecret,
+<i class="no-highlight">709</i>&nbsp;                                          String endpoint) {
+<b class="nc"><i class="no-highlight">710</i>&nbsp;        if (BLOB_STORAGE.equalsIgnoreCase(externalStorage)) {</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;            bsClient = new BlobServiceClientBuilder().credential(</b>
+<i class="no-highlight">712</i>&nbsp;                            new ClientSecretCredentialBuilder()
+<b class="nc"><i class="no-highlight">713</i>&nbsp;                                    .tenantId(tenantId)</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;                                    .clientId(clientId)</b>
+<b class="nc"><i class="no-highlight">715</i>&nbsp;                                    .clientSecret(clientSecret).build())</b>
+<b class="nc"><i class="no-highlight">716</i>&nbsp;                    .endpoint(String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">717</i>&nbsp;                    .retryOptions(new RetryOptions(RETRY_POLICY))</b>
+<b class="nc"><i class="no-highlight">718</i>&nbsp;                    .buildClient();</b>
+<i class="no-highlight">719</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">720</i>&nbsp;            adlsClient = new DataLakeServiceClientBuilder().credential(</b>
+<i class="no-highlight">721</i>&nbsp;                            new ClientSecretCredentialBuilder()
+<b class="nc"><i class="no-highlight">722</i>&nbsp;                                    .tenantId(tenantId)</b>
+<b class="nc"><i class="no-highlight">723</i>&nbsp;                                    .clientId(clientId)</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;                                    .clientSecret(clientSecret).build())</b>
+<b class="nc"><i class="no-highlight">725</i>&nbsp;                    .endpoint(String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">726</i>&nbsp;                    .retryOptions(new RetryOptions(RETRY_POLICY))</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;                    .buildClient();</b>
+<i class="no-highlight">728</i>&nbsp;        }
+<i class="no-highlight">729</i>&nbsp;    }
+<i class="no-highlight">730</i>&nbsp;
+<i class="no-highlight">731</i>&nbsp;    /**
+<i class="no-highlight">732</i>&nbsp;     * Creates shared key storage client
+<i class="no-highlight">733</i>&nbsp;     *
+<i class="no-highlight">734</i>&nbsp;     * @param accountName
+<i class="no-highlight">735</i>&nbsp;     * @param endpoint
+<i class="no-highlight">736</i>&nbsp;     * @param storageKey
+<i class="no-highlight">737</i>&nbsp;     */
+<i class="no-highlight">738</i>&nbsp;    protected void createSharedKeyStorageClient(String accountName, String endpoint,
+<i class="no-highlight">739</i>&nbsp;                                                String storageKey) {
+<b class="nc"><i class="no-highlight">740</i>&nbsp;        if (BLOB_STORAGE.equalsIgnoreCase(externalStorage)) {</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;            bsClient = new BlobServiceClientBuilder()</b>
+<b class="nc"><i class="no-highlight">742</i>&nbsp;                    .credential(new StorageSharedKeyCredential(accountName,</b>
+<i class="no-highlight">743</i>&nbsp;                            storageKey))
+<b class="nc"><i class="no-highlight">744</i>&nbsp;                    .endpoint(String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">745</i>&nbsp;                    .retryOptions(new RetryOptions(RETRY_POLICY))</b>
+<b class="nc"><i class="no-highlight">746</i>&nbsp;                    .buildClient();</b>
+<i class="no-highlight">747</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">748</i>&nbsp;            adlsClient = new DataLakeServiceClientBuilder().credential(</b>
+<i class="no-highlight">749</i>&nbsp;                            new StorageSharedKeyCredential(accountName, storageKey))
+<b class="nc"><i class="no-highlight">750</i>&nbsp;                    .endpoint(String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">751</i>&nbsp;                    .retryOptions(new RetryOptions(RETRY_POLICY))</b>
+<b class="nc"><i class="no-highlight">752</i>&nbsp;                    .buildClient();</b>
+<i class="no-highlight">753</i>&nbsp;        }
+<i class="no-highlight">754</i>&nbsp;    }
+<i class="no-highlight">755</i>&nbsp;
+<i class="no-highlight">756</i>&nbsp;    /**
+<i class="no-highlight">757</i>&nbsp;     * Creates client using sas token
+<i class="no-highlight">758</i>&nbsp;     *
+<i class="no-highlight">759</i>&nbsp;     * @param accountName
+<i class="no-highlight">760</i>&nbsp;     * @param endpoint
+<i class="no-highlight">761</i>&nbsp;     * @param sasToken
+<i class="no-highlight">762</i>&nbsp;     */
+<i class="no-highlight">763</i>&nbsp;    protected void createSASClient(String accountName, String endpoint, String sasToken) {
+<b class="nc"><i class="no-highlight">764</i>&nbsp;        if (BLOB_STORAGE.equalsIgnoreCase(externalStorage)) {</b>
+<b class="nc"><i class="no-highlight">765</i>&nbsp;            bsClient = new BlobServiceClientBuilder().sasToken(sasToken)</b>
+<b class="nc"><i class="no-highlight">766</i>&nbsp;                    .endpoint(String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;                    .retryOptions(new RetryOptions(RETRY_POLICY))</b>
+<b class="nc"><i class="no-highlight">768</i>&nbsp;                    .buildClient();</b>
+<i class="no-highlight">769</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">770</i>&nbsp;            adlsClient = new DataLakeServiceClientBuilder().sasToken(sasToken)</b>
+<b class="nc"><i class="no-highlight">771</i>&nbsp;                    .endpoint(String.format(ENDPOINT_FORMAT, accountName, endpoint))</b>
+<b class="nc"><i class="no-highlight">772</i>&nbsp;                    .retryOptions(new RetryOptions(RETRY_POLICY))</b>
+<b class="nc"><i class="no-highlight">773</i>&nbsp;                    .buildClient();</b>
+<i class="no-highlight">774</i>&nbsp;        }
+<i class="no-highlight">775</i>&nbsp;    }
+<i class="no-highlight">776</i>&nbsp;
+<i class="no-highlight">777</i>&nbsp;    /**
+<i class="no-highlight">778</i>&nbsp;     * list files from storage locations filter them based on pattern
+<i class="no-highlight">779</i>&nbsp;     */
+<i class="no-highlight">780</i>&nbsp;    protected void listFilesBasedOnPattern() {
+<b class="nc"><i class="no-highlight">781</i>&nbsp;        Pattern pattern = Pattern.compile(filePattern);</b>
+<b class="nc"><i class="no-highlight">782</i>&nbsp;        copyFileList.clear();</b>
+<b class="nc"><i class="no-highlight">783</i>&nbsp;        String azurefolder = StringUtils.strip(folder, SLASH);</b>
+<i class="no-highlight">784</i>&nbsp;
+<i class="no-highlight">785</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">786</i>&nbsp;            createAzureClient();</b>
+<b class="nc"><i class="no-highlight">787</i>&nbsp;            if (BLOB_STORAGE.equalsIgnoreCase(externalStorage)) {</b>
+<b class="nc"><i class="no-highlight">788</i>&nbsp;                BlobContainerClient bcClient = bsClient.getBlobContainerClient(container);</b>
+<b class="nc"><i class="no-highlight">789</i>&nbsp;                ListBlobsOptions blobOptions = new ListBlobsOptions();</b>
+<b class="nc"><i class="no-highlight">790</i>&nbsp;                if (StringUtils.isNotBlank(azurefolder)) {</b>
+<b class="nc"><i class="no-highlight">791</i>&nbsp;                    blobOptions.setPrefix(azurefolder + SLASH);</b>
+<i class="no-highlight">792</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">793</i>&nbsp;                for (BlobItem blob : bcClient.listBlobs(blobOptions, AZURE_API_TIMEOUT_SEC)) {</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;                    addFiles(blob.getName(), azurefolder, pattern);</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">797</i>&nbsp;                DataLakeFileSystemClient adlsFSClient = adlsClient.getFileSystemClient(container);</b>
+<b class="nc"><i class="no-highlight">798</i>&nbsp;                ListPathsOptions options = new ListPathsOptions();</b>
+<b class="nc"><i class="no-highlight">799</i>&nbsp;                options.setRecursive(true);</b>
+<b class="nc"><i class="no-highlight">800</i>&nbsp;                if (StringUtils.isNotBlank(azurefolder)) {</b>
+<b class="nc"><i class="no-highlight">801</i>&nbsp;                    options.setPath(azurefolder + SLASH);</b>
+<i class="no-highlight">802</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">803</i>&nbsp;                for (PathItem pathItem : adlsFSClient.listPaths(options, AZURE_API_TIMEOUT_SEC)) {</b>
+<b class="nc"><i class="no-highlight">804</i>&nbsp;                    if (pathItem.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">805</i>&nbsp;                        continue;</b>
+<i class="no-highlight">806</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">807</i>&nbsp;                    addFiles(pathItem.getName(), azurefolder, pattern);</b>
+<b class="nc"><i class="no-highlight">808</i>&nbsp;                }</b>
+<i class="no-highlight">809</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">810</i>&nbsp;        } catch (AzureException ex) {</b>
+<b class="nc"><i class="no-highlight">811</i>&nbsp;            throw new SnapDataException(ex, ERR_FETCH_FILES_FROM_EXTERNAL_STORAGE)</b>
+<b class="nc"><i class="no-highlight">812</i>&nbsp;                    .withReason(String.format(REASON_INCORRECT_EXTERNAL_STORAGE_ACCOUNT,</b>
+<i class="no-highlight">813</i>&nbsp;                            externalStorage))
+<b class="nc"><i class="no-highlight">814</i>&nbsp;                    .withResolution(String.format(RESOLUTION_INCORERCT_EXTERNAL_STORAGE_ACCOUNT,</b>
+<i class="no-highlight">815</i>&nbsp;                            externalStorage));
+<b class="nc"><i class="no-highlight">816</i>&nbsp;        }</b>
+<i class="no-highlight">817</i>&nbsp;    }
+<i class="no-highlight">818</i>&nbsp;
+<i class="no-highlight">819</i>&nbsp;    /**
+<i class="no-highlight">820</i>&nbsp;     * list files from storage locations filter them based on pattern
+<i class="no-highlight">821</i>&nbsp;     */
+<i class="no-highlight">822</i>&nbsp;    protected List&lt;String&gt; fetchBlobFiles() {
+<b class="nc"><i class="no-highlight">823</i>&nbsp;        String azurefolder = StringUtils.strip(folder, SLASH);</b>
+<b class="nc"><i class="no-highlight">824</i>&nbsp;        List&lt;String&gt; fileList = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">825</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">826</i>&nbsp;            createAzureClient();</b>
+<b class="nc"><i class="no-highlight">827</i>&nbsp;            if (BLOB_STORAGE.equalsIgnoreCase(externalStorage)) {</b>
+<b class="nc"><i class="no-highlight">828</i>&nbsp;                BlobContainerClient bcClient = bsClient.getBlobContainerClient(container);</b>
+<b class="nc"><i class="no-highlight">829</i>&nbsp;                ListBlobsOptions blobOptions = new ListBlobsOptions();</b>
+<b class="nc"><i class="no-highlight">830</i>&nbsp;                if (StringUtils.isNotBlank(azurefolder)) {</b>
+<b class="nc"><i class="no-highlight">831</i>&nbsp;                    blobOptions.setPrefix(azurefolder + SLASH);</b>
+<i class="no-highlight">832</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">833</i>&nbsp;                for (BlobItem blob : bcClient.listBlobs(blobOptions, AZURE_API_TIMEOUT_SEC)) {</b>
+<b class="nc"><i class="no-highlight">834</i>&nbsp;                    fileList.add(blob.getName());</b>
+<b class="nc"><i class="no-highlight">835</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">836</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">837</i>&nbsp;                DataLakeFileSystemClient adlsFSClient = adlsClient.getFileSystemClient(container);</b>
+<b class="nc"><i class="no-highlight">838</i>&nbsp;                ListPathsOptions options = new ListPathsOptions();</b>
+<b class="nc"><i class="no-highlight">839</i>&nbsp;                options.setRecursive(true);</b>
+<b class="nc"><i class="no-highlight">840</i>&nbsp;                if (StringUtils.isNotBlank(folder)) {</b>
+<b class="nc"><i class="no-highlight">841</i>&nbsp;                    options.setPath(folder + SLASH);</b>
+<i class="no-highlight">842</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">843</i>&nbsp;                for (PathItem pathItem : adlsFSClient.listPaths(options, AZURE_API_TIMEOUT_SEC)) {</b>
+<b class="nc"><i class="no-highlight">844</i>&nbsp;                    if (pathItem.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">845</i>&nbsp;                        continue;</b>
+<i class="no-highlight">846</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">847</i>&nbsp;                    fileList.add(pathItem.getName());</b>
+<b class="nc"><i class="no-highlight">848</i>&nbsp;                }</b>
+<i class="no-highlight">849</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">850</i>&nbsp;        } catch (AzureException ex) {</b>
+<b class="nc"><i class="no-highlight">851</i>&nbsp;            throw new SnapDataException(ex, ERR_FETCH_FILES_FROM_EXTERNAL_STORAGE)</b>
+<b class="nc"><i class="no-highlight">852</i>&nbsp;                    .withReason(ex.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">853</i>&nbsp;                    .withResolution(PLEASE_ADDRESS_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">854</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">855</i>&nbsp;        return fileList;</b>
+<i class="no-highlight">856</i>&nbsp;    }
+<i class="no-highlight">857</i>&nbsp;
+<i class="no-highlight">858</i>&nbsp;    /**
+<i class="no-highlight">859</i>&nbsp;     * Store the input document into a temporary file. The temp file will be on local disk if
+<i class="no-highlight">860</i>&nbsp;     * internal stage,
+<i class="no-highlight">861</i>&nbsp;     *
+<i class="no-highlight">862</i>&nbsp;     * @param document Single document object
+<i class="no-highlight">863</i>&nbsp;     */
+<i class="no-highlight">864</i>&nbsp;    protected void storeInputDocument(Document document) {
+<b class="nc"><i class="no-highlight">865</i>&nbsp;        Map&lt;String, Object&gt; data = document == null ? null : document.get(Map.class);</b>
+<b class="nc"><i class="no-highlight">866</i>&nbsp;        if (data == null) {</b>
+<i class="no-highlight">867</i>&nbsp;            return;
+<i class="no-highlight">868</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">869</i>&nbsp;        databaseUtils.translateColumnNamesInDoc(columnTranslation, document);</b>
+<b class="nc"><i class="no-highlight">870</i>&nbsp;        if (firstRecord) {</b>
+<i class="no-highlight">871</i>&nbsp;            // tableMetaData may have been set by configureSnap, but might be stale
+<i class="no-highlight">872</i>&nbsp;            // if snaps running in parallel recreated the table since then.
+<b class="nc"><i class="no-highlight">873</i>&nbsp;            tableMetaData = lazyLoadTableMetadata() ? null : tableMetaData;</b>
+<b class="nc"><i class="no-highlight">874</i>&nbsp;            if (autoCreateTable) {</b>
+<i class="no-highlight">875</i>&nbsp;                // this will set tableMetaData if the table is created
+<b class="nc"><i class="no-highlight">876</i>&nbsp;                createTableIfAbsent(document);</b>
+<i class="no-highlight">877</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">878</i>&nbsp;            if (tableMetaData == null) {</b>
+<b class="nc"><i class="no-highlight">879</i>&nbsp;                Connection conn = jdbcOperations.acquireConnection(account);</b>
+<b class="nc"><i class="no-highlight">880</i>&nbsp;                tableMetaData = jdbcOperations.getTableMetaData(conn,</b>
+<b class="nc"><i class="no-highlight">881</i>&nbsp;                        account.getDatabaseConfig().getDatabaseName(), tableName);</b>
+<b class="nc"><i class="no-highlight">882</i>&nbsp;                if (tableMetaData.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">883</i>&nbsp;                    throw new ConfigurationException(TABLE_NOT_FOUND)</b>
+<b class="nc"><i class="no-highlight">884</i>&nbsp;                            .formatWith(tableName)</b>
+<b class="nc"><i class="no-highlight">885</i>&nbsp;                            .withReason(ERROR_TABLE_DOES_NOT_EXIST)</b>
+<b class="nc"><i class="no-highlight">886</i>&nbsp;                            .withResolution(ERROR_TABLE_DOES_NOT_EXIST_RESOLUTION);</b>
+<i class="no-highlight">887</i>&nbsp;                }
+<i class="no-highlight">888</i>&nbsp;            }
+<i class="no-highlight">889</i>&nbsp;            //Verify input document
+<b class="nc"><i class="no-highlight">890</i>&nbsp;            if (CollectionUtils.isEmpty(tableColumns)) {</b>
+<b class="nc"><i class="no-highlight">891</i>&nbsp;                tableColumns = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">892</i>&nbsp;                for (Object column : data.keySet()) {</b>
+<b class="nc"><i class="no-highlight">893</i>&nbsp;                    String columnStr = column.toString();</b>
+<b class="nc"><i class="no-highlight">894</i>&nbsp;                    if (containsColumn(tableMetaData, columnStr)) {</b>
+<b class="nc"><i class="no-highlight">895</i>&nbsp;                        copyColumns.add(columnStr);</b>
+<b class="nc"><i class="no-highlight">896</i>&nbsp;                        tableColumns.add(String.format(ID_QUOTE_FORMAT, column));</b>
+<i class="no-highlight">897</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">898</i>&nbsp;                }</b>
+<i class="no-highlight">899</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">900</i>&nbsp;            if (copyColumns.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">901</i>&nbsp;                throw new ExecutionException(ERROR_INVALID_INPUT)</b>
+<b class="nc"><i class="no-highlight">902</i>&nbsp;                        .withReason(ERROR_INVALID_INPUT_REASON)</b>
+<b class="nc"><i class="no-highlight">903</i>&nbsp;                        .withResolution(ERROR_INVALID_INPUT_RESOLUTION);</b>
+<i class="no-highlight">904</i>&nbsp;            }
+<i class="no-highlight">905</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">906</i>&nbsp;        writeToLocalFile(data);</b>
+<i class="no-highlight">907</i>&nbsp;    }
+<i class="no-highlight">908</i>&nbsp;
+<i class="no-highlight">909</i>&nbsp;    protected boolean containsColumn(TableMetaData tableMetaData, String columnStr) {
+<b class="nc"><i class="no-highlight">910</i>&nbsp;        String normalizedColumn = jdbcOperations.normalize(columnStr);</b>
+<b class="nc"><i class="no-highlight">911</i>&nbsp;        for (String key : tableMetaData.keySet()) {</b>
+<b class="nc"><i class="no-highlight">912</i>&nbsp;            if (key.equalsIgnoreCase(normalizedColumn)) {</b>
+<b class="nc"><i class="no-highlight">913</i>&nbsp;                return true;</b>
+<i class="no-highlight">914</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">915</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">916</i>&nbsp;        return false;</b>
+<i class="no-highlight">917</i>&nbsp;    }
+<i class="no-highlight">918</i>&nbsp;
+<i class="no-highlight">919</i>&nbsp;    /**
+<i class="no-highlight">920</i>&nbsp;     * Uploads local file to external storage location
+<i class="no-highlight">921</i>&nbsp;     *
+<i class="no-highlight">922</i>&nbsp;     * @return
+<i class="no-highlight">923</i>&nbsp;     */
+<i class="no-highlight">924</i>&nbsp;    protected boolean uploadFileToExternalStorage() {
+<b class="nc"><i class="no-highlight">925</i>&nbsp;        LOGGER.debug(LOG_COPY_TEMP_FILE_UPLOAD, tmpFileName);</b>
+<b class="nc"><i class="no-highlight">926</i>&nbsp;        createAzureClient();</b>
+<b class="nc"><i class="no-highlight">927</i>&nbsp;        if (BLOB_STORAGE.equalsIgnoreCase(externalStorage)) {</b>
+<i class="no-highlight">928</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">929</i>&nbsp;                BlobContainerClient blobContainerClient =</b>
+<b class="nc"><i class="no-highlight">930</i>&nbsp;                        bsClient.getBlobContainerClient(container);</b>
+<b class="nc"><i class="no-highlight">931</i>&nbsp;                BlobClient blobClient = blobContainerClient.getBlobClient(</b>
+<b class="nc"><i class="no-highlight">932</i>&nbsp;                        getRelativeFilePath(tmpFileName));</b>
+<b class="nc"><i class="no-highlight">933</i>&nbsp;                ParallelTransferOptions transferOptions = new ParallelTransferOptions();</b>
+<b class="nc"><i class="no-highlight">934</i>&nbsp;                transferOptions.setBlockSizeLong((long) blockSize.intValue() * 1024 * 1024);</b>
+<b class="nc"><i class="no-highlight">935</i>&nbsp;                transferOptions.setMaxConcurrency(maxConcurrency.intValue());</b>
+<b class="nc"><i class="no-highlight">936</i>&nbsp;                BlobHttpHeaders headers = new BlobHttpHeaders()</b>
+<b class="nc"><i class="no-highlight">937</i>&nbsp;                        .setContentLanguage(&quot;en-US&quot;)</b>
+<b class="nc"><i class="no-highlight">938</i>&nbsp;                        .setContentType(&quot;binary&quot;);</b>
+<b class="nc"><i class="no-highlight">939</i>&nbsp;                blobClient.uploadFromFile(dataTmpFile, transferOptions, headers,</b>
+<i class="no-highlight">940</i>&nbsp;                        null, AccessTier.HOT, new BlobRequestConditions(),
+<b class="nc"><i class="no-highlight">941</i>&nbsp;                        Duration.ofMinutes(AZURE_TIMEOUT));</b>
+<b class="nc"><i class="no-highlight">942</i>&nbsp;            } catch (AzureException ex) {</b>
+<b class="nc"><i class="no-highlight">943</i>&nbsp;                throw new SnapDataException(ex, &quot;Failed to upload the source data to the blob.&quot;)</b>
+<b class="nc"><i class="no-highlight">944</i>&nbsp;                        .withReason(ex.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">945</i>&nbsp;                        .withResolution(PLEASE_ADDRESS_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">946</i>&nbsp;            }</b>
+<i class="no-highlight">947</i>&nbsp;        } else {
+<i class="no-highlight">948</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">949</i>&nbsp;                DataLakeFileClient fileClient = adlsClient.getFileSystemClient(container)</b>
+<b class="nc"><i class="no-highlight">950</i>&nbsp;                        .createFile(getRelativeFilePath(tmpFileName, false), true);</b>
+<b class="nc"><i class="no-highlight">951</i>&nbsp;                fileClient.uploadFromFile(dataTmpFile, true);</b>
+<b class="nc"><i class="no-highlight">952</i>&nbsp;            } catch (AzureException ex) {</b>
+<b class="nc"><i class="no-highlight">953</i>&nbsp;                throw new SnapDataException(ex, &quot;Failed to upload the source data to the &quot; +</b>
+<i class="no-highlight">954</i>&nbsp;                        &quot;datalake filesystem.&quot;)
+<b class="nc"><i class="no-highlight">955</i>&nbsp;                        .withReason(ex.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">956</i>&nbsp;                        .withResolution(PLEASE_ADDRESS_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">957</i>&nbsp;            }</b>
+<i class="no-highlight">958</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">959</i>&nbsp;        LOGGER.debug(LOG_COPY_TEMP_FILE_UPLOAD_DONE, tmpFileName);</b>
+<b class="nc"><i class="no-highlight">960</i>&nbsp;        return true;</b>
+<i class="no-highlight">961</i>&nbsp;    }
+<i class="no-highlight">962</i>&nbsp;
+<i class="no-highlight">963</i>&nbsp;    /**
+<i class="no-highlight">964</i>&nbsp;     * Deletes files from external storage location
+<i class="no-highlight">965</i>&nbsp;     */
+<i class="no-highlight">966</i>&nbsp;    protected void purgeFilesFromExternalStorage() {
+<b class="nc"><i class="no-highlight">967</i>&nbsp;        LOGGER.debug(LOG_COPY_PURGE_FILE);</b>
+<b class="nc"><i class="no-highlight">968</i>&nbsp;        createAzureClient();</b>
+<b class="nc"><i class="no-highlight">969</i>&nbsp;        if (BLOB_STORAGE.equalsIgnoreCase(externalStorage)) {</b>
+<b class="nc"><i class="no-highlight">970</i>&nbsp;            BlobContainerClient blobContainerClient = bsClient.getBlobContainerClient(container);</b>
+<b class="nc"><i class="no-highlight">971</i>&nbsp;            for (String path : purgeFileList) {</b>
+<i class="no-highlight">972</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">973</i>&nbsp;                    BlobClient blobClient =</b>
+<b class="nc"><i class="no-highlight">974</i>&nbsp;                            blobContainerClient.getBlobClient(getRelativeFilePath(path));</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;                    if (blobClient.exists()) {</b>
+<b class="nc"><i class="no-highlight">976</i>&nbsp;                        blobClient.delete();</b>
+<b class="nc"><i class="no-highlight">977</i>&nbsp;                        LOGGER.debug(&quot;Deleted File {} &quot;, path);</b>
+<i class="no-highlight">978</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">979</i>&nbsp;                } catch (AzureException ex) {</b>
+<b class="nc"><i class="no-highlight">980</i>&nbsp;                    SnapDataException sde = new SnapDataException(ex, ERROR_FILE_DOES_NOT_EXIST)</b>
+<b class="nc"><i class="no-highlight">981</i>&nbsp;                            .withReason(ERROR_FILE_DOES_NOT_EXIST_REASON, path)</b>
+<b class="nc"><i class="no-highlight">982</i>&nbsp;                            .withResolution(PLEASE_ADDRESS_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">983</i>&nbsp;                    errorViews.write(sde);</b>
+<b class="nc"><i class="no-highlight">984</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">985</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">986</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">987</i>&nbsp;            DataLakeFileSystemClient fileSystemClient = adlsClient.getFileSystemClient(container);</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;            for (String path : purgeFileList) {</b>
+<i class="no-highlight">989</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">990</i>&nbsp;                    DataLakeFileClient fileClient =</b>
+<b class="nc"><i class="no-highlight">991</i>&nbsp;                            fileSystemClient.getFileClient(getRelativeFilePath(path, false));</b>
+<b class="nc"><i class="no-highlight">992</i>&nbsp;                    if (fileClient.exists()) {</b>
+<b class="nc"><i class="no-highlight">993</i>&nbsp;                        fileClient.delete();</b>
+<b class="nc"><i class="no-highlight">994</i>&nbsp;                        LOGGER.debug(&quot;Deleted File {} &quot;, path);</b>
+<i class="no-highlight">995</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">996</i>&nbsp;                } catch (AzureException ex) {</b>
+<b class="nc"><i class="no-highlight">997</i>&nbsp;                    SnapDataException sde = new SnapDataException(ex, ERROR_FILE_DOES_NOT_EXIST)</b>
+<b class="nc"><i class="no-highlight">998</i>&nbsp;                            .withReason(ERROR_FILE_DOES_NOT_EXIST_REASON, path)</b>
+<b class="nc"><i class="no-highlight">999</i>&nbsp;                            .withResolution(PLEASE_ADDRESS_MESSAGE);</b>
+<b class="nc"><i class="no-highlight">1000</i>&nbsp;                    errorViews.write(sde);</b>
+<b class="nc"><i class="no-highlight">1001</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">1002</i>&nbsp;            }</b>
+<i class="no-highlight">1003</i>&nbsp;        }
+<i class="no-highlight">1004</i>&nbsp;    }
+<i class="no-highlight">1005</i>&nbsp;
+<i class="no-highlight">1006</i>&nbsp;    /**
+<i class="no-highlight">1007</i>&nbsp;     * Generates relative file path from the url
+<i class="no-highlight">1008</i>&nbsp;     * @param filePath
+<i class="no-highlight">1009</i>&nbsp;     * @return
+<i class="no-highlight">1010</i>&nbsp;     */
+<i class="no-highlight">1011</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">1012</i>&nbsp;    protected String getRelativeFilePath(String filePath) {
+<b class="nc"><i class="no-highlight">1013</i>&nbsp;        return getRelativeFilePath(filePath, true);</b>
+<i class="no-highlight">1014</i>&nbsp;    }
+<i class="no-highlight">1015</i>&nbsp;
+<i class="no-highlight">1016</i>&nbsp;    /**
+<i class="no-highlight">1017</i>&nbsp;     * Generates relative external path
+<i class="no-highlight">1018</i>&nbsp;     *
+<i class="no-highlight">1019</i>&nbsp;     * @param fileName
+<i class="no-highlight">1020</i>&nbsp;     * @return
+<i class="no-highlight">1021</i>&nbsp;     */
+<i class="no-highlight">1022</i>&nbsp;    String getRelativeFilePath(String fileName, boolean prefixSlash) {
+<b class="nc"><i class="no-highlight">1023</i>&nbsp;        StringBuilder filePathBuilder = new StringBuilder(2048);</b>
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;        if (StringUtils.isNotBlank(folder)) {</b>
+<b class="nc"><i class="no-highlight">1025</i>&nbsp;            if (prefixSlash) {</b>
+<b class="nc"><i class="no-highlight">1026</i>&nbsp;                filePathBuilder.append(SLASH);</b>
+<i class="no-highlight">1027</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1028</i>&nbsp;            filePathBuilder.append(StringUtils.strip(folder, SLASH));</b>
+<b class="nc"><i class="no-highlight">1029</i>&nbsp;            filePathBuilder.append(SLASH);</b>
+<i class="no-highlight">1030</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1031</i>&nbsp;        filePathBuilder.append(fileName);</b>
+<b class="nc"><i class="no-highlight">1032</i>&nbsp;        return Utility.urlEncode(filePathBuilder.toString());</b>
+<i class="no-highlight">1033</i>&nbsp;    }
+<i class="no-highlight">1034</i>&nbsp;
+<i class="no-highlight">1035</i>&nbsp;    /**
+<i class="no-highlight">1036</i>&nbsp;     * Formats file paths and add them to the files list
+<i class="no-highlight">1037</i>&nbsp;     *
+<i class="no-highlight">1038</i>&nbsp;     * @param filePathStr
+<i class="no-highlight">1039</i>&nbsp;     * @param folder
+<i class="no-highlight">1040</i>&nbsp;     * @param pattern
+<i class="no-highlight">1041</i>&nbsp;     */
+<i class="no-highlight">1042</i>&nbsp;    protected void addFiles(String filePathStr, String folder, Pattern pattern) {
+<i class="no-highlight">1043</i>&nbsp;        String relativePath;
+<i class="no-highlight">1044</i>&nbsp;        String absolutePath;
+<b class="nc"><i class="no-highlight">1045</i>&nbsp;        List&lt;String&gt; pathList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">1046</i>&nbsp;        if (StringUtils.isNotBlank(folder) &amp;&amp; StringUtils.isNotBlank(filePathStr)) {</b>
+<b class="nc"><i class="no-highlight">1047</i>&nbsp;            relativePath = filePathStr.substring(folder.length());</b>
+<i class="no-highlight">1048</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1049</i>&nbsp;            relativePath = filePathStr;</b>
+<i class="no-highlight">1050</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1051</i>&nbsp;        pathList.add(0, relativePath);</b>
+<b class="nc"><i class="no-highlight">1052</i>&nbsp;        buildExternalFilePaths(pathList, accountName, endpoint, container, folder,</b>
+<i class="no-highlight">1053</i>&nbsp;                false);
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;        absolutePath = pathList.get(0);</b>
+<b class="nc"><i class="no-highlight">1055</i>&nbsp;        Matcher matcher = pattern.matcher(absolutePath);</b>
+<b class="nc"><i class="no-highlight">1056</i>&nbsp;        if (matcher.find()) {</b>
+<b class="nc"><i class="no-highlight">1057</i>&nbsp;            copyFileList.add(absolutePath);</b>
+<i class="no-highlight">1058</i>&nbsp;            // When file patten used, saving relative file path in purgeFileList
+<i class="no-highlight">1059</i>&nbsp;            // to use it for purge operation
+<b class="nc"><i class="no-highlight">1060</i>&nbsp;            purgeFileList.add(StringUtils.strip(relativePath, SLASH));</b>
+<i class="no-highlight">1061</i>&nbsp;        }
+<i class="no-highlight">1062</i>&nbsp;    }
+<i class="no-highlight">1063</i>&nbsp;
+<i class="no-highlight">1064</i>&nbsp;    /**
+<i class="no-highlight">1065</i>&nbsp;     * Add files to copy command
+<i class="no-highlight">1066</i>&nbsp;     *
+<i class="no-highlight">1067</i>&nbsp;     * @param azureSynapseOptionsList
+<i class="no-highlight">1068</i>&nbsp;     */
+<i class="no-highlight">1069</i>&nbsp;    protected void addFileTypeToCopy(List&lt;String&gt; azureSynapseOptionsList) {
+<b class="nc"><i class="no-highlight">1070</i>&nbsp;        if (StringUtils.isNotBlank(fileFormatType)) {</b>
+<b class="nc"><i class="no-highlight">1071</i>&nbsp;            boolean hasFileFormatOpt = copyStatementArguments.stream()</b>
+<b class="nc"><i class="no-highlight">1072</i>&nbsp;                    .anyMatch(arg -&gt; StringUtils.startsWithIgnoreCase(arg, FILE_FORMAT));</b>
+<b class="nc"><i class="no-highlight">1073</i>&nbsp;            if (!hasFileFormatOpt) {</b>
+<b class="nc"><i class="no-highlight">1074</i>&nbsp;                azureSynapseOptionsList.add(String.format(FILE_TYPE_FMT, fileFormatType));</b>
+<i class="no-highlight">1075</i>&nbsp;            }
+<i class="no-highlight">1076</i>&nbsp;        }
+<i class="no-highlight">1077</i>&nbsp;    }
+<i class="no-highlight">1078</i>&nbsp;
+<i class="no-highlight">1079</i>&nbsp;    /**
+<i class="no-highlight">1080</i>&nbsp;     * Adds credential section to cpy command
+<i class="no-highlight">1081</i>&nbsp;     *
+<i class="no-highlight">1082</i>&nbsp;     * @param azureSynapseOptionsList
+<i class="no-highlight">1083</i>&nbsp;     */
+<i class="no-highlight">1084</i>&nbsp;    protected void addCredentialsToCopy(List&lt;String&gt; azureSynapseOptionsList) {
+<b class="nc"><i class="no-highlight">1085</i>&nbsp;        if (StringUtils.isNotBlank(azureSynapseCredential)) {</b>
+<b class="nc"><i class="no-highlight">1086</i>&nbsp;            azureSynapseOptionsList.add(azureSynapseCredential);</b>
+<i class="no-highlight">1087</i>&nbsp;        }
+<i class="no-highlight">1088</i>&nbsp;    }
+<i class="no-highlight">1089</i>&nbsp;
+<i class="no-highlight">1090</i>&nbsp;    /**
+<i class="no-highlight">1091</i>&nbsp;     * Adds copy attributes to copy command
+<i class="no-highlight">1092</i>&nbsp;     *
+<i class="no-highlight">1093</i>&nbsp;     * @param optionsList
+<i class="no-highlight">1094</i>&nbsp;     */
+<i class="no-highlight">1095</i>&nbsp;    protected void addFileFormatOptionsToCopy(List&lt;String&gt; optionsList) {
+<b class="nc"><i class="no-highlight">1096</i>&nbsp;        if (!FILE_FORMAT_TYPE.contains(fileFormatType)) {</b>
+<b class="nc"><i class="no-highlight">1097</i>&nbsp;            throw new ConfigurationException(ERR_INVALID_FILE_FORMAT_TYPE)</b>
+<b class="nc"><i class="no-highlight">1098</i>&nbsp;                    .withReason(REASON_INVALID_FILE_FORMAT_TYPE)</b>
+<b class="nc"><i class="no-highlight">1099</i>&nbsp;                    .withResolution(RESOLUTION_INVALID_FILE_FORMAT_TYPE);</b>
+<i class="no-highlight">1100</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1101</i>&nbsp;        if (CollectionUtils.isNotEmpty(copyStatementArguments)) {</b>
+<b class="nc"><i class="no-highlight">1102</i>&nbsp;            String formatOpts = StringUtils.join(copyStatementArguments, COMMA);</b>
+<b class="nc"><i class="no-highlight">1103</i>&nbsp;            optionsList.add(formatOpts);</b>
+<i class="no-highlight">1104</i>&nbsp;        }
+<i class="no-highlight">1105</i>&nbsp;    }
+<i class="no-highlight">1106</i>&nbsp;
+<i class="no-highlight">1107</i>&nbsp;    /**
+<i class="no-highlight">1108</i>&nbsp;     * adds format option to copy command
+<i class="no-highlight">1109</i>&nbsp;     */
+<i class="no-highlight">1110</i>&nbsp;    protected void addFormatOptionsToCopy() {
+<b class="nc"><i class="no-highlight">1111</i>&nbsp;        List&lt;String&gt; azureSynapseLoadOptionsList = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">1112</i>&nbsp;        addFileTypeToCopy(azureSynapseLoadOptionsList);</b>
+<b class="nc"><i class="no-highlight">1113</i>&nbsp;        addCredentialsToCopy(azureSynapseLoadOptionsList);</b>
+<b class="nc"><i class="no-highlight">1114</i>&nbsp;        addFileFormatOptionsToCopy(azureSynapseLoadOptionsList);</b>
+<b class="nc"><i class="no-highlight">1115</i>&nbsp;        addErrorFileAndCredentials(azureSynapseLoadOptionsList);</b>
+<b class="nc"><i class="no-highlight">1116</i>&nbsp;        String formatOptionsDelimited = StringUtils.join(azureSynapseLoadOptionsList, COMMA);</b>
+<b class="nc"><i class="no-highlight">1117</i>&nbsp;        queryBuilder.append(String.format(WITH_CLAUSE_FMT, formatOptionsDelimited));</b>
+<i class="no-highlight">1118</i>&nbsp;    }
+<i class="no-highlight">1119</i>&nbsp;
+<i class="no-highlight">1120</i>&nbsp;    protected void addErrorFileAndCredentials(List&lt;String&gt; azureSynapseOptionsList) {
+<b class="nc"><i class="no-highlight">1121</i>&nbsp;        if (isErrFileEnabled) {</b>
+<b class="nc"><i class="no-highlight">1122</i>&nbsp;            if (!StringUtils.equalsIgnoreCase(fileFormatType, CSV)) {</b>
+<b class="nc"><i class="no-highlight">1123</i>&nbsp;                LOGGER.info(&quot;Only file type CSV allows errorfile configuration. Ignoring ...&quot;);</b>
+<i class="no-highlight">1124</i>&nbsp;                return;
+<i class="no-highlight">1125</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1126</i>&nbsp;            retrieveErrorFileAzureSynapseAccountInfo();</b>
+<b class="nc"><i class="no-highlight">1127</i>&nbsp;            Matcher errFileFormat = EXTFILE_PATTERN.matcher(errFileAzureFolder);</b>
+<b class="nc"><i class="no-highlight">1128</i>&nbsp;            if (errFileFormat.matches()) {</b>
+<i class="no-highlight">1129</i>&nbsp;                // When absolute url provided for error folder
+<b class="nc"><i class="no-highlight">1130</i>&nbsp;                azureSynapseOptionsList.add(String.format(ERROR_FILE, errFileAzureFolder));</b>
+<b class="nc"><i class="no-highlight">1131</i>&nbsp;                azureSynapseOptionsList.add(errAzureCredential);</b>
+<b class="nc"><i class="no-highlight">1132</i>&nbsp;            } else if (isErrFileNewConfigEnabled) {</b>
+<i class="no-highlight">1133</i>&nbsp;                // When new azure account configs added for error folder
+<b class="nc"><i class="no-highlight">1134</i>&nbsp;                List&lt;String&gt; errorFileList = Lists.newArrayList(StringUtils.EMPTY);</b>
+<b class="nc"><i class="no-highlight">1135</i>&nbsp;                buildExternalFilePaths(errorFileList, errFileAzureAccountName,</b>
+<i class="no-highlight">1136</i>&nbsp;                        errFileAzureEndpoint, errFileAzureContainer,
+<i class="no-highlight">1137</i>&nbsp;                        errFileAzureFolder, false);
+<b class="nc"><i class="no-highlight">1138</i>&nbsp;                errFileAzureFolder = getErrorFileName(errorFileList.get(0));</b>
+<b class="nc"><i class="no-highlight">1139</i>&nbsp;                azureSynapseOptionsList.add(String.format(ERROR_FILE, errFileAzureFolder));</b>
+<b class="nc"><i class="no-highlight">1140</i>&nbsp;                azureSynapseOptionsList.add(errAzureCredential);</b>
+<b class="nc"><i class="no-highlight">1141</i>&nbsp;            } else {</b>
+<i class="no-highlight">1142</i>&nbsp;                // When relative error folder path added withing the container
+<b class="nc"><i class="no-highlight">1143</i>&nbsp;                errFileAzureFolder = getErrorFileName(errFileAzureFolder);</b>
+<b class="nc"><i class="no-highlight">1144</i>&nbsp;                azureSynapseOptionsList.add(String.format(ERROR_FILE,</b>
+<i class="no-highlight">1145</i>&nbsp;                        errFileAzureFolder));
+<i class="no-highlight">1146</i>&nbsp;            }
+<i class="no-highlight">1147</i>&nbsp;        }
+<i class="no-highlight">1148</i>&nbsp;    }
+<i class="no-highlight">1149</i>&nbsp;
+<i class="no-highlight">1150</i>&nbsp;    /**
+<i class="no-highlight">1151</i>&nbsp;     * Adds fully qualified table name and column list to copy command
+<i class="no-highlight">1152</i>&nbsp;     */
+<i class="no-highlight">1153</i>&nbsp;    protected void appendTargetTableNameAndColumnsAzureSynapse() {
+<b class="nc"><i class="no-highlight">1154</i>&nbsp;        String headerColumns = null;</b>
+<b class="nc"><i class="no-highlight">1155</i>&nbsp;        boolean queryWithColumn = CollectionUtils.isNotEmpty(tableColumns);</b>
+<b class="nc"><i class="no-highlight">1156</i>&nbsp;        if (queryWithColumn) {</b>
+<b class="nc"><i class="no-highlight">1157</i>&nbsp;            headerColumns = StringUtils.join(tableColumns, COMMA);</b>
+<b class="nc"><i class="no-highlight">1158</i>&nbsp;            queryBuilder.append(String.format(COPY_INTO_WITH_COLUMN,</b>
+<i class="no-highlight">1159</i>&nbsp;                    tableName, headerColumns));
+<i class="no-highlight">1160</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1161</i>&nbsp;            queryBuilder.append(String.format(COPY_INTO_WITHOUT_COLUMN,</b>
+<i class="no-highlight">1162</i>&nbsp;                    tableName));
+<i class="no-highlight">1163</i>&nbsp;        }
+<i class="no-highlight">1164</i>&nbsp;    }
+<i class="no-highlight">1165</i>&nbsp;
+<i class="no-highlight">1166</i>&nbsp;    String generateFileName(String tablename) {
+<b class="nc"><i class="no-highlight">1167</i>&nbsp;        return String.format(DATA_FILENAME_FMT,</b>
+<b class="nc"><i class="no-highlight">1168</i>&nbsp;                sanitizeFilename(tablename), getPipelineRuuid());</b>
+<i class="no-highlight">1169</i>&nbsp;    }
+<i class="no-highlight">1170</i>&nbsp;
+<i class="no-highlight">1171</i>&nbsp;    static String sanitizeFilename(String name) {
+<b class="nc"><i class="no-highlight">1172</i>&nbsp;        return name.replaceAll(&quot;[\&quot;]&quot;, &quot;&quot;)</b>
+<b class="nc"><i class="no-highlight">1173</i>&nbsp;                .replaceAll(&quot;[^a-zA-Z0-9-_]&quot;, &quot;_&quot;);</b>
+<i class="no-highlight">1174</i>&nbsp;    }
+<i class="no-highlight">1175</i>&nbsp;
+<i class="no-highlight">1176</i>&nbsp;    String getErrorFileName(String path) {
+<b class="nc"><i class="no-highlight">1177</i>&nbsp;        return StringUtils.strip(path, SLASH)</b>
+<b class="nc"><i class="no-highlight">1178</i>&nbsp;                + SLASH + getPipelineRuuid();</b>
+<i class="no-highlight">1179</i>&nbsp;    }
+<i class="no-highlight">1180</i>&nbsp;
+<i class="no-highlight">1181</i>&nbsp;    /**
+<i class="no-highlight">1182</i>&nbsp;     * Write input data into a temp file on local disk. The file will be uploaded to the staging
+<i class="no-highlight">1183</i>&nbsp;     * at the end of the whole execution, just before the loading operation.
+<i class="no-highlight">1184</i>&nbsp;     *
+<i class="no-highlight">1185</i>&nbsp;     * @param data Data from the input document
+<i class="no-highlight">1186</i>&nbsp;     */
+<i class="no-highlight">1187</i>&nbsp;    protected void writeToLocalFile(Map&lt;String, Object&gt; data) {
+<b class="nc"><i class="no-highlight">1188</i>&nbsp;        if (firstRecord) {</b>
+<i class="no-highlight">1189</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">1190</i>&nbsp;                tmpFileName = generateFileName(tableName);</b>
+<b class="nc"><i class="no-highlight">1191</i>&nbsp;                dataTmpFile = String.format(DATA_FILE_FMT, tempDir,</b>
+<b class="nc"><i class="no-highlight">1192</i>&nbsp;                        tempDir.endsWith(File.separator) ? StringUtils.EMPTY</b>
+<b class="nc"><i class="no-highlight">1193</i>&nbsp;                                : File.separator, tmpFileName);</b>
+<b class="nc"><i class="no-highlight">1194</i>&nbsp;                LOGGER.debug(&quot;Creating local temp file {} for Synapse COPY INTO&quot;, dataTmpFile);</b>
+<b class="nc"><i class="no-highlight">1195</i>&nbsp;                if (IS_WIN_PLEX) {</b>
+<i class="no-highlight">1196</i>&nbsp;                    // Path name containing TILDE(~) character is an indication that ShortPath has
+<i class="no-highlight">1197</i>&nbsp;                    // been provided. As Java is not compatible with this windows-specific notation
+<i class="no-highlight">1198</i>&nbsp;                    // We need to convert it to long path.
+<b class="nc"><i class="no-highlight">1199</i>&nbsp;                    if (dataTmpFile.contains(&quot;~&quot;)) {</b>
+<b class="nc"><i class="no-highlight">1200</i>&nbsp;                        getLogger().info(String.format(&quot;Short Path is: %s&quot;, dataTmpFile));</b>
+<b class="nc"><i class="no-highlight">1201</i>&nbsp;                        dataTmpFile = BulkLoadUtils.getLongPath(dataTmpFile);</b>
+<b class="nc"><i class="no-highlight">1202</i>&nbsp;                        getLogger().info(String.format(&quot;Long Path after conversion is: %s&quot;,</b>
+<i class="no-highlight">1203</i>&nbsp;                                dataTmpFile));
+<i class="no-highlight">1204</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">1205</i>&nbsp;                    dataTmpFile = dataTmpFile.replace(&quot;\\&quot;, &quot;/&quot;);</b>
+<i class="no-highlight">1206</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1207</i>&nbsp;                dataWriter = new BufferedWriter(new OutputStreamWriter(</b>
+<i class="no-highlight">1208</i>&nbsp;                        new FileOutputStream(dataTmpFile), StandardCharsets.UTF_8));
+<b class="nc"><i class="no-highlight">1209</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">1210</i>&nbsp;                throw new ExecutionException(e, ERR_CREATE_DATA_FILE_MSG)</b>
+<b class="nc"><i class="no-highlight">1211</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">1212</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">1213</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1214</i>&nbsp;            firstRecord = false;</b>
+<i class="no-highlight">1215</i>&nbsp;        }
+<i class="no-highlight">1216</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">1217</i>&nbsp;            boolean firstColumn = true;</b>
+<b class="nc"><i class="no-highlight">1218</i>&nbsp;            for (String column : copyColumns) {</b>
+<b class="nc"><i class="no-highlight">1219</i>&nbsp;                Object value = data.get(column);</b>
+<b class="nc"><i class="no-highlight">1220</i>&nbsp;                if (!firstColumn) {</b>
+<b class="nc"><i class="no-highlight">1221</i>&nbsp;                    dataWriter.write(DEFAULT_FIELD_DELIMITER);</b>
+<i class="no-highlight">1222</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1223</i>&nbsp;                firstColumn = false;</b>
+<b class="nc"><i class="no-highlight">1224</i>&nbsp;                if (value != null) {</b>
+<b class="nc"><i class="no-highlight">1225</i>&nbsp;                    String valueString = value.toString();</b>
+<b class="nc"><i class="no-highlight">1226</i>&nbsp;                    dataWriter.write(Utils.enquoteString(valueString));</b>
+<b class="nc"><i class="no-highlight">1227</i>&nbsp;                } else if (escapeChars) {</b>
+<b class="nc"><i class="no-highlight">1228</i>&nbsp;                    dataWriter.write(QUOTE + StringUtils.EMPTY + QUOTE);</b>
+<i class="no-highlight">1229</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1230</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1231</i>&nbsp;            dataWriter.write(DEFAULT_RECORD_DELIMITER);</b>
+<b class="nc"><i class="no-highlight">1232</i>&nbsp;        } catch (IOException ioe) {</b>
+<b class="nc"><i class="no-highlight">1233</i>&nbsp;            throw new ExecutionException(ioe, ERROR_STREAMING_DATA)</b>
+<b class="nc"><i class="no-highlight">1234</i>&nbsp;                    .withReason(ioe.getLocalizedMessage())</b>
+<b class="nc"><i class="no-highlight">1235</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">1236</i>&nbsp;        }</b>
+<i class="no-highlight">1237</i>&nbsp;    }
+<i class="no-highlight">1238</i>&nbsp;
+<i class="no-highlight">1239</i>&nbsp;    /**
+<i class="no-highlight">1240</i>&nbsp;     * Operations done before load happens.
+<i class="no-highlight">1241</i>&nbsp;     */
+<i class="no-highlight">1242</i>&nbsp;    protected void truncateTable() {
+<b class="nc"><i class="no-highlight">1243</i>&nbsp;        if (truncate) {</b>
+<b class="nc"><i class="no-highlight">1244</i>&nbsp;            if (connection == null) {</b>
+<i class="no-highlight">1245</i>&nbsp;                // Connection might have been created already if truncate was done
+<b class="nc"><i class="no-highlight">1246</i>&nbsp;                connection = jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">1247</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1248</i>&nbsp;            if (jdbcOperations.tableExists(connection, schemaName, tableName)) {</b>
+<b class="nc"><i class="no-highlight">1249</i>&nbsp;                try (Statement stmt = connection.createStatement()) {</b>
+<b class="nc"><i class="no-highlight">1250</i>&nbsp;                    LOGGER.debug(LOG_TRUNCATING_TABLE);</b>
+<b class="nc"><i class="no-highlight">1251</i>&nbsp;                    stmt.execute(String.format(TRUNCATE_COMMAND, tableName));</b>
+<b class="nc"><i class="no-highlight">1252</i>&nbsp;                } catch (SQLException e) {</b>
+<b class="nc"><i class="no-highlight">1253</i>&nbsp;                    throw new SnapDataException(e, ERR_TRUNCATE_TABLE_FAILED)</b>
+<b class="nc"><i class="no-highlight">1254</i>&nbsp;                            .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">1255</i>&nbsp;                            .withResolution(ERR_TRUNCATE_TABLE_FAILED_RESOLUTION);</b>
+<i class="no-highlight">1256</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">1257</i>&nbsp;                    JDBCUtils.safeClose(connection);</b>
+<b class="nc"><i class="no-highlight">1258</i>&nbsp;                    connection = null;</b>
+<b class="nc"><i class="no-highlight">1259</i>&nbsp;                }</b>
+<i class="no-highlight">1260</i>&nbsp;            }
+<i class="no-highlight">1261</i>&nbsp;        }
+<i class="no-highlight">1262</i>&nbsp;    }
+<i class="no-highlight">1263</i>&nbsp;
+<i class="no-highlight">1264</i>&nbsp;    /**
+<i class="no-highlight">1265</i>&nbsp;     * Returns copy command without masked credentials
+<i class="no-highlight">1266</i>&nbsp;     *
+<i class="no-highlight">1267</i>&nbsp;     * @return
+<i class="no-highlight">1268</i>&nbsp;     */
+<i class="no-highlight">1269</i>&nbsp;    protected String getQuery() {
+<b class="nc"><i class="no-highlight">1270</i>&nbsp;        return copyCommand;</b>
+<i class="no-highlight">1271</i>&nbsp;    }
+<i class="no-highlight">1272</i>&nbsp;
+<i class="no-highlight">1273</i>&nbsp;    /**
+<i class="no-highlight">1274</i>&nbsp;     * Returns copy command with masked credentials
+<i class="no-highlight">1275</i>&nbsp;     *
+<i class="no-highlight">1276</i>&nbsp;     * @return
+<i class="no-highlight">1277</i>&nbsp;     */
+<i class="no-highlight">1278</i>&nbsp;    protected String getCopyWithObfuscatedCredentials() {
+<b class="nc"><i class="no-highlight">1279</i>&nbsp;        String writerQuery = queryBuilder.toString();</b>
+<b class="nc"><i class="no-highlight">1280</i>&nbsp;        writerQuery = StringUtils.replace(writerQuery, azureSynapseCredential,</b>
+<i class="no-highlight">1281</i>&nbsp;                AZURE_SYNAPSE_CREDS_REPLACEMENT);
+<b class="nc"><i class="no-highlight">1282</i>&nbsp;        return writerQuery;</b>
+<i class="no-highlight">1283</i>&nbsp;    }
+<i class="no-highlight">1284</i>&nbsp;
+<i class="no-highlight">1285</i>&nbsp;    /**
+<i class="no-highlight">1286</i>&nbsp;     * DB transaction commit
+<i class="no-highlight">1287</i>&nbsp;     */
+<i class="no-highlight">1288</i>&nbsp;    protected void commit() {
+<b class="nc"><i class="no-highlight">1289</i>&nbsp;        if (connection == null) {</b>
+<b class="nc"><i class="no-highlight">1290</i>&nbsp;            connection = jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">1291</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1292</i>&nbsp;        jdbcOperations.commit();</b>
+<i class="no-highlight">1293</i>&nbsp;    }
+<i class="no-highlight">1294</i>&nbsp;
+<i class="no-highlight">1295</i>&nbsp;    /**
+<i class="no-highlight">1296</i>&nbsp;     * Db transaction rollback
+<i class="no-highlight">1297</i>&nbsp;     */
+<i class="no-highlight">1298</i>&nbsp;    protected void rollback() {
+<b class="nc"><i class="no-highlight">1299</i>&nbsp;        if (connection == null) {</b>
+<b class="nc"><i class="no-highlight">1300</i>&nbsp;            connection = jdbcOperations.acquireConnection(account);</b>
+<i class="no-highlight">1301</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">1302</i>&nbsp;        jdbcOperations.rollback();</b>
+<i class="no-highlight">1303</i>&nbsp;    }
+<i class="no-highlight">1304</i>&nbsp;
+<i class="no-highlight">1305</i>&nbsp;    @Override
+<i class="no-highlight">1306</i>&nbsp;    protected void onSnapRunFailure() {
+<b class="nc"><i class="no-highlight">1307</i>&nbsp;        this.successful = false;</b>
+<i class="no-highlight">1308</i>&nbsp;    }
+<i class="no-highlight">1309</i>&nbsp;
+<i class="no-highlight">1310</i>&nbsp;    /**
+<i class="no-highlight">1311</i>&nbsp;     * Check whether the table exists or not in DB
+<i class="no-highlight">1312</i>&nbsp;     *
+<i class="no-highlight">1313</i>&nbsp;     * @param tableName
+<i class="no-highlight">1314</i>&nbsp;     * @return
+<i class="no-highlight">1315</i>&nbsp;     */
+<i class="no-highlight">1316</i>&nbsp;    public boolean doesTableExist(String tableName) {
+<b class="nc"><i class="no-highlight">1317</i>&nbsp;        try (Connection conn = jdbcOperations.acquireConnection(account)) {</b>
+<b class="nc"><i class="no-highlight">1318</i>&nbsp;            return jdbcOperations.tableExists(conn,</b>
+<b class="nc"><i class="no-highlight">1319</i>&nbsp;                    account.getDatabaseConfig().getDatabaseName(), tableName);</b>
+<b class="nc"><i class="no-highlight">1320</i>&nbsp;        } catch (SQLException sqe) {</b>
+<b class="nc"><i class="no-highlight">1321</i>&nbsp;            return false;</b>
+<i class="no-highlight">1322</i>&nbsp;        }
+<i class="no-highlight">1323</i>&nbsp;    }
+<i class="no-highlight">1324</i>&nbsp;
+<i class="no-highlight">1325</i>&nbsp;    /**
+<i class="no-highlight">1326</i>&nbsp;     * Reference to the snap&#39;s instance of SLF4J {@link Logger}
+<i class="no-highlight">1327</i>&nbsp;     *
+<i class="no-highlight">1328</i>&nbsp;     * @return
+<i class="no-highlight">1329</i>&nbsp;     */
+<i class="no-highlight">1330</i>&nbsp;    public abstract Logger getLogger();
+<i class="no-highlight">1331</i>&nbsp;
+<i class="no-highlight">1332</i>&nbsp;    @Override
+<i class="no-highlight">1333</i>&nbsp;    public void configureForSuggest(PropertyValues propertyValues, BigInteger maxSuggestValue)
+<i class="no-highlight">1334</i>&nbsp;            throws ConfigurationException {
+<b class="nc"><i class="no-highlight">1335</i>&nbsp;        isInSuggest = true;</b>
+<b class="nc"><i class="no-highlight">1336</i>&nbsp;        configure(propertyValues);</b>
+<i class="no-highlight">1337</i>&nbsp;    }
+<i class="no-highlight">1338</i>&nbsp;
+<i class="no-highlight">1339</i>&nbsp;    @Override
+<i class="no-highlight">1340</i>&nbsp;    public void executeForSuggest() throws ExecutionException {
+<b class="nc"><i class="no-highlight">1341</i>&nbsp;        execute();</b>
+<i class="no-highlight">1342</i>&nbsp;    }
+<i class="no-highlight">1343</i>&nbsp;
+<i class="no-highlight">1344</i>&nbsp;    /**
+<i class="no-highlight">1345</i>&nbsp;     * We want to load the table metadata lazily to make sure the table metadata is up to date
+<i class="no-highlight">1346</i>&nbsp;     * when execution happens.
+<i class="no-highlight">1347</i>&nbsp;     * &lt;p&gt;
+<i class="no-highlight">1348</i>&nbsp;     * For validate, we&#39;ll disable it to allow the snap populating the input schema
+<i class="no-highlight">1349</i>&nbsp;     */
+<i class="no-highlight">1350</i>&nbsp;    @Override
+<i class="no-highlight">1351</i>&nbsp;    protected boolean lazyLoadTableMetadata() {
+<b class="nc"><i class="no-highlight">1352</i>&nbsp;        return !isInSuggest;</b>
+<i class="no-highlight">1353</i>&nbsp;    }
+<i class="no-highlight">1354</i>&nbsp;
+<i class="no-highlight">1355</i>&nbsp;    protected abstract void loadAction(String targetTable, Document original);
+<i class="no-highlight">1356</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

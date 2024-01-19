@@ -1,0 +1,1275 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > KafkaConsumerSnap</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.kafka.snaps</a>
+</div>
+
+<h1>Coverage Summary for Class: KafkaConsumerSnap (com.snaplogic.kafka.snaps)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">KafkaConsumerSnap</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/610)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">KafkaConsumerSnap$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">KafkaConsumerSnap$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">KafkaConsumerSnap$HeaderRow</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/35)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/621)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2019, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">7</i>&nbsp; *
+<i class="no-highlight">8</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">9</i>&nbsp; */
+<i class="no-highlight">10</i>&nbsp;
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.kafka.snaps;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.collect.ImmutableList;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.LifecycleCallback;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.api.LifecycleEvent;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.api.Lint;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.Notification;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.Notifications;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.api.SnapException;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.kafka.offsettracker.OffsetTracker;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.kafka.offsettracker.OffsetTrackerFactory;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.kafka.offsettracker.OffsetTrackerRegistry;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.kafka.offsettracker.OffsetTrackerTimeoutException;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.kafka.serde.AvroDeserializer;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.kafka.serde.SerdeChoice;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.kafka.util.TopicPartitions;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.snap.api.fs.JfsUtils;
+<i class="no-highlight">45</i>&nbsp;import com.snaplogic.snaps.confluentkafka.ConfluentKafkaService;
+<i class="no-highlight">46</i>&nbsp;import com.snaplogic.util.ExpressionUtils;
+<i class="no-highlight">47</i>&nbsp;import com.snaplogic.util.LogUtil;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import org.apache.kafka.clients.consumer.CommitFailedException;
+<i class="no-highlight">50</i>&nbsp;import org.apache.kafka.clients.consumer.Consumer;
+<i class="no-highlight">51</i>&nbsp;import org.apache.kafka.clients.consumer.ConsumerConfig;
+<i class="no-highlight">52</i>&nbsp;import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+<i class="no-highlight">53</i>&nbsp;import org.apache.kafka.clients.consumer.ConsumerRecord;
+<i class="no-highlight">54</i>&nbsp;import org.apache.kafka.clients.consumer.ConsumerRecords;
+<i class="no-highlight">55</i>&nbsp;import org.apache.kafka.clients.consumer.OffsetAndMetadata;
+<i class="no-highlight">56</i>&nbsp;import org.apache.kafka.common.TopicPartition;
+<i class="no-highlight">57</i>&nbsp;import org.apache.kafka.common.errors.InterruptException;
+<i class="no-highlight">58</i>&nbsp;import org.apache.kafka.common.errors.SerializationException;
+<i class="no-highlight">59</i>&nbsp;import org.apache.kafka.common.header.Header;
+<i class="no-highlight">60</i>&nbsp;import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+<i class="no-highlight">61</i>&nbsp;import org.apache.kafka.common.serialization.Deserializer;
+<i class="no-highlight">62</i>&nbsp;
+<i class="no-highlight">63</i>&nbsp;import java.io.PrintWriter;
+<i class="no-highlight">64</i>&nbsp;import java.io.StringWriter;
+<i class="no-highlight">65</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">66</i>&nbsp;import java.time.Duration;
+<i class="no-highlight">67</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">68</i>&nbsp;import java.util.Collection;
+<i class="no-highlight">69</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">70</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">71</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">72</i>&nbsp;import java.util.LinkedHashSet;
+<i class="no-highlight">73</i>&nbsp;import java.util.List;
+<i class="no-highlight">74</i>&nbsp;import java.util.Map;
+<i class="no-highlight">75</i>&nbsp;import java.util.Properties;
+<i class="no-highlight">76</i>&nbsp;import java.util.Set;
+<i class="no-highlight">77</i>&nbsp;import java.util.SortedSet;
+<i class="no-highlight">78</i>&nbsp;
+<i class="no-highlight">79</i>&nbsp;import javax.inject.Inject;
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;import static com.google.common.base.MoreObjects.firstNonNull;
+<i class="no-highlight">82</i>&nbsp;import static com.google.common.base.Preconditions.checkNotNull;
+<i class="no-highlight">83</i>&nbsp;import static com.google.common.base.Preconditions.checkState;
+<i class="no-highlight">84</i>&nbsp;import static com.snaplogic.kafka.snaps.Constants.*;
+<i class="no-highlight">85</i>&nbsp;import static com.snaplogic.kafka.snaps.Messages.*;
+<i class="no-highlight">86</i>&nbsp;import static com.snaplogic.util.PropertyUtil.evalClientID;
+<i class="no-highlight">87</i>&nbsp;import static com.snaplogic.util.PropertyUtil.evalInt;
+<i class="no-highlight">88</i>&nbsp;import static com.snaplogic.util.PropertyUtil.evalLong;
+<i class="no-highlight">89</i>&nbsp;
+<i class="no-highlight">90</i>&nbsp;import static java.util.concurrent.TimeUnit.SECONDS;
+<i class="no-highlight">91</i>&nbsp;
+<i class="no-highlight">92</i>&nbsp;@General(title = &quot;Kafka Consumer&quot;, purpose = CONSUMER_PURPOSE)
+<i class="no-highlight">93</i>&nbsp;@Category(snap = SnapCategory.READ)
+<i class="no-highlight">94</i>&nbsp;@Inputs(max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">95</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">96</i>&nbsp;@Version()
+<b class="nc"><i class="no-highlight">97</i>&nbsp;public class KafkaConsumerSnap extends KafkaSnapWithAccount implements LifecycleCallback {</b>
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;    @Inject private ConfluentKafkaService service;
+<i class="no-highlight">100</i>&nbsp;    @Inject private OffsetTrackerRegistry trackerRegistry;
+<i class="no-highlight">101</i>&nbsp;    @Inject private OffsetTrackerFactory trackerFactory;
+<i class="no-highlight">102</i>&nbsp;    @Inject private ExpressionUtils expressionUtils;
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;    private ExpressionProperty topicExpr;
+<i class="no-highlight">105</i>&nbsp;    private ExpressionProperty partitionExpr;
+<i class="no-highlight">106</i>&nbsp;    private ExpressionProperty groupExpr;
+<i class="no-highlight">107</i>&nbsp;    private ExpressionProperty maxMsgCountExpr;
+<i class="no-highlight">108</i>&nbsp;    private ExpressionProperty maxPollRecordsExpr;
+<i class="no-highlight">109</i>&nbsp;    private ExpressionProperty maxPollIntervalExpr;
+<i class="no-highlight">110</i>&nbsp;    private ExpressionProperty maxWaitingTimeExpr;
+<i class="no-highlight">111</i>&nbsp;    private ExpressionProperty ackTimeoutExpr;
+<i class="no-highlight">112</i>&nbsp;    private ExpressionProperty offsetExpr;
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    private OffsetTracker tracker;
+<i class="no-highlight">115</i>&nbsp;    private int trackerIndex;
+<i class="no-highlight">116</i>&nbsp;    private Deserializer&lt;?&gt; keyDeser;
+<i class="no-highlight">117</i>&nbsp;    private Deserializer&lt;?&gt; valDeser;
+<i class="no-highlight">118</i>&nbsp;    private Deserializer&lt;?&gt; defaultHeaderDeser;
+<i class="no-highlight">119</i>&nbsp;    private SerdeChoice keySerdeChoice;
+<i class="no-highlight">120</i>&nbsp;    private SerdeChoice valSerdeChoice;
+<i class="no-highlight">121</i>&nbsp;    private SerdeChoice defaultHeaderSerdeChoice;
+<i class="no-highlight">122</i>&nbsp;    private Consumer&lt;byte[], byte[]&gt; consumer;
+<i class="no-highlight">123</i>&nbsp;    private boolean processCalledOnce;
+<i class="no-highlight">124</i>&nbsp;    private String clientId;
+<i class="no-highlight">125</i>&nbsp;    private volatile boolean done;
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;    private String topic;
+<i class="no-highlight">128</i>&nbsp;    private Integer partition;
+<i class="no-highlight">129</i>&nbsp;    private String group;
+<i class="no-highlight">130</i>&nbsp;    private int maxMsgCount;
+<i class="no-highlight">131</i>&nbsp;    private boolean waitForCount;
+<i class="no-highlight">132</i>&nbsp;    private int maxPollRecords;
+<i class="no-highlight">133</i>&nbsp;    private int maxPollInterval;
+<i class="no-highlight">134</i>&nbsp;    private Duration maxWaitingTime;
+<i class="no-highlight">135</i>&nbsp;    private int ackTimeoutSecs;
+<i class="no-highlight">136</i>&nbsp;    private boolean isAutoCommit;
+<i class="no-highlight">137</i>&nbsp;    private boolean includeTimestamp;
+<i class="no-highlight">138</i>&nbsp;    private boolean isPassThrough;
+<i class="no-highlight">139</i>&nbsp;    private String ackMode;
+<i class="no-highlight">140</i>&nbsp;    private String outputMode;
+<i class="no-highlight">141</i>&nbsp;    private String ackTimeoutPolicy;
+<i class="no-highlight">142</i>&nbsp;    private String seekType;
+<i class="no-highlight">143</i>&nbsp;    private Long seekOffset;
+<i class="no-highlight">144</i>&nbsp;    private String autoOffsetReset;
+<i class="no-highlight">145</i>&nbsp;
+<b class="nc"><i class="no-highlight">146</i>&nbsp;    private final Set&lt;TopicPartition&gt; seekPerformed = new LinkedHashSet&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;    private final List&lt;Throwable&gt; errorsOnlyLogged = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">148</i>&nbsp;
+<b class="nc"><i class="no-highlight">149</i>&nbsp;    private final List&lt;HeaderRow&gt; headerRows = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;    private final Map&lt;String,HeaderRow&gt; headerRowMap = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">151</i>&nbsp;
+<b class="nc"><i class="no-highlight">152</i>&nbsp;    private static class HeaderRow {</b>
+<i class="no-highlight">153</i>&nbsp;        ExpressionProperty keyExp;
+<i class="no-highlight">154</i>&nbsp;        SerdeChoice serdeChoice;
+<i class="no-highlight">155</i>&nbsp;        Deserializer&lt;?&gt; valDeser;
+<i class="no-highlight">156</i>&nbsp;    }
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;    @Notification(message = &quot;Account&#39;s advanced property setting for max.poll.records is &quot; +
+<i class="no-highlight">159</i>&nbsp;            &quot;superseded by Snap&#39;s setting for &#39;&quot; + MAX_POLL_RECORDS_LABEL + &quot;&#39;.&quot;,
+<i class="no-highlight">160</i>&nbsp;            resolution = &quot;Remove setting from account to avoid confusion.&quot;)
+<b class="nc"><i class="no-highlight">161</i>&nbsp;    static final Lint MAX_POLL_RECORDS_LINT = new Lint();</b>
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;    @Notification(message = &quot;Snap&#39;s setting for &#39;&quot; + MAX_POLL_INTERVAL_LABEL + &quot;&#39; is &quot; +
+<i class="no-highlight">164</i>&nbsp;            &quot;superseded by account&#39;s advanced property setting for max.poll.interval.ms.&quot;,
+<i class="no-highlight">165</i>&nbsp;            resolution = &quot;Remove setting from account to avoid confusion.&quot;)
+<b class="nc"><i class="no-highlight">166</i>&nbsp;    static final Lint MAX_POLL_INTERVAL_LINT = new Lint();</b>
+<i class="no-highlight">167</i>&nbsp;
+<i class="no-highlight">168</i>&nbsp;    static {
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        Notifications.register(KafkaConsumerSnap.class);</b>
+<i class="no-highlight">170</i>&nbsp;    }
+<i class="no-highlight">171</i>&nbsp;
+<b class="nc"><i class="no-highlight">172</i>&nbsp;    private static final ByteArrayDeserializer BYTE_ARRAY_DESERIALIZER = new ByteArrayDeserializer();</b>
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    @Override
+<i class="no-highlight">175</i>&nbsp;    public final void defineProperties(PropertyBuilder builder) {
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        builder.describe(TOPICS_PROP, TOPIC_LABEL, TOPICS_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .withSuggestions(new TopicSuggestions(account, service))</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        builder.describe(PARTITION_PROP, PARTITION_LABEL, PARTITION_DESC)</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                .withSuggestions(new PartitionSuggestions(account, service))</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        builder.describe(GID_PROP, GID_LABEL, GID_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        builder.describe(MAX_MSG_COUNT_PROP, MAX_MSG_COUNT_LABEL, MAX_MSG_COUNT_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                .defaultValue(DEFAULT_MAX_MSG_COUNT)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        builder.describe(WAIT_FOR_COUNT_PROP, WAIT_FOR_COUNT_LABEL, WAIT_FOR_COUNT_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                .defaultValue(DEFAULT_WAIT_FOR_COUNT)</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%1$s.value &gt; 0 || $.settings.%1$s.expression&quot;, MAX_MSG_COUNT_PROP))</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        builder.describe(MAX_POLL_RECORDS_PROP, MAX_POLL_RECORDS_LABEL, MAX_POLL_RECORDS_DESC)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                .defaultValue(DEFAULT_MAX_POLL_RECORDS)</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                .withMinValue(MIN_MAX_POLL_RECORDS)</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        builder.describe(MAX_POLL_INTERVAL_PROP, MAX_POLL_INTERVAL_LABEL, MAX_POLL_INTERVAL_DESC)</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .defaultValue(DEFAULT_MAX_POLL_INTERVAL)</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .withMinValue(MIN_MAX_POLL_INTERVAL)</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        builder.describe(MAX_WAITING_TIME_PROP, MAX_WAITING_TIME_LABEL, MAX_WAITING_TIME_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                .defaultValue(DEFAULT_CONSUME_TIMEOUT_IN_MS)</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;        builder.describe(AUTO_COMMIT_PROP, AUTO_COMMIT_LABEL, AUTO_COMMIT_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                .defaultValue(Boolean.TRUE)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        builder.describe(ACK_MODE_PROP, ACK_MODE_LABEL, ACK_MODE_DESC)</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                .withAllowedValues(ACK_MODE_SET)</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                .defaultValue(ACK_MODE_RECORD)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%s.value == false&quot;, AUTO_COMMIT_PROP))</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        builder.describe(ACK_TIMEOUT_PROP, ACK_TIMEOUT_LABEL, ACK_TIMEOUT_DESC)</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                .defaultValue(DEFAULT_ACK_TIMEOUT_IN_S)</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                .withMinValue(1)</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%s.value == false&quot;, AUTO_COMMIT_PROP))</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        builder.describe(ACK_TIMEOUT_POLICY_PROP, ACK_TIMEOUT_POLICY_LABEL, ACK_TIMEOUT_POLICY_DESC)</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                .withAllowedValues(ACK_TIMEOUT_POLICY_SET)</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                .defaultValue(ACK_TIMEOUT_POLICY_REPROCESS)</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%s.value == false&quot;, AUTO_COMMIT_PROP))</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        builder.describe(SEEK_TYPE_PROP, SEEK_TYPE_LABEL, SEEK_TYPE_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                .withAllowedValues(SEEK_TYPE_SET)</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                .defaultValue(SEEK_END_LEGACY)</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        builder.describe(OFFSET_PROP, OFFSET_LABEL, OFFSET_DESC)</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%s.value == &#39;%s&#39;&quot;, SEEK_TYPE_PROP, SEEK_OFFSET))</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        builder.describe(AUTO_OFFSET_RESET_PROP, AUTO_OFFSET_RESET_LABEL, AUTO_OFFSET_RESET_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                .withAllowedValues(AUTO_OFFSET_RESET_TYPE_SET)</b>
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                .defaultValue(AUTO_OFFSET_RESET_EARLIEST)</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        builder.describe(OUTPUT_MODE_PROP, OUTPUT_MODE_LABEL, OUTPUT_MODE_DESC)</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                .withAllowedValues(OUTPUT_MODE_SET)</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                .defaultValue(OUTPUT_MODE_RECORD)</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                .enableIf(String.format(&quot;$.settings.%s.value || $.settings.%s.value == &#39;%s&#39;&quot;,</b>
+<i class="no-highlight">258</i>&nbsp;                        AUTO_COMMIT_PROP, ACK_MODE_PROP, ACK_MODE_BATCH))
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                .add();</b>
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;        // deserializers
+<b class="nc"><i class="no-highlight">262</i>&nbsp;        Set&lt;String&gt; headerDeserLabels = SerdeChoice.labels();</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;        headerDeserLabels.remove(SerdeChoice.AVRO.label()); // can&#39;t support this for header values</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;        builder.describe(KEY_DESERIALIZER_PROP, KEY_DESERIALIZER_LABEL, KEY_DESERIALIZER_DESC)</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                .withAllowedValues(SerdeChoice.labels())</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                .defaultValue(DEFAULT_SERDE.label())</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;        builder.describe(VAL_DESERIALIZER_PROP, VAL_DESERIALIZER_LABEL, VAL_DESERIALIZER_DESC)</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                .withAllowedValues(SerdeChoice.labels())</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                .defaultValue(DEFAULT_SERDE.label())</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        builder.describe(DEFAULT_HEADER_DESER_PROP, DEFAULT_HEADER_DESER_LABEL, DEFAULT_HEADER_DESER_DESC)</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                .withAllowedValues(SerdeChoice.labels())</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                .defaultValue(DEFAULT_SERDE.label())</b>
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        SnapProperty headerKey = builder.describe(HEADER_KEY_PROP, HEADER_KEY_LABEL, HEADER_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                .expression(SnapProperty.DecoratorType.ACCEPTS_SCHEMA)</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;        SnapProperty headerDeser = builder.describe(HEADER_DESER_PROP, HEADER_DESER_LABEL, HEADER_DESER_DESC)</b>
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                .withAllowedValues(headerDeserLabels)</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                .defaultValue(SerdeChoice.STRING.label())</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        builder.describe(HEADER_DESERS_PROP, HEADER_DESERS_LABEL, HEADER_DESERS_DESC)</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                .optional()</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                .withEntries(ImmutableList.of(headerKey, headerDeser))</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                .add();</b>
+<i class="no-highlight">288</i>&nbsp;
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        builder.describe(INC_TIMESTAMP_PROP, INC_TIMESTAMP_LABEL, INC_TIMESTAMP_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        builder.describe(PASS_THROUGH_PROP, PASS_THROUGH_LABEL, PASS_THROUGH_DESCRIPTION)</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                .defaultValue(Boolean.FALSE)</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                .add();</b>
+<i class="no-highlight">297</i>&nbsp;    }
+<i class="no-highlight">298</i>&nbsp;
+<i class="no-highlight">299</i>&nbsp;    @Override
+<i class="no-highlight">300</i>&nbsp;    public void configure(PropertyValues props) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        if (account == null) {</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;            throw new ConfigurationException(ERROR_ACCOUNT_NOT_DEFINED)</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                    .withReason(REASON_ACCOUNT_NOT_DEFINED)</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                    .withResolution(RESOLUTION_ACCOUNT_NOT_DEFINED);</b>
+<i class="no-highlight">305</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        service.setTmpDir(JfsUtils.getTmpDir(expressionUtils, props, errorViews));</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        clientId =  evalClientID(expressionUtils, props);</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        topicExpr = props.getAsExpression(TOPICS_PROP);</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        partitionExpr = props.getAsExpression(PARTITION_PROP);</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        groupExpr = props.getAsExpression(GID_PROP);</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        maxMsgCountExpr = props.getAsExpression(MAX_MSG_COUNT_PROP);</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;        waitForCount = props.getBoolean(WAIT_FOR_COUNT_PROP, DEFAULT_WAIT_FOR_COUNT);</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;        maxPollRecordsExpr = props.getAsExpression(MAX_POLL_RECORDS_PROP);</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;        maxPollIntervalExpr = props.getAsExpression(MAX_POLL_INTERVAL_PROP);</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;        maxWaitingTimeExpr = props.getAsExpression(MAX_WAITING_TIME_PROP);</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        ackTimeoutExpr = props.getAsExpression(ACK_TIMEOUT_PROP);</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        offsetExpr = props.getAsExpression(OFFSET_PROP);</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;        isAutoCommit = props.getBoolean(AUTO_COMMIT_PROP, false);</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;        isPassThrough = props.getBoolean(PASS_THROUGH_PROP, false);</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        includeTimestamp = props.getBoolean(INC_TIMESTAMP_PROP, false);</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        ackTimeoutPolicy = firstNonNull(props.get(ACK_TIMEOUT_POLICY_PROP), ACK_TIMEOUT_POLICY_CONTINUE);</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        ackMode = firstNonNull(props.get(ACK_MODE_PROP), ACK_MODE_RECORD);</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        outputMode = firstNonNull(props.get(OUTPUT_MODE_PROP), OUTPUT_MODE_RECORD);</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;        seekType = firstNonNull(props.get(SEEK_TYPE_PROP), SEEK_END_LEGACY);</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;        autoOffsetReset = firstNonNull(props.get(AUTO_OFFSET_RESET_PROP), AUTO_OFFSET_RESET_EARLIEST);</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;        keySerdeChoice = SerdeChoice.from(props.get(KEY_DESERIALIZER_PROP), DEFAULT_SERDE);</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        valSerdeChoice = SerdeChoice.from(props.get(VAL_DESERIALIZER_PROP), DEFAULT_SERDE);</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        defaultHeaderSerdeChoice = SerdeChoice.from(props.get(DEFAULT_HEADER_DESER_PROP), DEFAULT_SERDE);</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        keyDeser = toDeser(keySerdeChoice);</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;        valDeser = toDeser(valSerdeChoice);</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        defaultHeaderDeser = toDeser(defaultHeaderSerdeChoice);</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;        List&lt;Map&lt;String,Object&gt;&gt; headers = props.get(HEADER_DESERS_PROP);</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;        if (headers != null) {</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;            for (Map&lt;String,Object&gt; header: headers) {</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                HeaderRow row = new HeaderRow();</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                row.keyExp = props.getExpressionPropertyFor(header, HEADER_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                String deserName = props.getExpressionPropertyFor(header, HEADER_DESER_PROP).getExpression();</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                row.serdeChoice = SerdeChoice.from(deserName, DEFAULT_SERDE);</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                row.valDeser = toDeser(row.serdeChoice);</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                if (!row.keyExp.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                    headerRows.add(row);</b>
+<i class="no-highlight">342</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            }</b>
+<i class="no-highlight">344</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">345</i>&nbsp;        if (OUTPUT_MODE_BATCH.equals(outputMode) &amp;&amp; !isAutoCommit &amp;&amp; ACK_MODE_RECORD.equals(ackMode)) {</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;            throw new ConfigurationException(OUTPUT_MODE_CONFIG_ERROR)</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                    .withReason(INVALID_PROPERTY_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">349</i>&nbsp;        }
+<i class="no-highlight">350</i>&nbsp;    }
+<i class="no-highlight">351</i>&nbsp;
+<i class="no-highlight">352</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">353</i>&nbsp;    void initPropsFromDoc(Document doc) {
+<b class="nc"><i class="no-highlight">354</i>&nbsp;        topic = topicExpr.eval(doc); // required</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;        group = groupExpr.eval(doc); // required</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        partition = evalInt(doc, partitionExpr, null);</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        maxMsgCount = evalInt(doc, maxMsgCountExpr, DEFAULT_MAX_MSG_COUNT);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        maxPollRecords = evalInt(doc, maxPollRecordsExpr, DEFAULT_MAX_POLL_RECORDS);</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        maxPollInterval = evalInt(doc, maxPollIntervalExpr, DEFAULT_MAX_POLL_INTERVAL);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        maxWaitingTime = Duration.ofMillis(evalInt(doc, maxWaitingTimeExpr, DEFAULT_CONSUME_TIMEOUT_IN_MS));</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        ackTimeoutSecs = evalInt(doc, ackTimeoutExpr, DEFAULT_ACK_TIMEOUT_IN_S);</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;        seekOffset = evalLong(doc, offsetExpr, null);</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        if (seekType.equals(SEEK_OFFSET) &amp;&amp; (partition == null || seekOffset == null)) {</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            throw new ConfigurationException(null, &quot;%s and %s must be set when %s is %s.&quot;,</b>
+<i class="no-highlight">365</i>&nbsp;                    PARTITION_LABEL, OFFSET_LABEL, SEEK_TYPE_LABEL, SEEK_OFFSET)
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                    .withReason(INVALID_PROPERTY_CONFIGURATION)</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">368</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        for (HeaderRow row : headerRows) {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;            String key = row.keyExp.eval(doc);</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;            headerRowMap.put(key, row);</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;        if (LOG.isInfoEnabled()) {</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;            StringWriter sw = new StringWriter();</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;            PrintWriter pw = new PrintWriter(sw);</b>
+<b class="nc"><i class="no-highlight">376</i>&nbsp;            pw.printf(&quot;configuration:\n&quot;);</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;            pw.printf(&quot; clientId = %s\n&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            pw.printf(&quot; group = %s\n&quot;, group);</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            pw.printf(&quot; topic = %s\n&quot;, topic);</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            pw.printf(&quot; partition = %s\n&quot;, partition);</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;            pw.printf(&quot; isAutoCommit = %s\n&quot;, isAutoCommit);</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;            pw.printf(&quot; maxMsgCount = %s\n&quot;, maxMsgCount);</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;            pw.printf(&quot; maxSuggestValue = %s\n&quot;, maxSuggestValue);</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;            pw.printf(&quot; waitForCount = %s\n&quot;, waitForCount);</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;            pw.printf(&quot; maxPollRecords = %s\n&quot;, maxPollRecords);</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;            pw.printf(&quot; maxPollInterval = %s\n&quot;, maxPollInterval);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;            pw.printf(&quot; maxWaitingTime = %s\n&quot;, maxWaitingTime);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;            pw.printf(&quot; ackTimeoutSecs = %s\n&quot;, ackTimeoutSecs);</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;            pw.printf(&quot; ackTimeoutPolicy = %s\n&quot;, ackTimeoutPolicy);</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;            pw.printf(&quot; ackMode = %s\n&quot;, ackMode);</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            pw.printf(&quot; outputMode = %s\n&quot;, outputMode);</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            pw.printf(&quot; seekType = %s\n&quot;, seekType);</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;            pw.printf(&quot; seekOffset = %s\n&quot;, seekOffset);</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;            pw.printf(&quot; autoOffsetReset = %s\n&quot;, autoOffsetReset);</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            pw.printf(&quot; isPassThrough = %s\n&quot;, isPassThrough);</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;            pw.printf(&quot; keyDeser = %s\n&quot;, keySerdeChoice);</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;            pw.printf(&quot; valDeser = %s\n&quot;, valSerdeChoice);</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;            pw.printf(&quot; defaultHeaderDeser = %s\n&quot;, defaultHeaderSerdeChoice);</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;            pw.printf(&quot; headerDeserializers = \n&quot;);</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;            headerRowMap.forEach((k,v) -&gt; {</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                pw.printf(&quot;   key = %s, deser = %s\n&quot;, k, v.serdeChoice);</b>
+<i class="no-highlight">402</i>&nbsp;            });
+<b class="nc"><i class="no-highlight">403</i>&nbsp;            pw.printf(&quot; errorBehavior = %s\n&quot;, errorViews.getErrorBehaviour());</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;            LOG.info(&quot;{}&quot;, sw.toString().trim());</b>
+<i class="no-highlight">405</i>&nbsp;        }
+<i class="no-highlight">406</i>&nbsp;    }
+<i class="no-highlight">407</i>&nbsp;
+<i class="no-highlight">408</i>&nbsp;    private Properties createKafkaProperties() {
+<b class="nc"><i class="no-highlight">409</i>&nbsp;        Properties props = new Properties();</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        account.update(props);</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;        if (props.containsKey(ConsumerConfig.MAX_POLL_RECORDS_CONFIG)) {</b>
+<b class="nc"><i class="no-highlight">412</i>&nbsp;            MAX_POLL_RECORDS_LINT.report();</b>
+<i class="no-highlight">413</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">414</i>&nbsp;        if (props.containsKey(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG)) {</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;            MAX_POLL_INTERVAL_LINT.report();</b>
+<i class="no-highlight">416</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">417</i>&nbsp;            props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, maxPollInterval);</b>
+<i class="no-highlight">418</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">419</i>&nbsp;        props.put(ConsumerConfig.CLIENT_ID_CONFIG, clientId);</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        props.put(ConsumerConfig.GROUP_ID_CONFIG, group);</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // we can&#39;t use true auto</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset.toLowerCase());</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;        LogUtil.logProperties(LOG, props);</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;        return props;</b>
+<i class="no-highlight">426</i>&nbsp;    }
+<i class="no-highlight">427</i>&nbsp;
+<i class="no-highlight">428</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">429</i>&nbsp;    void initializeConsumer() {
+<b class="nc"><i class="no-highlight">430</i>&nbsp;        Properties kafkaProperties = createKafkaProperties();</b>
+<b class="nc"><i class="no-highlight">431</i>&nbsp;        consumer = service.createConsumer(kafkaProperties, BYTE_ARRAY_DESERIALIZER, BYTE_ARRAY_DESERIALIZER);</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;        service.logClusterDiagnostics(kafkaProperties);</b>
+<b class="nc"><i class="no-highlight">433</i>&nbsp;        service.logTopicDiagnostics(kafkaProperties, Collections.singleton(topic));</b>
+<i class="no-highlight">434</i>&nbsp;    }
+<i class="no-highlight">435</i>&nbsp;
+<i class="no-highlight">436</i>&nbsp;    @Override
+<i class="no-highlight">437</i>&nbsp;    public void cleanup() {
+<b class="nc"><i class="no-highlight">438</i>&nbsp;        super.cleanup();</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;        if (clientId != null) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;            trackerRegistry.removeClientId(clientId);</b>
+<i class="no-highlight">441</i>&nbsp;        }
+<i class="no-highlight">442</i>&nbsp;    }
+<i class="no-highlight">443</i>&nbsp;
+<i class="no-highlight">444</i>&nbsp;    @Override
+<i class="no-highlight">445</i>&nbsp;    public void handle(LifecycleEvent event) {
+<b class="nc"><i class="no-highlight">446</i>&nbsp;        switch (event) {</b>
+<i class="no-highlight">447</i>&nbsp;            case CLOSE:
+<i class="no-highlight">448</i>&nbsp;            case STOP:
+<b class="nc"><i class="no-highlight">449</i>&nbsp;                LOG.info(&quot;{}: handle({}), stopping...&quot;, clientId, event);</b>
+<b class="nc"><i class="no-highlight">450</i>&nbsp;                done = true;</b>
+<i class="no-highlight">451</i>&nbsp;                break;
+<i class="no-highlight">452</i>&nbsp;        }
+<i class="no-highlight">453</i>&nbsp;    }
+<i class="no-highlight">454</i>&nbsp;
+<i class="no-highlight">455</i>&nbsp;    @Override
+<i class="no-highlight">456</i>&nbsp;    protected void process(Document inputDoc, String inputViewName) {
+<b class="nc"><i class="no-highlight">457</i>&nbsp;        if (processCalledOnce) {</b>
+<i class="no-highlight">458</i>&nbsp;            // In a long-polling snap, it makes sense to support at most one input doc to
+<i class="no-highlight">459</i>&nbsp;            // configure expression properties.  Fail any subsequent docs.
+<b class="nc"><i class="no-highlight">460</i>&nbsp;            throw new SnapDataException(MULTIPLE_INPUT_DOCUMENTS_ERROR)</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                    .withReason(MULTIPLE_INPUT_DOCUMENTS_ERROR_REASON)</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                    .withResolution(MULTIPLE_INPUT_DOCUMENTS_ERROR_RESOLUTION);</b>
+<i class="no-highlight">463</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">464</i>&nbsp;        processCalledOnce = true;</b>
+<i class="no-highlight">465</i>&nbsp;
+<b class="nc"><i class="no-highlight">466</i>&nbsp;        initPropsFromDoc(inputDoc);</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;        if (inputDoc != null) {</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;            inputDoc.acknowledge();</b>
+<i class="no-highlight">469</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">470</i>&nbsp;        Document passThroughDoc = isPassThrough ? inputDoc : null;</b>
+<i class="no-highlight">471</i>&nbsp;
+<b class="nc"><i class="no-highlight">472</i>&nbsp;        initializeConsumer();</b>
+<i class="no-highlight">473</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">474</i>&nbsp;            prepareForPolling();</b>
+<i class="no-highlight">475</i>&nbsp;
+<b class="nc"><i class="no-highlight">476</i>&nbsp;            int msgCount = 0;</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;            long maxRate = 0;</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;            int batchIndex = 0;</b>
+<i class="no-highlight">479</i>&nbsp;
+<b class="nc"><i class="no-highlight">480</i>&nbsp;            boolean mustCommitOffsetsForAssignedPartitions = SEEK_END_LEGACY.equals(seekType) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                    AUTO_OFFSET_RESET_LATEST.equals(autoOffsetReset);</b>
+<i class="no-highlight">482</i>&nbsp;
+<b class="nc"><i class="no-highlight">483</i>&nbsp;            final boolean stopWhenEmpty = (maxMsgCount == 0) || (maxMsgCount &gt; 0 &amp;&amp; !waitForCount);</b>
+<b class="nc"><i class="no-highlight">484</i>&nbsp;            boolean lastPollMetStopCriteria = false;</b>
+<b class="nc"><i class="no-highlight">485</i>&nbsp;            while (!done) {</b>
+<b class="nc"><i class="no-highlight">486</i>&nbsp;                Set&lt;TopicPartition&gt; assignmentBeforePoll = consumer.assignment();</b>
+<b class="nc"><i class="no-highlight">487</i>&nbsp;                LOG.debug(&quot;{}: polling from {}&quot;, clientId, assignmentBeforePoll);</b>
+<b class="nc"><i class="no-highlight">488</i>&nbsp;                ConsumerRecords&lt;byte[], byte[]&gt; allRecs = consumer.poll(maxWaitingTime);</b>
+<i class="no-highlight">489</i>&nbsp;
+<b class="nc"><i class="no-highlight">490</i>&nbsp;                if (mustCommitOffsetsForAssignedPartitions) {</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;                    Set&lt;TopicPartition&gt; assignment = consumer.assignment();</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;                    if (!assignment.isEmpty()) {</b>
+<i class="no-highlight">493</i>&nbsp;                        // this only needs to happen once
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                        mustCommitOffsetsForAssignedPartitions = false;</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                        commitOffsetsForAssignedPartitionsNotCommittedTo(assignment, allRecs, inputDoc);</b>
+<i class="no-highlight">496</i>&nbsp;                    }
+<i class="no-highlight">497</i>&nbsp;                }
+<i class="no-highlight">498</i>&nbsp;
+<b class="nc"><i class="no-highlight">499</i>&nbsp;                final int batchSize = allRecs.count();</b>
+<b class="nc"><i class="no-highlight">500</i>&nbsp;                if (batchSize == 0) {</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                    LOG.trace(&quot;{}: poll returned no records&quot;, clientId);</b>
+<i class="no-highlight">502</i>&nbsp;                    // When poll returns nothing, we usually just want to continue polling.
+<i class="no-highlight">503</i>&nbsp;                    // But &quot;Message Count == 0&quot; means we want to stop when there&#39;s no more data
+<i class="no-highlight">504</i>&nbsp;                    // currently available. This is tricky because sometimes poll returns nothing
+<i class="no-highlight">505</i>&nbsp;                    // even though there&#39;s more data available. To avoid premature stopping, we
+<i class="no-highlight">506</i>&nbsp;                    // check that ALL of the following conditions occur on TWO POLLS IN A ROW:
+<i class="no-highlight">507</i>&nbsp;                    // 1. The partition assignment was non-empty before the poll.
+<i class="no-highlight">508</i>&nbsp;                    // 2. The partition assignment was non-empty after the poll.
+<i class="no-highlight">509</i>&nbsp;                    // 3. The &quot;Message Count&quot; setting&#39;s value (maxMsgCount) is 0,
+<i class="no-highlight">510</i>&nbsp;                    //    or is &gt; 0 and &quot;Wait for count&quot; setting is false.
+<b class="nc"><i class="no-highlight">511</i>&nbsp;                    if (!assignmentBeforePoll.isEmpty() &amp;&amp; stopWhenEmpty &amp;&amp; !consumer.assignment().isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">512</i>&nbsp;                        if (!lastPollMetStopCriteria) {</b>
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                            LOG.debug(&quot;{}: stop criteria occurred once; waiting &quot; +</b>
+<i class="no-highlight">514</i>&nbsp;                                    &quot;for this to happen twice in a row before stopping&quot;, clientId);
+<b class="nc"><i class="no-highlight">515</i>&nbsp;                            lastPollMetStopCriteria = true;</b>
+<i class="no-highlight">516</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">517</i>&nbsp;                            LOG.debug(&quot;{}: stop criteria occurred again; stopping&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">518</i>&nbsp;                            done = true;</b>
+<i class="no-highlight">519</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">520</i>&nbsp;                    } else if (lastPollMetStopCriteria) {</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;                        LOG.debug(&quot;{}: clearing lastPollMetStopCriteria flag&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;                        lastPollMetStopCriteria = false;</b>
+<i class="no-highlight">523</i>&nbsp;                    }
+<i class="no-highlight">524</i>&nbsp;                    continue;
+<b class="nc"><i class="no-highlight">525</i>&nbsp;                } else if (lastPollMetStopCriteria) {</b>
+<i class="no-highlight">526</i>&nbsp;                    // poll returned nothing last time, but just returned something
+<b class="nc"><i class="no-highlight">527</i>&nbsp;                    LOG.debug(&quot;{}: poll returned something, clearing lastPollMetStopCriteria flag&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;                    lastPollMetStopCriteria = false;</b>
+<i class="no-highlight">529</i>&nbsp;                }
+<i class="no-highlight">530</i>&nbsp;
+<b class="nc"><i class="no-highlight">531</i>&nbsp;                int recIndex = 0;</b>
+<b class="nc"><i class="no-highlight">532</i>&nbsp;                long startTime = System.nanoTime();</b>
+<b class="nc"><i class="no-highlight">533</i>&nbsp;                Set&lt;TopicPartition&gt; partitions = allRecs.partitions();</b>
+<b class="nc"><i class="no-highlight">534</i>&nbsp;                LOG.debug(&quot;{}: read {} records from {} partition(s); batchIndex={} _______________&quot;,</b>
+<b class="nc"><i class="no-highlight">535</i>&nbsp;                        clientId, batchSize, partitions.size(), batchIndex);</b>
+<i class="no-highlight">536</i>&nbsp;
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                boolean waitForEachRecord = !isAutoCommit &amp;&amp; ACK_MODE_RECORD.equals(ackMode);</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                boolean oneOutputPerRecord = OUTPUT_MODE_RECORD.equals(outputMode);</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                boolean abortBatch = false;</b>
+<i class="no-highlight">540</i>&nbsp;
+<i class="no-highlight">541</i>&nbsp;                // batchSize is the number of records returned from the last poll of Kafka,
+<i class="no-highlight">542</i>&nbsp;                // but we might need to output a smaller value for batch_size in the output
+<i class="no-highlight">543</i>&nbsp;                // depending on maxMsgCount or maxSuggestValue since those limit the actual
+<i class="no-highlight">544</i>&nbsp;                // number of output records.
+<b class="nc"><i class="no-highlight">545</i>&nbsp;                int adjustedBatchSize = batchSize;</b>
+<b class="nc"><i class="no-highlight">546</i>&nbsp;                if (maxMsgCount &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">547</i>&nbsp;                    adjustedBatchSize = Math.min(adjustedBatchSize, maxMsgCount - msgCount);</b>
+<i class="no-highlight">548</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">549</i>&nbsp;                if (isValidation()) {</b>
+<b class="nc"><i class="no-highlight">550</i>&nbsp;                    adjustedBatchSize = Math.min(adjustedBatchSize, maxSuggestValue - msgCount);</b>
+<i class="no-highlight">551</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">552</i>&nbsp;                if (adjustedBatchSize != batchSize) {</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;                    LOG.debug(&quot;{}: adjustedBatchSize={}&quot;, clientId, adjustedBatchSize);</b>
+<i class="no-highlight">554</i>&nbsp;                }
+<i class="no-highlight">555</i>&nbsp;
+<b class="nc"><i class="no-highlight">556</i>&nbsp;                List&lt;Map&lt;String, Object&gt;&gt; batch = oneOutputPerRecord ? null : new ArrayList&lt;&gt;(adjustedBatchSize);</b>
+<i class="no-highlight">557</i>&nbsp;
+<b class="nc"><i class="no-highlight">558</i>&nbsp;                for (Iterator&lt;TopicPartition&gt; iParts = partitions.iterator(); iParts.hasNext() &amp;&amp; !abortBatch &amp;&amp; !done;) {</b>
+<b class="nc"><i class="no-highlight">559</i>&nbsp;                    TopicPartition tp = iParts.next();</b>
+<b class="nc"><i class="no-highlight">560</i>&nbsp;                    List&lt;ConsumerRecord&lt;byte[], byte[]&gt;&gt; recs = allRecs.records(tp);</b>
+<b class="nc"><i class="no-highlight">561</i>&nbsp;                    int recsCount = recs.size();</b>
+<i class="no-highlight">562</i>&nbsp;
+<b class="nc"><i class="no-highlight">563</i>&nbsp;                    Map&lt;TopicPartition, OffsetAndMetadata&gt; recCommitMap = null;</b>
+<i class="no-highlight">564</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">565</i>&nbsp;                        LOG.debug(&quot;{}: processing {} records from {}, offsets {}-{}&quot;, clientId,</b>
+<b class="nc"><i class="no-highlight">566</i>&nbsp;                                recsCount, tp, recs.get(0).offset(), recs.get(recsCount - 1).offset());</b>
+<b class="nc"><i class="no-highlight">567</i>&nbsp;                        for (Iterator&lt;ConsumerRecord&lt;byte[], byte[]&gt;&gt; iRecs = recs.iterator(); iRecs.hasNext() &amp;&amp; !abortBatch &amp;&amp; !done; ) {</b>
+<b class="nc"><i class="no-highlight">568</i>&nbsp;                            ConsumerRecord&lt;byte[], byte[]&gt; rec = iRecs.next();</b>
+<b class="nc"><i class="no-highlight">569</i>&nbsp;                            if (tracker == null) {</b>
+<i class="no-highlight">570</i>&nbsp;                                // create and register a tracker only when needed
+<b class="nc"><i class="no-highlight">571</i>&nbsp;                                tracker = trackerFactory.create();</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;                                trackerIndex = trackerRegistry.put(clientId, tracker);</b>
+<b class="nc"><i class="no-highlight">573</i>&nbsp;                                LOG.debug(&quot;{}: registered new tracker with trackerIndex={}&quot;, clientId, trackerIndex);</b>
+<i class="no-highlight">574</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">575</i>&nbsp;                            Map&lt;String, Object&gt; outputMap = createOutputMap(rec, adjustedBatchSize, batchIndex,</b>
+<i class="no-highlight">576</i>&nbsp;                                    recIndex++, oneOutputPerRecord, inputDoc);
+<b class="nc"><i class="no-highlight">577</i>&nbsp;                            if (outputMap != null) {</b>
+<b class="nc"><i class="no-highlight">578</i>&nbsp;                                if (isAutoCommit) {</b>
+<b class="nc"><i class="no-highlight">579</i>&nbsp;                                    tracker.autoTrack(tp, rec.offset());</b>
+<i class="no-highlight">580</i>&nbsp;                                } else {
+<b class="nc"><i class="no-highlight">581</i>&nbsp;                                    tracker.track(tp, rec.offset());</b>
+<i class="no-highlight">582</i>&nbsp;                                }
+<b class="nc"><i class="no-highlight">583</i>&nbsp;                                if (oneOutputPerRecord) {</b>
+<b class="nc"><i class="no-highlight">584</i>&nbsp;                                    Document outputDoc = documentUtility.newDocument(outputMap);</b>
+<b class="nc"><i class="no-highlight">585</i>&nbsp;                                    outputViews.write(outputDoc, passThroughDoc);</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;                                } else {</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                                    batch.add(outputMap);</b>
+<i class="no-highlight">588</i>&nbsp;                                }
+<i class="no-highlight">589</i>&nbsp;                            } else { // outputMap == null
+<i class="no-highlight">590</i>&nbsp;                                // there&#39;s no output for this record, so autoTrack it
+<b class="nc"><i class="no-highlight">591</i>&nbsp;                                tracker.autoTrack(tp, rec.offset());</b>
+<i class="no-highlight">592</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">593</i>&nbsp;                            msgCount++;</b>
+<b class="nc"><i class="no-highlight">594</i>&nbsp;                            if (maxMsgCount &gt; 0 &amp;&amp; msgCount &gt;= maxMsgCount) {</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;                                LOG.debug(&quot;{}: stopping because msgCount reached maxMsgCount&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;                                done = true;</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;                            } else if (isValidation() &amp;&amp; msgCount &gt;= maxSuggestValue) {</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;                                LOG.debug(&quot;{}: stopping because msgCount reached maxSuggestValue&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">599</i>&nbsp;                                done = true;</b>
+<i class="no-highlight">600</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">601</i>&nbsp;                            if (waitForEachRecord) {</b>
+<i class="no-highlight">602</i>&nbsp;                                try {
+<b class="nc"><i class="no-highlight">603</i>&nbsp;                                    LOG.trace(&quot;{}: waiting for pending record to be acknowledged&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">604</i>&nbsp;                                    recCommitMap = tracker.awaitCommitMap(ackTimeoutSecs, SECONDS);</b>
+<b class="nc"><i class="no-highlight">605</i>&nbsp;                                } catch (OffsetTrackerTimeoutException e) {</b>
+<i class="no-highlight">606</i>&nbsp;                                    try {
+<i class="no-highlight">607</i>&nbsp;                                        // Write the details of the unacked record to the error view.
+<i class="no-highlight">608</i>&nbsp;                                        // This will throw an exception if there is no error view,
+<i class="no-highlight">609</i>&nbsp;                                        // which will return from process() and cause the snap to stop.
+<b class="nc"><i class="no-highlight">610</i>&nbsp;                                        reportRecordTimeout(e, outputMap, inputDoc);</b>
+<i class="no-highlight">611</i>&nbsp;                                        // If we get here, there is an error view and we&#39;re continuing.
+<b class="nc"><i class="no-highlight">612</i>&nbsp;                                        if (ACK_TIMEOUT_POLICY_CONTINUE.equals(ackTimeoutPolicy)) {</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;                                            LOG.debug(&quot;{}: continuing with next record in batch&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">614</i>&nbsp;                                            recCommitMap = tracker.toCommitMapIfAllAcked();</b>
+<i class="no-highlight">615</i>&nbsp;                                        } else {
+<b class="nc"><i class="no-highlight">616</i>&nbsp;                                            LOG.debug(&quot;{}: reprocessing (aborting batch)&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">617</i>&nbsp;                                            abortBatch = true;</b>
+<b class="nc"><i class="no-highlight">618</i>&nbsp;                                            if (partition == null) {</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;                                                enforceRebalance();</b>
+<i class="no-highlight">620</i>&nbsp;                                            } else {
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                                                LOG.debug(&quot;{}: seeking to {}:{}&quot;, clientId, tp, rec.offset());</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                                                consumer.seek(tp, rec.offset());</b>
+<i class="no-highlight">623</i>&nbsp;                                            }
+<i class="no-highlight">624</i>&nbsp;                                        }
+<i class="no-highlight">625</i>&nbsp;                                    } finally {
+<i class="no-highlight">626</i>&nbsp;                                        // set tracker to null so a new one is used for subsequent records
+<b class="nc"><i class="no-highlight">627</i>&nbsp;                                        tracker = null;</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;                                    }</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;                                }</b>
+<b class="nc"><i class="no-highlight">630</i>&nbsp;                                LOG.trace(&quot;{}: recCommitMap={}&quot;, clientId, recCommitMap);</b>
+<i class="no-highlight">631</i>&nbsp;                            }
+<b class="nc"><i class="no-highlight">632</i>&nbsp;                        }</b>
+<i class="no-highlight">633</i>&nbsp;                    } finally {
+<b class="nc"><i class="no-highlight">634</i>&nbsp;                        if (recCommitMap != null) {</b>
+<b class="nc"><i class="no-highlight">635</i>&nbsp;                            commitOffsets(recCommitMap, inputDoc);</b>
+<i class="no-highlight">636</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">637</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;                if (batch != null) {</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;                    Map&lt;String, Object&gt; batchMap = createBatchMap(batch, batchIndex);</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;                    Document outputDoc = documentUtility.newDocument(batchMap);</b>
+<b class="nc"><i class="no-highlight">642</i>&nbsp;                    outputViews.write(outputDoc, passThroughDoc);</b>
+<i class="no-highlight">643</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">644</i>&nbsp;                if (!waitForEachRecord) { // == wait for each batch</b>
+<b class="nc"><i class="no-highlight">645</i>&nbsp;                    Map&lt;TopicPartition, OffsetAndMetadata&gt; batchCommitMap = null;</b>
+<i class="no-highlight">646</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">647</i>&nbsp;                        if (isAutoCommit) {</b>
+<b class="nc"><i class="no-highlight">648</i>&nbsp;                            batchCommitMap = tracker.toCommitMap(true);</b>
+<i class="no-highlight">649</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">650</i>&nbsp;                            LOG.trace(&quot;{}: waiting for pending records to be acknowledged&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;                            batchCommitMap = tracker.awaitCommitMap(ackTimeoutSecs, SECONDS);</b>
+<i class="no-highlight">652</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">653</i>&nbsp;                    } catch (OffsetTrackerTimeoutException e) {</b>
+<i class="no-highlight">654</i>&nbsp;                        try {
+<b class="nc"><i class="no-highlight">655</i>&nbsp;                            batchCommitMap = e.commitMap();</b>
+<i class="no-highlight">656</i>&nbsp;                            // Write the details of the unacked records to the error view.
+<i class="no-highlight">657</i>&nbsp;                            // This will throw an exception if there is no error view,
+<i class="no-highlight">658</i>&nbsp;                            // which will return from process() and cause the snap to stop.
+<b class="nc"><i class="no-highlight">659</i>&nbsp;                            reportBatchTimeout(e, allRecs, adjustedBatchSize, batchIndex, inputDoc);</b>
+<i class="no-highlight">660</i>&nbsp;                            // If we get here, there is an error view and we&#39;re continuing.
+<b class="nc"><i class="no-highlight">661</i>&nbsp;                            if (ACK_TIMEOUT_POLICY_CONTINUE.equals(ackTimeoutPolicy)) {</b>
+<b class="nc"><i class="no-highlight">662</i>&nbsp;                                LOG.debug(&quot;{}: continuing with next batch&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">663</i>&nbsp;                                batchCommitMap = tracker.toCommitMapIfAllAcked();</b>
+<i class="no-highlight">664</i>&nbsp;                            } else {
+<b class="nc"><i class="no-highlight">665</i>&nbsp;                                LOG.debug(&quot;{}: reprocessing from first unacked record&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">666</i>&nbsp;                                if (partition == null) {</b>
+<b class="nc"><i class="no-highlight">667</i>&nbsp;                                    enforceRebalance();</b>
+<i class="no-highlight">668</i>&nbsp;                                } else {
+<b class="nc"><i class="no-highlight">669</i>&nbsp;                                    if (batchCommitMap.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">670</i>&nbsp;                                        LOG.warn(&quot;{}: batchCommitMap is empty; can&#39;t seek&quot;, clientId);</b>
+<i class="no-highlight">671</i>&nbsp;                                    } else {
+<b class="nc"><i class="no-highlight">672</i>&nbsp;                                        batchCommitMap.forEach((tp, offsetAndMetadata) -&gt; {</b>
+<b class="nc"><i class="no-highlight">673</i>&nbsp;                                            long offset = offsetAndMetadata.offset();</b>
+<b class="nc"><i class="no-highlight">674</i>&nbsp;                                            LOG.debug(&quot;{}: seeking to {}:{}&quot;, clientId, tp, offset);</b>
+<b class="nc"><i class="no-highlight">675</i>&nbsp;                                            consumer.seek(tp, offset);</b>
+<i class="no-highlight">676</i>&nbsp;                                        });
+<i class="no-highlight">677</i>&nbsp;                                    }
+<i class="no-highlight">678</i>&nbsp;                                }
+<i class="no-highlight">679</i>&nbsp;                            }
+<i class="no-highlight">680</i>&nbsp;                        } finally {
+<i class="no-highlight">681</i>&nbsp;                            // set tracker to null so a new one is used for subsequent records
+<b class="nc"><i class="no-highlight">682</i>&nbsp;                            tracker = null;</b>
+<b class="nc"><i class="no-highlight">683</i>&nbsp;                        }</b>
+<i class="no-highlight">684</i>&nbsp;                    } finally {
+<b class="nc"><i class="no-highlight">685</i>&nbsp;                        if (batchCommitMap != null) {</b>
+<b class="nc"><i class="no-highlight">686</i>&nbsp;                            commitOffsets(batchCommitMap, inputDoc);</b>
+<i class="no-highlight">687</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">688</i>&nbsp;                    }</b>
+<i class="no-highlight">689</i>&nbsp;                }
+<i class="no-highlight">690</i>&nbsp;
+<b class="nc"><i class="no-highlight">691</i>&nbsp;                batchIndex++;</b>
+<b class="nc"><i class="no-highlight">692</i>&nbsp;                long elapsed = System.nanoTime() - startTime;</b>
+<b class="nc"><i class="no-highlight">693</i>&nbsp;                long ratePerSec = (adjustedBatchSize * 1_000_000_000L) / elapsed;</b>
+<b class="nc"><i class="no-highlight">694</i>&nbsp;                if (ratePerSec &gt; maxRate) {</b>
+<b class="nc"><i class="no-highlight">695</i>&nbsp;                    maxRate = ratePerSec;</b>
+<i class="no-highlight">696</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">697</i>&nbsp;                LOG.debug(&quot;{}: msgCount: {}, rate: {} recs/s, maxRate: {} recs/s&quot;,</b>
+<b class="nc"><i class="no-highlight">698</i>&nbsp;                        clientId, msgCount, ratePerSec, maxRate);</b>
+<b class="nc"><i class="no-highlight">699</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">700</i>&nbsp;        } catch (InterruptedException | InterruptException | SuggestViewAbortException e) {</b>
+<i class="no-highlight">701</i>&nbsp;            // The InterruptException constructor calls Thread.currentThread().interrupt(),
+<i class="no-highlight">702</i>&nbsp;            // so let&#39;s clear the interrupted flag by calling Thread.interrupted(). If this
+<i class="no-highlight">703</i>&nbsp;            // isn&#39;t done, the consumer.close() will sometimes throw InterruptException again
+<i class="no-highlight">704</i>&nbsp;            // and not close the consumer cleanly.
+<b class="nc"><i class="no-highlight">705</i>&nbsp;            LOG.info(&quot;{}: aborted; interrupted={}&quot;, clientId, Thread.interrupted(), e);</b>
+<b class="nc"><i class="no-highlight">706</i>&nbsp;        } catch (SnapException e) {</b>
+<b class="nc"><i class="no-highlight">707</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">708</i>&nbsp;        } catch (AssertionError e) { // errors thrown by EasyMock, etc</b>
+<b class="nc"><i class="no-highlight">709</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">710</i>&nbsp;        } catch (Throwable t) {</b>
+<b class="nc"><i class="no-highlight">711</i>&nbsp;            throw new SnapDataException(inputDoc, t, FAILED_TO_CONSUME)</b>
+<b class="nc"><i class="no-highlight">712</i>&nbsp;                    .formatWith(clientId)</b>
+<b class="nc"><i class="no-highlight">713</i>&nbsp;                    .withReason(t.getMessage())</b>
+<b class="nc"><i class="no-highlight">714</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">715</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">716</i>&nbsp;            LOG.debug(&quot;{}: in finally block&quot;, clientId);</b>
+<i class="no-highlight">717</i>&nbsp;            try {
+<i class="no-highlight">718</i>&nbsp;                // Commit offsets to reflect records that have been processed/acked.
+<i class="no-highlight">719</i>&nbsp;                // This is important when there&#39;s an interrupt or a failure such as an ack timeout
+<i class="no-highlight">720</i>&nbsp;                // (tracker.awaitCommitMap() throws an OffsetTrackerTimeoutException).
+<i class="no-highlight">721</i>&nbsp;                // When the loop terminates normally, offsets will have already been
+<i class="no-highlight">722</i>&nbsp;                // committed so the commitMap will be empty here.
+<b class="nc"><i class="no-highlight">723</i>&nbsp;                if (tracker != null) {</b>
+<b class="nc"><i class="no-highlight">724</i>&nbsp;                    commitOffsets(tracker.toCommitMap(true), inputDoc);</b>
+<i class="no-highlight">725</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">726</i>&nbsp;            } catch (AssertionError e) { // errors thrown by EasyMock, etc</b>
+<b class="nc"><i class="no-highlight">727</i>&nbsp;                throw e;</b>
+<b class="nc"><i class="no-highlight">728</i>&nbsp;            } catch (Throwable t) {</b>
+<b class="nc"><i class="no-highlight">729</i>&nbsp;                LOG.error(&quot;{}: error on attempt to do final commit of offsets from tracker&quot;, clientId, t);</b>
+<b class="nc"><i class="no-highlight">730</i>&nbsp;                errorsOnlyLogged.add(t);</b>
+<b class="nc"><i class="no-highlight">731</i>&nbsp;            }</b>
+<i class="no-highlight">732</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">733</i>&nbsp;                LOG.debug(&quot;{}: closing&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">734</i>&nbsp;                consumer.close();</b>
+<b class="nc"><i class="no-highlight">735</i>&nbsp;            } catch (AssertionError e) { // errors thrown by EasyMock, etc</b>
+<b class="nc"><i class="no-highlight">736</i>&nbsp;                throw e;</b>
+<b class="nc"><i class="no-highlight">737</i>&nbsp;            } catch (Throwable t) {</b>
+<b class="nc"><i class="no-highlight">738</i>&nbsp;                LOG.error(&quot;{}: error on attempt to close Consumer&quot;, clientId, t);</b>
+<b class="nc"><i class="no-highlight">739</i>&nbsp;                errorsOnlyLogged.add(t);</b>
+<b class="nc"><i class="no-highlight">740</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">741</i>&nbsp;        }</b>
+<i class="no-highlight">742</i>&nbsp;    }
+<i class="no-highlight">743</i>&nbsp;
+<i class="no-highlight">744</i>&nbsp;    /*
+<i class="no-highlight">745</i>&nbsp;     * See SNAP-7221.
+<i class="no-highlight">746</i>&nbsp;     * This is called once when this consumer instance has at least one partition assigned to it,
+<i class="no-highlight">747</i>&nbsp;     * and only if seekType is SEEK_END_LEGACY and autoOffsetReset is AUTO_OFFSET_RESET_LATEST.
+<i class="no-highlight">748</i>&nbsp;     * The idea is to commit the correct offset for all assigned partitions that don&#39;t already
+<i class="no-highlight">749</i>&nbsp;     * have an offset committed. Basically, this is the case when the Group ID value is new so
+<i class="no-highlight">750</i>&nbsp;     * no offsets are committed for it yet. AUTO_OFFSET_RESET_LATEST means that the consumer
+<i class="no-highlight">751</i>&nbsp;     * should skip all existing records and consume only new records. So for each assigned partition
+<i class="no-highlight">752</i>&nbsp;     * we want to commit the offset of the last record, plus 1. This is trickier than it seems.
+<i class="no-highlight">753</i>&nbsp;     * The consumer is assigned partitions by calling poll(), but poll() can also return records
+<i class="no-highlight">754</i>&nbsp;     * for some of the assigned partitions. See the comments below for more.
+<i class="no-highlight">755</i>&nbsp;     */
+<i class="no-highlight">756</i>&nbsp;    private void commitOffsetsForAssignedPartitionsNotCommittedTo(
+<i class="no-highlight">757</i>&nbsp;            Set&lt;TopicPartition&gt; assignment,
+<i class="no-highlight">758</i>&nbsp;            ConsumerRecords&lt;byte[], byte[]&gt; allRecs, // the poll() result
+<i class="no-highlight">759</i>&nbsp;            Document inputDoc) {
+<i class="no-highlight">760</i>&nbsp;        try {
+<i class="no-highlight">761</i>&nbsp;            // pollPartitions: the partitions of records in the poll() result
+<b class="nc"><i class="no-highlight">762</i>&nbsp;            Set&lt;TopicPartition&gt; pollPartitions = allRecs.partitions();</b>
+<i class="no-highlight">763</i>&nbsp;            // committed: Map of each assigned partition to its committed offset, which can be null
+<b class="nc"><i class="no-highlight">764</i>&nbsp;            Map&lt;TopicPartition, OffsetAndMetadata&gt; committed = consumer.committed(assignment);</b>
+<i class="no-highlight">765</i>&nbsp;            // commitMap: the offsets to commit
+<b class="nc"><i class="no-highlight">766</i>&nbsp;            Map&lt;TopicPartition, OffsetAndMetadata&gt; commitMap = new LinkedHashMap&lt;&gt;(assignment.size());</b>
+<b class="nc"><i class="no-highlight">767</i>&nbsp;            for (TopicPartition tp : assignment) {</b>
+<b class="nc"><i class="no-highlight">768</i>&nbsp;                if (committed.get(tp) == null) {</b>
+<i class="no-highlight">769</i>&nbsp;                    // no offset is committed for this partition yet
+<i class="no-highlight">770</i>&nbsp;                    long offset;
+<b class="nc"><i class="no-highlight">771</i>&nbsp;                    if (pollPartitions.contains(tp)) {</b>
+<i class="no-highlight">772</i>&nbsp;                        // return the offset of the first record for this partition in the result set;
+<i class="no-highlight">773</i>&nbsp;                        // position() would return an offset beyond the records that were just read
+<i class="no-highlight">774</i>&nbsp;                        // but haven&#39;t been processed yet
+<b class="nc"><i class="no-highlight">775</i>&nbsp;                        offset = allRecs.records(tp).get(0).offset();</b>
+<i class="no-highlight">776</i>&nbsp;                    } else {
+<i class="no-highlight">777</i>&nbsp;                        // allRecs doesn&#39;t contain any records for tp, so we can just use position()
+<b class="nc"><i class="no-highlight">778</i>&nbsp;                        offset = consumer.position(tp);</b>
+<i class="no-highlight">779</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">780</i>&nbsp;                    commitMap.put(tp, new OffsetAndMetadata(offset));</b>
+<i class="no-highlight">781</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">782</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">783</i>&nbsp;            LOG.debug(&quot;{}: commitOffsetsForAssignedPartitions:\n&quot; +</b>
+<i class="no-highlight">784</i>&nbsp;                            &quot;  assignment={}\n&quot; +
+<i class="no-highlight">785</i>&nbsp;                            &quot;  committed={}\n&quot; +
+<i class="no-highlight">786</i>&nbsp;                            &quot;  pollPartitions={}\n&quot; +
+<i class="no-highlight">787</i>&nbsp;                            &quot;  commitMap={}&quot;,
+<i class="no-highlight">788</i>&nbsp;                    clientId, assignment, committed, pollPartitions, commitMap);
+<b class="nc"><i class="no-highlight">789</i>&nbsp;            if (!commitMap.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">790</i>&nbsp;                commitOffsets(commitMap, inputDoc);</b>
+<i class="no-highlight">791</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">792</i>&nbsp;        } catch (AssertionError e) { // errors thrown by EasyMock, etc</b>
+<b class="nc"><i class="no-highlight">793</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">794</i>&nbsp;        } catch (Throwable t) {</b>
+<b class="nc"><i class="no-highlight">795</i>&nbsp;            LOG.error(&quot;{}: error on attempt to commit offsets for partitions assigned but not yet committed to&quot;, clientId, t);</b>
+<b class="nc"><i class="no-highlight">796</i>&nbsp;            errorsOnlyLogged.add(t);</b>
+<b class="nc"><i class="no-highlight">797</i>&nbsp;        }</b>
+<i class="no-highlight">798</i>&nbsp;    }
+<i class="no-highlight">799</i>&nbsp;
+<i class="no-highlight">800</i>&nbsp;    private void enforceRebalance() {
+<b class="nc"><i class="no-highlight">801</i>&nbsp;        checkState(partition == null, &quot;enforceRebalance called when partition != null&quot;);</b>
+<b class="nc"><i class="no-highlight">802</i>&nbsp;        LOG.debug(&quot;{}: enforceRebalance: requesting rebalance&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">803</i>&nbsp;        consumer.enforceRebalance();</b>
+<i class="no-highlight">804</i>&nbsp;    }
+<i class="no-highlight">805</i>&nbsp;
+<i class="no-highlight">806</i>&nbsp;    private void commitOffsets(Map&lt;TopicPartition, OffsetAndMetadata&gt; commitMap, Document inputDoc) {
+<b class="nc"><i class="no-highlight">807</i>&nbsp;        checkNotNull(commitMap, &quot;commitMap is null&quot;);</b>
+<b class="nc"><i class="no-highlight">808</i>&nbsp;        if (!commitMap.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">809</i>&nbsp;            List&lt;Map&lt;String, ?&gt;&gt; commitMapJson = TopicPartitions.toJsonList(commitMap);</b>
+<i class="no-highlight">810</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">811</i>&nbsp;                LOG.debug(&quot;{}: commitSync({})&quot;, clientId, commitMapJson);</b>
+<b class="nc"><i class="no-highlight">812</i>&nbsp;                consumer.commitSync(commitMap);</b>
+<b class="nc"><i class="no-highlight">813</i>&nbsp;            } catch (CommitFailedException e) {</b>
+<b class="nc"><i class="no-highlight">814</i>&nbsp;                Map&lt;String, Object&gt; errorDocMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">815</i>&nbsp;                errorDocMap.put(&quot;offsets&quot;, commitMapJson);</b>
+<b class="nc"><i class="no-highlight">816</i>&nbsp;                Document errorDoc = documentUtility.newDocumentFor(inputDoc, errorDocMap);</b>
+<b class="nc"><i class="no-highlight">817</i>&nbsp;                SnapDataException ex = new SnapDataException(errorDoc, e, FAILED_TO_COMMIT)</b>
+<b class="nc"><i class="no-highlight">818</i>&nbsp;                        .formatWith(clientId)</b>
+<b class="nc"><i class="no-highlight">819</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">820</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">821</i>&nbsp;                LOG.debug(&quot;writing to error view: {}&quot;, ex.toString());</b>
+<b class="nc"><i class="no-highlight">822</i>&nbsp;                errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">823</i>&nbsp;            }</b>
+<i class="no-highlight">824</i>&nbsp;        }
+<i class="no-highlight">825</i>&nbsp;    }
+<i class="no-highlight">826</i>&nbsp;
+<i class="no-highlight">827</i>&nbsp;    private void prepareForPolling() {
+<b class="nc"><i class="no-highlight">828</i>&nbsp;        if (partition == null) {</b>
+<b class="nc"><i class="no-highlight">829</i>&nbsp;            LOG.debug(&quot;{}: subscribing&quot;, clientId);</b>
+<b class="nc"><i class="no-highlight">830</i>&nbsp;            consumer.subscribe(Collections.singleton(topic), rebalanceListener);</b>
+<i class="no-highlight">831</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">832</i>&nbsp;            TopicPartition tp = TopicPartitions.of(topic, partition);</b>
+<b class="nc"><i class="no-highlight">833</i>&nbsp;            LOG.debug(&quot;{}: assigning {}&quot;, clientId, tp);</b>
+<b class="nc"><i class="no-highlight">834</i>&nbsp;            Set&lt;TopicPartition&gt; partitions = Collections.singleton(tp);</b>
+<b class="nc"><i class="no-highlight">835</i>&nbsp;            consumer.assign(partitions);</b>
+<b class="nc"><i class="no-highlight">836</i>&nbsp;            performSeek(partitions);</b>
+<i class="no-highlight">837</i>&nbsp;        }
+<i class="no-highlight">838</i>&nbsp;    }
+<i class="no-highlight">839</i>&nbsp;
+<b class="nc"><i class="no-highlight">840</i>&nbsp;    private final ConsumerRebalanceListener rebalanceListener = new ConsumerRebalanceListener() {</b>
+<i class="no-highlight">841</i>&nbsp;        @Override
+<i class="no-highlight">842</i>&nbsp;        public void onPartitionsRevoked(Collection&lt;TopicPartition&gt; partitions) {
+<b class="nc"><i class="no-highlight">843</i>&nbsp;            LOG.info(&quot;{}: onPartitionsRevoked: partitions={}&quot;, clientId, partitions);</b>
+<i class="no-highlight">844</i>&nbsp;        }
+<i class="no-highlight">845</i>&nbsp;        @Override
+<i class="no-highlight">846</i>&nbsp;        public void onPartitionsLost(Collection&lt;TopicPartition&gt; partitions) {
+<b class="nc"><i class="no-highlight">847</i>&nbsp;            LOG.info(&quot;{}: onPartitionsLost: partitions={}&quot;, clientId, partitions);</b>
+<i class="no-highlight">848</i>&nbsp;        }
+<i class="no-highlight">849</i>&nbsp;        @Override
+<i class="no-highlight">850</i>&nbsp;        public void onPartitionsAssigned(Collection&lt;TopicPartition&gt; partitions) {
+<b class="nc"><i class="no-highlight">851</i>&nbsp;            LOG.info(&quot;{}: onPartitionsAssigned: partitions={}&quot;, clientId, partitions);</b>
+<i class="no-highlight">852</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">853</i>&nbsp;                performSeek(partitions);</b>
+<b class="nc"><i class="no-highlight">854</i>&nbsp;            } catch (Throwable t) {</b>
+<i class="no-highlight">855</i>&nbsp;                // Kafka just logs anything thrown by a ConsumerRebalanceListener
+<b class="nc"><i class="no-highlight">856</i>&nbsp;                LOG.error(&quot;error in onPartitionsAssigned&quot;, t);</b>
+<b class="nc"><i class="no-highlight">857</i>&nbsp;                errorsOnlyLogged.add(t);</b>
+<b class="nc"><i class="no-highlight">858</i>&nbsp;            }</b>
+<i class="no-highlight">859</i>&nbsp;        }
+<i class="no-highlight">860</i>&nbsp;    };
+<i class="no-highlight">861</i>&nbsp;
+<i class="no-highlight">862</i>&nbsp;    private void performSeek(Collection&lt;TopicPartition&gt; requestedPartitions) {
+<i class="no-highlight">863</i>&nbsp;        // only seek the first time a partition is assigned during a single execution
+<b class="nc"><i class="no-highlight">864</i>&nbsp;        Set&lt;TopicPartition&gt; partitions = new LinkedHashSet&lt;&gt;(requestedPartitions);</b>
+<b class="nc"><i class="no-highlight">865</i>&nbsp;        if (partitions.removeAll(seekPerformed)) {</b>
+<b class="nc"><i class="no-highlight">866</i>&nbsp;            LOG.debug(&quot;{}: performSeek: removed seekPerformed={} from requestedPartitions={}&quot;,</b>
+<i class="no-highlight">867</i>&nbsp;                    clientId, seekPerformed, requestedPartitions);
+<i class="no-highlight">868</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">869</i>&nbsp;        if (!partitions.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">870</i>&nbsp;            switch (seekType) {</b>
+<i class="no-highlight">871</i>&nbsp;                case SEEK_END_LEGACY:
+<i class="no-highlight">872</i>&nbsp;                    // Do nothing. Consumption will begin at the committed offset, if one exists,
+<i class="no-highlight">873</i>&nbsp;                    // or at the earliest or latest offset as specified by autoOffsetReset.
+<b class="nc"><i class="no-highlight">874</i>&nbsp;                    LOG.debug(&quot;{}: not seeking for {}; seekType={}&quot;, clientId, partitions, seekType);</b>
+<b class="nc"><i class="no-highlight">875</i>&nbsp;                    break;</b>
+<i class="no-highlight">876</i>&nbsp;                case SEEK_BEGINNING:
+<b class="nc"><i class="no-highlight">877</i>&nbsp;                    LOG.debug(&quot;{}: seeking to beginning for {}&quot;, clientId, partitions);</b>
+<b class="nc"><i class="no-highlight">878</i>&nbsp;                    consumer.seekToBeginning(partitions);</b>
+<b class="nc"><i class="no-highlight">879</i>&nbsp;                    break;</b>
+<i class="no-highlight">880</i>&nbsp;                case SEEK_END_NEW:
+<b class="nc"><i class="no-highlight">881</i>&nbsp;                    LOG.debug(&quot;{}: seeking to end for {}&quot;, clientId, partitions);</b>
+<b class="nc"><i class="no-highlight">882</i>&nbsp;                    consumer.seekToEnd(partitions);</b>
+<b class="nc"><i class="no-highlight">883</i>&nbsp;                    break;</b>
+<i class="no-highlight">884</i>&nbsp;                case SEEK_OFFSET:
+<b class="nc"><i class="no-highlight">885</i>&nbsp;                    LOG.debug(&quot;{}: seeking to {} for {}&quot;, clientId, seekOffset, partitions);</b>
+<b class="nc"><i class="no-highlight">886</i>&nbsp;                    for (TopicPartition tp : partitions) {</b>
+<b class="nc"><i class="no-highlight">887</i>&nbsp;                        consumer.seek(tp, seekOffset);</b>
+<b class="nc"><i class="no-highlight">888</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">889</i>&nbsp;                    break;</b>
+<i class="no-highlight">890</i>&nbsp;                default:
+<b class="nc"><i class="no-highlight">891</i>&nbsp;                    throw new ConfigurationException(&quot;Unhandled seekType: &quot; + seekType);</b>
+<i class="no-highlight">892</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">893</i>&nbsp;            seekPerformed.addAll(partitions);</b>
+<i class="no-highlight">894</i>&nbsp;        }
+<i class="no-highlight">895</i>&nbsp;    }
+<i class="no-highlight">896</i>&nbsp;
+<i class="no-highlight">897</i>&nbsp;    private Map&lt;String, Object&gt; createOutputMap(ConsumerRecord&lt;byte[], byte[]&gt; record,
+<i class="no-highlight">898</i>&nbsp;                                                int batchSize,
+<i class="no-highlight">899</i>&nbsp;                                                int batchIndex,
+<i class="no-highlight">900</i>&nbsp;                                                int recIndex,
+<i class="no-highlight">901</i>&nbsp;                                                boolean incBatchInfo,
+<i class="no-highlight">902</i>&nbsp;                                                Document inputDoc) {
+<b class="nc"><i class="no-highlight">903</i>&nbsp;        final Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">904</i>&nbsp;
+<i class="no-highlight">905</i>&nbsp;        // metadata
+<b class="nc"><i class="no-highlight">906</i>&nbsp;        Map&lt;String, Object&gt; metadata = createMetadataMap(record, batchSize, batchIndex, recIndex, incBatchInfo);</b>
+<b class="nc"><i class="no-highlight">907</i>&nbsp;        Paths.METADATA.writeStatic(map, metadata);</b>
+<i class="no-highlight">908</i>&nbsp;
+<i class="no-highlight">909</i>&nbsp;        // record key
+<i class="no-highlight">910</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">911</i>&nbsp;            Object key = keyDeser.deserialize(topic, record.key());</b>
+<b class="nc"><i class="no-highlight">912</i>&nbsp;            Paths.KEY.writeStatic(map, key);</b>
+<b class="nc"><i class="no-highlight">913</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">914</i>&nbsp;            Map&lt;String, Object&gt; errorDocMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">915</i>&nbsp;            Paths.RECORD_WITHOUT_HEADERS.writeStatic(errorDocMap, map);</b>
+<b class="nc"><i class="no-highlight">916</i>&nbsp;            Document errorDoc = documentUtility.newDocumentFor(inputDoc, errorDocMap);</b>
+<b class="nc"><i class="no-highlight">917</i>&nbsp;            SnapDataException ex = new SnapDataException(errorDoc, e, UNABLE_TO_DESERIALIZE)</b>
+<b class="nc"><i class="no-highlight">918</i>&nbsp;                    .formatWith(RECORD_KEY, keySerdeChoice.label())</b>
+<b class="nc"><i class="no-highlight">919</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">920</i>&nbsp;                    .withResolution(String.format(UNABLE_TO_DESERIALIZE_RES, KEY_DESERIALIZER_LABEL));</b>
+<b class="nc"><i class="no-highlight">921</i>&nbsp;            errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">922</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">923</i>&nbsp;        }</b>
+<i class="no-highlight">924</i>&nbsp;
+<i class="no-highlight">925</i>&nbsp;        // record value
+<i class="no-highlight">926</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">927</i>&nbsp;            Object value = valDeser.deserialize(topic, record.value());</b>
+<b class="nc"><i class="no-highlight">928</i>&nbsp;            Paths.VALUE.writeStatic(map, value);</b>
+<b class="nc"><i class="no-highlight">929</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">930</i>&nbsp;            Map&lt;String, Object&gt; errorDocMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">931</i>&nbsp;            Paths.RECORD_WITHOUT_HEADERS.writeStatic(errorDocMap, map);</b>
+<b class="nc"><i class="no-highlight">932</i>&nbsp;            Document errorDoc = documentUtility.newDocumentFor(inputDoc, errorDocMap);</b>
+<b class="nc"><i class="no-highlight">933</i>&nbsp;            SnapDataException ex = new SnapDataException(errorDoc, e, UNABLE_TO_DESERIALIZE)</b>
+<b class="nc"><i class="no-highlight">934</i>&nbsp;                    .formatWith(RECORD_VALUE, valSerdeChoice.label())</b>
+<b class="nc"><i class="no-highlight">935</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">936</i>&nbsp;                    .withResolution(String.format(UNABLE_TO_DESERIALIZE_RES, VAL_DESERIALIZER_LABEL));</b>
+<b class="nc"><i class="no-highlight">937</i>&nbsp;            errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">938</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">939</i>&nbsp;        }</b>
+<i class="no-highlight">940</i>&nbsp;
+<i class="no-highlight">941</i>&nbsp;        // record headers
+<i class="no-highlight">942</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">943</i>&nbsp;            Map&lt;String, Object&gt; headers = createHeaderMap(record);</b>
+<b class="nc"><i class="no-highlight">944</i>&nbsp;            if (!headers.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">945</i>&nbsp;                Paths.HEADERS.writeStatic(map, headers);</b>
+<i class="no-highlight">946</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">947</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">948</i>&nbsp;            Map&lt;String, Object&gt; errorDocMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">949</i>&nbsp;            Paths.RECORD_WITHOUT_HEADERS.writeStatic(errorDocMap, map);</b>
+<b class="nc"><i class="no-highlight">950</i>&nbsp;            Document errorDoc = documentUtility.newDocumentFor(inputDoc, errorDocMap);</b>
+<b class="nc"><i class="no-highlight">951</i>&nbsp;            SnapDataException ex = new SnapDataException(errorDoc, e, UNABLE_TO_DESERIALIZE_HEADERS)</b>
+<b class="nc"><i class="no-highlight">952</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">953</i>&nbsp;                    .withResolution(UNABLE_TO_DESERIALIZE_HEADERS_RES);</b>
+<b class="nc"><i class="no-highlight">954</i>&nbsp;            errorViews.write(ex);</b>
+<b class="nc"><i class="no-highlight">955</i>&nbsp;            return null;</b>
+<b class="nc"><i class="no-highlight">956</i>&nbsp;        }</b>
+<i class="no-highlight">957</i>&nbsp;
+<b class="nc"><i class="no-highlight">958</i>&nbsp;        return map;</b>
+<i class="no-highlight">959</i>&nbsp;    }
+<i class="no-highlight">960</i>&nbsp;
+<i class="no-highlight">961</i>&nbsp;    private Map&lt;String, Object&gt; createMetadataMap(ConsumerRecord&lt;byte[], byte[]&gt; record,
+<i class="no-highlight">962</i>&nbsp;                                                  int batchSize,
+<i class="no-highlight">963</i>&nbsp;                                                  int batchIndex,
+<i class="no-highlight">964</i>&nbsp;                                                  int recIndex,
+<i class="no-highlight">965</i>&nbsp;                                                  boolean incBatchInfo) {
+<b class="nc"><i class="no-highlight">966</i>&nbsp;        Map&lt;String, Object&gt; metadata = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">967</i>&nbsp;        Paths.TOPIC.writeStatic(metadata, record.topic());</b>
+<b class="nc"><i class="no-highlight">968</i>&nbsp;        Paths.PARTITION.writeStatic(metadata, BigInteger.valueOf(record.partition()));</b>
+<b class="nc"><i class="no-highlight">969</i>&nbsp;        Paths.OFFSET.writeStatic(metadata, BigInteger.valueOf(record.offset()));</b>
+<b class="nc"><i class="no-highlight">970</i>&nbsp;        Paths.CONSUMER_GROUP.writeStatic(metadata,  group);</b>
+<b class="nc"><i class="no-highlight">971</i>&nbsp;        Paths.CLIENT_ID.writeStatic(metadata, clientId);</b>
+<b class="nc"><i class="no-highlight">972</i>&nbsp;        Paths.TRACKER_INDEX.writeStatic(metadata, trackerIndex);</b>
+<b class="nc"><i class="no-highlight">973</i>&nbsp;        if (incBatchInfo) {</b>
+<b class="nc"><i class="no-highlight">974</i>&nbsp;            Paths.BATCH_SIZE.writeStatic(metadata, batchSize); // # of records received from poll()</b>
+<b class="nc"><i class="no-highlight">975</i>&nbsp;            Paths.BATCH_INDEX.writeStatic(metadata, batchIndex); // batch #, 0-based</b>
+<i class="no-highlight">976</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">977</i>&nbsp;        Paths.RECORD_INDEX.writeStatic(metadata, recIndex); // record # within batch</b>
+<b class="nc"><i class="no-highlight">978</i>&nbsp;        Paths.AUTO_COMMIT.writeStatic(metadata, isAutoCommit);</b>
+<b class="nc"><i class="no-highlight">979</i>&nbsp;        if (includeTimestamp) {</b>
+<b class="nc"><i class="no-highlight">980</i>&nbsp;            Paths.TIMESTAMP.writeStatic(metadata, record.timestamp());</b>
+<b class="nc"><i class="no-highlight">981</i>&nbsp;            Paths.TIMESTAMP_TYPE.writeStatic(metadata, String.valueOf(record.timestampType()));</b>
+<i class="no-highlight">982</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">983</i>&nbsp;        return metadata;</b>
+<i class="no-highlight">984</i>&nbsp;    }
+<i class="no-highlight">985</i>&nbsp;
+<i class="no-highlight">986</i>&nbsp;    private Map&lt;String, Object&gt; createHeaderMap(ConsumerRecord&lt;?, ?&gt; record) {
+<b class="nc"><i class="no-highlight">987</i>&nbsp;        Map&lt;String, Object&gt; headerMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">988</i>&nbsp;        for (Header header : record.headers()) {</b>
+<b class="nc"><i class="no-highlight">989</i>&nbsp;            String key = header.key();</b>
+<b class="nc"><i class="no-highlight">990</i>&nbsp;            HeaderRow headerRow = headerRowMap.get(key);</b>
+<b class="nc"><i class="no-highlight">991</i>&nbsp;            Deserializer&lt;?&gt; deser = headerRow != null ? headerRow.valDeser : defaultHeaderDeser;</b>
+<i class="no-highlight">992</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">993</i>&nbsp;                Object value = deser.deserialize(topic, header.value());</b>
+<b class="nc"><i class="no-highlight">994</i>&nbsp;                if (headerMap.containsKey(key)) {</b>
+<i class="no-highlight">995</i>&nbsp;                    // There&#39;s already a value for this header in the map.
+<i class="no-highlight">996</i>&nbsp;                    // The first time this happens, we replace it with a list containing
+<i class="no-highlight">997</i>&nbsp;                    // the existing element and the new element.
+<i class="no-highlight">998</i>&nbsp;                    // When this happens again, we&#39;ll already have a list, so we just add
+<i class="no-highlight">999</i>&nbsp;                    // the new element to this list.
+<i class="no-highlight">1000</i>&nbsp;                    List&lt;Object&gt; valueList;
+<b class="nc"><i class="no-highlight">1001</i>&nbsp;                    Object oldValue = headerMap.get(key);</b>
+<b class="nc"><i class="no-highlight">1002</i>&nbsp;                    if (oldValue instanceof List) {</b>
+<b class="nc"><i class="no-highlight">1003</i>&nbsp;                        valueList = (List&lt;Object&gt;) oldValue;</b>
+<i class="no-highlight">1004</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">1005</i>&nbsp;                        valueList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">1006</i>&nbsp;                        headerMap.put(key, valueList);</b>
+<b class="nc"><i class="no-highlight">1007</i>&nbsp;                        valueList.add(oldValue);</b>
+<i class="no-highlight">1008</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">1009</i>&nbsp;                    valueList.add(value);</b>
+<b class="nc"><i class="no-highlight">1010</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">1011</i>&nbsp;                    headerMap.put(key, value);</b>
+<i class="no-highlight">1012</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">1013</i>&nbsp;            } catch (SerializationException e) {</b>
+<b class="nc"><i class="no-highlight">1014</i>&nbsp;                SerdeChoice serdeChoice = headerRow != null ? headerRow.serdeChoice : defaultHeaderSerdeChoice;</b>
+<b class="nc"><i class="no-highlight">1015</i>&nbsp;                String message = String.format(UNABLE_TO_DESERIALIZE, header, serdeChoice.label());</b>
+<b class="nc"><i class="no-highlight">1016</i>&nbsp;                throw new SerializationException(message, e);</b>
+<b class="nc"><i class="no-highlight">1017</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">1018</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1019</i>&nbsp;        return headerMap;</b>
+<i class="no-highlight">1020</i>&nbsp;    }
+<i class="no-highlight">1021</i>&nbsp;
+<i class="no-highlight">1022</i>&nbsp;    private Map&lt;String, Object&gt; createBatchMap(List&lt;Map&lt;String, Object&gt;&gt; batch, int batchIndex) {
+<b class="nc"><i class="no-highlight">1023</i>&nbsp;        Map&lt;String, Object&gt; map = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">1024</i>&nbsp;        Paths.BATCH.writeStatic(map, batch);</b>
+<b class="nc"><i class="no-highlight">1025</i>&nbsp;        Paths.BATCH_SIZE.writeStatic(map, batch.size());</b>
+<b class="nc"><i class="no-highlight">1026</i>&nbsp;        Paths.BATCH_INDEX.writeStatic(map, batchIndex);</b>
+<b class="nc"><i class="no-highlight">1027</i>&nbsp;        return map;</b>
+<i class="no-highlight">1028</i>&nbsp;    }
+<i class="no-highlight">1029</i>&nbsp;
+<i class="no-highlight">1030</i>&nbsp;    private void reportRecordTimeout(OffsetTrackerTimeoutException e,
+<i class="no-highlight">1031</i>&nbsp;                                     Map&lt;String, Object&gt; outputMap,
+<i class="no-highlight">1032</i>&nbsp;                                     Document inputDoc) {
+<i class="no-highlight">1033</i>&nbsp;        // create an error document containing a list of the one unacknowledged record
+<b class="nc"><i class="no-highlight">1034</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; unacked = Collections.singletonList(outputMap);</b>
+<b class="nc"><i class="no-highlight">1035</i>&nbsp;        SnapDataException ex = wrapTimeoutException(e, unacked, inputDoc);</b>
+<b class="nc"><i class="no-highlight">1036</i>&nbsp;        LOG.debug(&quot;writing to error view: {}&quot;, ex.toString());</b>
+<b class="nc"><i class="no-highlight">1037</i>&nbsp;        errorViews.write(ex);</b>
+<i class="no-highlight">1038</i>&nbsp;    }
+<i class="no-highlight">1039</i>&nbsp;
+<i class="no-highlight">1040</i>&nbsp;    private void reportBatchTimeout(OffsetTrackerTimeoutException e,
+<i class="no-highlight">1041</i>&nbsp;                                    ConsumerRecords&lt;byte[], byte[]&gt; allRecs,
+<i class="no-highlight">1042</i>&nbsp;                                    int batchSize,
+<i class="no-highlight">1043</i>&nbsp;                                    int batchIndex,
+<i class="no-highlight">1044</i>&nbsp;                                    Document inputDoc) {
+<i class="no-highlight">1045</i>&nbsp;        // create an error document containing a list of all unacknowledged records
+<b class="nc"><i class="no-highlight">1046</i>&nbsp;        List&lt;Map&lt;String, Object&gt;&gt; unacked = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">1047</i>&nbsp;        Map&lt;TopicPartition, SortedSet&lt;Long&gt;&gt; pendingOffsets = e.pendingOffsets();</b>
+<b class="nc"><i class="no-highlight">1048</i>&nbsp;        int recIndex = 0;</b>
+<b class="nc"><i class="no-highlight">1049</i>&nbsp;        for (TopicPartition tp : allRecs.partitions()) {</b>
+<b class="nc"><i class="no-highlight">1050</i>&nbsp;            SortedSet&lt;Long&gt; offsets = pendingOffsets.get(tp);</b>
+<b class="nc"><i class="no-highlight">1051</i>&nbsp;            if (offsets != null) {</b>
+<b class="nc"><i class="no-highlight">1052</i>&nbsp;                for (ConsumerRecord&lt;byte[], byte[]&gt; rec : allRecs.records(tp)) {</b>
+<b class="nc"><i class="no-highlight">1053</i>&nbsp;                    if (offsets.contains(rec.offset())) {</b>
+<b class="nc"><i class="no-highlight">1054</i>&nbsp;                        unacked.add(createOutputMap(rec, batchSize, batchIndex, recIndex, true, inputDoc));</b>
+<i class="no-highlight">1055</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">1056</i>&nbsp;                    recIndex++;</b>
+<b class="nc"><i class="no-highlight">1057</i>&nbsp;                }</b>
+<i class="no-highlight">1058</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">1059</i>&nbsp;                recIndex += allRecs.records(tp).size();</b>
+<i class="no-highlight">1060</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">1061</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">1062</i>&nbsp;        SnapDataException ex = wrapTimeoutException(e, unacked, inputDoc);</b>
+<b class="nc"><i class="no-highlight">1063</i>&nbsp;        LOG.debug(&quot;writing to error view: {}&quot;, ex.toString());</b>
+<b class="nc"><i class="no-highlight">1064</i>&nbsp;        errorViews.write(ex);</b>
+<i class="no-highlight">1065</i>&nbsp;    }
+<i class="no-highlight">1066</i>&nbsp;
+<i class="no-highlight">1067</i>&nbsp;    private SnapDataException wrapTimeoutException(OffsetTrackerTimeoutException e,
+<i class="no-highlight">1068</i>&nbsp;                                                   List&lt;Map&lt;String, Object&gt;&gt; unacked,
+<i class="no-highlight">1069</i>&nbsp;                                                   Document inputDoc) {
+<b class="nc"><i class="no-highlight">1070</i>&nbsp;        Map&lt;String, Object&gt; errorDocMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">1071</i>&nbsp;        errorDocMap.put(&quot;num_unacknowledged&quot;, unacked.size());</b>
+<b class="nc"><i class="no-highlight">1072</i>&nbsp;        errorDocMap.put(&quot;unacknowledged&quot;, unacked);</b>
+<b class="nc"><i class="no-highlight">1073</i>&nbsp;        Document errorDoc = documentUtility.newDocumentFor(inputDoc, errorDocMap);</b>
+<b class="nc"><i class="no-highlight">1074</i>&nbsp;        return new SnapDataException(errorDoc, e, e.getMessage())</b>
+<b class="nc"><i class="no-highlight">1075</i>&nbsp;                .withReason(e.getReason())</b>
+<b class="nc"><i class="no-highlight">1076</i>&nbsp;                .withResolution(e.getResolution());</b>
+<i class="no-highlight">1077</i>&nbsp;    }
+<i class="no-highlight">1078</i>&nbsp;
+<i class="no-highlight">1079</i>&nbsp;    private Deserializer&lt;?&gt; toDeser(SerdeChoice choice) {
+<b class="nc"><i class="no-highlight">1080</i>&nbsp;        if (choice == SerdeChoice.AVRO) {</b>
+<b class="nc"><i class="no-highlight">1081</i>&nbsp;            return new AvroDeserializer(account.getSchemaRegistryClient());</b>
+<i class="no-highlight">1082</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">1083</i>&nbsp;            return choice.getDeserializer();</b>
+<i class="no-highlight">1084</i>&nbsp;        }
+<i class="no-highlight">1085</i>&nbsp;    }
+<i class="no-highlight">1086</i>&nbsp;
+<i class="no-highlight">1087</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">1088</i>&nbsp;    List&lt;Throwable&gt; getErrorsOnlyLogged() {
+<b class="nc"><i class="no-highlight">1089</i>&nbsp;        return errorsOnlyLogged;</b>
+<i class="no-highlight">1090</i>&nbsp;    }
+<i class="no-highlight">1091</i>&nbsp;
+<i class="no-highlight">1092</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">1093</i>&nbsp;    ConsumerRebalanceListener getRebalanceListener() {
+<b class="nc"><i class="no-highlight">1094</i>&nbsp;        return rebalanceListener;</b>
+<i class="no-highlight">1095</i>&nbsp;    }
+<i class="no-highlight">1096</i>&nbsp;
+<i class="no-highlight">1097</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">1098</i>&nbsp;    Deserializer&lt;?&gt; getKeyDeser() {
+<b class="nc"><i class="no-highlight">1099</i>&nbsp;        return keyDeser;</b>
+<i class="no-highlight">1100</i>&nbsp;    }
+<i class="no-highlight">1101</i>&nbsp;
+<i class="no-highlight">1102</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">1103</i>&nbsp;    Deserializer&lt;?&gt; getValDeser() {
+<b class="nc"><i class="no-highlight">1104</i>&nbsp;        return valDeser;</b>
+<i class="no-highlight">1105</i>&nbsp;    }
+<i class="no-highlight">1106</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

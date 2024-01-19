@@ -1,0 +1,464 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > HadoopS3DynamicAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.hadoop</a>
+</div>
+
+<h1>Coverage Summary for Class: HadoopS3DynamicAccount (com.snaplogic.snaps.hadoop)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HadoopS3DynamicAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/126)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.hadoop;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.amazonaws.ClientConfiguration;
+<i class="no-highlight">15</i>&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.auth.BasicSessionCredentials;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.regions.Region;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.regions.Regions;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.services.s3.AmazonS3;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.services.s3.AmazonS3Client;
+<i class="no-highlight">21</i>&nbsp;import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+<i class="no-highlight">22</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">23</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.account.api.ExtendedValidatableAccount;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.binary.S3AccountCommon;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.binary.UrlUtils;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.api.fs.s3.S3UrlConnection;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snaps.hadoop.parquet.FileConfig;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.snaps.hadoop.parquet.FileSystemAccount;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">44</i>&nbsp;import org.apache.commons.lang3.tuple.Pair;
+<i class="no-highlight">45</i>&nbsp;import org.apache.hadoop.conf.Configuration;
+<i class="no-highlight">46</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">47</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;import java.net.URLConnection;
+<i class="no-highlight">50</i>&nbsp;import java.util.List;
+<i class="no-highlight">51</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;import static com.snaplogic.snap.api.fs.hadoop.Constants.*;
+<i class="no-highlight">54</i>&nbsp;import static com.snaplogic.snaps.hadoop.Constants.*;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.hadoop.HadoopS3Utils.defineS3RegionProperty;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snaps.hadoop.Messages.*;
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;/**
+<i class="no-highlight">59</i>&nbsp; * Represent an S3 Dynamic account which provides the access key ID, secret access key and
+<i class="no-highlight">60</i>&nbsp; * security token properties for AWS Security Token Service (STS).
+<i class="no-highlight">61</i>&nbsp; *
+<i class="no-highlight">62</i>&nbsp; * @author vkshirsagar
+<i class="no-highlight">63</i>&nbsp; */
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;@General(title = S3_DYNAMIC_ACCOUNT_TITLE, docLink = S3_DYNAMIC_ACCOUNT_DOC_LINK)
+<i class="no-highlight">66</i>&nbsp;@Version(snap = 2)
+<i class="no-highlight">67</i>&nbsp;@AccountCategory(type = AccountType.CUSTOM)
+<b class="nc"><i class="no-highlight">68</i>&nbsp;public class HadoopS3DynamicAccount extends S3AccountCommon implements FileSystemAccount,</b>
+<i class="no-highlight">69</i>&nbsp;        ExtendedValidatableAccount&lt;String, Void&gt;, S3RegionProvider {
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(HadoopS3DynamicAccount.class);</b>
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;    public static final String SSE_AES256_ALGO = &quot;AES256&quot;;
+<b class="nc"><i class="no-highlight">73</i>&nbsp;    private static final Pattern SCHEME_PATTERN = Pattern.compile(&quot;^s3?:.*&quot;,</b>
+<i class="no-highlight">74</i>&nbsp;            Pattern.CASE_INSENSITIVE);
+<i class="no-highlight">75</i>&nbsp;
+<i class="no-highlight">76</i>&nbsp;    private static final String IAM_ROLE_ARN_FMT = &quot;arn:aws:iam::%s:role/%s&quot;;
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;    public static final String FS_S3A_CREDENTIAL_PROVIDER = &quot;fs.s3a.aws.credentials.provider&quot;;
+<i class="no-highlight">79</i>&nbsp;    public static final String FS_S3A_ASSUMED_ROLE_ARN = &quot;fs.s3a.assumed.role.arn&quot;;
+<i class="no-highlight">80</i>&nbsp;    public static final String FS_S3A_ASSUMED_ROLE_CRED_PROVIDER = &quot;fs.s3a.assumed.role&quot; +
+<i class="no-highlight">81</i>&nbsp;            &quot;.credentials.provider&quot;;
+<i class="no-highlight">82</i>&nbsp;    public static final String FS_S3A_ASSUMED_ROLE_STS_ENDPOINT = &quot;fs.s3a.assumed.role.sts&quot; +
+<i class="no-highlight">83</i>&nbsp;            &quot;.endpoint&quot;;
+<i class="no-highlight">84</i>&nbsp;    public static final String FS_S3A_ASSUMED_ROLE_STS_REGION = &quot;fs.s3a.assumed.role.sts.endpoint&quot; +
+<i class="no-highlight">85</i>&nbsp;            &quot;.region&quot;;
+<i class="no-highlight">86</i>&nbsp;    public static final String FS_S3A_ASSUME_ROLE_PROVIDER = &quot;org.apache.hadoop.fs.s3a.auth&quot; +
+<i class="no-highlight">87</i>&nbsp;            &quot;.AssumedRoleCredentialProvider&quot;;
+<i class="no-highlight">88</i>&nbsp;    public static final String AWS_AUTH_INSTANCE_PROFILE_PROVIDER = &quot;com.amazonaws.auth&quot; +
+<i class="no-highlight">89</i>&nbsp;            &quot;.InstanceProfileCredentialsProvider&quot;;
+<i class="no-highlight">90</i>&nbsp;    public static final String AWS_STS_ENDPOINT_WEST_1 = &quot;sts.us-west-1.amazonaws.com&quot;;
+<i class="no-highlight">91</i>&nbsp;    public static final String FS_S3A_TEMP_CRED_PROVIDER = &quot;org.apache.hadoop.fs.s3a&quot; +
+<i class="no-highlight">92</i>&nbsp;            &quot;.TemporaryAWSCredentialsProvider&quot;;
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;    String endpointName;
+<i class="no-highlight">95</i>&nbsp;    private String accessKey;
+<i class="no-highlight">96</i>&nbsp;    private String secretKey;
+<i class="no-highlight">97</i>&nbsp;    private String securityToken;
+<i class="no-highlight">98</i>&nbsp;    private String encryptionType;
+<i class="no-highlight">99</i>&nbsp;    private boolean serverSideEncryption;
+<i class="no-highlight">100</i>&nbsp;    private String roleArn;
+<i class="no-highlight">101</i>&nbsp;    protected boolean isIAMRole;
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;    private final static Region INSTANCE_REGION;
+<i class="no-highlight">104</i>&nbsp;    static {
+<i class="no-highlight">105</i>&nbsp;        //Attempt to get the region information from the current EC2 instance. Set to null if the
+<i class="no-highlight">106</i>&nbsp;        //current machine is not a EC2 instance,or the instance has no metadata service
+<i class="no-highlight">107</i>&nbsp;        //installed. Putting it into a static block since the method below can be really slow, and
+<i class="no-highlight">108</i>&nbsp;        //the region is unlikely to be changed during the jcc process.
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        Region region = null;</b>
+<i class="no-highlight">110</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            region = Regions.getCurrentRegion();</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;            LOG.debug(&quot;Failed to fetch the region. &quot;, e);</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        INSTANCE_REGION = region;</b>
+<i class="no-highlight">116</i>&nbsp;    }
+<i class="no-highlight">117</i>&nbsp;
+<i class="no-highlight">118</i>&nbsp;    @Inject
+<i class="no-highlight">119</i>&nbsp;    protected UrlUtils urlUtils;
+<i class="no-highlight">120</i>&nbsp;    protected String s3Region;
+<i class="no-highlight">121</i>&nbsp;
+<i class="no-highlight">122</i>&nbsp;    @Override
+<i class="no-highlight">123</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                .describe(ACCESS_KEY_ID_PROP, ACCESS_KEY_ID_LABEL, ACCESS_KEY_ID_DESC)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .expression(SnapProperty.DecoratorType.ENABLED_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .describe(SECRET_KEY_PROP, SECRET_KEY_LABEL, SECRET_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                .expression(SnapProperty.DecoratorType.ENABLED_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                .describe(SECURITY_TOKEN_PROP, SECURITY_TOKEN_LABEL, SECURITY_TOKEN_DESC)</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                .expression(SnapProperty.DecoratorType.ENABLED_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                .describe(SSE_S3_PROP, SSE_S3_LABEL, SSE_S3_DESC)</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        defineS3RegionProperty(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                .describe(IAM_ROLE_PROP, IAM_ROLE_LABEL, IAM_ROLE_DESC)</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        buildIAMRoleProperties(propertyBuilder);</b>
+<i class="no-highlight">148</i>&nbsp;    }
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;    /**
+<i class="no-highlight">151</i>&nbsp;     * Defines additional properties related to IAM role
+<i class="no-highlight">152</i>&nbsp;     *
+<i class="no-highlight">153</i>&nbsp;     * @param propertyBuilder property Builder
+<i class="no-highlight">154</i>&nbsp;     */
+<i class="no-highlight">155</i>&nbsp;    protected void buildIAMRoleProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        List&lt;SnapProperty&gt; iamProperties = Lists.newArrayListWithCapacity(3);</b>
+<i class="no-highlight">157</i>&nbsp;        // AWS Account ID property
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        iamProperties.add(propertyBuilder.describe(AWS_ACCOUNT_ID_PROP,</b>
+<i class="no-highlight">159</i>&nbsp;                DYN_AWS_ACCOUNT_ID_LABEL, AWS_ACCOUNT_ID_DESC)
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                .build());</b>
+<i class="no-highlight">161</i>&nbsp;        // IAM role name property
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        iamProperties.add(propertyBuilder.describe(IAM_ROLE_NAME_PROP, DYN_IAM_ROLE_NAME_LABEL,</b>
+<i class="no-highlight">163</i>&nbsp;                IAM_ROLE_NAME_DESC)
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                .build());</b>
+<i class="no-highlight">165</i>&nbsp;        // builds region name property
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        iamProperties.add(propertyBuilder.describe(ENDPOINT_PROP, DYN_REGION_ENDPOINT_LABEL,</b>
+<i class="no-highlight">167</i>&nbsp;                REGION_ENDPOINT_DESC)
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                .build());</b>
+<i class="no-highlight">169</i>&nbsp;        // add the above three properties as a group &quot;IAM role properties&quot;
+<b class="nc"><i class="no-highlight">170</i>&nbsp;        PropertyBuilder iamPropertiesBuilder = propertyBuilder.describe(IAM_PROPERTIES_PROP,</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                DYN_IAM_ROLE_PROPERTIES_LABEL, IAM_PROPERTIES_DESC).type(SnapType.COMPOSITE);</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;        for (SnapProperty iamProperty : iamProperties) {</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;            iamPropertiesBuilder = iamPropertiesBuilder.withEntry(iamProperty);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        iamPropertiesBuilder.add();</b>
+<i class="no-highlight">176</i>&nbsp;    }
+<i class="no-highlight">177</i>&nbsp;
+<i class="no-highlight">178</i>&nbsp;    @Override
+<i class="no-highlight">179</i>&nbsp;    public void configure(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        ExpressionProperty expression = propertyValues.getAsExpression(ACCESS_KEY_ID_PROP);</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        accessKey = expression.eval(null);</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        expression = propertyValues.getAsExpression(SECRET_KEY_PROP);</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        secretKey = expression.eval(null);</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        expression = propertyValues.getAsExpression(SECURITY_TOKEN_PROP);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        securityToken = expression.eval(null);</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        serverSideEncryption = Boolean.TRUE.equals(propertyValues.get(SSE_S3_PROP));</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        isIAMRole = Boolean.TRUE.equals(propertyValues.get(IAM_ROLE_PROP));</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        endpointName = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">189</i>&nbsp;                IAM_PROPERTIES_PROP, ENDPOINT_PROP));
+<b class="nc"><i class="no-highlight">190</i>&nbsp;        String s3AccountId = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">191</i>&nbsp;                IAM_PROPERTIES_PROP, AWS_ACCOUNT_ID_PROP));
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        String roleName = propertyValues.get(getDatabasePropertyValuePath(</b>
+<i class="no-highlight">193</i>&nbsp;                IAM_PROPERTIES_PROP, IAM_ROLE_NAME_PROP));
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        if (StringUtils.isNotEmpty(roleName) &amp;&amp; StringUtils.isNotEmpty(s3AccountId)) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            roleArn = String.format(IAM_ROLE_ARN_FMT, s3AccountId, roleName);</b>
+<i class="no-highlight">196</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        s3Region = propertyValues.get(S3_REGION);</b>
+<i class="no-highlight">198</i>&nbsp;    }
+<i class="no-highlight">199</i>&nbsp;
+<i class="no-highlight">200</i>&nbsp;    @Override
+<i class="no-highlight">201</i>&nbsp;    public String connect() throws ExecutionException {
+<b class="nc"><i class="no-highlight">202</i>&nbsp;        Pair&lt;String, String&gt; keyPairs = getCredentials(accessKey, secretKey, securityToken, roleArn,</b>
+<i class="no-highlight">203</i>&nbsp;                null, isIAMRole);
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        return urlUtils.formatUserInfo(keyPairs.getLeft(), keyPairs.getRight());</b>
+<i class="no-highlight">205</i>&nbsp;    }
+<i class="no-highlight">206</i>&nbsp;
+<i class="no-highlight">207</i>&nbsp;    protected String getSecurityToken() {
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        return securityToken;</b>
+<i class="no-highlight">209</i>&nbsp;    }
+<i class="no-highlight">210</i>&nbsp;
+<i class="no-highlight">211</i>&nbsp;    @Override
+<i class="no-highlight">212</i>&nbsp;    protected String getEncryptionTypeString() {
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        return encryptionType;</b>
+<i class="no-highlight">214</i>&nbsp;    }
+<i class="no-highlight">215</i>&nbsp;
+<i class="no-highlight">216</i>&nbsp;    @Override
+<i class="no-highlight">217</i>&nbsp;    protected boolean isServerSideEncryptionEnabled() {
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        return serverSideEncryption;</b>
+<i class="no-highlight">219</i>&nbsp;    }
+<i class="no-highlight">220</i>&nbsp;
+<i class="no-highlight">221</i>&nbsp;    @Override
+<i class="no-highlight">222</i>&nbsp;    protected String getKmsKey() {
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        return null;</b>
+<i class="no-highlight">224</i>&nbsp;    }
+<i class="no-highlight">225</i>&nbsp;
+<i class="no-highlight">226</i>&nbsp;    @Override
+<i class="no-highlight">227</i>&nbsp;    public String getKmsRegion() {
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        return null;</b>
+<i class="no-highlight">229</i>&nbsp;    }
+<i class="no-highlight">230</i>&nbsp;
+<i class="no-highlight">231</i>&nbsp;    public String getSecretKey() {
+<b class="nc"><i class="no-highlight">232</i>&nbsp;        return secretKey;</b>
+<i class="no-highlight">233</i>&nbsp;    }
+<i class="no-highlight">234</i>&nbsp;
+<i class="no-highlight">235</i>&nbsp;    @Override
+<i class="no-highlight">236</i>&nbsp;    public URLConnection withHeaders(URLConnection conn) {
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        conn.setRequestProperty(SECURITY_TOKEN_PROP, getSecurityToken());</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        return super.withHeaders(conn);</b>
+<i class="no-highlight">239</i>&nbsp;    }
+<i class="no-highlight">240</i>&nbsp;
+<i class="no-highlight">241</i>&nbsp;    String getDatabasePropertyValuePath(String rootProp, String propertyKey) {
+<i class="no-highlight">242</i>&nbsp;        // use try-block to autoclose builder.
+<b class="nc"><i class="no-highlight">243</i>&nbsp;        try (JsonPathBuilder builder = new JsonPathBuilder(rootProp)) {</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;            return builder.appendValueElement()</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                    .appendCurrentElement(propertyKey)</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                    .build();</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        }</b>
+<i class="no-highlight">248</i>&nbsp;    }
+<i class="no-highlight">249</i>&nbsp;
+<i class="no-highlight">250</i>&nbsp;    /**
+<i class="no-highlight">251</i>&nbsp;     * Gets s3 account information and sets at hadoop configuration
+<i class="no-highlight">252</i>&nbsp;     */
+<i class="no-highlight">253</i>&nbsp;    void setAccountCredential(Configuration hadoopConf) {
+<b class="nc"><i class="no-highlight">254</i>&nbsp;        if (StringUtils.isNotBlank(endpointName)) {</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;            hadoopConf.set(FS_S3A_ENDPOINT, endpointName);</b>
+<i class="no-highlight">256</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">257</i>&nbsp;        if (!isIAMRole) {</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;            hadoopConf.set(FS_S3A_AWS_ACCESS_KEY_ID, accessKey);</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            hadoopConf.set(FS_S3A_AWS_SECRET_KEY, secretKey);</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;            if (!StringUtils.isEmpty(securityToken)) {</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;                hadoopConf.set(FS_S3A_AWS_SECURITY_TOKEN, securityToken);</b>
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                hadoopConf.set(FS_S3A_CREDENTIAL_PROVIDER, FS_S3A_TEMP_CRED_PROVIDER);</b>
+<i class="no-highlight">263</i>&nbsp;            }
+<i class="no-highlight">264</i>&nbsp;        }
+<i class="no-highlight">265</i>&nbsp;
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        if (StringUtils.isNotEmpty(roleArn)) {</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;            hadoopConf.set(FS_S3A_CREDENTIAL_PROVIDER, FS_S3A_ASSUME_ROLE_PROVIDER);</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;            hadoopConf.set(FS_S3A_ASSUMED_ROLE_ARN, roleArn);</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;            if (isIAMRole) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                hadoopConf.set(FS_S3A_ASSUMED_ROLE_CRED_PROVIDER,</b>
+<i class="no-highlight">271</i>&nbsp;                        AWS_AUTH_INSTANCE_PROFILE_PROVIDER);
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            } else if (INSTANCE_REGION == null){</b>
+<i class="no-highlight">273</i>&nbsp;                // Set default region if the jcc node doesn&#39;t have default region defined.
+<i class="no-highlight">274</i>&nbsp;                // Follow the Hadoop-aws implementation to use default region US-WEST-1
+<b class="nc"><i class="no-highlight">275</i>&nbsp;                hadoopConf.set(FS_S3A_ASSUMED_ROLE_STS_ENDPOINT, AWS_STS_ENDPOINT_WEST_1);</b>
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                hadoopConf.set(FS_S3A_ASSUMED_ROLE_STS_REGION, Regions.US_WEST_1.getName());</b>
+<i class="no-highlight">277</i>&nbsp;            }
+<i class="no-highlight">278</i>&nbsp;        }
+<i class="no-highlight">279</i>&nbsp;
+<i class="no-highlight">280</i>&nbsp;
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        hadoopConf = withEncryption(hadoopConf);</b>
+<i class="no-highlight">282</i>&nbsp;
+<i class="no-highlight">283</i>&nbsp;        //to disable the cache mechanism to reuse the S3A FileSystem object since it caches the
+<i class="no-highlight">284</i>&nbsp;        // credentials
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        hadoopConf.set(FS_S3A_DISABLE_CACHE, TRUE);</b>
+<i class="no-highlight">286</i>&nbsp;    }
+<i class="no-highlight">287</i>&nbsp;
+<i class="no-highlight">288</i>&nbsp;    private void validateScheme(String filePath) {
+<b class="nc"><i class="no-highlight">289</i>&nbsp;        if (!SCHEME_PATTERN.matcher(filePath).matches()) {</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;            throw new SnapDataException(ERR_INVALID_SCHEME)</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                    .withReason(ERR_INVALID_SCHEME_S3_REA)</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                    .withResolution(String.format(ERR_INVALID_SCHEME_S3_RES));</b>
+<i class="no-highlight">293</i>&nbsp;        }
+<i class="no-highlight">294</i>&nbsp;    }
+<i class="no-highlight">295</i>&nbsp;
+<i class="no-highlight">296</i>&nbsp;    @Override
+<i class="no-highlight">297</i>&nbsp;    public FileConfig buildFileConfig(String filepath, Configuration config) {
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        validateScheme(filepath);</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;        HadoopS3Utils.checkRegionEndPoints(this);</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        setAccountCredential(config);</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;        ClientConfiguration clientConfiguration = S3UrlConnection.createClientConfiguration();</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;        HadoopS3Utils.setProxySettings(clientConfiguration, config);</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        filepath = HadoopS3Utils.getS3AUri(filepath).toString();</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        return new FileConfig(filepath, config);</b>
+<i class="no-highlight">305</i>&nbsp;    }
+<i class="no-highlight">306</i>&nbsp;
+<i class="no-highlight">307</i>&nbsp;    /**
+<i class="no-highlight">308</i>&nbsp;     * Modifies the hadoop configuration to use the configured S3 encryption type
+<i class="no-highlight">309</i>&nbsp;     *
+<i class="no-highlight">310</i>&nbsp;     * https://hadoop.apache.org/docs/current/hadoop-aws/tools/hadoop-aws/encryption.html
+<i class="no-highlight">311</i>&nbsp;     * SSE with KMS cannot be supported until version 2.9 of hadoop-aws
+<i class="no-highlight">312</i>&nbsp;     * https://issues.apache.org/jira/browse/HADOOP-13075
+<i class="no-highlight">313</i>&nbsp;     * @param config
+<i class="no-highlight">314</i>&nbsp;     * @return
+<i class="no-highlight">315</i>&nbsp;     */
+<i class="no-highlight">316</i>&nbsp;    private Configuration withEncryption(Configuration config) {
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        if (isServerSideEncryptionEnabled()) {</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            config.set(FS_S3A_SSE, SSE_AES256_ALGO);</b>
+<i class="no-highlight">319</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">320</i>&nbsp;        return config;</b>
+<i class="no-highlight">321</i>&nbsp;    }
+<i class="no-highlight">322</i>&nbsp;
+<i class="no-highlight">323</i>&nbsp;    @Override
+<i class="no-highlight">324</i>&nbsp;    public String validate(Void unused) {
+<b class="nc"><i class="no-highlight">325</i>&nbsp;        if (isIAMRole) {</b>
+<i class="no-highlight">326</i>&nbsp;            // IAM role account cannot be validated and cannot display reason and resolution in
+<i class="no-highlight">327</i>&nbsp;            // the account validation. This issue is documented in the Snap reference document.
+<b class="nc"><i class="no-highlight">328</i>&nbsp;            throw new ExecutionException(ERR_VALIDATE_ACCOUNT);</b>
+<i class="no-highlight">329</i>&nbsp;        }
+<i class="no-highlight">330</i>&nbsp;        AmazonS3 s3;
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        if (StringUtils.isNotEmpty(roleArn)) {</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;            AssumeRoleResult assumeRoleResult = getRoleAssumption(accessKey, secretKey,</b>
+<i class="no-highlight">333</i>&nbsp;                    securityToken, roleArn, null, isIAMRole);
+<b class="nc"><i class="no-highlight">334</i>&nbsp;            s3 = new AmazonS3Client(new BasicSessionCredentials(</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                    assumeRoleResult.getCredentials().getAccessKeyId(),</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                    assumeRoleResult.getCredentials().getSecretAccessKey(),</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;                    assumeRoleResult.getCredentials().getSessionToken()),</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                    UrlUtils.createClientConfiguration());</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;        } else if (StringUtils.isNotBlank(securityToken)) {</b>
+<b class="nc"><i class="no-highlight">340</i>&nbsp;            s3 = new AmazonS3Client(new BasicSessionCredentials(accessKey, secretKey,securityToken),</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                    UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">342</i>&nbsp;        } else {
+<i class="no-highlight">343</i>&nbsp;            //getting an amazon S3 account and trying to validate by fetching display name
+<b class="nc"><i class="no-highlight">344</i>&nbsp;            s3 = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey),</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                    UrlUtils.createClientConfiguration());</b>
+<i class="no-highlight">346</i>&nbsp;        }
+<i class="no-highlight">347</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">348</i>&nbsp;            return s3.getS3AccountOwner().getDisplayName();</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;            throw new ExecutionException(e, ERR_VALIDATE_ACCOUNT)</b>
+<b class="nc"><i class="no-highlight">351</i>&nbsp;                    .withReason(e.getMessage());</b>
+<i class="no-highlight">352</i>&nbsp;        }
+<i class="no-highlight">353</i>&nbsp;    }
+<i class="no-highlight">354</i>&nbsp;
+<i class="no-highlight">355</i>&nbsp;    @Override
+<i class="no-highlight">356</i>&nbsp;    public String getS3Region() {
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        return s3Region;</b>
+<i class="no-highlight">358</i>&nbsp;    }
+<i class="no-highlight">359</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,429 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > GsPath</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.fs.gs</a>
+</div>
+
+<h1>Coverage Summary for Class: GsPath (com.snaplogic.snap.api.fs.gs)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">GsPath</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/37)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/98)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.fs.gs;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.api.services.storage.model.StorageObject;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.fs.JfsUtils;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.fs.URLEncoder;
+<i class="no-highlight">17</i>&nbsp;
+<i class="no-highlight">18</i>&nbsp;import org.apache.commons.io.FilenameUtils;
+<i class="no-highlight">19</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import java.io.File;
+<i class="no-highlight">22</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">23</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">24</i>&nbsp;import java.net.URI;
+<i class="no-highlight">25</i>&nbsp;import java.nio.file.FileSystem;
+<i class="no-highlight">26</i>&nbsp;import java.nio.file.LinkOption;
+<i class="no-highlight">27</i>&nbsp;import java.nio.file.Path;
+<i class="no-highlight">28</i>&nbsp;import java.nio.file.WatchEvent;
+<i class="no-highlight">29</i>&nbsp;import java.nio.file.WatchKey;
+<i class="no-highlight">30</i>&nbsp;import java.nio.file.WatchService;
+<i class="no-highlight">31</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">32</i>&nbsp;import java.util.List;
+<i class="no-highlight">33</i>&nbsp;import java.util.Map;
+<i class="no-highlight">34</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.URL_SEPARATOR;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snap.api.fs.gs.Messages.ERR_GET_ATTRIBUTES;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snap.api.fs.gs.Messages.REASON_URI_SYNTAX_ERROR;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snap.api.fs.gs.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snap.api.fs.gs.Messages.RESOLUTION_URI_SYNTAX;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;/**
+<i class="no-highlight">43</i>&nbsp; * GsPath represents an gs path that is hierarchical and composed of a
+<i class="no-highlight">44</i>&nbsp; * sequence of directory and file name elements separated by a URL separator.
+<i class="no-highlight">45</i>&nbsp; *
+<i class="no-highlight">46</i>&nbsp; * @author psung
+<i class="no-highlight">47</i>&nbsp; * @since Apr, 2016
+<i class="no-highlight">48</i>&nbsp; */
+<i class="no-highlight">49</i>&nbsp;public class GsPath implements Path {
+<i class="no-highlight">50</i>&nbsp;    private static final String FORMAT_GS = &quot;%s:///%s/%s&quot;;
+<i class="no-highlight">51</i>&nbsp;    private static final String FORMAT_PATH = &quot;/%s/%s&quot;;
+<i class="no-highlight">52</i>&nbsp;    private GsFileSystem fileSystem;
+<i class="no-highlight">53</i>&nbsp;    private URI uri;
+<i class="no-highlight">54</i>&nbsp;    private Map&lt;String, ?&gt; env;
+<i class="no-highlight">55</i>&nbsp;    private GsUrlConnection urlConnection;
+<i class="no-highlight">56</i>&nbsp;    private String noAuthPath;
+<i class="no-highlight">57</i>&nbsp;    private StorageObject storageObject;
+<i class="no-highlight">58</i>&nbsp;
+<b class="nc"><i class="no-highlight">59</i>&nbsp;    public GsPath(GsFileSystem fileSystem, URI uri, Map&lt;String, ?&gt; env) {</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;        this.fileSystem = fileSystem;</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;        this.uri = uri;</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        this.env = env;</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        noAuthPath = JfsUtils.getFileNoAuth(JfsUtils.decode(uri.toString()));</b>
+<i class="no-highlight">64</i>&nbsp;    }
+<i class="no-highlight">65</i>&nbsp;
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    public GsPath(GsFileSystem fileSystem, GsPath parent, StorageObject storageObject) {</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        this.fileSystem = fileSystem;</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;        this.storageObject = storageObject;</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;        URI parentUri = parent.toUri();</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;        String path = String.format(FORMAT_GS, parentUri.getScheme(), storageObject.getBucket(),</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;                storageObject.getName());</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;        uri = new URLEncoder().encodeURIWithUserInfo(path, parentUri.getUserInfo());</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        env = parent.getEnv();</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        noAuthPath = JfsUtils.getFileNoAuth(JfsUtils.decode(uri.toString()));</b>
+<i class="no-highlight">75</i>&nbsp;    }
+<i class="no-highlight">76</i>&nbsp;
+<b class="nc"><i class="no-highlight">77</i>&nbsp;    public GsPath(GsFileSystem fileSystem, String strPath) {</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        this.fileSystem = fileSystem;</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        noAuthPath = JfsUtils.getFileNoAuth(JfsUtils.decode(strPath));</b>
+<i class="no-highlight">80</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">81</i>&nbsp;            uri = new URI(strPath);</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;            throw new SnapDataException(e, JfsUtils.getFileNoAuth(e.getMessage()))</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                    .withReason(REASON_URI_SYNTAX_ERROR)</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                    .withResolution(RESOLUTION_URI_SYNTAX);</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        }</b>
+<i class="no-highlight">87</i>&nbsp;    }
+<i class="no-highlight">88</i>&nbsp;
+<i class="no-highlight">89</i>&nbsp;    @Override
+<i class="no-highlight">90</i>&nbsp;    public FileSystem getFileSystem() {
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        return fileSystem;</b>
+<i class="no-highlight">92</i>&nbsp;    }
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;    @Override
+<i class="no-highlight">95</i>&nbsp;    public URI toUri() {
+<b class="nc"><i class="no-highlight">96</i>&nbsp;        return uri;</b>
+<i class="no-highlight">97</i>&nbsp;    }
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;    @Override
+<i class="no-highlight">100</i>&nbsp;    public Path getFileName() {
+<i class="no-highlight">101</i>&nbsp;        String fileName;
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        if (noAuthPath.endsWith(URL_SEPARATOR)) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            fileName = FilenameUtils.getName(noAuthPath.substring(0, noAuthPath.length() - 1));</b>
+<i class="no-highlight">104</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            fileName = FilenameUtils.getName(noAuthPath);</b>
+<i class="no-highlight">106</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        return new GsPath(fileSystem, JfsUtils.encode(fileName));</b>
+<i class="no-highlight">108</i>&nbsp;    }
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;    @Override
+<i class="no-highlight">111</i>&nbsp;    public File toFile() {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        return new File(uri);</b>
+<i class="no-highlight">113</i>&nbsp;    }
+<i class="no-highlight">114</i>&nbsp;
+<i class="no-highlight">115</i>&nbsp;    @Override
+<i class="no-highlight">116</i>&nbsp;    public boolean equals(final Object o) {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        if (this == o) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            return true;</b>
+<i class="no-highlight">119</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        if (o == null || getClass() != o.getClass()) {</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            return false;</b>
+<i class="no-highlight">122</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        final GsPath paths = (GsPath) o;</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;        return Objects.equals(uri, paths.uri);</b>
+<i class="no-highlight">125</i>&nbsp;    }
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;    @Override
+<i class="no-highlight">128</i>&nbsp;    public int hashCode() {
+<b class="nc"><i class="no-highlight">129</i>&nbsp;        return Objects.hash(uri);</b>
+<i class="no-highlight">130</i>&nbsp;    }
+<i class="no-highlight">131</i>&nbsp;
+<i class="no-highlight">132</i>&nbsp;    @Override
+<i class="no-highlight">133</i>&nbsp;    public String toString() {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        return uri == null ? null : uri.toString();</b>
+<i class="no-highlight">135</i>&nbsp;    }
+<i class="no-highlight">136</i>&nbsp;
+<i class="no-highlight">137</i>&nbsp;    // package private getter
+<i class="no-highlight">138</i>&nbsp;    GsUrlConnection getURLConnection() throws IOException {
+<b class="nc"><i class="no-highlight">139</i>&nbsp;        if (urlConnection == null &amp;&amp; uri != null) {</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            urlConnection =  (GsUrlConnection) JfsUtils.getInstance().openURLConnection(uri);</b>
+<i class="no-highlight">141</i>&nbsp;            // load access token and refresh token
+<b class="nc"><i class="no-highlight">142</i>&nbsp;            for (Map.Entry&lt;String, ?&gt; entry : env.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                urlConnection.setRequestProperty(entry.getKey(), (String) entry.getValue());</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;            urlConnection.connect();</b>
+<i class="no-highlight">146</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        return urlConnection;</b>
+<i class="no-highlight">148</i>&nbsp;    }
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;    // package private getter
+<i class="no-highlight">151</i>&nbsp;    StorageObject getStorageObject() {
+<b class="nc"><i class="no-highlight">152</i>&nbsp;        if (storageObject == null) {</b>
+<i class="no-highlight">153</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                String key = getKey();</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                if (key.endsWith(URL_SEPARATOR)) {</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                    key = key.substring(0, key.length() - 1);</b>
+<i class="no-highlight">157</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                List&lt;StorageObject&gt; storageObjects = getURLConnection().list();</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                if (storageObjects != null) {</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                    for (StorageObject storageObject : storageObjects) {</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                        String name = storageObject.getName();</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                        if (name.equals(key)) {</b>
+<i class="no-highlight">163</i>&nbsp;                            // found same storage object
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                            this.storageObject = storageObject;</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                            break;</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                        } else if (name.startsWith(key)) {</b>
+<i class="no-highlight">167</i>&nbsp;                            // Found an object whose prefix is the same as current object. This
+<i class="no-highlight">168</i>&nbsp;                            // folder does not exist, but is part of path of existing object.
+<i class="no-highlight">169</i>&nbsp;                            // Note that all objects in a bucket are flat, &#39;/&#39; is just part of name
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                            storageObject.setName(key.endsWith(URL_SEPARATOR) ? key :</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                                    key.concat(URL_SEPARATOR));</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                            storageObject.setSize(BigInteger.ZERO);</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                            this.storageObject = storageObject;</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                            break;</b>
+<i class="no-highlight">175</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                    }</b>
+<i class="no-highlight">177</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                throw new SnapDataException(e, ERR_GET_ATTRIBUTES).formatWith(noAuthPath)</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;            }</b>
+<i class="no-highlight">183</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        return storageObject;</b>
+<i class="no-highlight">185</i>&nbsp;    }
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;    /**
+<i class="no-highlight">188</i>&nbsp;     * Gets key from uri. Key is defined as file path string without bucket and leading &#39;/&#39;.
+<i class="no-highlight">189</i>&nbsp;     *
+<i class="no-highlight">190</i>&nbsp;     * @return key
+<i class="no-highlight">191</i>&nbsp;     */
+<i class="no-highlight">192</i>&nbsp;     String getKey() {
+<b class="nc"><i class="no-highlight">193</i>&nbsp;        String path = uri.getPath();</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        int index = path.indexOf(URL_SEPARATOR, 1);</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;        if (index &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            return path.substring(++index);</b>
+<i class="no-highlight">197</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        return StringUtils.EMPTY;</b>
+<i class="no-highlight">199</i>&nbsp;    }
+<i class="no-highlight">200</i>&nbsp;
+<i class="no-highlight">201</i>&nbsp;    // package private getter
+<i class="no-highlight">202</i>&nbsp;    Map&lt;String, ?&gt; getEnv() {
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        return env;</b>
+<i class="no-highlight">204</i>&nbsp;    }
+<i class="no-highlight">205</i>&nbsp;
+<i class="no-highlight">206</i>&nbsp;    // package private getter
+<i class="no-highlight">207</i>&nbsp;    String getNoAuthPath() {
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        return noAuthPath;</b>
+<i class="no-highlight">209</i>&nbsp;    }
+<i class="no-highlight">210</i>&nbsp;
+<i class="no-highlight">211</i>&nbsp;    // TODO - psung: Implement the following methods when necessary
+<i class="no-highlight">212</i>&nbsp;
+<i class="no-highlight">213</i>&nbsp;    @Override
+<i class="no-highlight">214</i>&nbsp;    public Iterator&lt;Path&gt; iterator() {
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">216</i>&nbsp;    }
+<i class="no-highlight">217</i>&nbsp;
+<i class="no-highlight">218</i>&nbsp;    @Override
+<i class="no-highlight">219</i>&nbsp;    public boolean isAbsolute() {
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">221</i>&nbsp;    }
+<i class="no-highlight">222</i>&nbsp;
+<i class="no-highlight">223</i>&nbsp;    @Override
+<i class="no-highlight">224</i>&nbsp;    public Path getRoot() {
+<b class="nc"><i class="no-highlight">225</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">226</i>&nbsp;    }
+<i class="no-highlight">227</i>&nbsp;
+<i class="no-highlight">228</i>&nbsp;    @Override
+<i class="no-highlight">229</i>&nbsp;    public Path getParent() {
+<b class="nc"><i class="no-highlight">230</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">231</i>&nbsp;    }
+<i class="no-highlight">232</i>&nbsp;
+<i class="no-highlight">233</i>&nbsp;    @Override
+<i class="no-highlight">234</i>&nbsp;    public int getNameCount() {
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">236</i>&nbsp;    }
+<i class="no-highlight">237</i>&nbsp;
+<i class="no-highlight">238</i>&nbsp;    @Override
+<i class="no-highlight">239</i>&nbsp;    public Path getName(final int index) {
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">241</i>&nbsp;    }
+<i class="no-highlight">242</i>&nbsp;
+<i class="no-highlight">243</i>&nbsp;    @Override
+<i class="no-highlight">244</i>&nbsp;    public Path subpath(final int beginIndex, final int endIndex) {
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">246</i>&nbsp;    }
+<i class="no-highlight">247</i>&nbsp;
+<i class="no-highlight">248</i>&nbsp;    @Override
+<i class="no-highlight">249</i>&nbsp;    public boolean startsWith(final Path other) {
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">251</i>&nbsp;    }
+<i class="no-highlight">252</i>&nbsp;
+<i class="no-highlight">253</i>&nbsp;    @Override
+<i class="no-highlight">254</i>&nbsp;    public boolean startsWith(final String other) {
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">256</i>&nbsp;    }
+<i class="no-highlight">257</i>&nbsp;
+<i class="no-highlight">258</i>&nbsp;    @Override
+<i class="no-highlight">259</i>&nbsp;    public boolean endsWith(final Path other) {
+<b class="nc"><i class="no-highlight">260</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">261</i>&nbsp;    }
+<i class="no-highlight">262</i>&nbsp;
+<i class="no-highlight">263</i>&nbsp;    @Override
+<i class="no-highlight">264</i>&nbsp;    public boolean endsWith(final String other) {
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">266</i>&nbsp;    }
+<i class="no-highlight">267</i>&nbsp;
+<i class="no-highlight">268</i>&nbsp;    @Override
+<i class="no-highlight">269</i>&nbsp;    public Path normalize() {
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">271</i>&nbsp;    }
+<i class="no-highlight">272</i>&nbsp;
+<i class="no-highlight">273</i>&nbsp;    @Override
+<i class="no-highlight">274</i>&nbsp;    public Path resolve(final Path other) {
+<b class="nc"><i class="no-highlight">275</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">276</i>&nbsp;    }
+<i class="no-highlight">277</i>&nbsp;
+<i class="no-highlight">278</i>&nbsp;    @Override
+<i class="no-highlight">279</i>&nbsp;    public Path resolve(final String other) {
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">281</i>&nbsp;    }
+<i class="no-highlight">282</i>&nbsp;
+<i class="no-highlight">283</i>&nbsp;    @Override
+<i class="no-highlight">284</i>&nbsp;    public Path resolveSibling(final Path other) {
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">286</i>&nbsp;    }
+<i class="no-highlight">287</i>&nbsp;
+<i class="no-highlight">288</i>&nbsp;    @Override
+<i class="no-highlight">289</i>&nbsp;    public Path resolveSibling(final String other) {
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">291</i>&nbsp;    }
+<i class="no-highlight">292</i>&nbsp;
+<i class="no-highlight">293</i>&nbsp;    @Override
+<i class="no-highlight">294</i>&nbsp;    public Path relativize(final Path other) {
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">296</i>&nbsp;    }
+<i class="no-highlight">297</i>&nbsp;
+<i class="no-highlight">298</i>&nbsp;    @Override
+<i class="no-highlight">299</i>&nbsp;    public Path toAbsolutePath() {
+<b class="nc"><i class="no-highlight">300</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">301</i>&nbsp;    }
+<i class="no-highlight">302</i>&nbsp;
+<i class="no-highlight">303</i>&nbsp;    @Override
+<i class="no-highlight">304</i>&nbsp;    public Path toRealPath(final LinkOption... options) throws IOException {
+<b class="nc"><i class="no-highlight">305</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">306</i>&nbsp;    }
+<i class="no-highlight">307</i>&nbsp;
+<i class="no-highlight">308</i>&nbsp;    @Override
+<i class="no-highlight">309</i>&nbsp;    public WatchKey register(final WatchService watcher, final WatchEvent.Kind&lt;?&gt;[] events,
+<i class="no-highlight">310</i>&nbsp;            final WatchEvent.Modifier... modifiers) throws IOException {
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">312</i>&nbsp;    }
+<i class="no-highlight">313</i>&nbsp;
+<i class="no-highlight">314</i>&nbsp;    @Override
+<i class="no-highlight">315</i>&nbsp;    public WatchKey register(final WatchService watcher, final WatchEvent.Kind&lt;?&gt;... events)
+<i class="no-highlight">316</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">318</i>&nbsp;    }
+<i class="no-highlight">319</i>&nbsp;
+<i class="no-highlight">320</i>&nbsp;    @Override
+<i class="no-highlight">321</i>&nbsp;    public int compareTo(final Path other) {
+<b class="nc"><i class="no-highlight">322</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">323</i>&nbsp;    }
+<i class="no-highlight">324</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

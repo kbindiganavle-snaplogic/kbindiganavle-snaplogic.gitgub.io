@@ -1,0 +1,314 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > KeyStoreAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform.fieldcrypto</a>
+</div>
+
+<h1>Coverage Summary for Class: KeyStoreAccount (com.snaplogic.snaps.transform.fieldcrypto)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">KeyStoreAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/80)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.transform.fieldcrypto;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.base.Supplier;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.base.Suppliers;
+<i class="no-highlight">15</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.account.api.ExtendedValidatableAccount;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.common.utilities.URLEncoder;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">29</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">30</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import java.io.ByteArrayInputStream;
+<i class="no-highlight">33</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">34</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">35</i>&nbsp;import java.net.URLConnection;
+<i class="no-highlight">36</i>&nbsp;import java.security.KeyStore;
+<i class="no-highlight">37</i>&nbsp;import java.security.KeyStore.Entry;
+<i class="no-highlight">38</i>&nbsp;import java.security.KeyStore.PrivateKeyEntry;
+<i class="no-highlight">39</i>&nbsp;import java.security.KeyStoreException;
+<i class="no-highlight">40</i>&nbsp;import java.security.NoSuchAlgorithmException;
+<i class="no-highlight">41</i>&nbsp;import java.security.UnrecoverableEntryException;
+<i class="no-highlight">42</i>&nbsp;import java.security.cert.Certificate;
+<i class="no-highlight">43</i>&nbsp;import java.security.cert.CertificateException;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Messages.*;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;/**
+<i class="no-highlight">48</i>&nbsp; * KeyStoreAccount gets the key from KeyStore.
+<i class="no-highlight">49</i>&nbsp; *
+<i class="no-highlight">50</i>&nbsp; * @since Mar, 2017
+<i class="no-highlight">51</i>&nbsp; */
+<i class="no-highlight">52</i>&nbsp;@General(title = KEY_STORE_ACCOUNT_TITLE,
+<i class="no-highlight">53</i>&nbsp;        purpose = KEY_STORE_ACCOUNT_PURPOSE,
+<i class="no-highlight">54</i>&nbsp;        docLink = KEY_STORE_ACCOUNT_DOC_LINK)
+<i class="no-highlight">55</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">56</i>&nbsp;@AccountCategory(type = AccountType.NONE)
+<b class="nc"><i class="no-highlight">57</i>&nbsp;public class KeyStoreAccount implements ExtendedValidatableAccount&lt;CryptoKeyHolder, Void&gt; {</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(KeyStoreAccount.class);</b>
+<i class="no-highlight">59</i>&nbsp;    private static final String KEY_STORE_URL = &quot;keyStoreURL&quot;;
+<i class="no-highlight">60</i>&nbsp;    private static final String KEY_TRUST_PASSWORD = &quot;keyTrustPassword&quot;;
+<i class="no-highlight">61</i>&nbsp;    private static final String KEY_ALIAS = &quot;keyAlias&quot;;
+<i class="no-highlight">62</i>&nbsp;    /**
+<i class="no-highlight">63</i>&nbsp;     * http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyStore
+<i class="no-highlight">64</i>&nbsp;     */
+<i class="no-highlight">65</i>&nbsp;    private static final String JKS = &quot;JKS&quot;;
+<i class="no-highlight">66</i>&nbsp;    private static final String JCEKS = &quot;JCEKS&quot;;
+<i class="no-highlight">67</i>&nbsp;    private static final String PKCS12 = &quot;PKCS12&quot;;
+<i class="no-highlight">68</i>&nbsp;
+<i class="no-highlight">69</i>&nbsp;    private String keyStoreURL;
+<i class="no-highlight">70</i>&nbsp;    private char[] keyStorePassword;
+<i class="no-highlight">71</i>&nbsp;    private String keyAlias;
+<i class="no-highlight">72</i>&nbsp;    private boolean isEncrypt;
+<b class="nc"><i class="no-highlight">73</i>&nbsp;    private Supplier&lt;CryptoKeyHolder&gt; cryptoKeyHolder = Suppliers.memoize(this::loadFromKeystore);</b>
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;    @Inject
+<i class="no-highlight">76</i>&nbsp;    private URLEncoder urlEncoder;
+<i class="no-highlight">77</i>&nbsp;
+<i class="no-highlight">78</i>&nbsp;    @Override
+<i class="no-highlight">79</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;                .describe(KEY_STORE_URL, KEY_STORE_LABEL, KEY_STORE_DESC)</b>
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                .fileBrowsing()</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                .describe(KEY_TRUST_PASSWORD, KEY_TRUST_PASSWORD_LABEL, KEY_TRUST_PASSWORD_DESC)</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        propertyBuilder</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                .describe(KEY_ALIAS, KEY_ALIAS_LABEL, KEY_ALIAS_DESC)</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                .add();</b>
+<i class="no-highlight">94</i>&nbsp;    }
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;    @Override
+<i class="no-highlight">97</i>&nbsp;    public void configure(final PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        keyStoreURL = propertyValues.get(KEY_STORE_URL);</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;        String keyStorePasswordVal = propertyValues.get(KEY_TRUST_PASSWORD);</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;        if (keyStorePasswordVal != null) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            keyStorePassword = keyStorePasswordVal.toCharArray();</b>
+<i class="no-highlight">102</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            if (keyStoreURL != null) {</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                throw new ConfigurationException(PASSWORD_IS_REQUIRED)</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                        .withResolution(PASSWORD_IS_EXPIRED_RES);</b>
+<i class="no-highlight">106</i>&nbsp;            }
+<i class="no-highlight">107</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        keyAlias = propertyValues.get(KEY_ALIAS);</b>
+<i class="no-highlight">109</i>&nbsp;    }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    private CryptoKeyHolder loadFromKeystore() {
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        KeyStore keyStore = getKeyStore(keyStoreURL);</b>
+<i class="no-highlight">113</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            if (isEncrypt) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;                Certificate certificate = keyStore.getCertificate(keyAlias);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                if (certificate != null) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                    return new CryptoKeyHolderForX509CertificatePublicKey(certificate);</b>
+<i class="no-highlight">118</i>&nbsp;                }
+<i class="no-highlight">119</i>&nbsp;            }
+<i class="no-highlight">120</i>&nbsp;
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            KeyStore.ProtectionParameter protParam =</b>
+<i class="no-highlight">122</i>&nbsp;                    new KeyStore.PasswordProtection(keyStorePassword);
+<b class="nc"><i class="no-highlight">123</i>&nbsp;            Entry entry = keyStore.getEntry(keyAlias, protParam);</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            if (entry instanceof PrivateKeyEntry) {</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                PrivateKeyEntry privateKeyEntry = (PrivateKeyEntry) entry;</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                return isEncrypt ?</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                        new CryptoKeyHolderForX509CertificatePublicKey(privateKeyEntry.getCertificate()) :</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                        new CryptoKeyHolderForPrivateKey(privateKeyEntry.getPrivateKey());</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;            } else if (entry instanceof KeyStore.SecretKeyEntry) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                return new CryptoKeyHolderForSymmetricKey(</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                        ((KeyStore.SecretKeyEntry) entry).getSecretKey());</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            } else if (entry instanceof KeyStore.TrustedCertificateEntry) {</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                Certificate certificate =((KeyStore.TrustedCertificateEntry) entry)</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                        .getTrustedCertificate();</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                return new CryptoKeyHolderForX509CertificatePublicKey(certificate);</b>
+<i class="no-highlight">136</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                throw new SnapDataException(ERR_UNSUPPORTED_KEY_TYPE)</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                        .formatWith(entry.getClass().getSimpleName())</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                        .withReason(REASON_SUPPORTED_KEY_TYPES)</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">141</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableEntryException e) {</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            throw new SnapDataException(e, ERR_GET_KEY_FROM_KEYSTORE)</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">145</i>&nbsp;        }
+<i class="no-highlight">146</i>&nbsp;    }
+<i class="no-highlight">147</i>&nbsp;
+<i class="no-highlight">148</i>&nbsp;    @Override
+<i class="no-highlight">149</i>&nbsp;    public CryptoKeyHolder connect() throws ExecutionException {
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        return cryptoKeyHolder.get();</b>
+<i class="no-highlight">151</i>&nbsp;    }
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;    @Override
+<i class="no-highlight">154</i>&nbsp;    public void disconnect() throws ExecutionException {
+<i class="no-highlight">155</i>&nbsp;
+<i class="no-highlight">156</i>&nbsp;    }
+<i class="no-highlight">157</i>&nbsp;
+<i class="no-highlight">158</i>&nbsp;    @Override
+<i class="no-highlight">159</i>&nbsp;    public CryptoKeyHolder validate(final Void arg) {
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        return connect();</b>
+<i class="no-highlight">161</i>&nbsp;    }
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;    public void setEncrypt() {
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        isEncrypt = true;</b>
+<i class="no-highlight">165</i>&nbsp;    }
+<i class="no-highlight">166</i>&nbsp;
+<i class="no-highlight">167</i>&nbsp;    //------------------------------------ Private Methods ---------------------------------------//
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;    private KeyStore getKeyStore(String url) {
+<i class="no-highlight">170</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            URLConnection urlConnection = urlEncoder.validateAndEncodeURI(url)</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                    .toURL().openConnection();</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;            urlConnection.setUseCaches(true);</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;            urlConnection.connect();</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;            try (InputStream inputStream = urlConnection.getInputStream()) {</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                byte[] keyStoreBits = IOUtils.toByteArray(inputStream);</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                ByteArrayInputStream bais = new ByteArrayInputStream(keyStoreBits);</b>
+<i class="no-highlight">178</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                    return load(bais, JKS);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                } catch (NoSuchAlgorithmException | CertificateException | KeyStoreException |</b>
+<i class="no-highlight">181</i>&nbsp;                        IOException e) {
+<i class="no-highlight">182</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                        bais.reset();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                        return load(bais, JCEKS);</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                    } catch (NoSuchAlgorithmException | CertificateException | KeyStoreException |</b>
+<i class="no-highlight">186</i>&nbsp;                            IOException ex) {
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                        bais.reset();</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                        return load(bais, PKCS12);</b>
+<i class="no-highlight">189</i>&nbsp;                    }
+<i class="no-highlight">190</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    IOUtils.closeQuietly(bais);</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;        } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException e) {</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;            throw new ConfigurationException(e, KEY_STORE_LOAD_ERROR)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                    .withResolution(KEY_STORE_ERROR_RES);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;            throw new ConfigurationException(e, IO_ERROR)</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                    .withResolution(String.format(IO_ERROR_RES, url));</b>
+<i class="no-highlight">200</i>&nbsp;        }
+<i class="no-highlight">201</i>&nbsp;    }
+<i class="no-highlight">202</i>&nbsp;
+<i class="no-highlight">203</i>&nbsp;    private KeyStore load(InputStream inputStream, String type) throws NoSuchAlgorithmException,
+<i class="no-highlight">204</i>&nbsp;            CertificateException, KeyStoreException, IOException {
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        KeyStore keyStore = KeyStore.getInstance(type);</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        keyStore.load(inputStream, keyStorePassword);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;        return keyStore;</b>
+<i class="no-highlight">208</i>&nbsp;    }
+<i class="no-highlight">209</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

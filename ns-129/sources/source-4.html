@@ -1,0 +1,796 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > OneDriveCommonUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.onedrive.util</a>
+</div>
+
+<h1>Coverage Summary for Class: OneDriveCommonUtil (com.snaplogic.snaps.onedrive.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OneDriveCommonUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/292)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.onedrive.util;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.gson.JsonElement;
+<i class="no-highlight">15</i>&nbsp;import com.google.gson.JsonObject;
+<i class="no-highlight">16</i>&nbsp;import com.microsoft.graph.http.GraphServiceException;
+<i class="no-highlight">17</i>&nbsp;import com.microsoft.graph.models.DirectoryObject;
+<i class="no-highlight">18</i>&nbsp;import com.microsoft.graph.models.Drive;
+<i class="no-highlight">19</i>&nbsp;import com.microsoft.graph.models.Group;
+<i class="no-highlight">20</i>&nbsp;import com.microsoft.graph.models.User;
+<i class="no-highlight">21</i>&nbsp;import com.microsoft.graph.options.HeaderOption;
+<i class="no-highlight">22</i>&nbsp;import com.microsoft.graph.options.Option;
+<i class="no-highlight">23</i>&nbsp;import com.microsoft.graph.options.QueryOption;
+<i class="no-highlight">24</i>&nbsp;import com.microsoft.graph.requests.DriveCollectionPage;
+<i class="no-highlight">25</i>&nbsp;import com.microsoft.graph.requests.DriveCollectionRequest;
+<i class="no-highlight">26</i>&nbsp;import com.microsoft.graph.requests.DriveCollectionRequestBuilder;
+<i class="no-highlight">27</i>&nbsp;import com.microsoft.graph.requests.GraphServiceClient;
+<i class="no-highlight">28</i>&nbsp;import com.microsoft.graph.requests.GroupCollectionPage;
+<i class="no-highlight">29</i>&nbsp;import com.microsoft.graph.requests.GroupCollectionRequest;
+<i class="no-highlight">30</i>&nbsp;import com.microsoft.graph.requests.UserCollectionPage;
+<i class="no-highlight">31</i>&nbsp;import com.microsoft.graph.requests.UserCollectionRequest;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import org.apache.commons.httpclient.URIException;
+<i class="no-highlight">35</i>&nbsp;import org.apache.commons.httpclient.util.URIUtil;
+<i class="no-highlight">36</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">37</i>&nbsp;import org.apache.http.HttpStatus;
+<i class="no-highlight">38</i>&nbsp;import org.joda.time.DateTime;
+<i class="no-highlight">39</i>&nbsp;import org.joda.time.format.DateTimeFormat;
+<i class="no-highlight">40</i>&nbsp;import org.joda.time.format.DateTimeFormatter;
+<i class="no-highlight">41</i>&nbsp;import org.joda.time.format.DateTimeFormatterBuilder;
+<i class="no-highlight">42</i>&nbsp;import org.joda.time.format.DateTimeParser;
+<i class="no-highlight">43</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">44</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">45</i>&nbsp;
+<i class="no-highlight">46</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">47</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">48</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">49</i>&nbsp;import java.util.LinkedList;
+<i class="no-highlight">50</i>&nbsp;import java.util.List;
+<i class="no-highlight">51</i>&nbsp;import java.util.Map;
+<i class="no-highlight">52</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">53</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">54</i>&nbsp;
+<i class="no-highlight">55</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.ALL;
+<i class="no-highlight">56</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.AUTHORIZATION_CODE;
+<i class="no-highlight">57</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.CLIENT_CREDENTIALS;
+<i class="no-highlight">58</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.DOCUMENT_LIBRARY;
+<i class="no-highlight">59</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.HEADER_USER_AGENT;
+<i class="no-highlight">60</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.ONEDRIVE;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.SELECT;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Constants.VERSION_STRING;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.DATE_FORMAT;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.DATE_TIME_FORMAT;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.DATE_TIME_ZONE_FORMAT;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.ERROR_ENCODING_VALUE;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.ERR_CONVERT_FAIL_MSG;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.ERR_CONVERT_FAIL_REASON;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.FETCH_DRIVES_ERROR;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.FETCH_GROUPS_ERROR;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.FETCH_GROUPS_RESOLUTION;
+<i class="no-highlight">72</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.FETCH_SUGGESIONS_REASON;
+<i class="no-highlight">73</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.FETCH_USERS_ERROR;
+<i class="no-highlight">74</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.FETCH_USERS_RESOLUTION;
+<i class="no-highlight">75</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.FORMAT_NOT_SUPPORTED;
+<i class="no-highlight">76</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.GROUP_ID_INVALID;
+<i class="no-highlight">77</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.GROUP_ID_NULL;
+<i class="no-highlight">78</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.GROUP_ID_NULL_RESOLUTION;
+<i class="no-highlight">79</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.INVALID_DATE_RES;
+<i class="no-highlight">80</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.INVALID_DATE_TIME_FORMAT;
+<i class="no-highlight">81</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.INVALID_DRIVE_TYPE;
+<i class="no-highlight">82</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.INVALID_DRIVE_TYPE_RESOLUTION;
+<i class="no-highlight">83</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.RESOLUTION_CUSTOMER_SUPPORT;
+<i class="no-highlight">84</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.SUGGESTIONS_ERROR_RESOLUTION;
+<i class="no-highlight">85</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.USER_ID_IS_NULL;
+<b class="nc"><i class="no-highlight">86</i>&nbsp;import static com.snaplogic.snaps.onedrive.util.Messages.USER_ID_IS_NULL_RESOLUTION;</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;</b>
+<i class="no-highlight">88</i>&nbsp;/**
+<i class="no-highlight">89</i>&nbsp; * Utility class for all Onedrive snaps, which takes care of fetching required information
+<i class="no-highlight">90</i>&nbsp; */
+<i class="no-highlight">91</i>&nbsp;public class OneDriveCommonUtil {
+<i class="no-highlight">92</i>&nbsp;
+<i class="no-highlight">93</i>&nbsp;    private static Logger LOGGER = LoggerFactory.getLogger(OneDriveCommonUtil.class);
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;    /**
+<i class="no-highlight">96</i>&nbsp;     * Method to fetch and build users list
+<b class="nc"><i class="no-highlight">97</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;     * @param graphClient</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;     * @param driveType</b>
+<i class="no-highlight">100</i>&nbsp;     * @return
+<i class="no-highlight">101</i>&nbsp;     */
+<i class="no-highlight">102</i>&nbsp;    public List&lt;String&gt; fetchUsers(GraphServiceClient graphClient, String driveType) {
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        List&lt;String&gt; usersList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        if (ONEDRIVE.equals(driveType) || ALL.equalsIgnoreCase(driveType)) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            List&lt;QueryOption&gt; options = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">106</i>&nbsp;            // Microsoft API offers max page size of 999
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            // Refer to https://docs.microsoft.com/en-us/graph/api/user-list?view=graph-rest-1.0&amp;tabs=http</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            //   for more details</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;            options.add(new QueryOption(&quot;$top&quot;, &quot;999&quot;));</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            options.add(new QueryOption(SELECT, &quot;id, displayName, userPrincipalName&quot;));</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            UserCollectionRequest request = graphClient.users().buildRequest(options);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;            try {</b>
+<i class="no-highlight">113</i>&nbsp;                while (request != null) {
+<b class="nc"><i class="no-highlight">114</i>&nbsp;                    UserCollectionPage collection = request.get();</b>
+<i class="no-highlight">115</i>&nbsp;                    List&lt;User&gt; users = collection.getCurrentPage();
+<i class="no-highlight">116</i>&nbsp;                    users.stream().forEach(user -&gt; {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                        if (StringUtils.isBlank(user.displayName)) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                            usersList.add(user.userPrincipalName);</b>
+<i class="no-highlight">119</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                            usersList.add(user.displayName + &quot;:&quot; + user.userPrincipalName);</b>
+<i class="no-highlight">121</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                    });</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                    if (collection.getNextPage() != null) {</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                        request = collection.getNextPage().buildRequest(getUserAgentHeader());</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                    } else {</b>
+<i class="no-highlight">126</i>&nbsp;                        request = null;
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;            } catch (GraphServiceException ex) {</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                if (handleThrottleError(ex)) {</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                    return fetchUsers(graphClient, driveType);</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                throw new SnapDataException(ex, FETCH_USERS_ERROR)</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                        .withReason(ex.getResponseCode() + &quot;:&quot; + ex.getResponseMessage())</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                        .withResolution(SUGGESTIONS_ERROR_RESOLUTION);</b>
+<i class="no-highlight">136</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">137</i>&nbsp;        } else {</b>
+<i class="no-highlight">138</i>&nbsp;            LOGGER.error(FETCH_USERS_ERROR + &quot;:&quot; + FETCH_SUGGESIONS_REASON);
+<i class="no-highlight">139</i>&nbsp;            throw new SnapDataException(FETCH_USERS_ERROR)
+<i class="no-highlight">140</i>&nbsp;                    .withReason(FETCH_SUGGESIONS_REASON)
+<i class="no-highlight">141</i>&nbsp;                    .withResolution(FETCH_USERS_RESOLUTION);
+<i class="no-highlight">142</i>&nbsp;        }
+<i class="no-highlight">143</i>&nbsp;        return usersList;
+<i class="no-highlight">144</i>&nbsp;    }
+<i class="no-highlight">145</i>&nbsp;
+<i class="no-highlight">146</i>&nbsp;    /**
+<i class="no-highlight">147</i>&nbsp;     * Creates a HeaderOption object containing the User-A gent header with the version string.
+<i class="no-highlight">148</i>&nbsp;     * @return The HeaderOption object containing the User-Agent header.
+<i class="no-highlight">149</i>&nbsp;     */
+<i class="no-highlight">150</i>&nbsp;    public static HeaderOption getUserAgentHeader() {
+<i class="no-highlight">151</i>&nbsp;        return new HeaderOption(HEADER_USER_AGENT, VERSION_STRING);
+<i class="no-highlight">152</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">153</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;     * Merges a list of QueryOption objects with a User-Agent HeaderOption object to create</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;     * a list of general Option objects.</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;     * @param queryOptions The list of QueryOption objects to be included in the merged list.</b>
+<i class="no-highlight">158</i>&nbsp;     * @param headerOption A single HeaderOption object to be included in the merged list.
+<i class="no-highlight">159</i>&nbsp;     * @return The merged list of Option objects, including the QueryOption objects and the HeaderOption object.
+<i class="no-highlight">160</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">161</i>&nbsp;    public List&lt;Option&gt; mergeOptions(List&lt;QueryOption&gt; queryOptions, HeaderOption headerOption) {</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        List&lt;Option&gt; requestOptions = new LinkedList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;        requestOptions.addAll(queryOptions);</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        requestOptions.add(headerOption);</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;        return requestOptions;</b>
+<i class="no-highlight">166</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">167</i>&nbsp;</b>
+<i class="no-highlight">168</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">169</i>&nbsp;     * Method to fetch and build Shared Library map</b>
+<i class="no-highlight">170</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">171</i>&nbsp;     * @param graphClient</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;     * @param driveType</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;     * @param grantType</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;     * @param userName</b>
+<i class="no-highlight">175</i>&nbsp;     * @param groupName
+<i class="no-highlight">176</i>&nbsp;     * @return
+<i class="no-highlight">177</i>&nbsp;     */
+<i class="no-highlight">178</i>&nbsp;    public Map&lt;String, String&gt; fetchGroupMap(GraphServiceClient graphClient, String driveType,
+<i class="no-highlight">179</i>&nbsp;                                             String grantType, String userName, String groupName) {
+<i class="no-highlight">180</i>&nbsp;        Map&lt;String, String&gt; groupIdNameMapping;
+<i class="no-highlight">181</i>&nbsp;        if (DOCUMENT_LIBRARY.equals(driveType)) {
+<i class="no-highlight">182</i>&nbsp;            List&lt;QueryOption&gt; options = new ArrayList&lt;&gt;();
+<i class="no-highlight">183</i>&nbsp;            if (AUTHORIZATION_CODE.equalsIgnoreCase(grantType) || !StringUtils.isBlank(userName)) {
+<i class="no-highlight">184</i>&nbsp;                options.add(new QueryOption(SELECT, &quot;id,displayName&quot;));
+<i class="no-highlight">185</i>&nbsp;                groupIdNameMapping = buildUsersGroupIdNameMap(graphClient, options, userName);
+<i class="no-highlight">186</i>&nbsp;            } else {
+<i class="no-highlight">187</i>&nbsp;                // Microsoft offers max page size of 999 for fetching user/app groups
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                // https://docs.microsoft.com/en-us/graph/api/group-list?view=graph-rest-1.0&amp;tabs=http</b>
+<i class="no-highlight">189</i>&nbsp;                options.add(new QueryOption(&quot;$top&quot;, &quot;999&quot;));
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                options.add(new QueryOption(SELECT, &quot;id,displayName&quot;));</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                if (StringUtils.isNotBlank(groupName)) {</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                    options.add((new QueryOption(&quot;$filter&quot;,</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                            String.format(&quot;displayName eq &#39;%s&#39;&quot;, groupName))));</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                groupIdNameMapping = buildAppGroupIdNameMap(graphClient, options);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;            }</b>
+<i class="no-highlight">197</i>&nbsp;            return groupIdNameMapping;
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;            LOGGER.error(FETCH_GROUPS_ERROR + &quot;:&quot; + FETCH_SUGGESIONS_REASON);</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            throw new SnapDataException(FETCH_GROUPS_ERROR)</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                    .withReason(FETCH_SUGGESIONS_REASON)</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                    .withResolution(FETCH_GROUPS_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;    }</b>
+<i class="no-highlight">205</i>&nbsp;
+<b class="nc"><i class="no-highlight">206</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;     * Method to construct Group map in case of User Account</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;     * @param graphClient</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;     * @param queryOptions</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;     * @return</b>
+<i class="no-highlight">212</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">213</i>&nbsp;    public Map&lt;String, String&gt; buildUsersGroupIdNameMap(GraphServiceClient graphClient,</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                                                        List&lt;QueryOption&gt; queryOptions, String userName) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;            Map&lt;String, String&gt; results = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            DirectoryObject memberOf;</b>
+<i class="no-highlight">218</i>&nbsp;            List&lt;Option&gt; requestOptions = mergeOptions(queryOptions, getUserAgentHeader());
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            if (!StringUtils.isBlank(userName)) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                String userPrincipalName = extractUserPrincipalNameFromUser(userName);</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                memberOf = graphClient.users(userPrincipalName).memberOf(&quot;microsoft.graph.group&quot;)</b>
+<i class="no-highlight">222</i>&nbsp;                        .buildRequest(requestOptions).get();
+<i class="no-highlight">223</i>&nbsp;            } else {
+<i class="no-highlight">224</i>&nbsp;                memberOf = graphClient.me().memberOf(&quot;microsoft.graph.group&quot;)
+<i class="no-highlight">225</i>&nbsp;                        .buildRequest(requestOptions).get();
+<i class="no-highlight">226</i>&nbsp;            }
+<i class="no-highlight">227</i>&nbsp;            Iterator iterator = memberOf.additionalDataManager().get(&quot;value&quot;).getAsJsonArray().iterator();
+<i class="no-highlight">228</i>&nbsp;            while (iterator.hasNext()) {
+<i class="no-highlight">229</i>&nbsp;                JsonObject group = (JsonObject) iterator.next();
+<i class="no-highlight">230</i>&nbsp;                if (group.get(&quot;displayName&quot;) == null) {
+<i class="no-highlight">231</i>&nbsp;                    throw new SnapDataException(FETCH_GROUPS_ERROR)
+<i class="no-highlight">232</i>&nbsp;                            .withReason(&quot;Not enough permissions&quot;)
+<i class="no-highlight">233</i>&nbsp;                            .withResolution(SUGGESTIONS_ERROR_RESOLUTION);
+<i class="no-highlight">234</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                JsonElement displayNameElement = group.get(&quot;displayName&quot;);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                JsonElement idElement = group.get(&quot;id&quot;);</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                if (!displayNameElement.isJsonNull()) {</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                    String displayName = displayNameElement.getAsString();</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                    String id = idElement.getAsString();</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                    results.put(displayName, id);</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            return results;</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        } catch (GraphServiceException ex) {</b>
+<i class="no-highlight">245</i>&nbsp;            if (handleThrottleError(ex)) {
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                return buildUsersGroupIdNameMap(graphClient, queryOptions, userName);</b>
+<i class="no-highlight">247</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">248</i>&nbsp;            throw new SnapDataException(ex, FETCH_GROUPS_ERROR)</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                    .withReason(ex.getResponseCode() + &quot;:&quot; + ex.getResponseMessage())</b>
+<i class="no-highlight">250</i>&nbsp;                    .withResolution(SUGGESTIONS_ERROR_RESOLUTION);
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        }</b>
+<i class="no-highlight">252</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">253</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">254</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;     * Method to construct Group map in case of client credentials mode</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;     * @param graphClient</b>
+<i class="no-highlight">258</i>&nbsp;     * @param list
+<b class="nc"><i class="no-highlight">259</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">260</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">261</i>&nbsp;    public Map&lt;String, String&gt; buildAppGroupIdNameMap(GraphServiceClient graphClient,</b>
+<i class="no-highlight">262</i>&nbsp;                                                      List&lt;QueryOption&gt; list) {
+<i class="no-highlight">263</i>&nbsp;        try {
+<i class="no-highlight">264</i>&nbsp;            Map&lt;String, String&gt; results = new LinkedHashMap&lt;&gt;();
+<i class="no-highlight">265</i>&nbsp;            List&lt;Option&gt; optionsList = mergeOptions(list, getUserAgentHeader());
+<i class="no-highlight">266</i>&nbsp;            GroupCollectionRequest requestBuilder = graphClient.groups().buildRequest(optionsList);
+<i class="no-highlight">267</i>&nbsp;            while (requestBuilder != null) {
+<i class="no-highlight">268</i>&nbsp;                GroupCollectionPage groupsCollection = requestBuilder.get();
+<i class="no-highlight">269</i>&nbsp;                List&lt;Group&gt; groups = groupsCollection.getCurrentPage();
+<i class="no-highlight">270</i>&nbsp;                groups.stream().forEach(group -&gt; {
+<i class="no-highlight">271</i>&nbsp;                    if (group.displayName == null) {
+<i class="no-highlight">272</i>&nbsp;                        new SnapDataException(FETCH_GROUPS_ERROR)
+<i class="no-highlight">273</i>&nbsp;                                .withReason(&quot;Not enough permissions&quot;)
+<i class="no-highlight">274</i>&nbsp;                                .withResolution(SUGGESTIONS_ERROR_RESOLUTION);
+<i class="no-highlight">275</i>&nbsp;                    }
+<i class="no-highlight">276</i>&nbsp;                    results.put(group.displayName, group.id);
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                });</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                if (groupsCollection.getNextPage() != null) {</b>
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                    requestBuilder = groupsCollection.getNextPage().buildRequest(getUserAgentHeader());</b>
+<i class="no-highlight">280</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                    requestBuilder = null;</b>
+<i class="no-highlight">282</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            }</b>
+<i class="no-highlight">284</i>&nbsp;            return results;
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        } catch (GraphServiceException ex) {</b>
+<i class="no-highlight">286</i>&nbsp;            if (handleThrottleError(ex)) {
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                return buildAppGroupIdNameMap(graphClient, list);</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;            throw new SnapDataException(ex, FETCH_GROUPS_ERROR)</b>
+<i class="no-highlight">290</i>&nbsp;                    .withReason(ex.getResponseCode() + &quot;:&quot; + ex.getResponseMessage())
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                    .withResolution(SUGGESTIONS_ERROR_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;     * Method to fetch drives based on driveType</b>
+<i class="no-highlight">297</i>&nbsp;     *
+<i class="no-highlight">298</i>&nbsp;     * @param graphClient
+<i class="no-highlight">299</i>&nbsp;     * @param grantType
+<i class="no-highlight">300</i>&nbsp;     * @param driveType
+<i class="no-highlight">301</i>&nbsp;     * @param group
+<i class="no-highlight">302</i>&nbsp;     * @param user
+<i class="no-highlight">303</i>&nbsp;     * @return
+<i class="no-highlight">304</i>&nbsp;     */
+<i class="no-highlight">305</i>&nbsp;    public Map&lt;String, String&gt; fetchDrivesBasedOnType(GraphServiceClient graphClient,
+<i class="no-highlight">306</i>&nbsp;                                                      String grantType, String driveType, String group, String user) {
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        List&lt;QueryOption&gt; optionsList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;        QueryOption selectOption = new QueryOption(SELECT, &quot;id,name,weburl&quot;);</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;        optionsList.add(selectOption);</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;        List&lt;Option&gt; options = mergeOptions(optionsList, getUserAgentHeader());</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;        try {</b>
+<i class="no-highlight">312</i>&nbsp;            switch (driveType) {
+<i class="no-highlight">313</i>&nbsp;                case DOCUMENT_LIBRARY:
+<i class="no-highlight">314</i>&nbsp;                    return fetchSharedLibraryDrives(graphClient, optionsList, grantType, group);
+<i class="no-highlight">315</i>&nbsp;                case ONEDRIVE:
+<i class="no-highlight">316</i>&nbsp;                    return fetchUserDrives(graphClient, options, grantType, user);
+<i class="no-highlight">317</i>&nbsp;                default:
+<i class="no-highlight">318</i>&nbsp;                    throw new SnapDataException(FETCH_DRIVES_ERROR)
+<i class="no-highlight">319</i>&nbsp;                            .withReason(INVALID_DRIVE_TYPE)
+<i class="no-highlight">320</i>&nbsp;                            .withResolution(INVALID_DRIVE_TYPE_RESOLUTION);
+<i class="no-highlight">321</i>&nbsp;            }
+<i class="no-highlight">322</i>&nbsp;        } catch (SnapDataException ex) {
+<i class="no-highlight">323</i>&nbsp;            throw ex;
+<i class="no-highlight">324</i>&nbsp;        } catch (Exception ex) {
+<i class="no-highlight">325</i>&nbsp;            throw new SnapDataException(ex, FETCH_DRIVES_ERROR)
+<i class="no-highlight">326</i>&nbsp;                    .withReason(ex.getMessage())
+<b class="nc"><i class="no-highlight">327</i>&nbsp;                    .withResolution(SUGGESTIONS_ERROR_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;</b>
+<i class="no-highlight">331</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">332</i>&nbsp;     * Method to user based on GrantType</b>
+<i class="no-highlight">333</i>&nbsp;     *
+<b class="nc"><i class="no-highlight">334</i>&nbsp;     * @param user</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;     * @param grantType</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">337</i>&nbsp;    protected void verifyGrantType(String user, String grantType) {</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        if (CLIENT_CREDENTIALS.equalsIgnoreCase(grantType)) {</b>
+<i class="no-highlight">339</i>&nbsp;            if (StringUtils.isBlank(user)) {
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                throw new SnapDataException(FETCH_DRIVES_ERROR)</b>
+<b class="nc"><i class="no-highlight">341</i>&nbsp;                        .withReason(USER_ID_IS_NULL)</b>
+<i class="no-highlight">342</i>&nbsp;                        .withResolution(USER_ID_IS_NULL_RESOLUTION);
+<i class="no-highlight">343</i>&nbsp;            }
+<i class="no-highlight">344</i>&nbsp;        }
+<i class="no-highlight">345</i>&nbsp;    }
+<i class="no-highlight">346</i>&nbsp;
+<i class="no-highlight">347</i>&nbsp;    /**
+<i class="no-highlight">348</i>&nbsp;     * Fetch all drives of a Shared Library/Group
+<i class="no-highlight">349</i>&nbsp;     *
+<i class="no-highlight">350</i>&nbsp;     * @param graphClient
+<i class="no-highlight">351</i>&nbsp;     * @param optionsList
+<i class="no-highlight">352</i>&nbsp;     * @param grantType
+<i class="no-highlight">353</i>&nbsp;     * @param groupName
+<i class="no-highlight">354</i>&nbsp;     * @return
+<b class="nc"><i class="no-highlight">355</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;    public Map&lt;String, String&gt; fetchSharedLibraryDrives(GraphServiceClient graphClient,</b>
+<i class="no-highlight">357</i>&nbsp;                                                        List&lt;QueryOption&gt; optionsList, String grantType, String groupName) {
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        if (StringUtils.isBlank(groupName)) {</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;            throw new SnapDataException(FETCH_DRIVES_ERROR)</b>
+<i class="no-highlight">360</i>&nbsp;                    .withReason(GROUP_ID_NULL)
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                    .withResolution(GROUP_ID_NULL_RESOLUTION);</b>
+<i class="no-highlight">362</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">363</i>&nbsp;        Map&lt;String, String&gt; groupIdNameMapping = fetchGroupMap(graphClient, DOCUMENT_LIBRARY,</b>
+<i class="no-highlight">364</i>&nbsp;                grantType, null, groupName);
+<i class="no-highlight">365</i>&nbsp;        String groupID = groupIdNameMapping.get(groupName);
+<i class="no-highlight">366</i>&nbsp;        if (StringUtils.isBlank(groupID)) {
+<i class="no-highlight">367</i>&nbsp;            throw new SnapDataException(FETCH_DRIVES_ERROR)
+<i class="no-highlight">368</i>&nbsp;                    .withReason(GROUP_ID_INVALID)
+<i class="no-highlight">369</i>&nbsp;                    .withResolution(GROUP_ID_NULL_RESOLUTION);
+<i class="no-highlight">370</i>&nbsp;        }
+<i class="no-highlight">371</i>&nbsp;        DriveCollectionRequestBuilder requestBuilder = graphClient.groups(groupID).drives();
+<i class="no-highlight">372</i>&nbsp;        return fetchAndProcessDriveCollection(requestBuilder.buildRequest(mergeOptions(optionsList, getUserAgentHeader())));
+<i class="no-highlight">373</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">374</i>&nbsp;</b>
+<i class="no-highlight">375</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">376</i>&nbsp;     * Fetch all drives of a user</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;     *</b>
+<i class="no-highlight">378</i>&nbsp;     * @param graphClient
+<b class="nc"><i class="no-highlight">379</i>&nbsp;     * @param optionsList</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;     * @param grantType</b>
+<i class="no-highlight">381</i>&nbsp;     * @param user
+<b class="nc"><i class="no-highlight">382</i>&nbsp;     * @return</b>
+<i class="no-highlight">383</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">384</i>&nbsp;    public Map&lt;String, String&gt; fetchUserDrives(GraphServiceClient graphClient,</b>
+<i class="no-highlight">385</i>&nbsp;                                               List&lt;Option&gt; optionsList, String grantType, String user) {
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        verifyGrantType(user, grantType);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;        String userPrincipalName = extractUserPrincipalNameFromUser(user);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        DriveCollectionRequestBuilder requestBuilder;</b>
+<i class="no-highlight">389</i>&nbsp;        if (StringUtils.isBlank(userPrincipalName)) {
+<b class="nc"><i class="no-highlight">390</i>&nbsp;            requestBuilder = graphClient.me().drives();</b>
+<i class="no-highlight">391</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            requestBuilder = graphClient.users(userPrincipalName).drives();</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;        return fetchAndProcessDriveCollection(requestBuilder.buildRequest(optionsList));</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;    }</b>
+<i class="no-highlight">396</i>&nbsp;
+<b class="nc"><i class="no-highlight">397</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;     * Fetch and build drives collection of all drives</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;     *</b>
+<i class="no-highlight">400</i>&nbsp;     * @param requestBuilder
+<i class="no-highlight">401</i>&nbsp;     * @return
+<i class="no-highlight">402</i>&nbsp;     */
+<i class="no-highlight">403</i>&nbsp;    private Map&lt;String, String&gt; fetchAndProcessDriveCollection(DriveCollectionRequest
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                                                                       requestBuilder) {</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;        Map&lt;String, String&gt; resultMap = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;            while (requestBuilder != null) {</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                DriveCollectionPage collection = requestBuilder.get();</b>
+<i class="no-highlight">409</i>&nbsp;
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                for (Drive drive : collection.getCurrentPage()) {</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                    String driveDir = StringUtils.substringAfterLast(drive.webUrl, &quot;/&quot;);</b>
+<i class="no-highlight">412</i>&nbsp;
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                    if (!StringUtils.equals(&quot;PreservationHoldLibrary&quot;, driveDir)) {</b>
+<i class="no-highlight">414</i>&nbsp;                        // If the drive is not under &quot;PreservationHoldLibrary,&quot; save its details
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                        resultMap.put(drive.name, drive.id);</b>
+<i class="no-highlight">416</i>&nbsp;                    }
+<i class="no-highlight">417</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">418</i>&nbsp;                if (collection.getNextPage() != null) {</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                    requestBuilder = collection.getNextPage().buildRequest();</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;                    requestBuilder = null;</b>
+<b class="nc"><i class="no-highlight">422</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">423</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">425</i>&nbsp;        } catch (GraphServiceException ex) {</b>
+<i class="no-highlight">426</i>&nbsp;            if (handleThrottleError(ex)) {
+<i class="no-highlight">427</i>&nbsp;                return fetchAndProcessDriveCollection(requestBuilder);
+<b class="nc"><i class="no-highlight">428</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;            throwFetchDriveException(ex);</b>
+<i class="no-highlight">430</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">431</i>&nbsp;        return resultMap;</b>
+<i class="no-highlight">432</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">433</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;    public Map&lt;String, String&gt; fetchAllDrivesOfUser(GraphServiceClient graphClient,</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                                                    String grantType, String userName) {</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;        List&lt;Option&gt; optionsList = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">437</i>&nbsp;        Map&lt;String, String&gt; driveMap = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">438</i>&nbsp;        QueryOption selectOption = new QueryOption(SELECT, &quot;id,name,weburl&quot;);
+<b class="nc"><i class="no-highlight">439</i>&nbsp;        optionsList.add(selectOption);</b>
+<i class="no-highlight">440</i>&nbsp;        optionsList.add(getUserAgentHeader());
+<b class="nc"><i class="no-highlight">441</i>&nbsp;        Map&lt;String, String&gt; userDriveMap = fetchUserDrives(graphClient, optionsList,</b>
+<i class="no-highlight">442</i>&nbsp;                grantType, userName);
+<i class="no-highlight">443</i>&nbsp;        userDriveMap.entrySet().stream().forEach(e -&gt; {
+<i class="no-highlight">444</i>&nbsp;            driveMap.put(ONEDRIVE + &quot;:&quot; + e.getKey(), e.getValue());
+<i class="no-highlight">445</i>&nbsp;        });
+<i class="no-highlight">446</i>&nbsp;        Map&lt;String, String&gt; groupIdNameMapping = fetchGroupMap(graphClient, DOCUMENT_LIBRARY,
+<i class="no-highlight">447</i>&nbsp;                grantType, userName, null);
+<i class="no-highlight">448</i>&nbsp;        groupIdNameMapping.entrySet().stream().forEach(e -&gt; {
+<i class="no-highlight">449</i>&nbsp;            try {
+<i class="no-highlight">450</i>&nbsp;                DriveCollectionPage collectionPage;
+<i class="no-highlight">451</i>&nbsp;                DriveCollectionRequest request = graphClient.groups(e.getValue()).
+<b class="nc"><i class="no-highlight">452</i>&nbsp;                        drives().buildRequest(optionsList);</b>
+<b class="nc"><i class="no-highlight">453</i>&nbsp;                while (request != null) {</b>
+<b class="nc"><i class="no-highlight">454</i>&nbsp;                    collectionPage = request.get();</b>
+<b class="nc"><i class="no-highlight">455</i>&nbsp;                    List&lt;Drive&gt; list = collectionPage.getCurrentPage();</b>
+<b class="nc"><i class="no-highlight">456</i>&nbsp;                    list.stream().forEach(d -&gt; {</b>
+<b class="nc"><i class="no-highlight">457</i>&nbsp;                        if (!driveMap.containsValue(d.id)) {</b>
+<i class="no-highlight">458</i>&nbsp;                            driveMap.put(DOCUMENT_LIBRARY + &quot;:&quot; + e.getKey() + &quot;:&quot; + d.name, d.id);
+<i class="no-highlight">459</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                    });</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;                    if (collectionPage.getNextPage() != null) {</b>
+<b class="nc"><i class="no-highlight">462</i>&nbsp;                        request = collectionPage.getNextPage().buildRequest(getUserAgentHeader());</b>
+<b class="nc"><i class="no-highlight">463</i>&nbsp;                    } else {</b>
+<b class="nc"><i class="no-highlight">464</i>&nbsp;                        request = null;</b>
+<b class="nc"><i class="no-highlight">465</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">466</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;            } catch (GraphServiceException ex) {</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;                if (ex.getResponseCode() != HttpStatus.SC_FORBIDDEN &amp;&amp;</b>
+<i class="no-highlight">469</i>&nbsp;                        ex.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
+<i class="no-highlight">470</i>&nbsp;                    throwFetchDriveException(ex);
+<b class="nc"><i class="no-highlight">471</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">472</i>&nbsp;            }</b>
+<i class="no-highlight">473</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">474</i>&nbsp;        return driveMap;</b>
+<i class="no-highlight">475</i>&nbsp;    }
+<b class="nc"><i class="no-highlight">476</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">477</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">478</i>&nbsp;     * Fetch all drives</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;     * @param graphClient</b>
+<i class="no-highlight">481</i>&nbsp;     * @param grantType
+<b class="nc"><i class="no-highlight">482</i>&nbsp;     * @return</b>
+<i class="no-highlight">483</i>&nbsp;     */
+<i class="no-highlight">484</i>&nbsp;    public Map&lt;String, String&gt; fetchAllDrives(GraphServiceClient graphClient, String grantType) {
+<b class="nc"><i class="no-highlight">485</i>&nbsp;        Map&lt;String, String&gt; driveMap = new LinkedHashMap&lt;&gt;();</b>
+<i class="no-highlight">486</i>&nbsp;        QueryOption selectOption = new QueryOption(SELECT, &quot;id,name,weburl&quot;);
+<b class="nc"><i class="no-highlight">487</i>&nbsp;        List&lt;Option&gt; optionsList = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">488</i>&nbsp;        optionsList.add(selectOption);
+<i class="no-highlight">489</i>&nbsp;        optionsList.add(getUserAgentHeader());
+<b class="nc"><i class="no-highlight">490</i>&nbsp;        List&lt;String&gt; usersList = fetchUsers(graphClient, ONEDRIVE);</b>
+<b class="nc"><i class="no-highlight">491</i>&nbsp;        usersList.stream().forEach(user -&gt; {</b>
+<b class="nc"><i class="no-highlight">492</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">493</i>&nbsp;                DriveCollectionPage collectionPage;</b>
+<b class="nc"><i class="no-highlight">494</i>&nbsp;                String userPrincipalName = extractUserPrincipalNameFromUser(user);</b>
+<b class="nc"><i class="no-highlight">495</i>&nbsp;                DriveCollectionRequest request = graphClient.users(userPrincipalName).</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;                        drives().buildRequest(optionsList);</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;                while (request != null) {</b>
+<i class="no-highlight">498</i>&nbsp;                    collectionPage = request.get();
+<i class="no-highlight">499</i>&nbsp;                    List&lt;Drive&gt; list = collectionPage.getCurrentPage();
+<b class="nc"><i class="no-highlight">500</i>&nbsp;                    list.stream().forEach(d -&gt; {</b>
+<b class="nc"><i class="no-highlight">501</i>&nbsp;                        if (!driveMap.containsValue(d.id)) {</b>
+<i class="no-highlight">502</i>&nbsp;                            driveMap.put(ONEDRIVE + &quot;:&quot; + user + &quot;:&quot; + d.name, d.id);
+<b class="nc"><i class="no-highlight">503</i>&nbsp;                        }</b>
+<i class="no-highlight">504</i>&nbsp;                    });
+<b class="nc"><i class="no-highlight">505</i>&nbsp;                    if (collectionPage.getNextPage() != null) {</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;                        request = collectionPage.getNextPage().buildRequest(getUserAgentHeader());</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;                    } else {</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;                        request = null;</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;                    }</b>
+<i class="no-highlight">510</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">511</i>&nbsp;            } catch (GraphServiceException ex) {</b>
+<i class="no-highlight">512</i>&nbsp;                if (ex.getResponseCode() != HttpStatus.SC_FORBIDDEN &amp;&amp;
+<b class="nc"><i class="no-highlight">513</i>&nbsp;                        ex.getResponseCode() != HttpStatus.SC_NOT_FOUND) {</b>
+<i class="no-highlight">514</i>&nbsp;                    throwFetchDriveException(ex);
+<i class="no-highlight">515</i>&nbsp;                }
+<i class="no-highlight">516</i>&nbsp;            }
+<i class="no-highlight">517</i>&nbsp;        });
+<i class="no-highlight">518</i>&nbsp;
+<i class="no-highlight">519</i>&nbsp;        Map&lt;String, String&gt; groupIdNameMapping = fetchGroupMap(graphClient, DOCUMENT_LIBRARY,
+<i class="no-highlight">520</i>&nbsp;                grantType, null, null);
+<i class="no-highlight">521</i>&nbsp;        groupIdNameMapping.entrySet().stream().forEach(e -&gt; {
+<b class="nc"><i class="no-highlight">522</i>&nbsp;            try {</b>
+<b class="nc"><i class="no-highlight">523</i>&nbsp;                DriveCollectionPage collectionPage;</b>
+<b class="nc"><i class="no-highlight">524</i>&nbsp;                DriveCollectionRequest request = graphClient.groups(e.getValue()).</b>
+<i class="no-highlight">525</i>&nbsp;                        drives().buildRequest(optionsList);
+<i class="no-highlight">526</i>&nbsp;                while (request != null) {
+<i class="no-highlight">527</i>&nbsp;                    collectionPage = request.get();
+<i class="no-highlight">528</i>&nbsp;                    List&lt;Drive&gt; list = collectionPage.getCurrentPage();
+<i class="no-highlight">529</i>&nbsp;                    list.stream().forEach(d -&gt; {
+<i class="no-highlight">530</i>&nbsp;                        if (!driveMap.containsValue(d.id)) {
+<i class="no-highlight">531</i>&nbsp;                            driveMap.put(DOCUMENT_LIBRARY + &quot;:&quot; + e.getKey() + &quot;:&quot; + d.name, d.id);
+<i class="no-highlight">532</i>&nbsp;                        }
+<i class="no-highlight">533</i>&nbsp;                    });
+<i class="no-highlight">534</i>&nbsp;                    if (collectionPage.getNextPage() != null) {
+<i class="no-highlight">535</i>&nbsp;                        request = collectionPage.getNextPage().buildRequest(getUserAgentHeader());
+<i class="no-highlight">536</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">537</i>&nbsp;                        request = null;</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">539</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">540</i>&nbsp;            } catch (GraphServiceException ex) {</b>
+<i class="no-highlight">541</i>&nbsp;                if (ex.getResponseCode() != HttpStatus.SC_FORBIDDEN &amp;&amp;
+<b class="nc"><i class="no-highlight">542</i>&nbsp;                        ex.getResponseCode() != HttpStatus.SC_NOT_FOUND) {</b>
+<b class="nc"><i class="no-highlight">543</i>&nbsp;                    throwFetchDriveException(ex);</b>
+<b class="nc"><i class="no-highlight">544</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">545</i>&nbsp;            }</b>
+<i class="no-highlight">546</i>&nbsp;        });
+<b class="nc"><i class="no-highlight">547</i>&nbsp;        return driveMap;</b>
+<b class="nc"><i class="no-highlight">548</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">549</i>&nbsp;</b>
+<i class="no-highlight">550</i>&nbsp;    /**
+<b class="nc"><i class="no-highlight">551</i>&nbsp;     * Method to throw Exception in case of error</b>
+<b class="nc"><i class="no-highlight">552</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">553</i>&nbsp;     * @param ex</b>
+<i class="no-highlight">554</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">555</i>&nbsp;    public void throwFetchDriveException(GraphServiceException ex) {</b>
+<i class="no-highlight">556</i>&nbsp;        throw new SnapDataException(ex, FETCH_DRIVES_ERROR)
+<i class="no-highlight">557</i>&nbsp;                .withReason(ex.getResponseCode() + &quot;:&quot; + ex.getServiceError().message)
+<i class="no-highlight">558</i>&nbsp;                .withResolution(SUGGESTIONS_ERROR_RESOLUTION);
+<b class="nc"><i class="no-highlight">559</i>&nbsp;    }</b>
+<i class="no-highlight">560</i>&nbsp;
+<i class="no-highlight">561</i>&nbsp;    /**
+<i class="no-highlight">562</i>&nbsp;     * Method to evaluate drive Full Name and fetch driveID
+<i class="no-highlight">563</i>&nbsp;     *
+<i class="no-highlight">564</i>&nbsp;     * @param graphClient
+<i class="no-highlight">565</i>&nbsp;     * @param grantType
+<i class="no-highlight">566</i>&nbsp;     * @param driveFullName
+<i class="no-highlight">567</i>&nbsp;     * @return
+<i class="no-highlight">568</i>&nbsp;     */
+<i class="no-highlight">569</i>&nbsp;    public String evaluateFullDriveName(GraphServiceClient graphClient, String grantType,
+<b class="nc"><i class="no-highlight">570</i>&nbsp;                                        String driveFullName, String userName) {</b>
+<b class="nc"><i class="no-highlight">571</i>&nbsp;        String driveId = null;</b>
+<b class="nc"><i class="no-highlight">572</i>&nbsp;        if (!StringUtils.isBlank(driveFullName)) {</b>
+<b class="nc"><i class="no-highlight">573</i>&nbsp;            String[] props = driveFullName.split(&quot;:&quot;);</b>
+<b class="nc"><i class="no-highlight">574</i>&nbsp;            switch (props.length) {</b>
+<i class="no-highlight">575</i>&nbsp;                case 4:
+<i class="no-highlight">576</i>&nbsp;                    driveId = fetchDrivesBasedOnType(graphClient, grantType,
+<i class="no-highlight">577</i>&nbsp;                            props[0].trim(), &quot;&quot;, props[1].trim() + &quot;:&quot; +
+<i class="no-highlight">578</i>&nbsp;                                    props[2].trim()).get(props[3].trim());
+<i class="no-highlight">579</i>&nbsp;                    break;
+<i class="no-highlight">580</i>&nbsp;                case 3:
+<i class="no-highlight">581</i>&nbsp;                    driveId = fetchDrivesBasedOnType(graphClient, grantType, props[0].trim(),
+<i class="no-highlight">582</i>&nbsp;                            props[1].trim(), &quot;&quot;).get(props[2].trim());
+<i class="no-highlight">583</i>&nbsp;                    break;
+<i class="no-highlight">584</i>&nbsp;                case 2:
+<b class="nc"><i class="no-highlight">585</i>&nbsp;                    driveId = fetchDrivesBasedOnType(graphClient, grantType, props[0].trim(),</b>
+<b class="nc"><i class="no-highlight">586</i>&nbsp;                            &quot;&quot;, userName).get(props[1].trim());</b>
+<b class="nc"><i class="no-highlight">587</i>&nbsp;                    break;</b>
+<b class="nc"><i class="no-highlight">588</i>&nbsp;                case 1:</b>
+<i class="no-highlight">589</i>&nbsp;                    driveId = props[0];
+<b class="nc"><i class="no-highlight">590</i>&nbsp;                    break;</b>
+<b class="nc"><i class="no-highlight">591</i>&nbsp;            }</b>
+<i class="no-highlight">592</i>&nbsp;        }
+<i class="no-highlight">593</i>&nbsp;        return driveId;
+<b class="nc"><i class="no-highlight">594</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">595</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">596</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">597</i>&nbsp;     * Encode a string value</b>
+<b class="nc"><i class="no-highlight">598</i>&nbsp;     *</b>
+<i class="no-highlight">599</i>&nbsp;     * @param value
+<b class="nc"><i class="no-highlight">600</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">601</i>&nbsp;     */</b>
+<i class="no-highlight">602</i>&nbsp;    public String encode(String value) {
+<i class="no-highlight">603</i>&nbsp;        try {
+<i class="no-highlight">604</i>&nbsp;            String encodedVal = URIUtil.encodePath(value, &quot;UTF-8&quot;);
+<i class="no-highlight">605</i>&nbsp;            return encodedVal;
+<i class="no-highlight">606</i>&nbsp;        } catch (URIException e) {
+<i class="no-highlight">607</i>&nbsp;            throw new SnapDataException(e, String.format(ERROR_ENCODING_VALUE, value))
+<i class="no-highlight">608</i>&nbsp;                    .withResolution(RESOLUTION_CUSTOMER_SUPPORT);
+<i class="no-highlight">609</i>&nbsp;        }
+<i class="no-highlight">610</i>&nbsp;    }
+<i class="no-highlight">611</i>&nbsp;
+<b class="nc"><i class="no-highlight">612</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">613</i>&nbsp;     * Converts Date Time string values into DateTime object.</b>
+<b class="nc"><i class="no-highlight">614</i>&nbsp;     *</b>
+<b class="nc"><i class="no-highlight">615</i>&nbsp;     * @param time</b>
+<b class="nc"><i class="no-highlight">616</i>&nbsp;     * @return</b>
+<b class="nc"><i class="no-highlight">617</i>&nbsp;     */</b>
+<b class="nc"><i class="no-highlight">618</i>&nbsp;    public DateTime convertDateTimeField(String time) {</b>
+<b class="nc"><i class="no-highlight">619</i>&nbsp;        DateTimeParser parsers[] = {</b>
+<i class="no-highlight">620</i>&nbsp;                DateTimeFormat.forPattern(DATE_FORMAT).getParser(),
+<b class="nc"><i class="no-highlight">621</i>&nbsp;                DateTimeFormat.forPattern(DATE_TIME_FORMAT).getParser(),</b>
+<b class="nc"><i class="no-highlight">622</i>&nbsp;                DateTimeFormat.forPattern(DATE_TIME_ZONE_FORMAT).getParser()</b>
+<i class="no-highlight">623</i>&nbsp;        };
+<b class="nc"><i class="no-highlight">624</i>&nbsp;        DateTimeFormatter formatter = new DateTimeFormatterBuilder()</b>
+<b class="nc"><i class="no-highlight">625</i>&nbsp;                .append(null, parsers).toFormatter();</b>
+<b class="nc"><i class="no-highlight">626</i>&nbsp;        DateTime dateTime;</b>
+<b class="nc"><i class="no-highlight">627</i>&nbsp;        try {</b>
+<b class="nc"><i class="no-highlight">628</i>&nbsp;            dateTime = formatter.parseDateTime(time);</b>
+<b class="nc"><i class="no-highlight">629</i>&nbsp;        } catch (IllegalArgumentException argEx) {</b>
+<i class="no-highlight">630</i>&nbsp;            throw new SnapDataException(FORMAT_NOT_SUPPORTED)
+<i class="no-highlight">631</i>&nbsp;                    .withReason(INVALID_DATE_TIME_FORMAT)
+<b class="nc"><i class="no-highlight">632</i>&nbsp;                    .withResolution(String.format(INVALID_DATE_RES,</b>
+<i class="no-highlight">633</i>&nbsp;                            DATE_FORMAT, DATE_TIME_FORMAT, DATE_TIME_ZONE_FORMAT));
+<i class="no-highlight">634</i>&nbsp;        }
+<i class="no-highlight">635</i>&nbsp;        return dateTime;
+<b class="nc"><i class="no-highlight">636</i>&nbsp;    }</b>
+<b class="nc"><i class="no-highlight">637</i>&nbsp;</b>
+<b class="nc"><i class="no-highlight">638</i>&nbsp;    /**</b>
+<b class="nc"><i class="no-highlight">639</i>&nbsp;     * Handle ApplicationThrottled Error 429 gracefully. Refer below doc for best practices</b>
+<b class="nc"><i class="no-highlight">640</i>&nbsp;     * https://docs.microsoft.com/en-us/graph/throttling?context=graph%2Fapi%2F1.0</b>
+<b class="nc"><i class="no-highlight">641</i>&nbsp;     * &amp;view=graph-rest-1.0</b>
+<i class="no-highlight">642</i>&nbsp;     * @param serviceEx GraphServiceException
+<b class="nc"><i class="no-highlight">643</i>&nbsp;     * @return true, if needs to be retried</b>
+<i class="no-highlight">644</i>&nbsp;     */
+<i class="no-highlight">645</i>&nbsp;    public boolean handleThrottleError(GraphServiceException serviceEx) {
+<i class="no-highlight">646</i>&nbsp;        if (serviceEx.getResponseCode() == 429) {
+<i class="no-highlight">647</i>&nbsp;            LOGGER.warn(&quot;Received ApplicationThrottled Error, Error code: 429&quot;, serviceEx);
+<i class="no-highlight">648</i>&nbsp;            List&lt;String&gt; responseHeaders = serviceEx.getResponseHeaders();
+<i class="no-highlight">649</i>&nbsp;            int waitTime = 0;
+<b class="nc"><i class="no-highlight">650</i>&nbsp;            if (Objects.nonNull(responseHeaders)) {</b>
+<b class="nc"><i class="no-highlight">651</i>&nbsp;                for (String header : responseHeaders) {</b>
+<i class="no-highlight">652</i>&nbsp;                    if (header.startsWith(&quot;Retry-After&quot;)) {
+<b class="nc"><i class="no-highlight">653</i>&nbsp;                        String[] headerVal = header.split(&quot;:&quot;);</b>
+<b class="nc"><i class="no-highlight">654</i>&nbsp;                        try {</b>
+<b class="nc"><i class="no-highlight">655</i>&nbsp;                            waitTime = (headerVal.length &gt; 1) ?</b>
+<i class="no-highlight">656</i>&nbsp;                                    Double.valueOf(headerVal[1].trim()).intValue() : 0;
+<i class="no-highlight">657</i>&nbsp;                            // avoid cases if negative number is passed.
+<i class="no-highlight">658</i>&nbsp;                            waitTime = (waitTime &lt; 0) ? 0 : waitTime;
+<i class="no-highlight">659</i>&nbsp;                        } catch (NumberFormatException nfe) {
+<i class="no-highlight">660</i>&nbsp;                            throw new SnapDataException(ERR_CONVERT_FAIL_MSG)
+<i class="no-highlight">661</i>&nbsp;                                    .withReason(ERR_CONVERT_FAIL_REASON)
+<i class="no-highlight">662</i>&nbsp;                                    .withResolutionAsDefect();
+<i class="no-highlight">663</i>&nbsp;                        }
+<i class="no-highlight">664</i>&nbsp;                        break;
+<i class="no-highlight">665</i>&nbsp;                    }
+<i class="no-highlight">666</i>&nbsp;                }
+<i class="no-highlight">667</i>&nbsp;            }
+<i class="no-highlight">668</i>&nbsp;            try {
+<i class="no-highlight">669</i>&nbsp;                // Wait for suggested time plus extra 5 seconds before retrying.
+<i class="no-highlight">670</i>&nbsp;                Thread.sleep(TimeUnit.SECONDS.toMillis(waitTime + 5));
+<i class="no-highlight">671</i>&nbsp;            } catch (InterruptedException ie) {
+<i class="no-highlight">672</i>&nbsp;                LOGGER.error(&quot;Wait Thread is interrupted&quot;, ie);
+<i class="no-highlight">673</i>&nbsp;                Thread.currentThread().interrupt();
+<i class="no-highlight">674</i>&nbsp;            }
+<i class="no-highlight">675</i>&nbsp;            return true;
+<i class="no-highlight">676</i>&nbsp;        }
+<i class="no-highlight">677</i>&nbsp;        return false;
+<i class="no-highlight">678</i>&nbsp;    }
+<i class="no-highlight">679</i>&nbsp;
+<i class="no-highlight">680</i>&nbsp;    /**
+<i class="no-highlight">681</i>&nbsp;     * Extract email from user
+<i class="no-highlight">682</i>&nbsp;     */
+<i class="no-highlight">683</i>&nbsp;    public String extractUserPrincipalNameFromUser(String user) {
+<i class="no-highlight">684</i>&nbsp;        if (StringUtils.isBlank(user)) {
+<i class="no-highlight">685</i>&nbsp;            return null;
+<i class="no-highlight">686</i>&nbsp;        }
+<i class="no-highlight">687</i>&nbsp;        int colonIndex = user.lastIndexOf(&quot;:&quot;);
+<i class="no-highlight">688</i>&nbsp;        return (colonIndex != -1 &amp;&amp; (colonIndex + 1) != user.length()) ?
+<i class="no-highlight">689</i>&nbsp;                user.substring(colonIndex + 1) : user;
+<i class="no-highlight">690</i>&nbsp;    }
+<i class="no-highlight">691</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

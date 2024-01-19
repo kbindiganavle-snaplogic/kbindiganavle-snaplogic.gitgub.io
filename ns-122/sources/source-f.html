@@ -1,0 +1,392 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > MongoUtil</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.mongo</a>
+</div>
+
+<h1>Coverage Summary for Class: MongoUtil (com.snaplogic.snaps.mongo)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MongoUtil</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/112)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.mongo;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.mongodb.BasicDBObject;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">21</i>&nbsp;import org.bson.types.Binary;
+<i class="no-highlight">22</i>&nbsp;import org.bson.types.Decimal128;
+<i class="no-highlight">23</i>&nbsp;import org.bson.types.ObjectId;
+<i class="no-highlight">24</i>&nbsp;import org.joda.time.DateTime;
+<i class="no-highlight">25</i>&nbsp;import org.joda.time.DateTimeZone;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import java.io.ByteArrayInputStream;
+<i class="no-highlight">28</i>&nbsp;import java.io.ByteArrayOutputStream;
+<i class="no-highlight">29</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">30</i>&nbsp;import java.io.ObjectInputStream;
+<i class="no-highlight">31</i>&nbsp;import java.io.ObjectOutputStream;
+<i class="no-highlight">32</i>&nbsp;import java.io.Serializable;
+<i class="no-highlight">33</i>&nbsp;import java.lang.reflect.Method;
+<i class="no-highlight">34</i>&nbsp;import java.math.BigDecimal;
+<i class="no-highlight">35</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">36</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">37</i>&nbsp;import java.util.Base64;
+<i class="no-highlight">38</i>&nbsp;import java.util.Date;
+<i class="no-highlight">39</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">40</i>&nbsp;import java.util.List;
+<i class="no-highlight">41</i>&nbsp;import java.util.Map;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERROR_DOUBLE_OVERFLOW_REASON;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERROR_LONG_OVERFLOW_REASON;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERROR_NUMERIC_OVERFLOW;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERROR_NUMERIC_OVERFLOW_RESOLUTION;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_PARSE_NUMBER_FORMAT;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.ERR_PARSE_QUERY_EXPRESSION;
+<i class="no-highlight">49</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.INVALID_QUERY_CONDITION_SYNTAX_REASON;
+<i class="no-highlight">50</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.REASON_QUERY_TYPE;
+<i class="no-highlight">51</i>&nbsp;import static com.snaplogic.snaps.mongo.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">52</i>&nbsp;
+<i class="no-highlight">53</i>&nbsp;/**
+<i class="no-highlight">54</i>&nbsp; * MongoDB utilities
+<i class="no-highlight">55</i>&nbsp; *
+<i class="no-highlight">56</i>&nbsp; * @author jim, yzhang
+<i class="no-highlight">57</i>&nbsp; */
+<b class="nc"><i class="no-highlight">58</i>&nbsp;public final class MongoUtil {</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;    static final BigInteger MAX_INTEGER = BigInteger.valueOf(Integer.MAX_VALUE);</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    static final BigInteger MIN_INTEGER = BigInteger.valueOf(Integer.MIN_VALUE);</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;    static final BigInteger MAX_LONG = BigInteger.valueOf(Long.MAX_VALUE);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;    static final BigInteger MIN_LONG = BigInteger.valueOf(Long.MIN_VALUE);</b>
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;    /**
+<i class="no-highlight">65</i>&nbsp;     * Conversion to BigInteger, BigDecimal, and joda datetimezone.
+<i class="no-highlight">66</i>&nbsp;     * MongoConvertMap &amp; MongoConvertList serves as callback to convertValue for nested fields.
+<i class="no-highlight">67</i>&nbsp;     */
+<i class="no-highlight">68</i>&nbsp;    public static Object convertValue(Object value, DateTimeZone dtz) {
+<i class="no-highlight">69</i>&nbsp;        // Refer to below link for data types:
+<i class="no-highlight">70</i>&nbsp;        // https://docs.mongodb.com/manual/reference/bson-types/
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        if (value != null) {</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;            if (value instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;                value = new MongoConvertMap(new org.bson.Document((Map) value), dtz);</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            } else if (value instanceof List) {</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                value = new MongoConvertList((List) value, dtz);</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;            } else if (value instanceof Number) {</b>
+<i class="no-highlight">77</i>&nbsp;                // For NaN, +Infinity, -Infinity
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                if (value instanceof Double &amp;&amp; !Double.isFinite((Double) value)) {</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;                    return value;</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;                } else if (value instanceof Decimal128) {</b>
+<i class="no-highlight">81</i>&nbsp;                    /* When data is inserted from Mongo Shell, it is stored the Decimal128 format
+<i class="no-highlight">82</i>&nbsp;                       and the Mongo Find snap outputs it in the IEEE754 format with a high
+<i class="no-highlight">83</i>&nbsp;                       and low byte. To make it more readable, the Decimal128.bigDecimalValue()
+<i class="no-highlight">84</i>&nbsp;                       is used. */
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                    Decimal128 decimal128Value = (Decimal128) value;</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                    if (!decimal128Value.isInfinite() &amp;&amp; !decimal128Value.isNaN()) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                        value = new BigDecimal(decimal128Value.toString());</b>
+<i class="no-highlight">88</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                        if (decimal128Value.isNaN()) {</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                            return Double.NaN;</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                        } else if (decimal128Value.isNegative()) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                            return Double.NEGATIVE_INFINITY;</b>
+<i class="no-highlight">93</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                            return Double.POSITIVE_INFINITY;</b>
+<i class="no-highlight">95</i>&nbsp;                        }
+<i class="no-highlight">96</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                    return new BigDecimal(value.toString());</b>
+<i class="no-highlight">99</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            } else if (value instanceof Date) {</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;                value = new DateTime(value).toDateTime(dtz);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            } else if (value instanceof ObjectId) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;                value = value.toString();</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;            } else if (value instanceof Binary) {</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                value = ((Binary) value).getData();</b>
+<i class="no-highlight">106</i>&nbsp;            }
+<i class="no-highlight">107</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        return value;</b>
+<i class="no-highlight">109</i>&nbsp;    }
+<i class="no-highlight">110</i>&nbsp;
+<i class="no-highlight">111</i>&nbsp;    /**
+<i class="no-highlight">112</i>&nbsp;     * Evaluates the expression and creates a query object for it.
+<i class="no-highlight">113</i>&nbsp;     * The expression can evaluate to either a JSON string or object.
+<i class="no-highlight">114</i>&nbsp;     *
+<i class="no-highlight">115</i>&nbsp;     * @return The query object representing the query result. If the query expression is empty then
+<i class="no-highlight">116</i>&nbsp;     * null is returned. If the query expression evaluates to null then null is returned.
+<i class="no-highlight">117</i>&nbsp;     */
+<i class="no-highlight">118</i>&nbsp;    public static BasicDBObject getQueryObject(ExpressionProperty queryExp, Document document,
+<i class="no-highlight">119</i>&nbsp;                                          MongoAccountCommon account) {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;        if (queryExp.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            return null;</b>
+<i class="no-highlight">122</i>&nbsp;        }
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;        //Evaluate expression
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        Object expEval = queryExp.eval(document);</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;        if (expEval == null) {</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            return null;</b>
+<i class="no-highlight">128</i>&nbsp;        }
+<i class="no-highlight">129</i>&nbsp;
+<i class="no-highlight">130</i>&nbsp;        //Convert expression return to a JSON string
+<i class="no-highlight">131</i>&nbsp;        //The expression can return either a JSON string
+<i class="no-highlight">132</i>&nbsp;        //or an object. A JSON string is supported to maintain
+<i class="no-highlight">133</i>&nbsp;        //backwards compatibility and so that users can use MongoDB shell mode
+<i class="no-highlight">134</i>&nbsp;        //extended JSON https://docs.mongodb.com/manual/reference/mongodb-extended-json/
+<i class="no-highlight">135</i>&nbsp;        String queryJsonString;
+<b class="nc"><i class="no-highlight">136</i>&nbsp;        if (expEval instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            queryJsonString = new BasicDBObject((Map) convertValues(expEval)).toJson();</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;        } else if (expEval instanceof String) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;            queryJsonString = (String) expEval;</b>
+<i class="no-highlight">140</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">141</i>&nbsp;            throw new SnapDataException(ERR_PARSE_QUERY_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                    .withReason(REASON_QUERY_TYPE)</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">144</i>&nbsp;        }
+<i class="no-highlight">145</i>&nbsp;
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        if (StringUtils.isBlank(queryJsonString)) {</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            return null;</b>
+<i class="no-highlight">148</i>&nbsp;        }
+<i class="no-highlight">149</i>&nbsp;
+<i class="no-highlight">150</i>&nbsp;        try {
+<i class="no-highlight">151</i>&nbsp;            // BasicDBObject.parse supports extended JSON in both strict and shell mode
+<i class="no-highlight">152</i>&nbsp;
+<i class="no-highlight">153</i>&nbsp;            BasicDBObject result;
+<i class="no-highlight">154</i>&nbsp;
+<i class="no-highlight">155</i>&nbsp;            // If the MongoAccount used &quot;external jar files&quot; we will get a non-null classLoader
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            ClassLoader classLoader = account.getJARClassloader();</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            if (classLoader != null) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                Class basicDbObjectClass = classLoader.loadClass(&quot;com.mongodb.BasicDBObject&quot;);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                Class[] cArgs = new Class[1];</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                cArgs[0] = String.class;</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;                Method method = basicDbObjectClass.getDeclaredMethod(&quot;parse&quot;, cArgs);</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                Object intermediateResult = method.invoke(null, queryJsonString);</b>
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;                // Because we are using a different class loader for the parse method
+<i class="no-highlight">165</i>&nbsp;                // we serialize the object then reconstruct it so we don&#39;t get
+<i class="no-highlight">166</i>&nbsp;                // a class cast exception.
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                String holder = toString((Serializable) intermediateResult);</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                result = (BasicDBObject) fromString(holder);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                result = BasicDBObject.parse(queryJsonString);</b>
+<i class="no-highlight">171</i>&nbsp;            }
+<i class="no-highlight">172</i>&nbsp;
+<b class="nc"><i class="no-highlight">173</i>&nbsp;            return result;</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;        } catch (NumberFormatException e) {</b>
+<i class="no-highlight">175</i>&nbsp;            // This adds context to exceptions thrown due to invalid query inputs to make the
+<i class="no-highlight">176</i>&nbsp;            // error message more actionable and specific.
+<i class="no-highlight">177</i>&nbsp;            // Otherwise the error message does not indicate what operation caused the exception
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            throw new SnapDataException(e, ERR_PARSE_NUMBER_FORMAT)</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                    .withReason(String.format(INVALID_QUERY_CONDITION_SYNTAX_REASON, e.getMessage</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                            ()))</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        } catch (Exception e) {</b>
+<i class="no-highlight">183</i>&nbsp;            // This adds context to exceptions thrown due to invalid query inputs to make the
+<i class="no-highlight">184</i>&nbsp;            // error message more actionable and specific.
+<i class="no-highlight">185</i>&nbsp;            // Otherwise the error message does not indicate what operation caused the exception
+<b class="nc"><i class="no-highlight">186</i>&nbsp;            throw new SnapDataException(e, ERR_PARSE_QUERY_EXPRESSION)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                    .withReason(String.format(INVALID_QUERY_CONDITION_SYNTAX_REASON, e.getMessage</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                            ()))</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">190</i>&nbsp;        }
+<i class="no-highlight">191</i>&nbsp;    }
+<i class="no-highlight">192</i>&nbsp;
+<i class="no-highlight">193</i>&nbsp;    /**
+<i class="no-highlight">194</i>&nbsp;     * Replaces all BigInteger and BigDecimal objects with int, long and double values.
+<i class="no-highlight">195</i>&nbsp;     *
+<i class="no-highlight">196</i>&nbsp;     * @param data The object to replace BigInteger and BigDecimals for.
+<i class="no-highlight">197</i>&nbsp;     */
+<i class="no-highlight">198</i>&nbsp;    public static Object convertValues(Object data) {
+<b class="nc"><i class="no-highlight">199</i>&nbsp;        if (data instanceof Map) {</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;            Map&lt;String, Object&gt; mapData = (Map&lt;String, Object&gt;) data;</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            Map&lt;String, Object&gt; convertedMapData = new LinkedHashMap&lt;&gt;(mapData.size());</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            mapData.entrySet().forEach(</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                    entry -&gt; convertedMapData.put(entry.getKey(), convertValues(entry.getValue())));</b>
+<i class="no-highlight">204</i>&nbsp;
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            data = convertedMapData;</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        } else if (data instanceof List) {</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;            List&lt;Object&gt; listData = (List&lt;Object&gt;) data;</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;            List&lt;Object&gt; convertedListData = new ArrayList&lt;&gt;(listData.size());</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;            listData.forEach(entry -&gt; convertedListData.add(convertValues(entry)));</b>
+<i class="no-highlight">210</i>&nbsp;
+<b class="nc"><i class="no-highlight">211</i>&nbsp;            data = convertedListData;</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;            data = convertNonCollection(data);</b>
+<i class="no-highlight">214</i>&nbsp;        }
+<i class="no-highlight">215</i>&nbsp;
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        return data;</b>
+<i class="no-highlight">217</i>&nbsp;    }
+<i class="no-highlight">218</i>&nbsp;
+<i class="no-highlight">219</i>&nbsp;    private static Object convertNonCollection(Object val) {
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        if (val instanceof BigInteger) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;            if (((BigInteger) val).compareTo(MAX_INTEGER) &gt; 0</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                    || ((BigInteger) val).compareTo(MIN_INTEGER) &lt; 0) {</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                if (((BigInteger) val).compareTo(MAX_LONG) &gt; 0</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                        || ((BigInteger) val).compareTo(MIN_LONG) &lt; 0) {</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                    throw new SnapDataException(ERROR_NUMERIC_OVERFLOW)</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                            .withReason(String.format(ERROR_LONG_OVERFLOW_REASON, val))</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                            .withResolution(ERROR_NUMERIC_OVERFLOW_RESOLUTION);</b>
+<i class="no-highlight">228</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                val = ((BigInteger) val).longValue();</b>
+<i class="no-highlight">230</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                val = ((BigInteger) val).intValue();</b>
+<i class="no-highlight">232</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        } else if (val instanceof BigDecimal) {</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;            double doubleValue = ((BigDecimal) val).doubleValue();</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;            if (doubleValue == Double.NEGATIVE_INFINITY</b>
+<i class="no-highlight">236</i>&nbsp;                    || doubleValue == Double.POSITIVE_INFINITY) {
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                throw new SnapDataException(ERROR_NUMERIC_OVERFLOW)</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                        .withReason(String.format(ERROR_DOUBLE_OVERFLOW_REASON, val))</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                        .withResolution(ERROR_NUMERIC_OVERFLOW_RESOLUTION);</b>
+<i class="no-highlight">240</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                val = doubleValue;</b>
+<i class="no-highlight">242</i>&nbsp;            }
+<i class="no-highlight">243</i>&nbsp;        }
+<i class="no-highlight">244</i>&nbsp;
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        return val;</b>
+<i class="no-highlight">246</i>&nbsp;    }
+<i class="no-highlight">247</i>&nbsp;
+<i class="no-highlight">248</i>&nbsp;    /**
+<i class="no-highlight">249</i>&nbsp;     * Writes output document to output view. Passes input document if passThrough is true.
+<i class="no-highlight">250</i>&nbsp;     *
+<i class="no-highlight">251</i>&nbsp;     * @param outputViews    - error view
+<i class="no-highlight">252</i>&nbsp;     * @param outputDocument - output document
+<i class="no-highlight">253</i>&nbsp;     * @param passThrough    - if true, pass input document to error view
+<i class="no-highlight">254</i>&nbsp;     * @param inputDocument  - input document
+<i class="no-highlight">255</i>&nbsp;     */
+<i class="no-highlight">256</i>&nbsp;    public static void writeToOutputViews(OutputViews outputViews, Document outputDocument,
+<i class="no-highlight">257</i>&nbsp;                                          boolean passThrough, Document inputDocument) {
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        if (passThrough) {</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;            outputViews.write(outputDocument, inputDocument);</b>
+<i class="no-highlight">260</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">261</i>&nbsp;            outputViews.write(outputDocument);</b>
+<i class="no-highlight">262</i>&nbsp;        }
+<i class="no-highlight">263</i>&nbsp;    }
+<i class="no-highlight">264</i>&nbsp;
+<i class="no-highlight">265</i>&nbsp;    /**
+<i class="no-highlight">266</i>&nbsp;     * Read the object from Base64 string.
+<i class="no-highlight">267</i>&nbsp;     */
+<i class="no-highlight">268</i>&nbsp;    private static Object fromString(String s) throws IOException, ClassNotFoundException {
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        byte[] data = Base64.getDecoder().decode(s);</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;        ObjectInputStream ois = new ObjectInputStream(</b>
+<i class="no-highlight">271</i>&nbsp;                new ByteArrayInputStream(data));
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        Object o = ois.readObject();</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        ois.close();</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;        return o;</b>
+<i class="no-highlight">275</i>&nbsp;    }
+<i class="no-highlight">276</i>&nbsp;
+<i class="no-highlight">277</i>&nbsp;    /**
+<i class="no-highlight">278</i>&nbsp;     * Write the object to a Base64 string.
+<i class="no-highlight">279</i>&nbsp;     */
+<i class="no-highlight">280</i>&nbsp;    private static String toString(Serializable o) throws IOException {
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        ByteArrayOutputStream baos = new ByteArrayOutputStream();</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;        ObjectOutputStream oos = new ObjectOutputStream(baos);</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;        oos.writeObject(o);</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;        oos.close();</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;        return Base64.getEncoder().encodeToString(baos.toByteArray());</b>
+<i class="no-highlight">286</i>&nbsp;    }
+<i class="no-highlight">287</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

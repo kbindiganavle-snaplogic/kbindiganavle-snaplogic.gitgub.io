@@ -1,0 +1,541 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > AmazonSQSBaseAccount</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.amazonsqs</a>
+</div>
+
+<h1>Coverage Summary for Class: AmazonSQSBaseAccount (com.snaplogic.snaps.amazonsqs)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AmazonSQSBaseAccount</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/227)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.amazonsqs;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
+<i class="no-highlight">16</i>&nbsp;import com.amazonaws.ClientConfiguration;
+<i class="no-highlight">17</i>&nbsp;import com.amazonaws.auth.AWSCredentials;
+<i class="no-highlight">18</i>&nbsp;import com.amazonaws.auth.AWSCredentialsProvider;
+<i class="no-highlight">19</i>&nbsp;import com.amazonaws.auth.AWSStaticCredentialsProvider;
+<i class="no-highlight">20</i>&nbsp;import com.amazonaws.auth.BasicAWSCredentials;
+<i class="no-highlight">21</i>&nbsp;import com.amazonaws.auth.BasicSessionCredentials;
+<i class="no-highlight">22</i>&nbsp;import com.amazonaws.auth.InstanceProfileCredentialsProvider;
+<i class="no-highlight">23</i>&nbsp;import com.amazonaws.regions.Region;
+<i class="no-highlight">24</i>&nbsp;import com.amazonaws.regions.Regions;
+<i class="no-highlight">25</i>&nbsp;import com.amazonaws.services.s3.AmazonS3;
+<i class="no-highlight">26</i>&nbsp;import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+<i class="no-highlight">27</i>&nbsp;import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+<i class="no-highlight">28</i>&nbsp;import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+<i class="no-highlight">29</i>&nbsp;import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+<i class="no-highlight">30</i>&nbsp;import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+<i class="no-highlight">31</i>&nbsp;import com.amazonaws.services.securitytoken.model.Credentials;
+<i class="no-highlight">32</i>&nbsp;import com.google.common.collect.ImmutableSet;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.account.api.Account;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.account.api.AccountType;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.account.api.capabilities.AccountCategory;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">40</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">41</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">42</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">43</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">44</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">45</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import java.util.Arrays;
+<i class="no-highlight">48</i>&nbsp;import java.util.List;
+<i class="no-highlight">49</i>&nbsp;import java.util.Set;
+<i class="no-highlight">50</i>&nbsp;import java.util.stream.Collectors;
+<i class="no-highlight">51</i>&nbsp;
+<i class="no-highlight">52</i>&nbsp;import static com.snaplogic.snaps.amazonsqs.Messages.*;
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;/**
+<i class="no-highlight">55</i>&nbsp; * The Base class for Amazon SQS Account.
+<i class="no-highlight">56</i>&nbsp; */
+<i class="no-highlight">57</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">58</i>&nbsp;@AccountCategory(type = AccountType.CUSTOM)
+<b class="nc"><i class="no-highlight">59</i>&nbsp;public abstract class AmazonSQSBaseAccount implements Account&lt;AWSCredentialsProvider&gt; {</b>
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;    protected static final String ACCESS_KEY_ID_PROP = &quot;accessKeyId&quot;;
+<i class="no-highlight">62</i>&nbsp;    protected static final String SECRET_KEY_PROP = &quot;secretKey&quot;;
+<i class="no-highlight">63</i>&nbsp;    protected static final String SECURITY_TOKEN_PROP = &quot;securityToken&quot;;
+<i class="no-highlight">64</i>&nbsp;    protected static final String IAM_ROLE_PROP = &quot;iAMRole&quot;;
+<i class="no-highlight">65</i>&nbsp;    static final String ARN_CROSS_ACCOUNT_IAM_ROLE_PROP = &quot;arnCrossAccountIamRole&quot;;
+<i class="no-highlight">66</i>&nbsp;    static final String EXTERNAL_ID_PROP = &quot;externalID&quot;;
+<i class="no-highlight">67</i>&nbsp;    static final String CROSS_ACCOUNT_IAM_ROLE_PROPS = &quot;crossAccountIamRoleProps&quot;;
+<b class="nc"><i class="no-highlight">68</i>&nbsp;    private final String LARGE_MESSAGE_SUPPORT_PROP = &quot;largeMessageSupport&quot;;</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;    private final String S3_BUCKET_PROP = &quot;s3Bucket&quot;;</b>
+<b class="nc"><i class="no-highlight">70</i>&nbsp;    private final String S3_REGION_PROP = &quot;s3Region&quot;;</b>
+<b class="nc"><i class="no-highlight">71</i>&nbsp;    private final String S3_CREDENTIALS_PROP = &quot;s3Credentials&quot;;</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;    private final String S3_ACCESS_KEY_ID_PROP = &quot;s3AccessKeyID&quot;;</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;    private final String S3_SECRET_KEY_PROP = &quot;s3SecretKey&quot;;</b>
+<b class="nc"><i class="no-highlight">74</i>&nbsp;    private final String S3_SECURITY_TOKEN_PROP = &quot;s3SecurityToken&quot;;</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;    private final String S3_USE_EC2_ROLE_PROP = &quot;s3UseEc2Role&quot;;</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;    private final String S3_ASSUME_ROLE_ARN_PROP = &quot;s3assumeRoleArn&quot;;</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;    private final String S3_ASSUME_ROLE_EXTERNAL_ID = &quot;s3AssumeRoleExternalID&quot;;</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;    private final String S3_CONFIG_PROP = &quot;s3Config&quot;;</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;    private final String VALUE_PROP = &quot;value&quot;;</b>
+<i class="no-highlight">80</i>&nbsp;    static final String ASSUME_ROLE_SESSION_NAME_FMT = &quot;SL_SQS_ACCOUNT_%s_%d&quot;;
+<i class="no-highlight">81</i>&nbsp;    private static final String LARGE_MSG_SUPPORT_ENABLED = &quot;$.settings.largeMessageSupport.value&quot;;
+<i class="no-highlight">82</i>&nbsp;    private static final String NOT_USE_EC2_ROLE = &quot;!$.settings.s3Config.value.s3UseEc2Role.value&quot;;
+<i class="no-highlight">83</i>&nbsp;    private static final String USE_SEPARATE_CREDENTIALS = &quot;$.settings.s3Config.value&quot; +
+<i class="no-highlight">84</i>&nbsp;            &quot;.s3Credentials.value==&#39;Provide Separate Credentials&#39;&quot;;
+<i class="no-highlight">85</i>&nbsp;    private static final String CONDITION_AND = &quot;%s &amp;&amp; %s&quot;;
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;    private final static String USE_SQS_CREDENTIALS = &quot;Use SQS Credentials&quot;;
+<i class="no-highlight">88</i>&nbsp;    private final static String SEPARATE_CREDENTIALS = &quot;Provide Separate Credentials&quot;;
+<b class="nc"><i class="no-highlight">89</i>&nbsp;    private final static Set&lt;String&gt; S3_CREDENTIALS_SOURCES = ImmutableSet.of(</b>
+<i class="no-highlight">90</i>&nbsp;            USE_SQS_CREDENTIALS,
+<i class="no-highlight">91</i>&nbsp;            SEPARATE_CREDENTIALS
+<i class="no-highlight">92</i>&nbsp;    );
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;    private String arnCrossAccountIamRole;
+<i class="no-highlight">95</i>&nbsp;    private String externalID;
+<i class="no-highlight">96</i>&nbsp;    protected ExpressionProperty accessKeyIdExpr;
+<i class="no-highlight">97</i>&nbsp;    protected ExpressionProperty secretKeyExpr;
+<i class="no-highlight">98</i>&nbsp;    protected ExpressionProperty securityTokenExpr;
+<i class="no-highlight">99</i>&nbsp;    protected boolean isIAMRole;
+<i class="no-highlight">100</i>&nbsp;    private String region;
+<i class="no-highlight">101</i>&nbsp;    private boolean supportLargeMessage;
+<i class="no-highlight">102</i>&nbsp;    private String s3Bucket;
+<i class="no-highlight">103</i>&nbsp;    private String s3Region;
+<i class="no-highlight">104</i>&nbsp;    private String s3CredentialType;
+<i class="no-highlight">105</i>&nbsp;    private String s3AccessKeyID;
+<i class="no-highlight">106</i>&nbsp;    private String s3SecretKey;
+<i class="no-highlight">107</i>&nbsp;    private String s3SecurityToken;
+<i class="no-highlight">108</i>&nbsp;    private boolean s3UseEC2Role;
+<i class="no-highlight">109</i>&nbsp;    private String s3AssumeRoleArn;
+<i class="no-highlight">110</i>&nbsp;    private String s3AssumeRoleExtID;
+<i class="no-highlight">111</i>&nbsp;    private String securityToken;
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">114</i>&nbsp;    public void defineProperties(final PropertyBuilder propertyBuilder) {</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        defineAWSAccessCredentials(propertyBuilder);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        propertyBuilder.describe(IAM_ROLE_PROP, IAM_ROLE_LABEL, IAM_ROLE_DESC)</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                .defaultValue(false)</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;                .add();</b>
+<i class="no-highlight">120</i>&nbsp;        defineCrossAccountIamRoleProperties(propertyBuilder);
+<i class="no-highlight">121</i>&nbsp;    }
+<i class="no-highlight">122</i>&nbsp;
+<b class="nc"><i class="no-highlight">123</i>&nbsp;    private void defineCrossAccountIamRoleProperties(final PropertyBuilder propertyBuilder) {</b>
+<i class="no-highlight">124</i>&nbsp;        SnapProperty arnProperty = propertyBuilder.describe(ARN_CROSS_ACCOUNT_IAM_ROLE_PROP,
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                ARN_CROSS_ACCOUNT_IAM_ROLE_LABEL, ARN_CROSS_ACCOUNT_IAM_ROLE_DESC)</b>
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                .build();</b>
+<i class="no-highlight">128</i>&nbsp;        SnapProperty externalIdProperty = propertyBuilder.describe(EXTERNAL_ID_PROP,
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                EXTERNAL_ID_LABEL, EXTERNAL_ID_DESC)</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                .build();</b>
+<i class="no-highlight">132</i>&nbsp;        propertyBuilder.describe(CROSS_ACCOUNT_IAM_ROLE_PROPS, CROSS_ACCOUNT_IAM_ROLE_LABEL,
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                CROSS_ACCOUNT_IAM_ROLE_DESC)</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                .withEntry(arnProperty)</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                .withEntry(externalIdProperty)</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                .add();</b>
+<i class="no-highlight">138</i>&nbsp;        defineLargeMessageSupportProps(propertyBuilder);
+<i class="no-highlight">139</i>&nbsp;    }
+<i class="no-highlight">140</i>&nbsp;
+<b class="nc"><i class="no-highlight">141</i>&nbsp;    private void defineLargeMessageSupportProps(final PropertyBuilder propertyBuilder) {</b>
+<i class="no-highlight">142</i>&nbsp;        propertyBuilder.describe(LARGE_MESSAGE_SUPPORT_PROP, LARGE_MESSAGE_SUPPORT_LABEL,
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                LARGE_MESSAGE_SUPPORT_DESC)</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                .add();</b>
+<i class="no-highlight">146</i>&nbsp;        SnapProperty s3Bucket = propertyBuilder.describe(S3_BUCKET_PROP,
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                S3_BUCKET_LABEL, S3_BUCKET_DESC)</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        SnapProperty s3Region = propertyBuilder.describe(S3_REGION_PROP, S3_REGION_LABEL, S3_REGION_DESC)</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                .withSuggestions((suggestionBuilder, propertyValues) -&gt; {</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                    Regions[] regions = Regions.values();</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                    List&lt;String&gt; regionStrs = Arrays.stream(regions)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                            .map(Regions::getName)</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                            .collect(Collectors.toList());</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                    suggestionBuilder</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                            .node(S3_CONFIG_PROP)</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                            .over(VALUE_PROP)</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                            .over(S3_REGION_PROP)</b>
+<i class="no-highlight">161</i>&nbsp;                            .suggestions(regionStrs.toArray(new String[regionStrs.size()]));
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                })</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                .build();</b>
+<i class="no-highlight">164</i>&nbsp;        SnapProperty s3Credentials = propertyBuilder.describe(S3_CREDENTIALS_PROP,
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                S3_CREDENTIALS_LABEL, S3_CREDENTIALS_DESC)</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                .withAllowedValues(S3_CREDENTIALS_SOURCES)</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;                .defaultValue(USE_SQS_CREDENTIALS)</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                .build();</b>
+<i class="no-highlight">170</i>&nbsp;        SnapProperty s3AccessKeyID = propertyBuilder.describe(S3_ACCESS_KEY_ID_PROP,
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                S3_ACCESS_KEY_ID_LABEL, S3_ACCESS_KEY_ID_DESC)</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                .enableIf(String.format(CONDITION_AND, USE_SEPARATE_CREDENTIALS, NOT_USE_EC2_ROLE))</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                .build();</b>
+<i class="no-highlight">176</i>&nbsp;        SnapProperty s3SecretKey = propertyBuilder.describe(S3_SECRET_KEY_PROP, S3_SECRET_KEY_LABEL,
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                S3_SECRET_KEY_DESC)</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                .enableIf(String.format(CONDITION_AND, USE_SEPARATE_CREDENTIALS, NOT_USE_EC2_ROLE))</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                .build();</b>
+<i class="no-highlight">182</i>&nbsp;        SnapProperty s3SecurityToken = propertyBuilder.describe(S3_SECURITY_TOKEN_PROP,
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                S3_SECURITY_TOKEN_LABEL, S3_SECURITY_TOKEN_DESC)</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                .enableIf(String.format(CONDITION_AND, USE_SEPARATE_CREDENTIALS, NOT_USE_EC2_ROLE))</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                .build();</b>
+<i class="no-highlight">188</i>&nbsp;        SnapProperty useEc2Role = propertyBuilder.describe(S3_USE_EC2_ROLE_PROP,
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                S3_USE_EC2_ROLE_LABEL, S3_USE_EC2_ROLE_DESC)</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                .enableIf(USE_SEPARATE_CREDENTIALS)</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                .build();</b>
+<i class="no-highlight">193</i>&nbsp;        SnapProperty s3AssumeRoleArn = propertyBuilder.describe(S3_ASSUME_ROLE_ARN_PROP,
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                S3_ASSUME_ROLE_ARN_LABEL, S3_ASSUME_ROLE_ARN_DESC)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                .enableIf(USE_SEPARATE_CREDENTIALS)</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                .build();</b>
+<i class="no-highlight">198</i>&nbsp;        SnapProperty s3AssumeRoleExtID = propertyBuilder.describe(S3_ASSUME_ROLE_EXTERNAL_ID,
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                S3_ASSUME_ROLE_EXTERNAL_ID_LABEL, S3_ASSUME_ROLE_EXTERNAL_ID_DESC)</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                .obfuscate()</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                .enableIf(USE_SEPARATE_CREDENTIALS)</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        propertyBuilder.describe(S3_CONFIG_PROP, S3_CONFIG_LABEL, S3_CONFIG_DESC)</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                .type(SnapType.COMPOSITE)</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                .withEntry(s3Bucket)</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                .withEntry(s3Region)</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                .withEntry(s3Credentials)</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                .withEntry(s3AccessKeyID)</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                .withEntry(s3SecretKey)</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                .withEntry(s3SecurityToken)</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                .withEntry(useEc2Role)</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                .withEntry(s3AssumeRoleArn)</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                .withEntry(s3AssumeRoleExtID)</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                .enableIf(LARGE_MSG_SUPPORT_ENABLED)</b>
+<i class="no-highlight">216</i>&nbsp;                .add();
+<i class="no-highlight">217</i>&nbsp;    }
+<i class="no-highlight">218</i>&nbsp;
+<i class="no-highlight">219</i>&nbsp;    @Override
+<b class="nc"><i class="no-highlight">220</i>&nbsp;    public void configure(final PropertyValues propertyValues) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;        configureAWSAccessCredentials(propertyValues);</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        isIAMRole = Boolean.TRUE.equals(propertyValues.get(IAM_ROLE_PROP));</b>
+<i class="no-highlight">223</i>&nbsp;        arnCrossAccountIamRole = propertyValues.get(getCompositePropertyValuePath(
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                CROSS_ACCOUNT_IAM_ROLE_PROPS, ARN_CROSS_ACCOUNT_IAM_ROLE_PROP));</b>
+<i class="no-highlight">225</i>&nbsp;        externalID = propertyValues.get(getCompositePropertyValuePath(
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                CROSS_ACCOUNT_IAM_ROLE_PROPS, EXTERNAL_ID_PROP));</b>
+<i class="no-highlight">227</i>&nbsp;        supportLargeMessage = Boolean.TRUE.equals(propertyValues.get(LARGE_MESSAGE_SUPPORT_PROP));
+<b class="nc"><i class="no-highlight">228</i>&nbsp;        // Configure the S3 credentials if needed</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        if (supportLargeMessage) {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            s3Bucket = propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    getCompositePropertyValuePath(S3_CONFIG_PROP, S3_BUCKET_PROP))</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                    .eval(null);</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;            s3Region = propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                    getCompositePropertyValuePath(S3_CONFIG_PROP, S3_REGION_PROP))</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                    .eval(null);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            s3CredentialType = propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                    getCompositePropertyValuePath(S3_CONFIG_PROP, S3_CREDENTIALS_PROP))</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;                    .eval(null);</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;            if (SEPARATE_CREDENTIALS.equals(s3CredentialType)) {</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                s3UseEC2Role = Boolean.TRUE.equals(propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                        getCompositePropertyValuePath(S3_CONFIG_PROP, S3_USE_EC2_ROLE_PROP))</b>
+<b class="nc"><i class="no-highlight">242</i>&nbsp;                        .eval(null));</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                if (!s3UseEC2Role) {</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                    s3AccessKeyID = propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                            getCompositePropertyValuePath(S3_CONFIG_PROP, S3_ACCESS_KEY_ID_PROP))</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                            .eval(null);</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                    s3SecretKey = propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                            getCompositePropertyValuePath(S3_CONFIG_PROP, S3_SECRET_KEY_PROP))</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                            .eval(null);</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                    s3SecurityToken = propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                            getCompositePropertyValuePath(S3_CONFIG_PROP, S3_SECURITY_TOKEN_PROP))</b>
+<i class="no-highlight">252</i>&nbsp;                            .eval(null);
+<i class="no-highlight">253</i>&nbsp;
+<b class="nc"><i class="no-highlight">254</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                s3AssumeRoleArn = propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                        getCompositePropertyValuePath(S3_CONFIG_PROP, S3_ASSUME_ROLE_ARN_PROP))</b>
+<b class="nc"><i class="no-highlight">257</i>&nbsp;                        .eval(null);</b>
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                s3AssumeRoleExtID = propertyValues.getAsExpression(</b>
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                        getCompositePropertyValuePath(S3_CONFIG_PROP, S3_ASSUME_ROLE_EXTERNAL_ID))</b>
+<i class="no-highlight">260</i>&nbsp;                        .eval(null);
+<i class="no-highlight">261</i>&nbsp;            }
+<i class="no-highlight">262</i>&nbsp;        }
+<i class="no-highlight">263</i>&nbsp;    }
+<i class="no-highlight">264</i>&nbsp;
+<i class="no-highlight">265</i>&nbsp;    private String getCompositePropertyValuePath(String rootProp, String propertyKey) {
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        // use try-block to autoclose builder.</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;        try (JsonPathBuilder builder = new JsonPathBuilder(rootProp)) {</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;            return builder.appendValueElement()</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                    .appendCurrentElement(propertyKey)</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                    .build();</b>
+<i class="no-highlight">271</i>&nbsp;        }
+<i class="no-highlight">272</i>&nbsp;    }
+<i class="no-highlight">273</i>&nbsp;
+<b class="nc"><i class="no-highlight">274</i>&nbsp;    public boolean largeMessageSupportEnabled() {</b>
+<i class="no-highlight">275</i>&nbsp;        return supportLargeMessage;
+<i class="no-highlight">276</i>&nbsp;    }
+<i class="no-highlight">277</i>&nbsp;
+<i class="no-highlight">278</i>&nbsp;    /**
+<i class="no-highlight">279</i>&nbsp;     * Try to build the configuration for the extended SQS client. The configuration should
+<i class="no-highlight">280</i>&nbsp;     * include an S3 client and a dedicated S3 bucket. The bucket would be used to store messages
+<i class="no-highlight">281</i>&nbsp;     * that is larger than 256K
+<i class="no-highlight">282</i>&nbsp;     *
+<i class="no-highlight">283</i>&nbsp;     * @param sqsCredential The credentials for SQS access.
+<i class="no-highlight">284</i>&nbsp;     * @return The configuration for the extended SQS client
+<i class="no-highlight">285</i>&nbsp;     */
+<b class="nc"><i class="no-highlight">286</i>&nbsp;    public ExtendedClientConfiguration getExtendedClientConfiguration(AWSCredentialsProvider sqsCredential) {</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        if (!supportLargeMessage) {</b>
+<i class="no-highlight">288</i>&nbsp;            return null;
+<i class="no-highlight">289</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        AWSCredentialsProvider credentialsProvider;</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        if (StringUtils.isEmpty(s3Region)) {</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;            Region region = Regions.getCurrentRegion();</b>
+<i class="no-highlight">293</i>&nbsp;            s3Region = region == null ? Regions.DEFAULT_REGION.getName() : region.getName();
+<b class="nc"><i class="no-highlight">294</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        String apnUserAgentHeader = SQSUtils.getApnUserAgentHeader();</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;        if (USE_SQS_CREDENTIALS.equals(s3CredentialType)) {</b>
+<i class="no-highlight">297</i>&nbsp;            credentialsProvider = sqsCredential;
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;            if (s3UseEC2Role) {</b>
+<i class="no-highlight">300</i>&nbsp;                credentialsProvider = new InstanceProfileCredentialsProvider(false);
+<b class="nc"><i class="no-highlight">301</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                if (StringUtils.isBlank(s3AccessKeyID) || StringUtils.isBlank(s3SecretKey)) {</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                    throw new ConfigurationException(ERROR_ACCOUNT_CREDENTIALS_MISSING)</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                            .withReason(REASON_ACCOUNT_CREDENTIALS_MISSING)</b>
+<i class="no-highlight">305</i>&nbsp;                            .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<i class="no-highlight">306</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                AWSCredentials credentials =</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                        StringUtils.isEmpty(s3SecurityToken) ?</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                                new BasicAWSCredentials(s3AccessKeyID, s3SecretKey) :</b>
+<i class="no-highlight">310</i>&nbsp;                                new BasicSessionCredentials(s3AccessKeyID, s3SecretKey,
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                                        s3SecurityToken);</b>
+<i class="no-highlight">312</i>&nbsp;                credentialsProvider =
+<i class="no-highlight">313</i>&nbsp;                        new AWSStaticCredentialsProvider(credentials);
+<b class="nc"><i class="no-highlight">314</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;            if (StringUtils.isNotEmpty(s3AssumeRoleArn)) {</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                ClientConfiguration configuration = new ClientConfiguration();</b>
+<i class="no-highlight">317</i>&nbsp;                configuration.setUserAgentPrefix(apnUserAgentHeader);
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                AWSSecurityTokenService sts = AWSSecurityTokenServiceClientBuilder</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                        .standard()</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                        .withRegion(s3Region)</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                        .withCredentials(credentialsProvider)</b>
+<b class="nc"><i class="no-highlight">322</i>&nbsp;                        .withClientConfiguration(configuration)</b>
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">324</i>&nbsp;                String sessionName = String.format(ASSUME_ROLE_SESSION_NAME_FMT, this.hashCode(),</b>
+<b class="nc"><i class="no-highlight">325</i>&nbsp;                        System.nanoTime());</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;                AssumeRoleRequest request = new AssumeRoleRequest()</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;                        .withRoleArn(s3AssumeRoleArn)</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;                        .withRoleSessionName(sessionName);</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;                if (StringUtils.isNotEmpty(s3AssumeRoleExtID)) {</b>
+<i class="no-highlight">330</i>&nbsp;                    request.setExternalId(s3AssumeRoleExtID);
+<b class="nc"><i class="no-highlight">331</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">332</i>&nbsp;                AssumeRoleResult result = sts.assumeRole(request);</b>
+<b class="nc"><i class="no-highlight">333</i>&nbsp;                credentialsProvider = new AWSStaticCredentialsProvider(</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                        new BasicSessionCredentials(result.getCredentials().getAccessKeyId(),</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                                result.getCredentials().getSecretAccessKey(),</b>
+<i class="no-highlight">336</i>&nbsp;                                result.getCredentials().getSessionToken()));
+<i class="no-highlight">337</i>&nbsp;            }
+<i class="no-highlight">338</i>&nbsp;        }
+<i class="no-highlight">339</i>&nbsp;        // Wrap the client up with the aws sqs extended library.
+<i class="no-highlight">340</i>&nbsp;        // The new client can handle large payload up to 2GB,
+<b class="nc"><i class="no-highlight">341</i>&nbsp;        // but it lost the asynchronous interfaces</b>
+<b class="nc"><i class="no-highlight">342</i>&nbsp;        ClientConfiguration s3Config = new ClientConfiguration();</b>
+<i class="no-highlight">343</i>&nbsp;        s3Config.setUserAgentPrefix(apnUserAgentHeader);
+<b class="nc"><i class="no-highlight">344</i>&nbsp;        AmazonS3 s3Client =</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                AmazonS3ClientBuilder.standard()</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;                        .withCredentials(credentialsProvider)</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;                        .withRegion(s3Region)</b>
+<b class="nc"><i class="no-highlight">348</i>&nbsp;                        .withClientConfiguration(s3Config)</b>
+<b class="nc"><i class="no-highlight">349</i>&nbsp;                        .build();</b>
+<b class="nc"><i class="no-highlight">350</i>&nbsp;        return new ExtendedClientConfiguration()</b>
+<i class="no-highlight">351</i>&nbsp;                .withPayloadSupportEnabled(s3Client, s3Bucket);
+<i class="no-highlight">352</i>&nbsp;    }
+<i class="no-highlight">353</i>&nbsp;
+<i class="no-highlight">354</i>&nbsp;    @Override
+<i class="no-highlight">355</i>&nbsp;    public AWSCredentialsProvider connect() throws ExecutionException {
+<b class="nc"><i class="no-highlight">356</i>&nbsp;        AWSCredentialsProvider awsCredentialsProvider;</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;        String accessKeyId = accessKeyIdExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;        String secretKey = secretKeyExpr.eval(null);</b>
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        securityToken = securityTokenExpr.eval(null);</b>
+<i class="no-highlight">360</i>&nbsp;        if (isIAMRole) {
+<i class="no-highlight">361</i>&nbsp;            //  From: http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/java-dg-roles.html
+<i class="no-highlight">362</i>&nbsp;            //  the IAM Role specific provider is InstanceProfileCredentialProvider, which would
+<b class="nc"><i class="no-highlight">363</i>&nbsp;            //  get credentials from the EC2 instance</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            awsCredentialsProvider = new InstanceProfileCredentialsProvider(false);</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        } else if (StringUtils.isNotEmpty(securityToken)) {</b>
+<i class="no-highlight">366</i>&nbsp;            AWSCredentials credentials = new BasicSessionCredentials(accessKeyId, secretKey,
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                    securityToken);</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;            awsCredentialsProvider = new AWSStaticCredentialsProvider(credentials);</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">370</i>&nbsp;            if (StringUtils.isBlank(accessKeyId) || StringUtils.isBlank(secretKey)) {</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                throw new ConfigurationException(ERROR_ACCOUNT_CREDENTIALS_MISSING)</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                        .withReason(REASON_ACCOUNT_CREDENTIALS_MISSING)</b>
+<i class="no-highlight">373</i>&nbsp;                        .withResolution(RESOLUTION_ADDRESS_ISSUE);
+<b class="nc"><i class="no-highlight">374</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;            AWSCredentials credentials = new BasicAWSCredentials(accessKeyId, secretKey);</b>
+<i class="no-highlight">376</i>&nbsp;            awsCredentialsProvider = new AWSStaticCredentialsProvider(credentials);
+<b class="nc"><i class="no-highlight">377</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        if (StringUtils.isNotBlank(arnCrossAccountIamRole)) {</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;            Region defaultRegion = Regions.getCurrentRegion();</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;            if (StringUtils.isBlank(region)) {</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                region = defaultRegion == null ?</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                        Regions.DEFAULT_REGION.getName() :</b>
+<i class="no-highlight">383</i>&nbsp;                        defaultRegion.getName();
+<b class="nc"><i class="no-highlight">384</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">385</i>&nbsp;            ClientConfiguration config = new ClientConfiguration();</b>
+<i class="no-highlight">386</i>&nbsp;            config.setUserAgentPrefix(SQSUtils.getApnUserAgentHeader());
+<i class="no-highlight">387</i>&nbsp;            AWSSecurityTokenService sts =
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                    AWSSecurityTokenServiceClientBuilder</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                            .standard()</b>
+<b class="nc"><i class="no-highlight">390</i>&nbsp;                            .withRegion(region)</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;                            .withCredentials(awsCredentialsProvider)</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                            .withClientConfiguration(config)</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;                            .build();</b>
+<b class="nc"><i class="no-highlight">394</i>&nbsp;            String sessionName = String.format(ASSUME_ROLE_SESSION_NAME_FMT, this.hashCode(),</b>
+<b class="nc"><i class="no-highlight">395</i>&nbsp;                    System.nanoTime());</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;            AssumeRoleRequest assumeRequest = new AssumeRoleRequest()</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                    .withRoleArn(arnCrossAccountIamRole)</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                    .withRoleSessionName(sessionName);</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;            if (StringUtils.isNotEmpty(externalID)) {</b>
+<i class="no-highlight">400</i>&nbsp;                assumeRequest = assumeRequest.withExternalId(externalID);
+<b class="nc"><i class="no-highlight">401</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;            AssumeRoleResult assumeRoleResult = sts.assumeRole(assumeRequest);</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;            Credentials credentials = assumeRoleResult.getCredentials();</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;            return new AWSStaticCredentialsProvider(new BasicSessionCredentials(</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                    credentials.getAccessKeyId(), credentials.getSecretAccessKey(),</b>
+<i class="no-highlight">406</i>&nbsp;                    credentials.getSessionToken()));
+<b class="nc"><i class="no-highlight">407</i>&nbsp;        } else {</b>
+<i class="no-highlight">408</i>&nbsp;            return awsCredentialsProvider;
+<i class="no-highlight">409</i>&nbsp;        }
+<i class="no-highlight">410</i>&nbsp;    }
+<i class="no-highlight">411</i>&nbsp;
+<i class="no-highlight">412</i>&nbsp;    /**
+<i class="no-highlight">413</i>&nbsp;     * checking if the security token is blank or not
+<i class="no-highlight">414</i>&nbsp;     */
+<i class="no-highlight">415</i>&nbsp;    public boolean usesSecurityToken() {
+<i class="no-highlight">416</i>&nbsp;        return StringUtils.isNotBlank(securityToken);
+<i class="no-highlight">417</i>&nbsp;    }
+<i class="no-highlight">418</i>&nbsp;
+<i class="no-highlight">419</i>&nbsp;    @Override
+<i class="no-highlight">420</i>&nbsp;    public void disconnect() throws ExecutionException {
+<i class="no-highlight">421</i>&nbsp;        // no-op
+<i class="no-highlight">422</i>&nbsp;    }
+<i class="no-highlight">423</i>&nbsp;
+<i class="no-highlight">424</i>&nbsp;    protected abstract void defineAWSAccessCredentials(final PropertyBuilder propertyBuilder);
+<i class="no-highlight">425</i>&nbsp;
+<b class="nc"><i class="no-highlight">426</i>&nbsp;    protected abstract void configureAWSAccessCredentials(final PropertyValues propertyValues);</b>
+<i class="no-highlight">427</i>&nbsp;
+<i class="no-highlight">428</i>&nbsp;    /**
+<i class="no-highlight">429</i>&nbsp;     * Setter for {@param region}
+<i class="no-highlight">430</i>&nbsp;     *
+<i class="no-highlight">431</i>&nbsp;     * @param region
+<i class="no-highlight">432</i>&nbsp;     */
+<i class="no-highlight">433</i>&nbsp;    public void setRegion(String region) {
+<i class="no-highlight">434</i>&nbsp;        this.region = region;
+<i class="no-highlight">435</i>&nbsp;    }
+<i class="no-highlight">436</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

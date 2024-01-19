@@ -1,0 +1,552 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > WorksheetReader</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.google.spreadsheet</a>
+</div>
+
+<h1>Coverage Summary for Class: WorksheetReader (com.snaplogic.snaps.google.spreadsheet)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">WorksheetReader</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/17)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/220)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.google.spreadsheet;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+<i class="no-highlight">14</i>&nbsp;import com.google.api.services.drive.Drive;
+<i class="no-highlight">15</i>&nbsp;import com.google.api.services.sheets.v4.Sheets;
+<i class="no-highlight">16</i>&nbsp;import com.google.api.services.sheets.v4.model.CellData;
+<i class="no-highlight">17</i>&nbsp;import com.google.api.services.sheets.v4.model.GridData;
+<i class="no-highlight">18</i>&nbsp;import com.google.api.services.sheets.v4.model.GridProperties;
+<i class="no-highlight">19</i>&nbsp;import com.google.api.services.sheets.v4.model.RowData;
+<i class="no-highlight">20</i>&nbsp;import com.google.api.services.sheets.v4.model.Sheet;
+<i class="no-highlight">21</i>&nbsp;import com.google.api.services.sheets.v4.model.SheetProperties;
+<i class="no-highlight">22</i>&nbsp;import com.google.api.services.sheets.v4.model.ValueRange;
+<i class="no-highlight">23</i>&nbsp;import com.google.common.collect.Lists;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.SuggestViewAbortException;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">38</i>&nbsp;import com.snaplogic.snap.schema.api.Schema;
+<i class="no-highlight">39</i>&nbsp;import com.snaplogic.snap.schema.api.SchemaProvider;
+<i class="no-highlight">40</i>&nbsp;
+<i class="no-highlight">41</i>&nbsp;import org.apache.commons.collections.CollectionUtils;
+<i class="no-highlight">42</i>&nbsp;import org.apache.commons.collections.MapUtils;
+<i class="no-highlight">43</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">44</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">45</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">46</i>&nbsp;
+<i class="no-highlight">47</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">48</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">49</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">50</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">51</i>&nbsp;import java.util.List;
+<i class="no-highlight">52</i>&nbsp;import java.util.ListIterator;
+<i class="no-highlight">53</i>&nbsp;import java.util.Map;
+<i class="no-highlight">54</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;import net.jodah.failsafe.Failsafe;
+<i class="no-highlight">57</i>&nbsp;import net.jodah.failsafe.FailsafeException;
+<i class="no-highlight">58</i>&nbsp;import net.jodah.failsafe.RetryPolicy;
+<i class="no-highlight">59</i>&nbsp;import net.sf.json.JSONArray;
+<i class="no-highlight">60</i>&nbsp;
+<i class="no-highlight">61</i>&nbsp;import static com.snaplogic.snap.Utils.sleepNoInterrupt;
+<i class="no-highlight">62</i>&nbsp;import static com.snaplogic.snaps.google.spreadsheet.Constants.VERSION_4;
+<i class="no-highlight">63</i>&nbsp;import static com.snaplogic.snaps.google.spreadsheet.Messages.*;
+<i class="no-highlight">64</i>&nbsp;
+<i class="no-highlight">65</i>&nbsp;/**
+<i class="no-highlight">66</i>&nbsp; * Snap to read a worksheet in a spreadsheet.
+<i class="no-highlight">67</i>&nbsp; *
+<i class="no-highlight">68</i>&nbsp; * @author smudassir
+<i class="no-highlight">69</i>&nbsp; */
+<i class="no-highlight">70</i>&nbsp;@Inputs(min = 0, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">71</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">72</i>&nbsp;@General(title = READER_TITLE, purpose = READER_DESC)
+<i class="no-highlight">73</i>&nbsp;@Version(snap = 1)
+<i class="no-highlight">74</i>&nbsp;@Category(snap = SnapCategory.READ)
+<b class="nc"><i class="no-highlight">75</i>&nbsp;public class WorksheetReader extends SpreadsheetsBase {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(WorksheetReader.class);</b>
+<i class="no-highlight">77</i>&nbsp;    private static final String PRESERVE_DATA_TYPES_PROP = &quot;preserveDataTypes&quot;;
+<i class="no-highlight">78</i>&nbsp;    private static final String DISPLAY_EMPTY_ROWS_PROP = &quot;displayEmptyRows&quot;;
+<i class="no-highlight">79</i>&nbsp;    private static final String WORKSHEET_BATCH_GET_RANGE_FORMAT = &quot;%s!%s%d:%s%d&quot;;
+<i class="no-highlight">80</i>&nbsp;    private static final String VALUE_RENDER_OPTION = &quot;FORMATTED_VALUE&quot;;
+<i class="no-highlight">81</i>&nbsp;    private static final String FIRST_COLUMN = &quot;A&quot;;
+<i class="no-highlight">82</i>&nbsp;    private static final String LAST_COLUMN = &quot;ZZZ&quot;;
+<i class="no-highlight">83</i>&nbsp;    private static final int READ_BATCH_SIZE = 20000; //20K rows
+<i class="no-highlight">84</i>&nbsp;
+<i class="no-highlight">85</i>&nbsp;    private boolean preserveDataTypes;
+<i class="no-highlight">86</i>&nbsp;    private boolean displayEmptyRows;
+<i class="no-highlight">87</i>&nbsp;
+<i class="no-highlight">88</i>&nbsp;    @Override
+<i class="no-highlight">89</i>&nbsp;    void defineAdditionalProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        propertyBuilder.describe(PRESERVE_DATA_TYPES_PROP, PRESERVE_DATA_TYPES_LBL,</b>
+<i class="no-highlight">91</i>&nbsp;                PRESERVE_DATA_TYPES_DESC)
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        propertyBuilder.describe(DISPLAY_EMPTY_ROWS_PROP, DISPLAY_EMPTY_ROWS_LBL,</b>
+<i class="no-highlight">95</i>&nbsp;                        DISPLAY_EMPTY_ROWS_DESC)
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                .add();</b>
+<i class="no-highlight">98</i>&nbsp;    }
+<i class="no-highlight">99</i>&nbsp;
+<i class="no-highlight">100</i>&nbsp;    @Override
+<i class="no-highlight">101</i>&nbsp;    public void configureAdditional(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        headerExists = Boolean.TRUE.equals(propertyValues.get(KEY_HEADER_EXISTS));</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;        ((SheetsApiAccount) googleAccount).setSheetsAPIversion(VERSION_4);</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;        preserveDataTypes = Boolean.TRUE.equals(propertyValues.get(PRESERVE_DATA_TYPES_PROP));</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        displayEmptyRows = propertyValues.getBoolean(DISPLAY_EMPTY_ROWS_PROP, false);</b>
+<i class="no-highlight">106</i>&nbsp;    }
+<i class="no-highlight">107</i>&nbsp;
+<i class="no-highlight">108</i>&nbsp;    @Override
+<i class="no-highlight">109</i>&nbsp;    protected void processAdditional(Document document, String inputViewName) {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        if (evalSheetNames(document)) {</b>
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            errorViews.write((SnapDataException) new SnapDataException(ERR_SHEET_NAMES)</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                    .withReason(REASON_SHEET_NAMES)</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE), document);</b>
+<i class="no-highlight">114</i>&nbsp;            return;
+<i class="no-highlight">115</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">116</i>&nbsp;        googleDrive = googleAccount.connect().getGoogleDrive();</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        if (preserveDataTypes) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            processDataWithGridInfo(document);</b>
+<i class="no-highlight">119</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            processDataNoGridInfo(document);</b>
+<i class="no-highlight">121</i>&nbsp;        }
+<i class="no-highlight">122</i>&nbsp;    }
+<i class="no-highlight">123</i>&nbsp;
+<i class="no-highlight">124</i>&nbsp;    /**
+<i class="no-highlight">125</i>&nbsp;     * Process the worksheet data along with the grid data to preserve data types
+<i class="no-highlight">126</i>&nbsp;     * and write to output view
+<i class="no-highlight">127</i>&nbsp;     * @param document
+<i class="no-highlight">128</i>&nbsp;     */
+<i class="no-highlight">129</i>&nbsp;    private void processDataWithGridInfo(Document document) {
+<i class="no-highlight">130</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">131</i>&nbsp;            spreadsheetId = getSpreadsheetId(googleDrive, spreadsheetNameOrId);</b>
+<i class="no-highlight">132</i>&nbsp;            List&lt;GridData&gt; values;
+<i class="no-highlight">133</i>&nbsp;            try {
+<i class="no-highlight">134</i>&nbsp;                @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                RetryPolicy retryPolicy = new RetryPolicy()</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                        .withMaxRetries(numOfRetries)</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                        .withDelay(retryInterval, TimeUnit.SECONDS)</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                        .abortOn(SuggestViewAbortException.class, SnapDataException.class);</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                values = Failsafe.with(retryPolicy)</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                        .onFailedAttempt(failure -&gt; LOG.warn(&quot;Failed to read worksheet: {} in &quot; +</b>
+<i class="no-highlight">141</i>&nbsp;                                        &quot;spreadsheet: {}, {}&quot;, worksheetName, spreadsheetNameOrId,
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                                failure.getMessage()))</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                        .get(context -&gt; {</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                            logRetryAttempt(context, LOG);</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                            return readWorksheet(spreadsheetId, worksheetName);</b>
+<i class="no-highlight">146</i>&nbsp;                        });
+<b class="nc"><i class="no-highlight">147</i>&nbsp;            } catch (SnapDataException sde){</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                throw sde;</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            } catch (Throwable t) {</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                Throwable t2 = t instanceof FailsafeException ? t.getCause() : t;</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                throw getErrorReadWorksheet(t2, worksheetName, t2.getMessage());</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;            if (CollectionUtils.isEmpty(values)) {</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                outputViews.write(documentUtility.newDocumentFor(document, new JSONArray()));</b>
+<i class="no-highlight">155</i>&nbsp;                return;
+<i class="no-highlight">156</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            List&lt;RowData&gt; allRows = values.get(0).getRowData();</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            int dataRowIndex = 0;</b>
+<i class="no-highlight">159</i>&nbsp;            // initialize header
+<b class="nc"><i class="no-highlight">160</i>&nbsp;            int maxColumns = 0;</b>
+<i class="no-highlight">161</i>&nbsp;            List&lt;String&gt; header;
+<i class="no-highlight">162</i>&nbsp;            // Get the max row size
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            for (RowData row : allRows){</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                if (!MapUtils.isEmpty(row)) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                    maxColumns = Math.max(maxColumns, row.getValues().size());</b>
+<i class="no-highlight">166</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">167</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            if (headerExists) {</b>
+<i class="no-highlight">169</i>&nbsp;                // first row is header so the data starts at index 1
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                dataRowIndex = 1;</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                RowData headerRow = allRows.get(0);</b>
+<i class="no-highlight">172</i>&nbsp;                /* HeaderRow size could be &lt; maxColumns in case the
+<i class="no-highlight">173</i>&nbsp;                 * last column header is null
+<i class="no-highlight">174</i>&nbsp;                 */
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                if (MapUtils.isEmpty(headerRow) || headerRow.getValues().size() &lt; maxColumns) {</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;                    throw new SnapDataException(ERR_HEADER_COLUMN_EMPTY_MSG)</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                            .withReason(ERR_HEADER_COLUMN_EMPTY_REASON)</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                            .withResolution(ERR_HEADER_COLUMN_EMPTY_RESOLUTION);</b>
+<i class="no-highlight">179</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                List&lt;CellData&gt; headerColumns = headerRow.getValues();</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                header = new ArrayList&lt;&gt;(headerColumns.size());</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                for (CellData headerColumn : headerColumns) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;                    String headerName = headerColumn.getFormattedValue();</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                    if (StringUtils.isBlank(headerName)) {</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                        throw new SnapDataException(ERR_HEADER_COLUMN_EMPTY_MSG)</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                                .withReason(ERR_HEADER_COLUMN_EMPTY_REASON)</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                                .withResolution(ERR_HEADER_COLUMN_EMPTY_RESOLUTION);</b>
+<i class="no-highlight">188</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                    if (header.contains(headerName)) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                        throw new SnapDataException(ERR_HEADER_COLUMN_REPEATED_MSG)</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                                .withReason(String.format(ERR_HEADER_COLUMN_REPEATED_REASON,</b>
+<i class="no-highlight">192</i>&nbsp;                                        headerName))
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                                .withResolution(ERR_HEADER_COLUMN_REPEATED_RESOLUTION);</b>
+<i class="no-highlight">194</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                    header.add(headerName);</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                if (CollectionUtils.isEmpty(header)) {</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                    throw new SnapDataException(ERR_WORKSHEET_HEADER_NOT_FOUND)</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                            .formatWith(worksheetName)</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                            .withReason(REASON_EMPTY_WORKSHEET)</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                            .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">202</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">203</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                header = new ArrayList&lt;&gt;(maxColumns);</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                for (int i = 1; i &lt;= maxColumns; i++) {</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                    header.add(String.format(FIELD, i));</b>
+<i class="no-highlight">207</i>&nbsp;                }
+<i class="no-highlight">208</i>&nbsp;            }
+<i class="no-highlight">209</i>&nbsp;            // parse worksheet data
+<b class="nc"><i class="no-highlight">210</i>&nbsp;            int dataRowCount = allRows.size();</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;            while (dataRowIndex &lt; dataRowCount) {</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                Map&lt;Object, Object&gt; record = getRecord(allRows.get(dataRowIndex++).getValues(),</b>
+<i class="no-highlight">213</i>&nbsp;                        header);
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                if (displayEmptyRows || !isEmptyRow(record)) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                    outputViews.write(documentUtility.newDocumentFor(document, record));</b>
+<i class="no-highlight">216</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            errorViews.write(getErrorReadWorksheet(e, worksheetName, e.getMessage()), document);</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        }</b>
+<i class="no-highlight">225</i>&nbsp;    }
+<i class="no-highlight">226</i>&nbsp;
+<i class="no-highlight">227</i>&nbsp;    /**
+<i class="no-highlight">228</i>&nbsp;     * Process the worksheet data without data type information
+<i class="no-highlight">229</i>&nbsp;     * and write to output view. All cell values are returned as formatted
+<i class="no-highlight">230</i>&nbsp;     * in the spreadsheet.
+<i class="no-highlight">231</i>&nbsp;     * @param document
+<i class="no-highlight">232</i>&nbsp;     */
+<i class="no-highlight">233</i>&nbsp;    private void processDataNoGridInfo(Document document) {
+<i class="no-highlight">234</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">235</i>&nbsp;            spreadsheetId = getSpreadsheetId(googleDrive, spreadsheetNameOrId);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;            List&lt;ValueRange&gt; valueRangesList =</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                    readWorksheetNoGridInfo(spreadsheetId, worksheetName);</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;            if (CollectionUtils.isEmpty(valueRangesList)) {</b>
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                outputViews.write(documentUtility.newDocumentFor(document, new JSONArray()));</b>
+<i class="no-highlight">240</i>&nbsp;                return;
+<i class="no-highlight">241</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">242</i>&nbsp;            List&lt;String&gt; header = null;</b>
+<b class="nc"><i class="no-highlight">243</i>&nbsp;            int maxColumns = 0;</b>
+<i class="no-highlight">244</i>&nbsp;            // Iterate through rows in all value-ranges to find the row with max columns
+<i class="no-highlight">245</i>&nbsp;            // to set/validate the header
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            for (ValueRange valueRange : valueRangesList) {</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                List&lt;List&lt;Object&gt;&gt; valuesInRange = valueRange.getValues();</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;                if (CollectionUtils.isNotEmpty(valuesInRange)) {</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                    for (List&lt;Object&gt; values : valuesInRange) {</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                        if (CollectionUtils.isNotEmpty(values)) {</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;                            maxColumns = Math.max(maxColumns, values.size());</b>
+<i class="no-highlight">252</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                    }</b>
+<i class="no-highlight">254</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">255</i>&nbsp;            }</b>
+<i class="no-highlight">256</i>&nbsp;
+<b class="nc"><i class="no-highlight">257</i>&nbsp;            if (headerExists) {</b>
+<i class="no-highlight">258</i>&nbsp;                // first row is header
+<b class="nc"><i class="no-highlight">259</i>&nbsp;                List&lt;Object&gt; headerRow = valueRangesList.get(0).getValues().get(0);</b>
+<i class="no-highlight">260</i>&nbsp;                /* HeaderRow size could be &lt; maxColumns in case the
+<i class="no-highlight">261</i>&nbsp;                 * last column header is null. Throw error in such case.
+<i class="no-highlight">262</i>&nbsp;                 */
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                if (CollectionUtils.isEmpty(headerRow) || headerRow.size() &lt; maxColumns) {</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                    throw new SnapDataException(ERR_HEADER_COLUMN_EMPTY_MSG)</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;                            .withReason(ERR_HEADER_COLUMN_EMPTY_REASON)</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                            .withResolution(ERR_HEADER_COLUMN_EMPTY_RESOLUTION);</b>
+<i class="no-highlight">267</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                header = new ArrayList&lt;&gt;(headerRow.size());</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                for (Object headerColumn : headerRow) {</b>
+<b class="nc"><i class="no-highlight">270</i>&nbsp;                    String headerName = headerColumn.toString();</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                    if (StringUtils.isBlank(headerName)) {</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;                        throw new SnapDataException(ERR_HEADER_COLUMN_EMPTY_MSG)</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                                .withReason(ERR_HEADER_COLUMN_EMPTY_REASON)</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                                .withResolution(ERR_HEADER_COLUMN_EMPTY_RESOLUTION);</b>
+<i class="no-highlight">275</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                    if (header.contains(headerName)) {</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                        throw new SnapDataException(ERR_HEADER_COLUMN_REPEATED_MSG)</b>
+<b class="nc"><i class="no-highlight">278</i>&nbsp;                                .withReason(String.format(ERR_HEADER_COLUMN_REPEATED_REASON,</b>
+<i class="no-highlight">279</i>&nbsp;                                        headerName))
+<b class="nc"><i class="no-highlight">280</i>&nbsp;                                .withResolution(ERR_HEADER_COLUMN_REPEATED_RESOLUTION);</b>
+<i class="no-highlight">281</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">282</i>&nbsp;                    header.add(headerName);</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                if (CollectionUtils.isEmpty(header)) {</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;                    throw new SnapDataException(ERR_WORKSHEET_HEADER_NOT_FOUND)</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                            .formatWith(worksheetName)</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                            .withReason(REASON_EMPTY_WORKSHEET)</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                            .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">289</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">290</i>&nbsp;            } else {</b>
+<b class="nc"><i class="no-highlight">291</i>&nbsp;                header = new ArrayList&lt;&gt;(maxColumns);</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                for (int i = 1; i &lt;= maxColumns; i++) {</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;                    header.add(String.format(FIELD, i));</b>
+<i class="no-highlight">294</i>&nbsp;                }
+<i class="no-highlight">295</i>&nbsp;            }
+<i class="no-highlight">296</i>&nbsp;
+<i class="no-highlight">297</i>&nbsp;            // parse worksheet data
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            for (int listItr = 0; listItr &lt; valueRangesList.size(); listItr++) {</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                List&lt;List&lt;Object&gt;&gt; valuesInRange = valueRangesList.get(listItr).getValues();</b>
+<i class="no-highlight">300</i>&nbsp;                // valuesInRange is null if an entire batch is empty. Skip all empty rows
+<b class="nc"><i class="no-highlight">301</i>&nbsp;                if (valuesInRange == null) {</b>
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                    continue;</b>
+<i class="no-highlight">303</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">304</i>&nbsp;                ListIterator&lt;List&lt;Object&gt;&gt; rowIterator = valuesInRange.listIterator();</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                if (headerExists &amp;&amp; listItr == 0) {</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                    rowIterator.next();</b>
+<i class="no-highlight">307</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                while (rowIterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">309</i>&nbsp;                    List&lt;Object&gt; row = rowIterator.next();</b>
+<b class="nc"><i class="no-highlight">310</i>&nbsp;                    Map&lt;Object, Object&gt; record = new LinkedHashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                    Iterator&lt;Object&gt; cellIterator = row.iterator();</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                    for (Object key : header) {</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                        Object value = cellIterator.hasNext() ?</b>
+<b class="nc"><i class="no-highlight">314</i>&nbsp;                                cellIterator.next() : StringUtils.EMPTY;</b>
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                        if (!(value instanceof String)) {</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;                            value = String.valueOf(value);</b>
+<i class="no-highlight">317</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                        record.put(key, value);</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">320</i>&nbsp;                    if (displayEmptyRows || !isEmptyRow(record)) {</b>
+<b class="nc"><i class="no-highlight">321</i>&nbsp;                        outputViews.write(documentUtility.newDocumentFor(document, record));</b>
+<i class="no-highlight">322</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">323</i>&nbsp;                }</b>
+<i class="no-highlight">324</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">325</i>&nbsp;        } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">326</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">327</i>&nbsp;        } catch (SuggestViewAbortException e) {</b>
+<b class="nc"><i class="no-highlight">328</i>&nbsp;            throw e;</b>
+<b class="nc"><i class="no-highlight">329</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">330</i>&nbsp;            errorViews.write(getErrorReadWorksheet(e, worksheetName, e.getMessage()), document);</b>
+<b class="nc"><i class="no-highlight">331</i>&nbsp;        }</b>
+<i class="no-highlight">332</i>&nbsp;    }
+<i class="no-highlight">333</i>&nbsp;
+<i class="no-highlight">334</i>&nbsp;    @Override
+<i class="no-highlight">335</i>&nbsp;    public void defineInputSchemaAdditional(SchemaProvider schemaProvider, List&lt;Schema&gt; schemas) {
+<b class="nc"><i class="no-highlight">336</i>&nbsp;        schemas.add(schemaProvider.createSchema(SnapType.STRING,</b>
+<i class="no-highlight">337</i>&nbsp;                READER_IN_VIEW_FIELD_SPREADSHEET));
+<b class="nc"><i class="no-highlight">338</i>&nbsp;        schemas.add(schemaProvider.createSchema(SnapType.STRING, READER_IN_VIEW_FIELD_WORKSHEET));</b>
+<i class="no-highlight">339</i>&nbsp;    }
+<i class="no-highlight">340</i>&nbsp;
+<i class="no-highlight">341</i>&nbsp;    @Override
+<i class="no-highlight">342</i>&nbsp;    public boolean isReadHeaderPropertyRequired() {
+<b class="nc"><i class="no-highlight">343</i>&nbsp;        return true;</b>
+<i class="no-highlight">344</i>&nbsp;    }
+<i class="no-highlight">345</i>&nbsp;
+<i class="no-highlight">346</i>&nbsp;    @Override
+<i class="no-highlight">347</i>&nbsp;    public String getDescription() {
+<b class="nc"><i class="no-highlight">348</i>&nbsp;        return READ;</b>
+<i class="no-highlight">349</i>&nbsp;    }
+<i class="no-highlight">350</i>&nbsp;
+<i class="no-highlight">351</i>&nbsp;    /**
+<i class="no-highlight">352</i>&nbsp;     * Read worksheet data in batches specified by ranges, with no additional
+<i class="no-highlight">353</i>&nbsp;     * cell metadata. All data returned are as formatted in the spreadsheet.
+<i class="no-highlight">354</i>&nbsp;     * @param spreadsheetId
+<i class="no-highlight">355</i>&nbsp;     * @param worksheetName
+<i class="no-highlight">356</i>&nbsp;     * @return list of values in ranges of size = READ_BATCH_SIZE
+<i class="no-highlight">357</i>&nbsp;     */
+<i class="no-highlight">358</i>&nbsp;    protected List&lt;ValueRange&gt; readWorksheetNoGridInfo(String spreadsheetId, String worksheetName) {
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        GridProperties gp = getSheetGridProperties(spreadsheetId, worksheetName);</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;        if (gp == null) {</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;            throw new SnapDataException(ERR_READ_WORKSHEET)</b>
+<b class="nc"><i class="no-highlight">362</i>&nbsp;                    .formatWith(worksheetName, spreadsheetNameOrId)</b>
+<b class="nc"><i class="no-highlight">363</i>&nbsp;                    .withReason(ERROR_FETCHING_WORKSHEET_ROW_COL_INFO)</b>
+<b class="nc"><i class="no-highlight">364</i>&nbsp;                    .withResolution(RESOLUTION_VERIFY_WORKSHEET_EXISTS);</b>
+<i class="no-highlight">365</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">366</i>&nbsp;        int rowCount = gp.getRowCount();</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        List&lt;String&gt; ranges = Lists.newArrayList();</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;        int startRow = 1;</b>
+<i class="no-highlight">369</i>&nbsp;        // Set up ranges to be read
+<b class="nc"><i class="no-highlight">370</i>&nbsp;        while (startRow &lt;= rowCount) {</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;            String range = String.format(WORKSHEET_BATCH_GET_RANGE_FORMAT, worksheetName,</b>
+<b class="nc"><i class="no-highlight">372</i>&nbsp;                    FIRST_COLUMN, startRow, LAST_COLUMN, startRow + READ_BATCH_SIZE - 1);</b>
+<b class="nc"><i class="no-highlight">373</i>&nbsp;            ranges.add(range);</b>
+<b class="nc"><i class="no-highlight">374</i>&nbsp;            startRow = startRow + READ_BATCH_SIZE;</b>
+<b class="nc"><i class="no-highlight">375</i>&nbsp;        }</b>
+<i class="no-highlight">376</i>&nbsp;        try {
+<i class="no-highlight">377</i>&nbsp;            @SuppressWarnings(&quot;unchecked&quot;)
+<b class="nc"><i class="no-highlight">378</i>&nbsp;            RetryPolicy retryPolicy = new RetryPolicy()</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                    .withMaxRetries(numOfRetries)</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                    .withDelay(retryInterval, TimeUnit.SECONDS)</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                    .abortOn(SuggestViewAbortException.class, SnapDataException.class);</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;            return Failsafe.with(retryPolicy)</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                    .onFailedAttempt(failure -&gt; LOG.warn(&quot;Failed to read worksheet: {} in &quot; +</b>
+<i class="no-highlight">384</i>&nbsp;                            &quot;spreadsheet: {}, {}&quot;, worksheetName, spreadsheetNameOrId,
+<b class="nc"><i class="no-highlight">385</i>&nbsp;                            failure.getMessage()))</b>
+<b class="nc"><i class="no-highlight">386</i>&nbsp;                    .get(context -&gt; {</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;                       logRetryAttempt(context, LOG);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                       return readWorksheetNoGridInfo(spreadsheetId, ranges);</b>
+<i class="no-highlight">389</i>&nbsp;                    });
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        } catch (Throwable t) {</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            Throwable t2 = t instanceof FailsafeException ? t.getCause() : t;</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;            throw getErrorReadWorksheet(t2, worksheetName, t2.getMessage());</b>
+<i class="no-highlight">393</i>&nbsp;        }
+<i class="no-highlight">394</i>&nbsp;    }
+<i class="no-highlight">395</i>&nbsp;
+<i class="no-highlight">396</i>&nbsp;    protected List&lt;ValueRange&gt; readWorksheetNoGridInfo(String spreadsheetId, List&lt;String&gt; ranges)
+<i class="no-highlight">397</i>&nbsp;            throws IOException {
+<i class="no-highlight">398</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">399</i>&nbsp;            Sheets.Spreadsheets.Values.BatchGet batchGetRequest = sheets</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                    .spreadsheets()</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;                    .values()</b>
+<b class="nc"><i class="no-highlight">402</i>&nbsp;                    .batchGet(spreadsheetId);</b>
+<b class="nc"><i class="no-highlight">403</i>&nbsp;            batchGetRequest.setRanges(ranges);</b>
+<b class="nc"><i class="no-highlight">404</i>&nbsp;            batchGetRequest.setValueRenderOption(VALUE_RENDER_OPTION);</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;            return batchGetRequest.execute().getValueRanges();</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;        } catch (GoogleJsonResponseException e) {</b>
+<b class="nc"><i class="no-highlight">407</i>&nbsp;            String errMessage = e.getMessage();</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;            if (StringUtils.startsWithIgnoreCase(errMessage, TOO_MANY_REQUESTS)) {</b>
+<i class="no-highlight">409</i>&nbsp;                // if number of requests exceeded the hourly limit, wait longer and retry
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                sleepNoInterrupt(SLEEP_SECONDS_ERR_429, TimeUnit.SECONDS, LOG);</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;            } else if (StringUtils.containsIgnoreCase(errMessage, INVALID_RANGE)) {</b>
+<i class="no-highlight">412</i>&nbsp;                // The error &quot;Invalid range&quot; occurs if the worksheet is a chart or an image.
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                String sheetType = getSheetType(spreadsheetId, worksheetName);</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                if (sheetType != null &amp;&amp; !GRID.equalsIgnoreCase(sheetType)) {</b>
+<i class="no-highlight">415</i>&nbsp;                    // Worksheet Reader can read &#39;GRID&#39; type only
+<b class="nc"><i class="no-highlight">416</i>&nbsp;                    throw getErrorReadWorksheet(e, worksheetName, String.format(</b>
+<i class="no-highlight">417</i>&nbsp;                            REASON_UNSUPPORTED_WORKSHEET_TYPE, sheetType));
+<i class="no-highlight">418</i>&nbsp;                }
+<i class="no-highlight">419</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">420</i>&nbsp;            throw e;</b>
+<i class="no-highlight">421</i>&nbsp;        }
+<i class="no-highlight">422</i>&nbsp;    }
+<i class="no-highlight">423</i>&nbsp;
+<i class="no-highlight">424</i>&nbsp;    /**
+<i class="no-highlight">425</i>&nbsp;     * Get grid properties of the worksheet to get the row, column dimensions
+<i class="no-highlight">426</i>&nbsp;     * @param spreadsheetId
+<i class="no-highlight">427</i>&nbsp;     * @param worksheetName
+<i class="no-highlight">428</i>&nbsp;     * @return GridProperties
+<i class="no-highlight">429</i>&nbsp;     */
+<i class="no-highlight">430</i>&nbsp;    private GridProperties getSheetGridProperties(String spreadsheetId, String worksheetName) {
+<i class="no-highlight">431</i>&nbsp;        try {
+<i class="no-highlight">432</i>&nbsp;            SheetProperties properties;
+<b class="nc"><i class="no-highlight">433</i>&nbsp;            for (Sheet sheet : getWorksheets(sheets, spreadsheetId)) {</b>
+<b class="nc"><i class="no-highlight">434</i>&nbsp;                properties = sheet.getProperties();</b>
+<b class="nc"><i class="no-highlight">435</i>&nbsp;                if (properties.getTitle().equals(worksheetName)) {</b>
+<b class="nc"><i class="no-highlight">436</i>&nbsp;                    return properties.getGridProperties();</b>
+<i class="no-highlight">437</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">438</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">439</i>&nbsp;        } catch (IOException ioe) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;            throw new ExecutionException(ioe, ERR_READ_WORKSHEET)</b>
+<b class="nc"><i class="no-highlight">441</i>&nbsp;                    .formatWith(worksheetName, spreadsheetNameOrId)</b>
+<b class="nc"><i class="no-highlight">442</i>&nbsp;                    .withReason(ioe.getMessage())</b>
+<b class="nc"><i class="no-highlight">443</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">444</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">445</i>&nbsp;        return null;</b>
+<i class="no-highlight">446</i>&nbsp;    }
+<i class="no-highlight">447</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

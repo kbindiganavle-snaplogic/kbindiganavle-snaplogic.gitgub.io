@@ -1,0 +1,718 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ExternalMergeSorter</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform.sort</a>
+</div>
+
+<h1>Coverage Summary for Class: ExternalMergeSorter (com.snaplogic.snaps.transform.sort)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ExternalMergeSorter</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/178)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">ExternalMergeSorter$MemTableScanner</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/9)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">ExternalMergeSorter$PairWiseMerger</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">ExternalMergeSorter$SortFile</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/31)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/210)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2015, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.transform.sort;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.util.concurrent.ExecutionError;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.StatusMessage;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.StatusReporter;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.transform.ObjectSizeEstimator;
+<i class="no-highlight">19</i>&nbsp;
+<i class="no-highlight">20</i>&nbsp;import org.apache.commons.io.FileUtils;
+<i class="no-highlight">21</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">22</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">23</i>&nbsp;
+<i class="no-highlight">24</i>&nbsp;import java.io.File;
+<i class="no-highlight">25</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">26</i>&nbsp;import java.nio.file.Files;
+<i class="no-highlight">27</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">28</i>&nbsp;import java.util.Collections;
+<i class="no-highlight">29</i>&nbsp;import java.util.Comparator;
+<i class="no-highlight">30</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">31</i>&nbsp;import java.util.List;
+<i class="no-highlight">32</i>&nbsp;import java.util.concurrent.ExecutionException;
+<i class="no-highlight">33</i>&nbsp;import java.util.concurrent.ExecutorService;
+<i class="no-highlight">34</i>&nbsp;import java.util.concurrent.Executors;
+<i class="no-highlight">35</i>&nbsp;import java.util.concurrent.Future;
+<i class="no-highlight">36</i>&nbsp;import java.util.concurrent.ThreadFactory;
+<i class="no-highlight">37</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snap.Utils.BYTES_PER_MB;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snap.Utils.MIN_THRESHOLD_MB_DEFAULT;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snap.Utils.TIMEOUT_MINUTES_DEFAULT;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snap.Utils.checkMemoryAndDisk;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.transform.sort.Messages.ERR_EXTERNAL_MERGE_SORT;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.transform.sort.Messages.ERR_NON_JAVA_OBJECT;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.transform.sort.Messages.ERR_SORT_AND_STORE;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.transform.sort.Messages.ERR_TEMP_SUBDIRECTORY;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.transform.sort.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.transform.sort.Messages.RESOLUTION_NON_JAVA;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;/**
+<i class="no-highlight">51</i>&nbsp; * External Merge Sorter sorts unlimited number of records using limited memory and local
+<i class="no-highlight">52</i>&nbsp; * disk temp files. It requires twice as large as total input data size. The external merge sorter
+<i class="no-highlight">53</i>&nbsp; * of the Apache Tajo project has been refactored here.
+<i class="no-highlight">54</i>&nbsp; *
+<i class="no-highlight">55</i>&nbsp; * @author psung
+<i class="no-highlight">56</i>&nbsp; */
+<i class="no-highlight">57</i>&nbsp;public class ExternalMergeSorter {
+<i class="no-highlight">58</i>&nbsp;
+<i class="no-highlight">59</i>&nbsp;    private static class MemTableScanner implements Scanner {
+<i class="no-highlight">60</i>&nbsp;        final List&lt;Object&gt; inMemoryTable;
+<i class="no-highlight">61</i>&nbsp;        final int totalRecords;
+<i class="no-highlight">62</i>&nbsp;        Iterator&lt;Object&gt; iterator;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;        public MemTableScanner(List&lt;Object&gt; inMemoryTable, int length,
+<b class="nc"><i class="no-highlight">65</i>&nbsp;                SortComparator sortComparator) {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;            this.inMemoryTable = inMemoryTable;</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;            this.totalRecords = length;</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            Collections.sort(inMemoryTable, sortComparator);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;            iterator = inMemoryTable.iterator();</b>
+<i class="no-highlight">70</i>&nbsp;        }
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;        @Override
+<i class="no-highlight">73</i>&nbsp;        public Object next() throws IOException {
+<b class="nc"><i class="no-highlight">74</i>&nbsp;            if (iterator.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;                return iterator.next();</b>
+<i class="no-highlight">76</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                return null;</b>
+<i class="no-highlight">78</i>&nbsp;            }
+<i class="no-highlight">79</i>&nbsp;        }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;        @Override
+<i class="no-highlight">82</i>&nbsp;        public void close() throws IOException {
+<b class="nc"><i class="no-highlight">83</i>&nbsp;            iterator = null;</b>
+<i class="no-highlight">84</i>&nbsp;        }
+<i class="no-highlight">85</i>&nbsp;    }
+<i class="no-highlight">86</i>&nbsp;
+<i class="no-highlight">87</i>&nbsp;    /**
+<i class="no-highlight">88</i>&nbsp;     * Two-way merger scanner that reads two input sources and outputs one output tuple sorted
+<i class="no-highlight">89</i>&nbsp;     */
+<i class="no-highlight">90</i>&nbsp;    private static class PairWiseMerger implements Scanner {
+<i class="no-highlight">91</i>&nbsp;        protected final Comparator&lt;Object&gt; comparator;
+<i class="no-highlight">92</i>&nbsp;        protected final Scanner leftScan;
+<i class="no-highlight">93</i>&nbsp;        protected final Scanner rightScan;
+<i class="no-highlight">94</i>&nbsp;        private Object leftRecord;
+<i class="no-highlight">95</i>&nbsp;        private Object rightRecord;
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;        public PairWiseMerger(Scanner leftScanner, Scanner rightScanner,
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                Comparator&lt;Object&gt; comparator) throws IOException {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            this.leftScan = leftScanner;</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;            this.rightScan = rightScanner;</b>
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            this.comparator = comparator;</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            leftRecord = leftScan.next();</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            rightRecord = rightScan.next();</b>
+<i class="no-highlight">104</i>&nbsp;        }
+<i class="no-highlight">105</i>&nbsp;
+<i class="no-highlight">106</i>&nbsp;        protected int compare() {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            return comparator.compare(leftRecord, rightRecord);</b>
+<i class="no-highlight">108</i>&nbsp;        }
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;        public Object next() throws IOException {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;            if (leftRecord == null &amp;&amp; rightRecord == null) {</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                return null;</b>
+<i class="no-highlight">113</i>&nbsp;            }
+<i class="no-highlight">114</i>&nbsp;            Object winRecord;
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            if (rightRecord == null || (leftRecord != null &amp;&amp; compare() &lt; 0)) {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                winRecord = leftRecord;</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                leftRecord = leftScan.next();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                return winRecord;</b>
+<i class="no-highlight">119</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            winRecord = rightRecord;</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;            rightRecord = rightScan.next();</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            return winRecord;</b>
+<i class="no-highlight">123</i>&nbsp;        }
+<i class="no-highlight">124</i>&nbsp;
+<i class="no-highlight">125</i>&nbsp;        @Override
+<i class="no-highlight">126</i>&nbsp;        public void close() throws IOException {
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            leftScan.close();</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;            rightScan.close();</b>
+<i class="no-highlight">129</i>&nbsp;        }
+<i class="no-highlight">130</i>&nbsp;    }
+<i class="no-highlight">131</i>&nbsp;
+<b class="nc"><i class="no-highlight">132</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(ExternalMergeSorter.class);</b>
+<i class="no-highlight">133</i>&nbsp;    // Default fan-out of external sort determines how many temp files to be merged at a time
+<i class="no-highlight">134</i>&nbsp;    // This value for the optimal performance depends on the type of local disk.
+<i class="no-highlight">135</i>&nbsp;    private static final int DEFAULT_FANOUT = 8; // should not be less than 2
+<b class="nc"><i class="no-highlight">136</i>&nbsp;    private static final Runtime RUNTIME = Runtime.getRuntime();</b>
+<i class="no-highlight">137</i>&nbsp;    private static final long MIN_BUFFER_SIZE = 10 * BYTES_PER_MB;
+<i class="no-highlight">138</i>&nbsp;    private static final String TEMP_PREFIX = &quot;Sort&quot;;
+<i class="no-highlight">139</i>&nbsp;    private static final int MAX_MERGE_PARALLELISM = 2;
+<i class="no-highlight">140</i>&nbsp;    private static final long OUT_OF_MEMORY_THRESHOLD = 500 * BYTES_PER_MB;
+<i class="no-highlight">141</i>&nbsp;    private static final long SUFFICIENT_MEMORY_THRESHOLD = 2000 * BYTES_PER_MB;
+<i class="no-highlight">142</i>&nbsp;    private static final int CALC_OBJ_SIZE_THRESHOLD = 10000;
+<i class="no-highlight">143</i>&nbsp;    private final SortComparator sortComparator;
+<i class="no-highlight">144</i>&nbsp;    private final long originalMaxBufferSize;
+<i class="no-highlight">145</i>&nbsp;    private long maxBufferSize;
+<i class="no-highlight">146</i>&nbsp;    // used for in-memory sort of each chunk.
+<b class="nc"><i class="no-highlight">147</i>&nbsp;    private final List&lt;Object&gt; inMemoryTable = new ArrayList&lt;&gt;(10000);</b>
+<i class="no-highlight">148</i>&nbsp;    private final String sortTmpDir; // directory for temp files
+<i class="no-highlight">149</i>&nbsp;    private File tmpFiles; // File class object of temp file directory
+<b class="nc"><i class="no-highlight">150</i>&nbsp;    private boolean memoryResident = true; // indicates if entire data resides in memory</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;    private final List&lt;SortFile&gt; chunkPaths = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;    private int chunkId = 0;</b>
+<i class="no-highlight">153</i>&nbsp;    private ObjectSizeEstimator objectSizeEstimator;
+<i class="no-highlight">154</i>&nbsp;    private int bufferedObjThreshold;
+<i class="no-highlight">155</i>&nbsp;    private int bufferedObjCount;
+<i class="no-highlight">156</i>&nbsp;    private final ExecutorService mergeThreadPool;
+<b class="nc"><i class="no-highlight">157</i>&nbsp;    private final List&lt;Future&lt;SortFile&gt;&gt; mergeFutures = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">158</i>&nbsp;    private StatusReporter statusReporter;
+<i class="no-highlight">159</i>&nbsp;    private StatusMessage statusMessage;
+<b class="nc"><i class="no-highlight">160</i>&nbsp;    private long minMemory = MIN_THRESHOLD_MB_DEFAULT * BYTES_PER_MB;</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;    private long minFreeDiskSpace = MIN_THRESHOLD_MB_DEFAULT * BYTES_PER_MB;</b>
+<b class="nc"><i class="no-highlight">162</i>&nbsp;    private long outOfResourceTimeoutMillis = TIMEOUT_MINUTES_DEFAULT;</b>
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;    /**
+<i class="no-highlight">165</i>&nbsp;     * Constructor for external merge sorter
+<i class="no-highlight">166</i>&nbsp;     *
+<i class="no-highlight">167</i>&nbsp;     * @param sortComparator - data comparator to be used for sorting
+<i class="no-highlight">168</i>&nbsp;     * @param maxBufferSize  - maximum in-memory table size in bytes. When the table size exceeds
+<i class="no-highlight">169</i>&nbsp;     *                       it, the records in the table are sorted and written to a temp file.
+<i class="no-highlight">170</i>&nbsp;     */
+<i class="no-highlight">171</i>&nbsp;    public ExternalMergeSorter(SortComparator sortComparator,
+<i class="no-highlight">172</i>&nbsp;            ThreadFactory threadFactory,
+<i class="no-highlight">173</i>&nbsp;            long maxBufferSize,
+<b class="nc"><i class="no-highlight">174</i>&nbsp;            File tmpDir) {</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;        this.sortComparator = sortComparator;</b>
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        this.maxBufferSize = Math.max(maxBufferSize, MIN_BUFFER_SIZE);</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        originalMaxBufferSize = this.maxBufferSize;</b>
+<i class="no-highlight">178</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;            sortTmpDir = Files.createTempDirectory(tmpDir.toPath(), TEMP_PREFIX)</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                    .toFile()</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                    .getAbsolutePath();</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            throw new SnapDataException(e, ERR_TEMP_SUBDIRECTORY)</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                    .formatWith(tmpDir.getAbsolutePath())</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        mergeThreadPool = Executors.newFixedThreadPool(MAX_MERGE_PARALLELISM, threadFactory);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        objectSizeEstimator = new ObjectSizeEstimator()</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                .withMaxObjectCount(CALC_OBJ_SIZE_THRESHOLD);</b>
+<i class="no-highlight">190</i>&nbsp;    }
+<i class="no-highlight">191</i>&nbsp;
+<i class="no-highlight">192</i>&nbsp;    /**
+<i class="no-highlight">193</i>&nbsp;     * Adds one object to be sorted
+<i class="no-highlight">194</i>&nbsp;     *
+<i class="no-highlight">195</i>&nbsp;     * @param data - an object to be sorted
+<i class="no-highlight">196</i>&nbsp;     */
+<i class="no-highlight">197</i>&nbsp;    public void add(final Object data) throws IOException {
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        inMemoryTable.add(data);</b>
+<i class="no-highlight">199</i>&nbsp;
+<i class="no-highlight">200</i>&nbsp;        //Update the object size estimation
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        if (objectSizeEstimator.addSizeObservation(data)) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;            maxBufferSize = adjustMaxBufferSize(maxBufferSize);</b>
+<i class="no-highlight">203</i>&nbsp;            //The object size estimation has changed. Recalculate the number of objects that can be
+<i class="no-highlight">204</i>&nbsp;            //buffered in memory before persisting the objects to disk.
+<b class="nc"><i class="no-highlight">205</i>&nbsp;            bufferedObjThreshold = objectSizeEstimator.getDocCountEstimate(maxBufferSize);</b>
+<i class="no-highlight">206</i>&nbsp;        }
+<i class="no-highlight">207</i>&nbsp;
+<i class="no-highlight">208</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">209</i>&nbsp;            if (++bufferedObjCount &gt; bufferedObjThreshold) {</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                LOG.info(&quot;Sorting a chunk and writing to temp file, object count: {}&quot;,</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                        bufferedObjCount);</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                memoryResident = false;</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                chunkPaths.add(sortAndStoreChunk(chunkId++, inMemoryTable));</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                bufferedObjCount = 0;</b>
+<i class="no-highlight">215</i>&nbsp;
+<i class="no-highlight">216</i>&nbsp;                //Check to see if a previous merge thread has finished
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                checkMergeFutures(false);</b>
+<i class="no-highlight">218</i>&nbsp;
+<i class="no-highlight">219</i>&nbsp;                //Check to see if there are enough chunks present to start a merge now
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                if (chunkPaths.size() &gt; DEFAULT_FANOUT) {</b>
+<i class="no-highlight">221</i>&nbsp;                    // This means there will need to be intermediate merge files. Start sorting and
+<i class="no-highlight">222</i>&nbsp;                    // combining into an intermediate file while the data is still being added to
+<i class="no-highlight">223</i>&nbsp;                    // save time. Sort the chunks from smallest files first to reduce data
+<i class="no-highlight">224</i>&nbsp;                    // movement between intermediate files.
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                    sortChunksBySize();</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                    startMerge();</b>
+<i class="no-highlight">227</i>&nbsp;                }
+<i class="no-highlight">228</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">229</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            throw new SnapDataException(e, ERR_SORT_AND_STORE)</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        } catch (ExecutionError | NoClassDefFoundError e) {</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;            throw new SnapDataException(e, ERR_NON_JAVA_OBJECT)</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                    .withResolution(RESOLUTION_NON_JAVA);</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        }</b>
+<i class="no-highlight">238</i>&nbsp;    }
+<i class="no-highlight">239</i>&nbsp;
+<i class="no-highlight">240</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">241</i>&nbsp;    protected long adjustMaxBufferSize(long maxBufferSize) {
+<b class="nc"><i class="no-highlight">242</i>&nbsp;        if (checkMemoryDiskStatus(minMemory, minFreeDiskSpace, outOfResourceTimeoutMillis,</b>
+<i class="no-highlight">243</i>&nbsp;                statusReporter, statusMessage, LOG, 0, tmpFiles,
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                objectSizeEstimator.getBytesPerObject())) {</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;            maxBufferSize = MIN_BUFFER_SIZE;</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;            LOG.warn(&quot;Internal sort buffer size was reduced to the minimum of 10 MB because &quot; +</b>
+<b class="nc"><i class="no-highlight">247</i>&nbsp;                    &quot;available memory was smaller than {}.&quot;, OUT_OF_MEMORY_THRESHOLD);</b>
+<i class="no-highlight">248</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        long availableMemory = getAvailableMemory();</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        if (availableMemory &gt; SUFFICIENT_MEMORY_THRESHOLD &amp;&amp;</b>
+<i class="no-highlight">251</i>&nbsp;                maxBufferSize &lt; originalMaxBufferSize) {
+<b class="nc"><i class="no-highlight">252</i>&nbsp;            maxBufferSize = originalMaxBufferSize;</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;            LOG.warn(&quot;Internal sort buffer size was restored to the original {} MB because &quot; +</b>
+<i class="no-highlight">254</i>&nbsp;                            &quot;available memory became larger than {} MB.&quot;,
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                    originalMaxBufferSize / BYTES_PER_MB,</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                    SUFFICIENT_MEMORY_THRESHOLD / BYTES_PER_MB);</b>
+<i class="no-highlight">257</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">258</i>&nbsp;        return maxBufferSize;</b>
+<i class="no-highlight">259</i>&nbsp;    }
+<i class="no-highlight">260</i>&nbsp;
+<i class="no-highlight">261</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">262</i>&nbsp;    protected boolean checkMemoryDiskStatus(long minMemory, long minFreeDiskSpace,
+<i class="no-highlight">263</i>&nbsp;            long outOfResourceTimeoutMillis, StatusReporter statusReporter,
+<i class="no-highlight">264</i>&nbsp;            StatusMessage statusMessage, Logger logger, int totalDocumentCount, File file,
+<i class="no-highlight">265</i>&nbsp;            long bytesPerDocument) {
+<b class="nc"><i class="no-highlight">266</i>&nbsp;        return checkMemoryAndDisk(minMemory, minFreeDiskSpace, outOfResourceTimeoutMillis,</b>
+<i class="no-highlight">267</i>&nbsp;                statusReporter, statusMessage, LOG, 0, tmpFiles, bytesPerDocument);
+<i class="no-highlight">268</i>&nbsp;    }
+<i class="no-highlight">269</i>&nbsp;
+<i class="no-highlight">270</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">271</i>&nbsp;    protected long getAvailableMemory() {
+<b class="nc"><i class="no-highlight">272</i>&nbsp;        return com.snaplogic.snap.Utils.getAvailableMemory();</b>
+<i class="no-highlight">273</i>&nbsp;    }
+<i class="no-highlight">274</i>&nbsp;
+<i class="no-highlight">275</i>&nbsp;    /**
+<i class="no-highlight">276</i>&nbsp;     * Schedules a merge to occur on the merge thread pool.
+<i class="no-highlight">277</i>&nbsp;     */
+<i class="no-highlight">278</i>&nbsp;    private void startMerge() {
+<i class="no-highlight">279</i>&nbsp;        //Identify files to merge
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        List&lt;SortFile&gt; filesToMerge = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        for (SortFile chunk : chunkPaths) {</b>
+<b class="nc"><i class="no-highlight">282</i>&nbsp;            filesToMerge.add(chunk);</b>
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            if (filesToMerge.size() == DEFAULT_FANOUT) {</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                break;</b>
+<i class="no-highlight">285</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">286</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        chunkPaths.removeAll(filesToMerge);</b>
+<i class="no-highlight">288</i>&nbsp;
+<i class="no-highlight">289</i>&nbsp;        //Define path for merged file
+<b class="nc"><i class="no-highlight">290</i>&nbsp;        String outputPath = String.format(&quot;%s/out_%s&quot;, sortTmpDir, chunkId++);</b>
+<i class="no-highlight">291</i>&nbsp;
+<i class="no-highlight">292</i>&nbsp;        //Start merge thread
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        Future&lt;SortFile&gt; mergeFuture = mergeThreadPool.submit(() -&gt; {</b>
+<i class="no-highlight">294</i>&nbsp;            try {
+<i class="no-highlight">295</i>&nbsp;                //Merge files
+<b class="nc"><i class="no-highlight">296</i>&nbsp;                LOG.info(&quot;{} files are being merged to output file {}&quot;, filesToMerge.size() , outputPath);</b>
+<i class="no-highlight">297</i>&nbsp;
+<i class="no-highlight">298</i>&nbsp;                SortFile outputSortFile;
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                try (Scanner merger = createKWayMerger(filesToMerge, 0, filesToMerge.size());</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                     final SortFileWriter output = new SortFileWriter(outputPath)) {</b>
+<i class="no-highlight">301</i>&nbsp;                    Object mergedObject;
+<b class="nc"><i class="no-highlight">302</i>&nbsp;                    while((mergedObject = merger.next()) != null) {</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                        output.append(mergedObject);</b>
+<i class="no-highlight">304</i>&nbsp;                    }
+<i class="no-highlight">305</i>&nbsp;
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                    outputSortFile = new SortFile(output.count(), outputPath);</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">308</i>&nbsp;                LOG.info(&quot;{} is written to a disk.&quot;, outputPath);</b>
+<i class="no-highlight">309</i>&nbsp;
+<i class="no-highlight">310</i>&nbsp;                //Delete merged input files
+<b class="nc"><i class="no-highlight">311</i>&nbsp;                for (SortFile mergedFile : filesToMerge) {</b>
+<b class="nc"><i class="no-highlight">312</i>&nbsp;                    new File(mergedFile.getPath()).delete();</b>
+<b class="nc"><i class="no-highlight">313</i>&nbsp;                }</b>
+<i class="no-highlight">314</i>&nbsp;
+<b class="nc"><i class="no-highlight">315</i>&nbsp;                return outputSortFile;</b>
+<b class="nc"><i class="no-highlight">316</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;                throw new com.snaplogic.api.ExecutionException(e, &quot;There was an error merging files to %s&quot;)</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;                        .formatWith(outputPath);</b>
+<i class="no-highlight">319</i>&nbsp;            }
+<i class="no-highlight">320</i>&nbsp;        });
+<i class="no-highlight">321</i>&nbsp;
+<i class="no-highlight">322</i>&nbsp;        //Add merge thread to tracking collection
+<b class="nc"><i class="no-highlight">323</i>&nbsp;        mergeFutures.add(mergeFuture);</b>
+<i class="no-highlight">324</i>&nbsp;    }
+<i class="no-highlight">325</i>&nbsp;
+<i class="no-highlight">326</i>&nbsp;    /**
+<i class="no-highlight">327</i>&nbsp;     * The entire records are inserted and now it begins an external merge sort.
+<i class="no-highlight">328</i>&nbsp;     *
+<i class="no-highlight">329</i>&nbsp;     * @return scanner
+<i class="no-highlight">330</i>&nbsp;     */
+<i class="no-highlight">331</i>&nbsp;    public Scanner sort() {
+<i class="no-highlight">332</i>&nbsp;        Scanner scanner;
+<i class="no-highlight">333</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">334</i>&nbsp;            if (!memoryResident &amp;&amp; !inMemoryTable.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                chunkPaths.add(sortAndStoreChunk(chunkId, inMemoryTable));</b>
+<i class="no-highlight">336</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">337</i>&nbsp;            if (memoryResident) { // if all sorted data reside in a main-memory table.</b>
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                scanner = new MemTableScanner(inMemoryTable, inMemoryTable.size(), sortComparator);</b>
+<i class="no-highlight">339</i>&nbsp;            } else { // if input data exceeds main-memory at least once
+<b class="nc"><i class="no-highlight">340</i>&nbsp;                scanner = externalMergeAndSort();</b>
+<i class="no-highlight">341</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">342</i>&nbsp;        } catch (IOException | InterruptedException | ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;            throw new SnapDataException(e, ERR_EXTERNAL_MERGE_SORT)</b>
+<b class="nc"><i class="no-highlight">344</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">346</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">347</i>&nbsp;        return scanner;</b>
+<i class="no-highlight">348</i>&nbsp;    }
+<i class="no-highlight">349</i>&nbsp;
+<i class="no-highlight">350</i>&nbsp;    /**
+<i class="no-highlight">351</i>&nbsp;     * Cleans up temp files and directory.
+<i class="no-highlight">352</i>&nbsp;     */
+<i class="no-highlight">353</i>&nbsp;    public void cleanUp() {
+<i class="no-highlight">354</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">355</i>&nbsp;            mergeThreadPool.shutdownNow();</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;            if (!mergeThreadPool.awaitTermination(60, TimeUnit.SECONDS)) {</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                LOG.error(&quot;The merge thread pool did not terminate in a timely manner&quot;);</b>
+<i class="no-highlight">358</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">359</i>&nbsp;        } catch (InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">360</i>&nbsp;            LOG.error(&quot;The merge thread pool was interrupted while awaiting termination&quot;, e);</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        }</b>
+<i class="no-highlight">362</i>&nbsp;
+<i class="no-highlight">363</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">364</i>&nbsp;            File tmpDir = new File(sortTmpDir);</b>
+<b class="nc"><i class="no-highlight">365</i>&nbsp;            if (tmpDir.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                File[] files = tmpDir.listFiles();</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;                for (File file : files) {</b>
+<b class="nc"><i class="no-highlight">368</i>&nbsp;                    if (file.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">369</i>&nbsp;                        FileUtils.deleteDirectory(file);</b>
+<i class="no-highlight">370</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                        file.delete();</b>
+<i class="no-highlight">372</i>&nbsp;                    }
+<i class="no-highlight">373</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">374</i>&nbsp;                FileUtils.deleteDirectory(tmpDir);</b>
+<i class="no-highlight">375</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">376</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">377</i>&nbsp;            LOG.debug(String.format(&quot;Failed to delete temp files in: %s&quot;, sortTmpDir), e);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;        }</b>
+<i class="no-highlight">379</i>&nbsp;    }
+<i class="no-highlight">380</i>&nbsp;
+<i class="no-highlight">381</i>&nbsp;    /**
+<i class="no-highlight">382</i>&nbsp;     * Sort a tuple block and store them into a chunk file
+<i class="no-highlight">383</i>&nbsp;     */
+<i class="no-highlight">384</i>&nbsp;    private SortFile sortAndStoreChunk(int chunkId, List&lt;Object&gt; datas)
+<i class="no-highlight">385</i>&nbsp;            throws IOException {
+<b class="nc"><i class="no-highlight">386</i>&nbsp;        Collections.sort(datas, sortComparator);</b>
+<b class="nc"><i class="no-highlight">387</i>&nbsp;        String outputPath = String.format(&quot;%s/%s&quot;, sortTmpDir, chunkId);</b>
+<b class="nc"><i class="no-highlight">388</i>&nbsp;        long startTime = System.currentTimeMillis();</b>
+<i class="no-highlight">389</i>&nbsp;        SortFile sortFile;
+<b class="nc"><i class="no-highlight">390</i>&nbsp;        try (final SortFileWriter writer = new SortFileWriter(outputPath)) {</b>
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            for (Object eachObject : datas) {</b>
+<b class="nc"><i class="no-highlight">392</i>&nbsp;                writer.append(eachObject);</b>
+<b class="nc"><i class="no-highlight">393</i>&nbsp;            }</b>
+<i class="no-highlight">394</i>&nbsp;
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            sortFile = new SortFile(writer.count(), outputPath);</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;        }</b>
+<i class="no-highlight">397</i>&nbsp;
+<b class="nc"><i class="no-highlight">398</i>&nbsp;        datas.clear();</b>
+<b class="nc"><i class="no-highlight">399</i>&nbsp;        LOG.info(&quot;Finished writing to sorted chunk: {} to {}, {} ms&quot;,</b>
+<b class="nc"><i class="no-highlight">400</i>&nbsp;                chunkId, outputPath, (System.currentTimeMillis() - startTime));</b>
+<b class="nc"><i class="no-highlight">401</i>&nbsp;        printMemory();</b>
+<i class="no-highlight">402</i>&nbsp;
+<b class="nc"><i class="no-highlight">403</i>&nbsp;        return sortFile;</b>
+<i class="no-highlight">404</i>&nbsp;    }
+<i class="no-highlight">405</i>&nbsp;
+<i class="no-highlight">406</i>&nbsp;    private static void printMemory() {
+<b class="nc"><i class="no-highlight">407</i>&nbsp;        long maxMemory = RUNTIME.maxMemory();</b>
+<b class="nc"><i class="no-highlight">408</i>&nbsp;        long freeMemory = RUNTIME.freeMemory();</b>
+<b class="nc"><i class="no-highlight">409</i>&nbsp;        long totalMemory = RUNTIME.totalMemory();</b>
+<b class="nc"><i class="no-highlight">410</i>&nbsp;        LOG.debug(&quot;maxMemory: {}, freeMemory: {}, totalMemory: {}&quot;, maxMemory, freeMemory,</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                totalMemory);</b>
+<i class="no-highlight">412</i>&nbsp;    }
+<i class="no-highlight">413</i>&nbsp;
+<i class="no-highlight">414</i>&nbsp;    /**
+<i class="no-highlight">415</i>&nbsp;     * Checks to see if scheduled merge work is completed. If it is completed the output file is added to
+<i class="no-highlight">416</i>&nbsp;     * list of file chunks to merge.
+<i class="no-highlight">417</i>&nbsp;     * @param shouldWait
+<i class="no-highlight">418</i>&nbsp;     */
+<i class="no-highlight">419</i>&nbsp;    private void checkMergeFutures(boolean shouldWait) {
+<b class="nc"><i class="no-highlight">420</i>&nbsp;        if (!mergeFutures.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;            List&lt;Future&lt;SortFile&gt;&gt; shouldRemove = new ArrayList&lt;&gt;();</b>
+<i class="no-highlight">422</i>&nbsp;
+<b class="nc"><i class="no-highlight">423</i>&nbsp;            for (Future&lt;SortFile&gt; mf : mergeFutures) {</b>
+<b class="nc"><i class="no-highlight">424</i>&nbsp;                if (mf.isDone() || shouldWait) {</b>
+<i class="no-highlight">425</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">426</i>&nbsp;                        chunkPaths.add(mf.get());</b>
+<b class="nc"><i class="no-highlight">427</i>&nbsp;                    } catch (ExecutionException | InterruptedException e) {</b>
+<b class="nc"><i class="no-highlight">428</i>&nbsp;                        throw new com.snaplogic.api.ExecutionException(e, &quot;File merge failed&quot;);</b>
+<b class="nc"><i class="no-highlight">429</i>&nbsp;                    }</b>
+<i class="no-highlight">430</i>&nbsp;
+<b class="nc"><i class="no-highlight">431</i>&nbsp;                    shouldRemove.add(mf);</b>
+<i class="no-highlight">432</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">433</i>&nbsp;            }</b>
+<i class="no-highlight">434</i>&nbsp;
+<b class="nc"><i class="no-highlight">435</i>&nbsp;            mergeFutures.removeAll(shouldRemove);</b>
+<i class="no-highlight">436</i>&nbsp;        }
+<i class="no-highlight">437</i>&nbsp;    }
+<i class="no-highlight">438</i>&nbsp;
+<i class="no-highlight">439</i>&nbsp;    /**
+<i class="no-highlight">440</i>&nbsp;     * This sorts the chunks by file size. This is used so that the smallest files are always merged first.
+<i class="no-highlight">441</i>&nbsp;     * Merging the smallest files first reduces the total work because it means less data is moved between intermediate
+<i class="no-highlight">442</i>&nbsp;     * files.
+<i class="no-highlight">443</i>&nbsp;     *
+<i class="no-highlight">444</i>&nbsp;     * For example, if three chunks need to be merged to two chunks before the final merge.
+<i class="no-highlight">445</i>&nbsp;     * chunk1 (10 bytes)
+<i class="no-highlight">446</i>&nbsp;     * chunk3 (1000 bytes)
+<i class="no-highlight">447</i>&nbsp;     * chunk2 (100 bytes)
+<i class="no-highlight">448</i>&nbsp;     *
+<i class="no-highlight">449</i>&nbsp;     * Merging chunk 1 and 3 results in 1010 bytes of intermediate processing
+<i class="no-highlight">450</i>&nbsp;     * chunkMerged (1010 bytes)
+<i class="no-highlight">451</i>&nbsp;     * chunk2 (100 bytes)
+<i class="no-highlight">452</i>&nbsp;     *
+<i class="no-highlight">453</i>&nbsp;     * Merging chunk 1 and 2 results in 110 bytes of intermediate processing. This is optimal.
+<i class="no-highlight">454</i>&nbsp;     * chunkMerged (110 bytes)
+<i class="no-highlight">455</i>&nbsp;     * chunk3 (1000 bytes)
+<i class="no-highlight">456</i>&nbsp;     */
+<i class="no-highlight">457</i>&nbsp;    private void sortChunksBySize() {
+<b class="nc"><i class="no-highlight">458</i>&nbsp;        Collections.sort(chunkPaths, (file1, file2) -&gt; {</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;            long length1 = new File(file1.getPath()).length();</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;            long length2 = new File(file2.getPath()).length();</b>
+<b class="nc"><i class="no-highlight">461</i>&nbsp;            return Long.compare(length1, length2);</b>
+<i class="no-highlight">462</i>&nbsp;        });
+<i class="no-highlight">463</i>&nbsp;    }
+<i class="no-highlight">464</i>&nbsp;
+<i class="no-highlight">465</i>&nbsp;    private Scanner externalMergeAndSort() throws IOException, ExecutionException,
+<i class="no-highlight">466</i>&nbsp;            InterruptedException {
+<b class="nc"><i class="no-highlight">467</i>&nbsp;        LOG.info(&quot;Start externalMergeAndSort: default fan-out: {}&quot;, DEFAULT_FANOUT);</b>
+<b class="nc"><i class="no-highlight">468</i>&nbsp;        long mergeStart = System.currentTimeMillis();</b>
+<i class="no-highlight">469</i>&nbsp;
+<i class="no-highlight">470</i>&nbsp;        //Wait for merges that were scheduled during the add phase to finish.
+<b class="nc"><i class="no-highlight">471</i>&nbsp;        checkMergeFutures(true);</b>
+<i class="no-highlight">472</i>&nbsp;
+<i class="no-highlight">473</i>&nbsp;        //Merge the chunks until the number of files is small enough to create the final merge.
+<b class="nc"><i class="no-highlight">474</i>&nbsp;        while (chunkPaths.size() &gt; DEFAULT_FANOUT) {</b>
+<i class="no-highlight">475</i>&nbsp;            //Sort the merge chunks so that the minimum amount of data is moved between intermediate files.
+<b class="nc"><i class="no-highlight">476</i>&nbsp;            sortChunksBySize();</b>
+<i class="no-highlight">477</i>&nbsp;
+<i class="no-highlight">478</i>&nbsp;            //Schedule a merge for each group of files
+<b class="nc"><i class="no-highlight">479</i>&nbsp;            while (chunkPaths.size() &gt; DEFAULT_FANOUT) {</b>
+<b class="nc"><i class="no-highlight">480</i>&nbsp;                startMerge();</b>
+<i class="no-highlight">481</i>&nbsp;            }
+<i class="no-highlight">482</i>&nbsp;
+<i class="no-highlight">483</i>&nbsp;            //Wait for the scheduled merge work to finish.
+<i class="no-highlight">484</i>&nbsp;            //The output files will be merged in the next loop, if required.
+<b class="nc"><i class="no-highlight">485</i>&nbsp;            checkMergeFutures(true);</b>
+<i class="no-highlight">486</i>&nbsp;        }
+<i class="no-highlight">487</i>&nbsp;
+<b class="nc"><i class="no-highlight">488</i>&nbsp;        long mergeEnd = System.currentTimeMillis();</b>
+<b class="nc"><i class="no-highlight">489</i>&nbsp;        LOG.info(&quot;Total merge time: {} ms&quot;, mergeEnd - mergeStart);</b>
+<b class="nc"><i class="no-highlight">490</i>&nbsp;        return createKWayMerger(chunkPaths, 0, chunkPaths.size());</b>
+<i class="no-highlight">491</i>&nbsp;    }
+<i class="no-highlight">492</i>&nbsp;
+<i class="no-highlight">493</i>&nbsp;    private Scanner createKWayMerger(List&lt;SortFile&gt; inputs, final int startChunkId,
+<i class="no-highlight">494</i>&nbsp;            final int num) throws IOException {
+<b class="nc"><i class="no-highlight">495</i>&nbsp;        final Scanner[] sources = new Scanner[num];</b>
+<b class="nc"><i class="no-highlight">496</i>&nbsp;        for (int i = 0; i &lt; num; i++) {</b>
+<b class="nc"><i class="no-highlight">497</i>&nbsp;            SortFile sortFile = inputs.get(startChunkId + i);</b>
+<b class="nc"><i class="no-highlight">498</i>&nbsp;            sources[i] = new FileScanner(sortFile.getPath(), sortFile.getCount());</b>
+<i class="no-highlight">499</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">500</i>&nbsp;        return createKWayMergerInternal(sources, 0, num);</b>
+<i class="no-highlight">501</i>&nbsp;    }
+<i class="no-highlight">502</i>&nbsp;
+<i class="no-highlight">503</i>&nbsp;    private Scanner createKWayMergerInternal(final Scanner[] sources, final int startIdx,
+<i class="no-highlight">504</i>&nbsp;            final int num) throws IOException {
+<b class="nc"><i class="no-highlight">505</i>&nbsp;        if (num &gt; 1) {</b>
+<b class="nc"><i class="no-highlight">506</i>&nbsp;            final int mid = (int) Math.ceil((float)num / 2);</b>
+<b class="nc"><i class="no-highlight">507</i>&nbsp;            Scanner left = createKWayMergerInternal(sources, startIdx, mid);</b>
+<b class="nc"><i class="no-highlight">508</i>&nbsp;            Scanner right = createKWayMergerInternal(sources, startIdx + mid, num - mid);</b>
+<b class="nc"><i class="no-highlight">509</i>&nbsp;            return new PairWiseMerger(left, right, sortComparator);</b>
+<i class="no-highlight">510</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">511</i>&nbsp;            return sources[startIdx];</b>
+<i class="no-highlight">512</i>&nbsp;        }
+<i class="no-highlight">513</i>&nbsp;    }
+<i class="no-highlight">514</i>&nbsp;
+<i class="no-highlight">515</i>&nbsp;    public long getMaxBufferSize() {
+<b class="nc"><i class="no-highlight">516</i>&nbsp;        return maxBufferSize;</b>
+<i class="no-highlight">517</i>&nbsp;    }
+<i class="no-highlight">518</i>&nbsp;
+<i class="no-highlight">519</i>&nbsp;    public void setStatusReporter(StatusReporter statusReporter, StatusMessage statusMessage) {
+<b class="nc"><i class="no-highlight">520</i>&nbsp;        this.statusReporter = statusReporter;</b>
+<b class="nc"><i class="no-highlight">521</i>&nbsp;        this.statusMessage = statusMessage;</b>
+<b class="nc"><i class="no-highlight">522</i>&nbsp;        tmpFiles = new File(sortTmpDir);</b>
+<i class="no-highlight">523</i>&nbsp;    }
+<i class="no-highlight">524</i>&nbsp;
+<i class="no-highlight">525</i>&nbsp;    public void setMemoryDiskThresholds(long minMemory, long minFreeDiskSpace,
+<i class="no-highlight">526</i>&nbsp;            long outOfResourceTimeoutMillis) {
+<b class="nc"><i class="no-highlight">527</i>&nbsp;        this.minMemory = minMemory;</b>
+<b class="nc"><i class="no-highlight">528</i>&nbsp;        this.minFreeDiskSpace = minFreeDiskSpace;</b>
+<b class="nc"><i class="no-highlight">529</i>&nbsp;        this.outOfResourceTimeoutMillis = outOfResourceTimeoutMillis;</b>
+<i class="no-highlight">530</i>&nbsp;    }
+<i class="no-highlight">531</i>&nbsp;
+<i class="no-highlight">532</i>&nbsp;    private static class SortFile {
+<i class="no-highlight">533</i>&nbsp;        private final long count;
+<i class="no-highlight">534</i>&nbsp;        private final String path;
+<i class="no-highlight">535</i>&nbsp;
+<b class="nc"><i class="no-highlight">536</i>&nbsp;        public SortFile(long count, String path) {</b>
+<b class="nc"><i class="no-highlight">537</i>&nbsp;            this.count = count;</b>
+<b class="nc"><i class="no-highlight">538</i>&nbsp;            this.path = path;</b>
+<i class="no-highlight">539</i>&nbsp;        }
+<i class="no-highlight">540</i>&nbsp;
+<i class="no-highlight">541</i>&nbsp;        public long getCount() {
+<b class="nc"><i class="no-highlight">542</i>&nbsp;            return count;</b>
+<i class="no-highlight">543</i>&nbsp;        }
+<i class="no-highlight">544</i>&nbsp;
+<i class="no-highlight">545</i>&nbsp;        public String getPath() {
+<b class="nc"><i class="no-highlight">546</i>&nbsp;            return path;</b>
+<i class="no-highlight">547</i>&nbsp;        }
+<i class="no-highlight">548</i>&nbsp;    }
+<i class="no-highlight">549</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

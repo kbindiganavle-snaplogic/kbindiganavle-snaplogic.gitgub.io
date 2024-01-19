@@ -1,0 +1,279 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CryptoKeyHolderForPassPhrase</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform.fieldcrypto</a>
+</div>
+
+<h1>Coverage Summary for Class: CryptoKeyHolderForPassPhrase (com.snaplogic.snaps.transform.fieldcrypto)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CryptoKeyHolderForPassPhrase</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/63)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2017, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.transform.fieldcrypto;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.util.Base64;
+<i class="no-highlight">16</i>&nbsp;
+<i class="no-highlight">17</i>&nbsp;import org.apache.commons.lang.StringUtils;
+<i class="no-highlight">18</i>&nbsp;
+<i class="no-highlight">19</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">20</i>&nbsp;import java.security.GeneralSecurityException;
+<i class="no-highlight">21</i>&nbsp;import java.security.Key;
+<i class="no-highlight">22</i>&nbsp;import java.security.MessageDigest;
+<i class="no-highlight">23</i>&nbsp;import java.security.NoSuchAlgorithmException;
+<i class="no-highlight">24</i>&nbsp;import java.security.SecureRandom;
+<i class="no-highlight">25</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">26</i>&nbsp;import java.util.Map;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import javax.crypto.SecretKey;
+<i class="no-highlight">29</i>&nbsp;import javax.crypto.SecretKeyFactory;
+<i class="no-highlight">30</i>&nbsp;import javax.crypto.spec.PBEKeySpec;
+<i class="no-highlight">31</i>&nbsp;import javax.crypto.spec.SecretKeySpec;
+<i class="no-highlight">32</i>&nbsp;
+<i class="no-highlight">33</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Constants.AES;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Constants.AES_GCM_NOPADDING;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Constants.CRYPTO_PROVIDER;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Constants.KEY_ALGORITHM;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Constants.SHA_256;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Messages.ERR_DERIVE_KEY;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Messages.ERR_DERIVE_SECRET_KEY;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Messages.ERR_SHA_256_DIGEST;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Messages.RESOLUTION_CHECK_INPUT_DATA;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.transform.fieldcrypto.Messages.RESOLUTION_CHECK_KEY_PARAMETERS;
+<i class="no-highlight">43</i>&nbsp;
+<i class="no-highlight">44</i>&nbsp;/**
+<i class="no-highlight">45</i>&nbsp; * Key holder class used when encrypting with a passphrase.
+<i class="no-highlight">46</i>&nbsp; *
+<i class="no-highlight">47</i>&nbsp; * @author tstack
+<i class="no-highlight">48</i>&nbsp; */
+<i class="no-highlight">49</i>&nbsp;public class CryptoKeyHolderForPassPhrase implements CryptoKeyHolder {
+<i class="no-highlight">50</i>&nbsp;    public static final String KEY_GEN_ALGORITHM = &quot;key_gen_algorithm&quot;;
+<i class="no-highlight">51</i>&nbsp;    private static final Map&lt;String, Object&gt; DEFAULT_PARAMETERS = ImmutableMap.&lt;String,
+<b class="nc"><i class="no-highlight">52</i>&nbsp;            Object&gt;builder()</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;            .put(&quot;key_gen_iterations&quot;, 10000)</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;            .put(KEY_GEN_ALGORITHM, &quot;PBKDF2WithHmacSHA1&quot;)</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;            .build();</b>
+<i class="no-highlight">56</i>&nbsp;    private static final Map&lt;String, Object&gt; SHA_256_PARAMETERS =
+<b class="nc"><i class="no-highlight">57</i>&nbsp;            ImmutableMap.&lt;String, Object&gt;builder()</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;            .put(KEY_GEN_ALGORITHM, SHA_256)</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;            .put(KEY_ALGORITHM, AES)</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;            .build();</b>
+<i class="no-highlight">61</i>&nbsp;    public static final String KEY_SIZE = &quot;key_size&quot;;
+<i class="no-highlight">62</i>&nbsp;    public static final String KEY_SALT = &quot;key_salt&quot;;
+<i class="no-highlight">63</i>&nbsp;    public static final String PASSPHRASE = &quot;passphrase&quot;;
+<i class="no-highlight">64</i>&nbsp;    public static final String KEY_GEN_ITERATIONS = &quot;key_gen_iterations&quot;;
+<b class="nc"><i class="no-highlight">65</i>&nbsp;    private final Map&lt;String, Object&gt; parameters = new HashMap&lt;&gt;();</b>
+<i class="no-highlight">66</i>&nbsp;    private final String passPhrase;
+<i class="no-highlight">67</i>&nbsp;
+<i class="no-highlight">68</i>&nbsp;    /**
+<i class="no-highlight">69</i>&nbsp;     * @param passPhrase the passphrase to use to encrypt/decrypt values.
+<i class="no-highlight">70</i>&nbsp;     * @param algorithm the algorithm, e.g. &quot;AES&quot;.
+<i class="no-highlight">71</i>&nbsp;     * @param keySize the length of the key, in bits.
+<i class="no-highlight">72</i>&nbsp;     * @param secureRandom a random number generator for creating key salts.
+<i class="no-highlight">73</i>&nbsp;     * @param salt the salt to use, in case it is already known. Can be null.
+<i class="no-highlight">74</i>&nbsp;     * @param keyGenIterations the number of iterations to run when generating the encryption key.
+<i class="no-highlight">75</i>&nbsp;*                         Default is 10,000. Can be null.
+<i class="no-highlight">76</i>&nbsp;     * @param keyGenAlgorithm the algorithm used in generating the key. Default is
+<i class="no-highlight">77</i>&nbsp;     *                        &quot;PBKDF2WithHmacSHA1&quot;.
+<i class="no-highlight">78</i>&nbsp;     */
+<i class="no-highlight">79</i>&nbsp;    public CryptoKeyHolderForPassPhrase(final String passPhrase, final String algorithm,
+<i class="no-highlight">80</i>&nbsp;                                        final Number keySize, final SecureRandom secureRandom,
+<i class="no-highlight">81</i>&nbsp;                                        final String salt, final Number keyGenIterations,
+<b class="nc"><i class="no-highlight">82</i>&nbsp;                                        final String keyGenAlgorithm) {</b>
+<b class="nc"><i class="no-highlight">83</i>&nbsp;        this.passPhrase = passPhrase;</b>
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        parameters.putAll(DEFAULT_PARAMETERS);</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        parameters.put(KEY_ALGORITHM, algorithm);</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        parameters.put(KEY_SIZE, keySize);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        if (keyGenIterations != null) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            parameters.put(KEY_GEN_ITERATIONS, keyGenIterations);</b>
+<i class="no-highlight">89</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        if (keyGenAlgorithm != null) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            parameters.put(KEY_GEN_ALGORITHM, keyGenAlgorithm);</b>
+<i class="no-highlight">92</i>&nbsp;        }
+<i class="no-highlight">93</i>&nbsp;        String saltString;
+<b class="nc"><i class="no-highlight">94</i>&nbsp;        if (StringUtils.isEmpty(salt)) {</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;            byte[] saltBytes = new byte[20];</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;            secureRandom.nextBytes(saltBytes);</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;            saltString = Base64.encodeToString(saltBytes, false);</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;            saltString = salt;</b>
+<i class="no-highlight">100</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        parameters.put(KEY_SALT, saltString);</b>
+<i class="no-highlight">102</i>&nbsp;    }
+<i class="no-highlight">103</i>&nbsp;
+<i class="no-highlight">104</i>&nbsp;    @Override
+<i class="no-highlight">105</i>&nbsp;    public void updateParameters(final Map&lt;String, Object&gt; parameters) {
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        this.parameters.putAll(CoercionUtils.getMap(parameters, PASSPHRASE));</b>
+<i class="no-highlight">107</i>&nbsp;    }
+<i class="no-highlight">108</i>&nbsp;
+<i class="no-highlight">109</i>&nbsp;    @Override
+<i class="no-highlight">110</i>&nbsp;    public Map&lt;String, Object&gt; getParameters() {
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        Map&lt;String, Object&gt; retval = new HashMap&lt;&gt;(1);</b>
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        retval.put(PASSPHRASE, new HashMap&lt;&gt;(parameters));</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        return retval;</b>
+<i class="no-highlight">114</i>&nbsp;    }
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;    public Map&lt;String, Object&gt; getSHA256Parameters() {
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        Map&lt;String, Object&gt; retval = new HashMap&lt;&gt;(1);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        retval.put(PASSPHRASE, SHA_256_PARAMETERS);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        return retval;</b>
+<i class="no-highlight">120</i>&nbsp;    }
+<i class="no-highlight">121</i>&nbsp;
+<i class="no-highlight">122</i>&nbsp;    @Override
+<i class="no-highlight">123</i>&nbsp;    public Key getKey() {
+<i class="no-highlight">124</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">125</i>&nbsp;            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(CoercionUtils.getString(</b>
+<i class="no-highlight">126</i>&nbsp;                    parameters, KEY_GEN_ALGORITHM), CRYPTO_PROVIDER);
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            Number keySize = CoercionUtils.getNumber(parameters, KEY_SIZE);</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;            Number keyIterations = CoercionUtils.getNumber(parameters, KEY_GEN_ITERATIONS);</b>
+<i class="no-highlight">129</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                byte[] salt = CoercionUtils.getByteArray(parameters, KEY_SALT);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                PBEKeySpec spec = new PBEKeySpec(passPhrase.toCharArray(), salt, keyIterations</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                        .intValue(), keySize.intValue());</b>
+<i class="no-highlight">133</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                    SecretKey secretKey = keyFactory.generateSecret(spec);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                    return new SecretKeySpec(secretKey.getEncoded(),</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                            CoercionUtils.getString(parameters, KEY_ALGORITHM));</b>
+<i class="no-highlight">137</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                    spec.clearPassword();</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;            } catch (IllegalArgumentException e) {</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                throw new SnapDataException(e, ERR_DERIVE_KEY)</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                        .withResolution(RESOLUTION_CHECK_INPUT_DATA);</b>
+<i class="no-highlight">144</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        } catch (GeneralSecurityException e) {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            throw new SnapDataException(e, ERR_DERIVE_SECRET_KEY)</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                    .withResolution(RESOLUTION_CHECK_KEY_PARAMETERS);</b>
+<i class="no-highlight">149</i>&nbsp;        }
+<i class="no-highlight">150</i>&nbsp;    }
+<i class="no-highlight">151</i>&nbsp;
+<i class="no-highlight">152</i>&nbsp;    @Override
+<i class="no-highlight">153</i>&nbsp;    public Map&lt;String, Object&gt; insertAllParameters(Map&lt;String, Object&gt; paramsToInsert) {
+<b class="nc"><i class="no-highlight">154</i>&nbsp;        if (paramsToInsert != null) {</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;            parameters.putAll(paramsToInsert);</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;            return new HashMap&lt;&gt;(parameters);</b>
+<i class="no-highlight">157</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">158</i>&nbsp;        throw new IllegalArgumentException(&quot;paramsToInsert cannot be null.&quot;);</b>
+<i class="no-highlight">159</i>&nbsp;    }
+<i class="no-highlight">160</i>&nbsp;
+<i class="no-highlight">161</i>&nbsp;    public Key getSHA256Key() {
+<i class="no-highlight">162</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            MessageDigest digest = MessageDigest.getInstance(SHA_256);</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;            byte[] hash = digest.digest(passPhrase.getBytes(StandardCharsets.UTF_8));</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;            CryptoKeyHolder keyHolder = new CryptoKeyHolderForSymmetricKey(hash, AES_GCM_NOPADDING,</b>
+<i class="no-highlight">166</i>&nbsp;                    null);
+<b class="nc"><i class="no-highlight">167</i>&nbsp;            return keyHolder.getKey();</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        } catch (NoSuchAlgorithmException e) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;            throw new SnapDataException(e, ERR_SHA_256_DIGEST)</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                    .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                    .withResolutionAsDefect();</b>
+<i class="no-highlight">172</i>&nbsp;        }
+<i class="no-highlight">173</i>&nbsp;    }
+<i class="no-highlight">174</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

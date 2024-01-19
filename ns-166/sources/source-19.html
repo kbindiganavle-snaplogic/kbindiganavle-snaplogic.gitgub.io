@@ -1,0 +1,636 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > FixedWidthParser</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.transform</a>
+</div>
+
+<h1>Coverage Summary for Class: FixedWidthParser (com.snaplogic.snaps.transform)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FixedWidthParser</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/113)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">FixedWidthParser$CustomReader</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">FixedWidthParser$DataIterator</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/74)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/202)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2013, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.transform;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.api.ConfigurationException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.common.SnapType;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.common.properties.SnapProperty;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.common.properties.builders.PropertyBuilder;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.BinaryInput;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">22</i>&nbsp;import com.snaplogic.snap.api.ErrorViews;
+<i class="no-highlight">23</i>&nbsp;import com.snaplogic.snap.api.ExpressionProperty;
+<i class="no-highlight">24</i>&nbsp;import com.snaplogic.snap.api.InputViews;
+<i class="no-highlight">25</i>&nbsp;import com.snaplogic.snap.api.OutputViews;
+<i class="no-highlight">26</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">27</i>&nbsp;import com.snaplogic.snap.api.SimpleBinarySnap;
+<i class="no-highlight">28</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">29</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">30</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">31</i>&nbsp;import com.snaplogic.snap.api.capabilities.Errors;
+<i class="no-highlight">32</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">33</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">34</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">35</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">36</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">37</i>&nbsp;import com.snaplogic.snaps.transform.fixedwidth.ColumnInfo;
+<i class="no-highlight">38</i>&nbsp;
+<i class="no-highlight">39</i>&nbsp;import org.apache.commons.io.IOUtils;
+<i class="no-highlight">40</i>&nbsp;import org.apache.commons.lang3.StringEscapeUtils;
+<i class="no-highlight">41</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">42</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">43</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">44</i>&nbsp;
+<i class="no-highlight">45</i>&nbsp;import java.io.BufferedReader;
+<i class="no-highlight">46</i>&nbsp;import java.io.Closeable;
+<i class="no-highlight">47</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">48</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">49</i>&nbsp;import java.io.InputStreamReader;
+<i class="no-highlight">50</i>&nbsp;import java.io.Reader;
+<i class="no-highlight">51</i>&nbsp;import java.math.BigInteger;
+<i class="no-highlight">52</i>&nbsp;import java.nio.channels.Channels;
+<i class="no-highlight">53</i>&nbsp;import java.nio.charset.StandardCharsets;
+<i class="no-highlight">54</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">55</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">56</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">57</i>&nbsp;import java.util.LinkedHashMap;
+<i class="no-highlight">58</i>&nbsp;import java.util.List;
+<i class="no-highlight">59</i>&nbsp;import java.util.Map;
+<i class="no-highlight">60</i>&nbsp;import java.util.Map.Entry;
+<i class="no-highlight">61</i>&nbsp;import java.util.regex.Pattern;
+<i class="no-highlight">62</i>&nbsp;import java.util.regex.PatternSyntaxException;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;import static com.snaplogic.snaps.transform.FixedWidthConstants.EOF;
+<i class="no-highlight">65</i>&nbsp;import static com.snaplogic.snaps.transform.FixedWidthConstants.FUNCTION_CONTAINS;
+<i class="no-highlight">66</i>&nbsp;import static com.snaplogic.snaps.transform.FixedWidthConstants.FUNCTION_ENDS_WITH;
+<i class="no-highlight">67</i>&nbsp;import static com.snaplogic.snaps.transform.FixedWidthConstants.FUNCTION_REGEX;
+<i class="no-highlight">68</i>&nbsp;import static com.snaplogic.snaps.transform.FixedWidthConstants.FUNCTION_STARTS_WITH;
+<i class="no-highlight">69</i>&nbsp;import static com.snaplogic.snaps.transform.FixedWidthConstants.FUNCTION_VALUES;
+<i class="no-highlight">70</i>&nbsp;import static com.snaplogic.snaps.transform.FixedWidthConstants.VALUE;
+<i class="no-highlight">71</i>&nbsp;import static com.snaplogic.snaps.transform.Messages.*;
+<i class="no-highlight">72</i>&nbsp;
+<i class="no-highlight">73</i>&nbsp;/**
+<i class="no-highlight">74</i>&nbsp; * This snap reads binary data and parses it according to the options given by the user such as
+<i class="no-highlight">75</i>&nbsp; * column name, start position, end position etc.
+<i class="no-highlight">76</i>&nbsp; *
+<i class="no-highlight">77</i>&nbsp; * @author kpvg
+<i class="no-highlight">78</i>&nbsp; */
+<i class="no-highlight">79</i>&nbsp;@General(title = FWP_SNAP_LABEL, purpose = FWP_SNAP_PURPOSE)
+<i class="no-highlight">80</i>&nbsp;@Version(snap = 2)
+<i class="no-highlight">81</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.BINARY})
+<i class="no-highlight">82</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">83</i>&nbsp;@Errors(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">84</i>&nbsp;@Category(snap = SnapCategory.PARSE)
+<b class="nc"><i class="no-highlight">85</i>&nbsp;public class FixedWidthParser extends SimpleBinarySnap {</b>
+<i class="no-highlight">86</i>&nbsp;    protected static final String FWP_TABLE_PROP_FIELD_CONFIG = &quot;fwp_table_prop_field_config&quot;;
+<i class="no-highlight">87</i>&nbsp;    protected static final String FWP_PROP_COLUMN_NAME = &quot;fwp_prop_column_name&quot;;
+<i class="no-highlight">88</i>&nbsp;    protected static final String FWP_PROP_START_POS = &quot;fwp_prop_start_pos&quot;;
+<i class="no-highlight">89</i>&nbsp;    protected static final String FWP_PROP_END_POS = &quot;fwp_prop_end_pos&quot;;
+<i class="no-highlight">90</i>&nbsp;
+<i class="no-highlight">91</i>&nbsp;    private static final String FWP_PROP_LINES_TO_SKIP = &quot;fwp_prop_lines_to_skip&quot;;
+<i class="no-highlight">92</i>&nbsp;    private static final String FWP_PROP_LINE_SEPARATOR = &quot;fwp_prop_line_separator&quot;;
+<i class="no-highlight">93</i>&nbsp;    private static final String FWP_PROP_TRIM_DATA = &quot;fwp_prop_trim_data&quot;;
+<i class="no-highlight">94</i>&nbsp;    private static final String FWP_PROP_FUNCTION = &quot;fwp_prop_function&quot;;
+<i class="no-highlight">95</i>&nbsp;    private static final String FWP_PROP_FUNCTION_VAL = &quot;fwp_prop_function_val&quot;;
+<i class="no-highlight">96</i>&nbsp;    private static final String FWP_TABLE_PROP_IGNORE_LINES = &quot;fwp_table_prop_ignore_lines&quot;;
+<i class="no-highlight">97</i>&nbsp;
+<b class="nc"><i class="no-highlight">98</i>&nbsp;    private static final Logger log = LoggerFactory.getLogger(FixedWidthParser.class);</b>
+<i class="no-highlight">99</i>&nbsp;    private List&lt;ColumnInfo&gt; columnInfoList;
+<i class="no-highlight">100</i>&nbsp;    List&lt;Map&lt;String, Object&gt;&gt; ignoreConditions;
+<i class="no-highlight">101</i>&nbsp;    private int linesToSkip;
+<i class="no-highlight">102</i>&nbsp;    private int skippedLines;
+<i class="no-highlight">103</i>&nbsp;    private String lineSeparator;
+<b class="nc"><i class="no-highlight">104</i>&nbsp;    private final String UTF8 = &quot;UTF-8&quot;;</b>
+<i class="no-highlight">105</i>&nbsp;    @Inject
+<i class="no-highlight">106</i>&nbsp;    protected InputViews inputViews;
+<i class="no-highlight">107</i>&nbsp;    @Inject
+<i class="no-highlight">108</i>&nbsp;    private OutputViews outputViews;
+<i class="no-highlight">109</i>&nbsp;    @Inject
+<i class="no-highlight">110</i>&nbsp;    private ErrorViews errorViews;
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;    @Override
+<i class="no-highlight">113</i>&nbsp;    public void cleanup() throws ExecutionException {
+<i class="no-highlight">114</i>&nbsp;        // NO OP
+<i class="no-highlight">115</i>&nbsp;    }
+<i class="no-highlight">116</i>&nbsp;
+<i class="no-highlight">117</i>&nbsp;    @Override
+<i class="no-highlight">118</i>&nbsp;    public void defineProperties(PropertyBuilder propertyBuilder) {
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        propertyBuilder.describe(FWP_PROP_LINES_TO_SKIP, FWP_PROP_LINES_TO_SKIP_LABEL,</b>
+<i class="no-highlight">120</i>&nbsp;                FWP_PROP_LINES_TO_SKIP_DESC)
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                .defaultValue(0)</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                .withMinValue(0)</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;        propertyBuilder.describe(FWP_PROP_LINE_SEPARATOR, FWP_PROP_LINE_SEPARATOR_LABEL,</b>
+<i class="no-highlight">126</i>&nbsp;                FWP_PROP_LINE_SEPARATOR_DESC)
+<b class="nc"><i class="no-highlight">127</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                .defaultValue(&quot;\\n&quot;)</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;        SnapProperty columnName = propertyBuilder.describe(FWP_PROP_COLUMN_NAME,</b>
+<i class="no-highlight">131</i>&nbsp;                FWP_PROP_COLUMN_NAME_LABEL, FWP_PROP_COLUMN_NAME_DESC)
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                .type(SnapType.STRING)</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        SnapProperty startPos = propertyBuilder.describe(FWP_PROP_START_POS,</b>
+<i class="no-highlight">136</i>&nbsp;                FWP_PROP_START_POS_LABEL, FWP_PROP_START_POS_DESC)
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                .withMinValue(1)</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        SnapProperty endPos = propertyBuilder.describe(FWP_PROP_END_POS,</b>
+<i class="no-highlight">142</i>&nbsp;                FWP_PROP_END_POS_LABEL, FWP_PROP_END_POS_DESC)
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                .type(SnapType.INTEGER)</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                .withMinValue(1)</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                .required()</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        SnapProperty trimData = propertyBuilder.describe(FWP_PROP_TRIM_DATA,</b>
+<i class="no-highlight">148</i>&nbsp;                FWP_PROP_TRIM_DATA_LABEL, FWP_PROP_TRIM_DATA_DESC)
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                .type(SnapType.BOOLEAN)</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        propertyBuilder.describe(FWP_TABLE_PROP_FIELD_CONFIG,</b>
+<i class="no-highlight">152</i>&nbsp;                FWP_TABLE_PROP_FIELD_CONFIG_LABEL,
+<i class="no-highlight">153</i>&nbsp;                FWP_TABLE_PROP_FIELD_CONFIG_DESC)
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                .withEntry(columnName)</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                .withEntry(startPos)</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                .withEntry(endPos)</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                .withEntry(trimData)</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                .add();</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        SnapProperty function = propertyBuilder.describe(FWP_PROP_FUNCTION,</b>
+<i class="no-highlight">161</i>&nbsp;                FWP_PROP_FUNCTION_LABEL, FWP_PROP_FUNCTION_DESC)
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                .withAllowedValues(FUNCTION_VALUES)</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        SnapProperty funcVal = propertyBuilder.describe(FWP_PROP_FUNCTION_VAL,</b>
+<i class="no-highlight">165</i>&nbsp;                FWP_PROP_FUNCTION_VAL_LABEL, FWP_PROP_FUNCTION_VAL_DESC)
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                .expression()</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                .build();</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;        propertyBuilder.describe(FWP_TABLE_PROP_IGNORE_LINES,</b>
+<i class="no-highlight">169</i>&nbsp;                FWP_TABLE_PROP_IGNORE_LINES_LABEL,
+<i class="no-highlight">170</i>&nbsp;                FWP_TABLE_PROP_IGNORE_LINES_DESC)
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                .type(SnapType.TABLE)</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                .withEntry(function)</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                .withEntry(funcVal)</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                .add();</b>
+<i class="no-highlight">175</i>&nbsp;    }
+<i class="no-highlight">176</i>&nbsp;
+<i class="no-highlight">177</i>&nbsp;    @Override
+<i class="no-highlight">178</i>&nbsp;    public void configure(PropertyValues propertyValues) throws ConfigurationException {
+<b class="nc"><i class="no-highlight">179</i>&nbsp;        BigInteger propSkipLines = propertyValues.get(FWP_PROP_LINES_TO_SKIP);</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;        linesToSkip = propSkipLines == null ? 0 : propSkipLines.intValue();</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        lineSeparator = propertyValues.get(FWP_PROP_LINE_SEPARATOR);</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        if (StringUtils.isEmpty(lineSeparator)) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            lineSeparator = null;</b>
+<i class="no-highlight">184</i>&nbsp;        } else {
+<b class="nc"><i class="no-highlight">185</i>&nbsp;            lineSeparator = StringEscapeUtils.unescapeJava(lineSeparator);</b>
+<i class="no-highlight">186</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; fieldProperties = propertyValues</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                .get(FWP_TABLE_PROP_FIELD_CONFIG);</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        if (fieldProperties != null) {</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;            columnInfoList = new ArrayList&lt;&gt;(fieldProperties.size());</b>
+<i class="no-highlight">191</i>&nbsp;            ColumnInfo colInfo;
+<i class="no-highlight">192</i>&nbsp;            // Iterate in the table and retrieve configuration data for each field
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            for (Map&lt;String, Map&lt;String, Object&gt;&gt; map : fieldProperties) {</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                colInfo = new ColumnInfo();</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                colInfo.setColumnName(((String) (map.get(FWP_PROP_COLUMN_NAME)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                        .get(VALUE)))); // required field</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                colInfo.setStartPos(((BigInteger) (map.get(FWP_PROP_START_POS)</b>
+<b class="nc"><i class="no-highlight">198</i>&nbsp;                        .get(VALUE)))</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                        .intValue()); // required field</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                colInfo.setEndPos(((BigInteger) (map.get(FWP_PROP_END_POS)</b>
+<b class="nc"><i class="no-highlight">201</i>&nbsp;                        .get(VALUE)))</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                        .intValue()); // required field</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                Map&lt;String, Object&gt; stringObjectMap = map.get(FWP_PROP_TRIM_DATA);</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                if (stringObjectMap != null) {</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                    colInfo.setTrimData(Boolean.TRUE.equals(stringObjectMap</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                        .get(VALUE))); // required field</b>
+<i class="no-highlight">207</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                    colInfo.setTrimData(false);</b>
+<i class="no-highlight">209</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                columnInfoList.add(colInfo);</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                if (colInfo.getEndPos() &lt; colInfo.getStartPos()) {</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                    throw new ConfigurationException(ERROR_FIELD_POSITION_CONFIG)</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                            .withReason(ERROR_FIELD_POSITION_REASON)</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                            .withResolution(ERROR_FIELD_POSITION_RESOLUTION);</b>
+<i class="no-highlight">215</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">216</i>&nbsp;            }</b>
+<i class="no-highlight">217</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        List&lt;Map&lt;String, Map&lt;String, Object&gt;&gt;&gt; ignoreLinesProperties = propertyValues</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                .get(FWP_TABLE_PROP_IGNORE_LINES);</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;        if (ignoreLinesProperties != null) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;            ignoreConditions = new ArrayList&lt;&gt;(ignoreLinesProperties.size());</b>
+<i class="no-highlight">222</i>&nbsp;            // Iterate in the table and retrieve configuration data for each field
+<b class="nc"><i class="no-highlight">223</i>&nbsp;            for (Map&lt;String, Map&lt;String, Object&gt;&gt; map : ignoreLinesProperties) {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                String function = (String) (map.get(FWP_PROP_FUNCTION).get(VALUE));</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                ExpressionProperty valueExpression = propertyValues.getExpressionPropertyFor(</b>
+<i class="no-highlight">226</i>&nbsp;                        map, FWP_PROP_FUNCTION_VAL);
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                Map&lt;String, Object&gt; ignoreCondition = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                ignoreCondition.put(function, valueExpression);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                ignoreConditions.add(ignoreCondition);</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;            }</b>
+<i class="no-highlight">231</i>&nbsp;        }
+<i class="no-highlight">232</i>&nbsp;    }
+<i class="no-highlight">233</i>&nbsp;
+<i class="no-highlight">234</i>&nbsp;    @Override
+<i class="no-highlight">235</i>&nbsp;    protected void doWork() {
+<i class="no-highlight">236</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">237</i>&nbsp;            DataIterator dataIterator = null;</b>
+<i class="no-highlight">238</i>&nbsp;            Map&lt;String, String&gt; columnData;
+<b class="nc"><i class="no-highlight">239</i>&nbsp;            for (BinaryInput binaryInput : inputViews.binaryInputs(inputViews.get())) {</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                if (binaryInput == null) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;                    break;</b>
+<i class="no-highlight">242</i>&nbsp;                }
+<i class="no-highlight">243</i>&nbsp;                try {
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                    InputStream inputStream = Channels.newInputStream(binaryInput.getChannel());</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;                    dataIterator = createDataIterator(inputStream);</b>
+<b class="nc"><i class="no-highlight">246</i>&nbsp;                    while (dataIterator.hasNext()) {</b>
+<i class="no-highlight">247</i>&nbsp;                        // Get the next object to be written, if all the field values are parsed
+<i class="no-highlight">248</i>&nbsp;                        // then write the document to output view otherwise write to error view.
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                        columnData = (Map&lt;String, String&gt;) dataIterator.next();</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                        if (columnData.size() != columnInfoList.size()) {</b>
+<i class="no-highlight">251</i>&nbsp;                            // TODO - kamal: Reason resolution missing
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                            SnapDataException snapDataException = new SnapDataException(documentUtility</b>
+<b class="nc"><i class="no-highlight">253</i>&nbsp;                                    .newDocumentFor(binaryInput.getHeader(), columnData),</b>
+<i class="no-highlight">254</i>&nbsp;                                    ERROR_COLUMN_NAMES_REASON);
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                            errorViews.write(snapDataException);</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                            continue;</b>
+<i class="no-highlight">257</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">258</i>&nbsp;                        outputViews.write(documentUtility.newDocumentFor(binaryInput.getHeader(),</b>
+<i class="no-highlight">259</i>&nbsp;                                columnData));
+<i class="no-highlight">260</i>&nbsp;                    }
+<i class="no-highlight">261</i>&nbsp;                } finally {
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                    IOUtils.closeQuietly(dataIterator);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">265</i>&nbsp;        } catch (IOException ex) {</b>
+<b class="nc"><i class="no-highlight">266</i>&nbsp;            throw new ExecutionException(ex, ERROR_READ)</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                    .withReason(String.format(ERROR_READ_REASON, ex.getMessage()))</b>
+<b class="nc"><i class="no-highlight">268</i>&nbsp;                    .withResolution(ERROR_CUSTOMER_SUPPORT);</b>
+<b class="nc"><i class="no-highlight">269</i>&nbsp;        }</b>
+<i class="no-highlight">270</i>&nbsp;    }
+<i class="no-highlight">271</i>&nbsp;
+<i class="no-highlight">272</i>&nbsp;    public List&lt;ColumnInfo&gt; getColumnInfoList() {
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        return columnInfoList;</b>
+<i class="no-highlight">274</i>&nbsp;    }
+<i class="no-highlight">275</i>&nbsp;
+<i class="no-highlight">276</i>&nbsp;    protected DataIterator createDataIterator(InputStream inputStream) throws IOException {
+<b class="nc"><i class="no-highlight">277</i>&nbsp;        return new DataIterator(inputStream);</b>
+<i class="no-highlight">278</i>&nbsp;    }
+<i class="no-highlight">279</i>&nbsp;
+<i class="no-highlight">280</i>&nbsp;    /**
+<i class="no-highlight">281</i>&nbsp;     * This subclass provides an iterator over input data.
+<i class="no-highlight">282</i>&nbsp;     */
+<i class="no-highlight">283</i>&nbsp;    private class DataIterator implements Iterator&lt;Object&gt;, Closeable {
+<i class="no-highlight">284</i>&nbsp;        private Object nextData;
+<i class="no-highlight">285</i>&nbsp;        private CustomReader reader;
+<i class="no-highlight">286</i>&nbsp;
+<b class="nc"><i class="no-highlight">287</i>&nbsp;        private DataIterator(InputStream inputStream) throws IOException {</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;            setupReader(inputStream);</b>
+<i class="no-highlight">289</i>&nbsp;        }
+<i class="no-highlight">290</i>&nbsp;
+<i class="no-highlight">291</i>&nbsp;        @Override
+<i class="no-highlight">292</i>&nbsp;        public boolean hasNext() {
+<b class="nc"><i class="no-highlight">293</i>&nbsp;            if (nextData == null) {</b>
+<b class="nc"><i class="no-highlight">294</i>&nbsp;                if ((nextData = getNextData()) == null) {</b>
+<b class="nc"><i class="no-highlight">295</i>&nbsp;                    return false;</b>
+<i class="no-highlight">296</i>&nbsp;                }
+<i class="no-highlight">297</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            return true;</b>
+<i class="no-highlight">299</i>&nbsp;        }
+<i class="no-highlight">300</i>&nbsp;
+<i class="no-highlight">301</i>&nbsp;        private Object getNextData() {
+<i class="no-highlight">302</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">303</i>&nbsp;                return readData();</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;            } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">305</i>&nbsp;                throw new ExecutionException(e, ERROR_CLOSING_INPUTSTREAM)</b>
+<b class="nc"><i class="no-highlight">306</i>&nbsp;                        .withReason(String.format(ERROR_CLOSING_INPUTSTREAM_REASON, e.getMessage()))</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;                        .withResolution(ERROR_CUSTOMER_SUPPORT);</b>
+<i class="no-highlight">308</i>&nbsp;            }
+<i class="no-highlight">309</i>&nbsp;        }
+<i class="no-highlight">310</i>&nbsp;
+<i class="no-highlight">311</i>&nbsp;        /**
+<i class="no-highlight">312</i>&nbsp;         * Resets the next data variable and returns the current data.
+<i class="no-highlight">313</i>&nbsp;         *
+<i class="no-highlight">314</i>&nbsp;         * @return dataToReturn
+<i class="no-highlight">315</i>&nbsp;         */
+<i class="no-highlight">316</i>&nbsp;        private Object resetAndReturnNextData() {
+<b class="nc"><i class="no-highlight">317</i>&nbsp;            Object dataToReturn = nextData;</b>
+<b class="nc"><i class="no-highlight">318</i>&nbsp;            nextData = null;</b>
+<b class="nc"><i class="no-highlight">319</i>&nbsp;            return dataToReturn;</b>
+<i class="no-highlight">320</i>&nbsp;        }
+<i class="no-highlight">321</i>&nbsp;
+<i class="no-highlight">322</i>&nbsp;        @Override
+<i class="no-highlight">323</i>&nbsp;        public void remove() {
+<b class="nc"><i class="no-highlight">324</i>&nbsp;            throw new UnsupportedOperationException(ERROR_ITERATOR_REMOVE);</b>
+<i class="no-highlight">325</i>&nbsp;        }
+<i class="no-highlight">326</i>&nbsp;
+<i class="no-highlight">327</i>&nbsp;        /**
+<i class="no-highlight">328</i>&nbsp;         * Reads and parses a line, and returns a map object with the parsed data.
+<i class="no-highlight">329</i>&nbsp;         *
+<i class="no-highlight">330</i>&nbsp;         * @return data
+<i class="no-highlight">331</i>&nbsp;         */
+<i class="no-highlight">332</i>&nbsp;        private Object readData() throws IOException {
+<b class="nc"><i class="no-highlight">333</i>&nbsp;            if (reader != null) {</b>
+<b class="nc"><i class="no-highlight">334</i>&nbsp;                String line = reader.readLine();</b>
+<b class="nc"><i class="no-highlight">335</i>&nbsp;                if (line != null) {</b>
+<b class="nc"><i class="no-highlight">336</i>&nbsp;                    while (skippedLines++ &lt; linesToSkip) {</b>
+<i class="no-highlight">337</i>&nbsp;                        // skip lines as per user setting
+<b class="nc"><i class="no-highlight">338</i>&nbsp;                        if ((line = reader.readLine()) == null) {</b>
+<b class="nc"><i class="no-highlight">339</i>&nbsp;                            return null;</b>
+<i class="no-highlight">340</i>&nbsp;                        }
+<i class="no-highlight">341</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">342</i>&nbsp;                    if (isIgnoreLine(line)) {</b>
+<b class="nc"><i class="no-highlight">343</i>&nbsp;                        return readData();</b>
+<i class="no-highlight">344</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">345</i>&nbsp;                    return extractColumns(line);</b>
+<i class="no-highlight">346</i>&nbsp;                }
+<i class="no-highlight">347</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">348</i>&nbsp;            return null;</b>
+<i class="no-highlight">349</i>&nbsp;        }
+<i class="no-highlight">350</i>&nbsp;
+<i class="no-highlight">351</i>&nbsp;        private boolean isIgnoreLine(String line) {
+<b class="nc"><i class="no-highlight">352</i>&nbsp;            if (ignoreConditions != null) {</b>
+<b class="nc"><i class="no-highlight">353</i>&nbsp;                Document document = documentUtility.newDocument();</b>
+<b class="nc"><i class="no-highlight">354</i>&nbsp;                for (Map&lt;String, Object&gt; ignoreCondition : ignoreConditions) {</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;                    for (Entry&lt;String, Object&gt; entry : ignoreCondition.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                        ExpressionProperty exp = (ExpressionProperty) entry.getValue();</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                        String val = exp.eval(document);</b>
+<b class="nc"><i class="no-highlight">358</i>&nbsp;                        switch (entry.getKey()) {</b>
+<i class="no-highlight">359</i>&nbsp;                            case FUNCTION_CONTAINS:
+<b class="nc"><i class="no-highlight">360</i>&nbsp;                                if (StringUtils.contains(line, val)) {</b>
+<b class="nc"><i class="no-highlight">361</i>&nbsp;                                    return true;</b>
+<i class="no-highlight">362</i>&nbsp;                                }
+<i class="no-highlight">363</i>&nbsp;                                break;
+<i class="no-highlight">364</i>&nbsp;                            case FUNCTION_STARTS_WITH:
+<b class="nc"><i class="no-highlight">365</i>&nbsp;                                if (StringUtils.startsWith(line, val)) {</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;                                    return true;</b>
+<i class="no-highlight">367</i>&nbsp;                                }
+<i class="no-highlight">368</i>&nbsp;                                break;
+<i class="no-highlight">369</i>&nbsp;                            case FUNCTION_ENDS_WITH:
+<b class="nc"><i class="no-highlight">370</i>&nbsp;                                if (StringUtils.endsWith(line, val)) {</b>
+<b class="nc"><i class="no-highlight">371</i>&nbsp;                                    return true;</b>
+<i class="no-highlight">372</i>&nbsp;                                }
+<i class="no-highlight">373</i>&nbsp;                                break;
+<i class="no-highlight">374</i>&nbsp;                            case FUNCTION_REGEX:
+<i class="no-highlight">375</i>&nbsp;                                Pattern pattern;
+<i class="no-highlight">376</i>&nbsp;                                try {
+<b class="nc"><i class="no-highlight">377</i>&nbsp;                                    pattern = Pattern.compile(val);</b>
+<b class="nc"><i class="no-highlight">378</i>&nbsp;                                } catch (PatternSyntaxException e) {</b>
+<b class="nc"><i class="no-highlight">379</i>&nbsp;                                    throw new ExecutionException(ERROR_INVALID_REGEX)</b>
+<b class="nc"><i class="no-highlight">380</i>&nbsp;                                            .withReason(ERROR_INVALID_REGEX_REASON)</b>
+<b class="nc"><i class="no-highlight">381</i>&nbsp;                                            .withResolution(ERROR_INVALID_REGEX_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">382</i>&nbsp;                                }</b>
+<b class="nc"><i class="no-highlight">383</i>&nbsp;                                if (pattern.matcher(line).matches()) {</b>
+<b class="nc"><i class="no-highlight">384</i>&nbsp;                                    return true;</b>
+<i class="no-highlight">385</i>&nbsp;                                }
+<i class="no-highlight">386</i>&nbsp;                                break;
+<i class="no-highlight">387</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">388</i>&nbsp;                    }</b>
+<b class="nc"><i class="no-highlight">389</i>&nbsp;                }</b>
+<i class="no-highlight">390</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">391</i>&nbsp;            return false;</b>
+<i class="no-highlight">392</i>&nbsp;        }
+<i class="no-highlight">393</i>&nbsp;
+<i class="no-highlight">394</i>&nbsp;        private Map&lt;String, String&gt; extractColumns(String line) {
+<b class="nc"><i class="no-highlight">395</i>&nbsp;            if (columnInfoList == null || columnInfoList.isEmpty()) {</b>
+<b class="nc"><i class="no-highlight">396</i>&nbsp;                throw new ConfigurationException(ERR_COLUMN_INFORMATION_MISSING)</b>
+<b class="nc"><i class="no-highlight">397</i>&nbsp;                    .withReason(REASON_COLUMN_INFORMATION_MISSING)</b>
+<b class="nc"><i class="no-highlight">398</i>&nbsp;                    .withResolution(RESOLUTION_COLUMN_INFORMATION_MISSING);</b>
+<i class="no-highlight">399</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">400</i>&nbsp;            Map&lt;String, String&gt; columnData = new LinkedHashMap&lt;&gt;(columnInfoList.size());</b>
+<i class="no-highlight">401</i>&nbsp;            String colVal;
+<i class="no-highlight">402</i>&nbsp;            try {
+<i class="no-highlight">403</i>&nbsp;                // extract column data from the input line
+<b class="nc"><i class="no-highlight">404</i>&nbsp;                for (ColumnInfo colInfo : columnInfoList) {</b>
+<b class="nc"><i class="no-highlight">405</i>&nbsp;                    if (line.length() &lt;= colInfo.getEndPos()) {</b>
+<b class="nc"><i class="no-highlight">406</i>&nbsp;                        colVal = line.substring(colInfo.getStartPos() - 1, line.length());</b>
+<i class="no-highlight">407</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">408</i>&nbsp;                        colVal = line.substring(colInfo.getStartPos() - 1, colInfo.getEndPos());</b>
+<i class="no-highlight">409</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">410</i>&nbsp;                    if (colInfo.isTrimData()) {</b>
+<b class="nc"><i class="no-highlight">411</i>&nbsp;                        colVal = colVal.trim();</b>
+<i class="no-highlight">412</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">413</i>&nbsp;                    columnData.put(colInfo.getColumnName(), colVal);</b>
+<b class="nc"><i class="no-highlight">414</i>&nbsp;                    if (line.length() &lt;= colInfo.getEndPos()) {</b>
+<b class="nc"><i class="no-highlight">415</i>&nbsp;                        break;</b>
+<i class="no-highlight">416</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">417</i>&nbsp;                }</b>
+<b class="nc"><i class="no-highlight">418</i>&nbsp;            } catch (Exception ex) {</b>
+<b class="nc"><i class="no-highlight">419</i>&nbsp;                log.error(ERROR_COLUMN_NAMES, ex);</b>
+<b class="nc"><i class="no-highlight">420</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">421</i>&nbsp;            return columnData;</b>
+<i class="no-highlight">422</i>&nbsp;        }
+<i class="no-highlight">423</i>&nbsp;
+<i class="no-highlight">424</i>&nbsp;        /**
+<i class="no-highlight">425</i>&nbsp;         * Sets up a reader.
+<i class="no-highlight">426</i>&nbsp;         *
+<i class="no-highlight">427</i>&nbsp;         * @param inputStream
+<i class="no-highlight">428</i>&nbsp;         */
+<i class="no-highlight">429</i>&nbsp;        @VisibleForTesting
+<i class="no-highlight">430</i>&nbsp;        protected void setupReader(InputStream inputStream) throws IOException {
+<b class="nc"><i class="no-highlight">431</i>&nbsp;            if (inputStream != null) {</b>
+<b class="nc"><i class="no-highlight">432</i>&nbsp;                reader = new CustomReader(new InputStreamReader(inputStream,</b>
+<i class="no-highlight">433</i>&nbsp;                        StandardCharsets.UTF_8), lineSeparator);
+<i class="no-highlight">434</i>&nbsp;            }
+<i class="no-highlight">435</i>&nbsp;        }
+<i class="no-highlight">436</i>&nbsp;
+<i class="no-highlight">437</i>&nbsp;        @Override
+<i class="no-highlight">438</i>&nbsp;        public Object next() {
+<b class="nc"><i class="no-highlight">439</i>&nbsp;            if (hasNext()) {</b>
+<b class="nc"><i class="no-highlight">440</i>&nbsp;                return resetAndReturnNextData();</b>
+<i class="no-highlight">441</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">442</i>&nbsp;            return null;</b>
+<i class="no-highlight">443</i>&nbsp;        }
+<i class="no-highlight">444</i>&nbsp;
+<i class="no-highlight">445</i>&nbsp;        @Override
+<i class="no-highlight">446</i>&nbsp;        public void close() throws IOException {
+<b class="nc"><i class="no-highlight">447</i>&nbsp;            reader.close();</b>
+<i class="no-highlight">448</i>&nbsp;        }
+<i class="no-highlight">449</i>&nbsp;    }
+<i class="no-highlight">450</i>&nbsp;
+<i class="no-highlight">451</i>&nbsp;    /**
+<i class="no-highlight">452</i>&nbsp;     * This subclass provides reading of lines using the line separator.
+<i class="no-highlight">453</i>&nbsp;     */
+<i class="no-highlight">454</i>&nbsp;    protected class CustomReader extends BufferedReader {
+<b class="nc"><i class="no-highlight">455</i>&nbsp;        Character separatorChar = null;</b>
+<i class="no-highlight">456</i>&nbsp;
+<b class="nc"><i class="no-highlight">457</i>&nbsp;        public CustomReader(Reader reader, String lineSeparator) {</b>
+<b class="nc"><i class="no-highlight">458</i>&nbsp;            super(reader);</b>
+<b class="nc"><i class="no-highlight">459</i>&nbsp;            if (StringUtils.isNotBlank(lineSeparator)) {</b>
+<b class="nc"><i class="no-highlight">460</i>&nbsp;                separatorChar = lineSeparator.charAt(0);</b>
+<i class="no-highlight">461</i>&nbsp;            }
+<i class="no-highlight">462</i>&nbsp;        }
+<i class="no-highlight">463</i>&nbsp;
+<i class="no-highlight">464</i>&nbsp;        @Override
+<i class="no-highlight">465</i>&nbsp;        public String readLine() throws IOException {
+<b class="nc"><i class="no-highlight">466</i>&nbsp;            if (separatorChar == null) {</b>
+<b class="nc"><i class="no-highlight">467</i>&nbsp;                return super.readLine();</b>
+<i class="no-highlight">468</i>&nbsp;            } else {
+<i class="no-highlight">469</i>&nbsp;                // Read characters from the input stream until the separator
+<b class="nc"><i class="no-highlight">470</i>&nbsp;                StringBuilder sb = new StringBuilder();</b>
+<i class="no-highlight">471</i>&nbsp;                int ch;
+<b class="nc"><i class="no-highlight">472</i>&nbsp;                while ((ch = super.read()) != separatorChar) {</b>
+<b class="nc"><i class="no-highlight">473</i>&nbsp;                    if (ch == EOF) {</b>
+<b class="nc"><i class="no-highlight">474</i>&nbsp;                        break;</b>
+<i class="no-highlight">475</i>&nbsp;                    }
+<b class="nc"><i class="no-highlight">476</i>&nbsp;                    sb.append((char) ch);</b>
+<i class="no-highlight">477</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">478</i>&nbsp;                if (sb.length() &gt; 0) {</b>
+<b class="nc"><i class="no-highlight">479</i>&nbsp;                    return sb.toString();</b>
+<i class="no-highlight">480</i>&nbsp;                } else {
+<b class="nc"><i class="no-highlight">481</i>&nbsp;                    return null;</b>
+<i class="no-highlight">482</i>&nbsp;                }
+<i class="no-highlight">483</i>&nbsp;            }
+<i class="no-highlight">484</i>&nbsp;        }
+<i class="no-highlight">485</i>&nbsp;    }
+<i class="no-highlight">486</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

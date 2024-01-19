@@ -1,0 +1,362 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > XSElementDeclNode</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.soap.node</a>
+</div>
+
+<h1>Coverage Summary for Class: XSElementDeclNode (com.snaplogic.snap.api.soap.node)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">XSElementDeclNode</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/110)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2014, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snap.api.soap.node;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.soap.node.visit.SOAPMessageTemplatizer;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.soap.util.TranslationContext;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.util.StringUtil;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.xsd.FormChoice;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.xsd.TypesFactoryImpl;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.util.JsonPathBuilder;
+<i class="no-highlight">21</i>&nbsp;import com.sun.xml.xsom.XSComplexType;
+<i class="no-highlight">22</i>&nbsp;import com.sun.xml.xsom.XSElementDecl;
+<i class="no-highlight">23</i>&nbsp;import com.sun.xml.xsom.XSType;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">26</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">27</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">28</i>&nbsp;
+<i class="no-highlight">29</i>&nbsp;import java.util.Map;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;import javax.xml.soap.SOAPElement;
+<i class="no-highlight">32</i>&nbsp;import javax.xml.soap.SOAPMessage;
+<i class="no-highlight">33</i>&nbsp;
+<i class="no-highlight">34</i>&nbsp;import static com.snaplogic.snap.api.soap.node.Messages.INVALID_ELEMENT_FORM_DEFAULT;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snap.api.soap.node.Messages.INVALID_XSD_TYPE_ENCOUNTERED;
+<i class="no-highlight">36</i>&nbsp;
+<i class="no-highlight">37</i>&nbsp;/**
+<i class="no-highlight">38</i>&nbsp; * Translates &lt;code&gt;XSElementDecl&lt;/code&gt; into a part of the SOAP request template
+<i class="no-highlight">39</i>&nbsp; *
+<i class="no-highlight">40</i>&nbsp; * @author slad@snaplogic.com (Samarth Lad)
+<i class="no-highlight">41</i>&nbsp; */
+<b class="nc"><i class="no-highlight">42</i>&nbsp;public enum XSElementDeclNode implements Translatable&lt;XSElementDecl, SOAPMessageTemplatizer&gt; {</b>
+<b class="nc"><i class="no-highlight">43</i>&nbsp;    INSTANCE;</b>
+<b class="nc"><i class="no-highlight">44</i>&nbsp;    private static final Logger LOGGER = LoggerFactory.getLogger(XSElementDeclNode.class);</b>
+<i class="no-highlight">45</i>&nbsp;    private static final String HEADER = &quot;header&quot;;
+<i class="no-highlight">46</i>&nbsp;    private static final String XSI_TYPE = &quot;xsiType&quot;;
+<i class="no-highlight">47</i>&nbsp;    private static final String XMLNS_XSI = &quot;xmlns:xsi&quot;;
+<i class="no-highlight">48</i>&nbsp;    private static final String XSI_COLON_TYPE = &quot;xsi:type&quot;;
+<i class="no-highlight">49</i>&nbsp;    private static final String XMLSCHEMA_INSTANCE_URI =
+<i class="no-highlight">50</i>&nbsp;            &quot;http://www.w3.org/2001/XMLSchema-instance&quot;;
+<i class="no-highlight">51</i>&nbsp;    private static final String XMLNS = &quot;xmlns&quot;;
+<i class="no-highlight">52</i>&nbsp;    private static final String XSD_SCHEMA_ROOT_ELEMENT = &quot;schema&quot;;
+<i class="no-highlight">53</i>&nbsp;    private static final String XSD_SCHEMA_NAMESPACE = &quot;http://www.w3.org/2001/XMLSchema&quot;;
+<i class="no-highlight">54</i>&nbsp;    private static final String COMMENT_FOR_XSD_SCHEMA_ROOT_ELEMENT_AS_CHILD =
+<i class="no-highlight">55</i>&nbsp;            &quot; Ignored the type [{http://www.w3.org/2001/XMLSchema}schema] &quot;;
+<i class="no-highlight">56</i>&nbsp;
+<i class="no-highlight">57</i>&nbsp;    public void translate(TranslationContext context, XSElementDecl xsElementDecl,
+<i class="no-highlight">58</i>&nbsp;            SOAPMessageTemplatizer visitor, boolean beforePart) throws Exception {
+<b class="nc"><i class="no-highlight">59</i>&nbsp;        String currentPath = context.peekPath();</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;        String localPart = xsElementDecl.getName();</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;        String normalizedLocalPart = StringUtil.normalizeLocalPart(localPart);</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        SOAPElement currentElement = context.peekElement();</b>
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;        // Check if the element is repeated. If so, then add a foreach directive
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        if (context.isRepeated(xsElementDecl)) {</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;            context.includeForeachDirective(currentElement, normalizedLocalPart,</b>
+<i class="no-highlight">67</i>&nbsp;                    currentPath
+<b class="nc"><i class="no-highlight">68</i>&nbsp;                            .concat(normalizedLocalPart));</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;            currentPath = JsonPathBuilder.ROOT_ELEMENT;</b>
+<i class="no-highlight">70</i>&nbsp;        }
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;        // Velocity template variable resolution was not working at top level of the operation
+<i class="no-highlight">73</i>&nbsp;        // or SOAP header until pushed the input part name into the context path
+<b class="nc"><i class="no-highlight">74</i>&nbsp;        if (beforePart) {</b>
+<b class="nc"><i class="no-highlight">75</i>&nbsp;            context.pushPath(</b>
+<i class="no-highlight">76</i>&nbsp;                    currentPath
+<b class="nc"><i class="no-highlight">77</i>&nbsp;                            .concat(normalizedLocalPart)</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;                            .concat(JsonPathBuilder.CURRENT_ELEMENT));</b>
+<i class="no-highlight">79</i>&nbsp;        }
+<i class="no-highlight">80</i>&nbsp;
+<i class="no-highlight">81</i>&nbsp;        SOAPElement childElement;
+<i class="no-highlight">82</i>&nbsp;        // NOTE: We only want to start concatenating path component when we start attaching
+<i class="no-highlight">83</i>&nbsp;        // children under SOAP body and attach the operation element to the SOAP body as a qualified
+<i class="no-highlight">84</i>&nbsp;        // one
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        if (currentElement != null) {</b>
+<i class="no-highlight">86</i>&nbsp;            // Change the current path of the translation context
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            context.pushPath(</b>
+<i class="no-highlight">88</i>&nbsp;                    currentPath
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                            .concat(normalizedLocalPart)</b>
+<b class="nc"><i class="no-highlight">90</i>&nbsp;                            .concat(JsonPathBuilder.CURRENT_ELEMENT));</b>
+<i class="no-highlight">91</i>&nbsp;            // NOTE: The API says it can return an empty string as tns,
+<i class="no-highlight">92</i>&nbsp;            // though it doesn&#39;t seem possible for an XSD element to not have the tns (except for
+<i class="no-highlight">93</i>&nbsp;            // elements contained by an anonymous type)
+<b class="nc"><i class="no-highlight">94</i>&nbsp;            String tns = xsElementDecl.getTargetNamespace();</b>
+<i class="no-highlight">95</i>&nbsp;
+<i class="no-highlight">96</i>&nbsp;            // Check if this element is contained within an anonymous type
+<b class="nc"><i class="no-highlight">97</i>&nbsp;            if (StringUtils.EMPTY.equals(tns)) {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;                tns = xsElementDecl.getOwnerSchema().getTargetNamespace();</b>
+<i class="no-highlight">99</i>&nbsp;            }
+<i class="no-highlight">100</i>&nbsp;
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            FormChoice elementFormDefault = context.getElementFormDefault(tns);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;            Boolean elementForm = xsElementDecl.getForm();</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            if (Boolean.TRUE.equals(elementForm) || (elementForm == null &amp;&amp; elementFormDefault ==</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                    FormChoice.QUALIFIED &amp;&amp; !tns.equals(StringUtils.EMPTY))) {</b>
+<i class="no-highlight">105</i>&nbsp;                // Add tns declaration to SOAP envelope if necessary
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                String prefixForTns = context.addNamespaceDeclIfAbsent(tns);</b>
+<i class="no-highlight">107</i>&nbsp;                /*
+<i class="no-highlight">108</i>&nbsp;                Some WSDL schemas contain child elements that refer to XSD root element &#39;schema&#39;.
+<i class="no-highlight">109</i>&nbsp;
+<i class="no-highlight">110</i>&nbsp;                XSOM parser cannot handle such scenarios.
+<i class="no-highlight">111</i>&nbsp;
+<i class="no-highlight">112</i>&nbsp;                To overcome such limitations, japis/jxml project renames such child schema elements
+<i class="no-highlight">113</i>&nbsp;                to that stored in
+<i class="no-highlight">114</i>&nbsp;                TypesFactoryImpl.TEMP_NAME_FOR_CHILD_ELEMENT_OF_TYPE_XSD_SCHEMA_ROOT variable.
+<i class="no-highlight">115</i>&nbsp;
+<i class="no-highlight">116</i>&nbsp;                In this jsoap project, we will rename the elements back to &#39;schema&#39; with namespace
+<i class="no-highlight">117</i>&nbsp;                &#39;http://www.w3.org/2001/XMLSchema&#39; while generating the SOAP envelope.
+<i class="no-highlight">118</i>&nbsp;
+<i class="no-highlight">119</i>&nbsp;                NOTE: Renaming was done to ensure only such child schema elements are handled and
+<i class="no-highlight">120</i>&nbsp;                not others.
+<i class="no-highlight">121</i>&nbsp;                */
+<b class="nc"><i class="no-highlight">122</i>&nbsp;                if (TypesFactoryImpl.TEMP_NAME_FOR_CHILD_ELEMENT_OF_TYPE_XSD_SCHEMA_ROOT.equals(</b>
+<i class="no-highlight">123</i>&nbsp;                        localPart)) {
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                    String prefixForXsdSchema = context.addNamespaceDeclIfAbsent(</b>
+<i class="no-highlight">125</i>&nbsp;                            XSD_SCHEMA_NAMESPACE);
+<b class="nc"><i class="no-highlight">126</i>&nbsp;                    childElement = currentElement.addChildElement(XSD_SCHEMA_ROOT_ELEMENT,</b>
+<i class="no-highlight">127</i>&nbsp;                            prefixForXsdSchema);
+<i class="no-highlight">128</i>&nbsp;                    // add a comment here for the user to fill the schema part if they want
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                    childElement.appendChild(childElement.getOwnerDocument().createComment(</b>
+<i class="no-highlight">130</i>&nbsp;                            COMMENT_FOR_XSD_SCHEMA_ROOT_ELEMENT_AS_CHILD));
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                    childElement = currentElement.addChildElement(localPart, prefixForTns);</b>
+<i class="no-highlight">133</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            } else if (Boolean.FALSE.equals(elementForm) || (elementForm == null &amp;&amp;</b>
+<i class="no-highlight">135</i>&nbsp;                    (elementFormDefault == null || elementFormDefault == FormChoice.UNQUALIFIED))
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                    || tns.equals(StringUtils.EMPTY)) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                childElement = currentElement.addChildElement(localPart);</b>
+<i class="no-highlight">138</i>&nbsp;            } else {
+<i class="no-highlight">139</i>&nbsp;                // This should not happen
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                throw new ExecutionException(INVALID_ELEMENT_FORM_DEFAULT);</b>
+<i class="no-highlight">141</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">142</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;            SOAPMessage soapMessage = context.getSoapMessage();</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;            if (context.getLocation() != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                    context.getLocation().getLocalPart().equalsIgnoreCase(HEADER)) {</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;                currentElement = soapMessage.getSOAPHeader();</b>
+<i class="no-highlight">147</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                currentElement = soapMessage.getSOAPBody();</b>
+<i class="no-highlight">149</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">150</i>&nbsp;            String tns = xsElementDecl.getTargetNamespace();</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;            if (StringUtils.EMPTY.equals(tns)) {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                tns = xsElementDecl.getOwnerSchema().getTargetNamespace();</b>
+<i class="no-highlight">153</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            if (StringUtils.EMPTY.equals(tns) &amp;&amp; currentElement.getNamespaceURI() != null) {</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                tns = currentElement.getNamespaceURI();</b>
+<i class="no-highlight">156</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            LOGGER.debug(String.format(&quot;tns:: %s&quot;, tns));</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            String prefixForTns = context.addNamespaceDeclIfAbsent(tns);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;            childElement = currentElement.addChildElement(localPart, prefixForTns);</b>
+<i class="no-highlight">160</i>&nbsp;        }
+<i class="no-highlight">161</i>&nbsp;
+<b class="nc"><i class="no-highlight">162</i>&nbsp;        if (beforePart &amp;&amp; childElement != null) {</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            Map&lt;String, XSComplexType&gt; complexTypes =</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;                    xsElementDecl.getOwnerSchema().getComplexTypes();</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;            XSType type = xsElementDecl.getType();</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;            childElement.setAttribute(XMLNS, childElement.getElementQName()</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                    .getNamespaceURI());</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            if (type != null) {</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                for (XSComplexType xsComplexType : complexTypes.values()) {</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;                    String attrValue = &quot;&quot;;</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                    if (xsComplexType.getBaseType() != null &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;                            xsComplexType.getBaseType().equals(type)) {</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                        attrValue = currentPath</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                                .concat(normalizedLocalPart);</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                        childElement.setAttribute(XMLNS_XSI,</b>
+<i class="no-highlight">176</i>&nbsp;                                XMLSCHEMA_INSTANCE_URI);
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                        childElement.setAttributeNS(</b>
+<i class="no-highlight">178</i>&nbsp;                                XMLSCHEMA_INSTANCE_URI,
+<i class="no-highlight">179</i>&nbsp;                                XSI_COLON_TYPE, attrValue
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                                        .concat(JsonPathBuilder.CURRENT_ELEMENT).concat(XSI_TYPE));</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                        break;</b>
+<i class="no-highlight">182</i>&nbsp;                    }
+<i class="no-highlight">183</i>&nbsp;
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                }</b>
+<i class="no-highlight">185</i>&nbsp;            }
+<i class="no-highlight">186</i>&nbsp;        }
+<i class="no-highlight">187</i>&nbsp;        // Change the current SOAP element of the translation context
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        context.pushElement(childElement);</b>
+<i class="no-highlight">189</i>&nbsp;
+<i class="no-highlight">190</i>&nbsp;        // Now visit the type of the element
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        XSType type = xsElementDecl.getType();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        if (type.isComplexType()) {</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            XSComplexType xsComplexType = type.asComplexType();</b>
+<i class="no-highlight">194</i>&nbsp;            // Check if the macro is being generated. If yes, then don&#39;t resolve the complex type
+<i class="no-highlight">195</i>&nbsp;            // TODO: Sam - Handle the case where we want to resolve the complex type while
+<i class="no-highlight">196</i>&nbsp;            //             generating a macro
+<b class="nc"><i class="no-highlight">197</i>&nbsp;            if (!context.isMacroBeingGenerated()) {</b>
+<i class="no-highlight">198</i>&nbsp;                // NOTE: For this to work, a call to collect schema must have been made before
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                xsComplexType = context.resolve(xsComplexType);</b>
+<i class="no-highlight">200</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">201</i>&nbsp;            if (!context.isBeingVisited(xsComplexType)) {</b>
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                context.startVisiting(xsComplexType);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                xsComplexType.visit(visitor);</b>
+<b class="nc"><i class="no-highlight">204</i>&nbsp;                context.finishVisiting(xsComplexType);</b>
+<i class="no-highlight">205</i>&nbsp;            } else {
+<i class="no-highlight">206</i>&nbsp;                // Recursive type definition
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                SOAPElement element = context.peekElement();</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;                String path = context.peekPath();</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                if (context.containsMacroFor(xsComplexType)) {</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                    String macroName = context.getMacroFor(xsComplexType);</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                    context.includeIfDirective(element, path);</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                    context.includeMacroCall(element, macroName, path);</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                    context.includeEndDirectiveForIf(element);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;                } else {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                    String macroName = context.createMacroName();</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                    context.includeMacroDirective(element, macroName,</b>
+<i class="no-highlight">217</i>&nbsp;                            normalizedLocalPart);
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                    context.addMacroFor(xsComplexType, macroName);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                    context.pushPath(</b>
+<i class="no-highlight">220</i>&nbsp;                            JsonPathBuilder.ROOT_ELEMENT
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                                    .concat(normalizedLocalPart)</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                                    .concat(JsonPathBuilder.CURRENT_ELEMENT));</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                    xsComplexType.visit(visitor);</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;                    context.includeEndDirectiveForMacro(element);</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                    context.includeIfDirective(element, path);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                    context.includeMacroCall(element, macroName, path);</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                    context.includeEndDirectiveForIf(element);</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                    context.popPath();</b>
+<i class="no-highlight">229</i>&nbsp;                }
+<i class="no-highlight">230</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        } else if (type.isSimpleType()) {</b>
+<b class="nc"><i class="no-highlight">232</i>&nbsp;            type.asSimpleType().visit(visitor);</b>
+<i class="no-highlight">233</i>&nbsp;        } else {
+<i class="no-highlight">234</i>&nbsp;            // This should not happen
+<b class="nc"><i class="no-highlight">235</i>&nbsp;            throw new ExecutionException(String.format(INVALID_XSD_TYPE_ENCOUNTERED,</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                    type.getClass()));</b>
+<i class="no-highlight">237</i>&nbsp;        }
+<i class="no-highlight">238</i>&nbsp;
+<i class="no-highlight">239</i>&nbsp;        // Check if the element is repeated. If so, then add an end directive here
+<b class="nc"><i class="no-highlight">240</i>&nbsp;        if (context.isRepeated(xsElementDecl)) {</b>
+<b class="nc"><i class="no-highlight">241</i>&nbsp;            context.includeEndDirectiveForForEach(currentElement);</b>
+<i class="no-highlight">242</i>&nbsp;        }
+<i class="no-highlight">243</i>&nbsp;
+<b class="nc"><i class="no-highlight">244</i>&nbsp;        context.popElement();</b>
+<b class="nc"><i class="no-highlight">245</i>&nbsp;        context.popPath();</b>
+<i class="no-highlight">246</i>&nbsp;
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        if (beforePart) {</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;            context.popPath();</b>
+<i class="no-highlight">249</i>&nbsp;        }
+<i class="no-highlight">250</i>&nbsp;    }
+<i class="no-highlight">251</i>&nbsp;
+<i class="no-highlight">252</i>&nbsp;    @Override
+<i class="no-highlight">253</i>&nbsp;    public void translate(TranslationContext context, XSElementDecl xsElementDecl,
+<i class="no-highlight">254</i>&nbsp;            SOAPMessageTemplatizer visitor) throws Exception {
+<b class="nc"><i class="no-highlight">255</i>&nbsp;        translate(context, xsElementDecl, visitor, false);</b>
+<i class="no-highlight">256</i>&nbsp;    }
+<i class="no-highlight">257</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

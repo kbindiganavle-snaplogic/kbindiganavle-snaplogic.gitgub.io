@@ -1,0 +1,296 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BufferedMemoryStorage</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.mldatapreparation.util</a>
+</div>
+
+<h1>Coverage Summary for Class: BufferedMemoryStorage (com.snaplogic.snaps.mldatapreparation.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">BufferedMemoryStorage</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/58)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;
+<i class="no-highlight">12</i>&nbsp;package com.snaplogic.snaps.mldatapreparation.util;
+<i class="no-highlight">13</i>&nbsp;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.util.concurrent.ExecutionError;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.transform.ObjectSizeEstimator;
+<i class="no-highlight">17</i>&nbsp;import org.apache.commons.io.FileUtils;
+<i class="no-highlight">18</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">19</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import java.io.File;
+<i class="no-highlight">22</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">23</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">24</i>&nbsp;import java.util.List;
+<i class="no-highlight">25</i>&nbsp;import java.util.concurrent.atomic.AtomicBoolean;
+<i class="no-highlight">26</i>&nbsp;
+<i class="no-highlight">27</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_EXTERNAL_SCANNER;
+<i class="no-highlight">28</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.ERR_EXTERNAL_STORE;
+<i class="no-highlight">29</i>&nbsp;import static com.snaplogic.snaps.mldatapreparation.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">30</i>&nbsp;
+<i class="no-highlight">31</i>&nbsp;/**
+<i class="no-highlight">32</i>&nbsp; * The data store using limited in-memory resources.
+<i class="no-highlight">33</i>&nbsp; * It spills data to temporary files on local storage.
+<i class="no-highlight">34</i>&nbsp; */
+<i class="no-highlight">35</i>&nbsp;public abstract class BufferedMemoryStorage {
+<i class="no-highlight">36</i>&nbsp;
+<b class="nc"><i class="no-highlight">37</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(BufferedMemoryStorage.class);</b>
+<b class="nc"><i class="no-highlight">38</i>&nbsp;    private static final Runtime RUNTIME = Runtime.getRuntime();</b>
+<i class="no-highlight">39</i>&nbsp;    private final long maxBufferSize;
+<b class="nc"><i class="no-highlight">40</i>&nbsp;    private final List&lt;Object&gt; inMemoryTable = new ArrayList&lt;&gt;(10000); // in-memory data structure</b>
+<i class="no-highlight">41</i>&nbsp;    private final File tmpDir; // directory for temp files
+<b class="nc"><i class="no-highlight">42</i>&nbsp;    private boolean memoryResident = true; // indicates if entire data resides in memory</b>
+<i class="no-highlight">43</i>&nbsp;    private Scanner scanner; // final result is in the scanner
+<b class="nc"><i class="no-highlight">44</i>&nbsp;    private final List&lt;BufferedFile&gt; chunkPaths = new ArrayList&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">45</i>&nbsp;    private int chunkId = 0;</b>
+<b class="nc"><i class="no-highlight">46</i>&nbsp;    private final ObjectSizeEstimator objectSizeEstimator = new ObjectSizeEstimator();</b>
+<i class="no-highlight">47</i>&nbsp;    private int bufferedObjThreshold;
+<i class="no-highlight">48</i>&nbsp;    private int bufferedObjCount;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;    protected List&lt;Object&gt; getInMemoryTable() {
+<b class="nc"><i class="no-highlight">51</i>&nbsp;        return inMemoryTable;</b>
+<i class="no-highlight">52</i>&nbsp;    }
+<i class="no-highlight">53</i>&nbsp;
+<i class="no-highlight">54</i>&nbsp;    protected boolean isMemoryResident() {
+<b class="nc"><i class="no-highlight">55</i>&nbsp;        return memoryResident;</b>
+<i class="no-highlight">56</i>&nbsp;    }
+<i class="no-highlight">57</i>&nbsp;
+<i class="no-highlight">58</i>&nbsp;    protected List&lt;BufferedFile&gt; getChunkPaths(){
+<b class="nc"><i class="no-highlight">59</i>&nbsp;        return chunkPaths;</b>
+<i class="no-highlight">60</i>&nbsp;    }
+<i class="no-highlight">61</i>&nbsp;
+<b class="nc"><i class="no-highlight">62</i>&nbsp;    public BufferedMemoryStorage(long maxBufferSize, File tmpDir) {</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        this.maxBufferSize = maxBufferSize;</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        this.tmpDir = tmpDir;</b>
+<i class="no-highlight">65</i>&nbsp;    }
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;    /**
+<i class="no-highlight">68</i>&nbsp;     * Adds one object to storage (either on memory or files)
+<i class="no-highlight">69</i>&nbsp;     *
+<i class="no-highlight">70</i>&nbsp;     * @param data - an object to be shuffled
+<i class="no-highlight">71</i>&nbsp;     */
+<i class="no-highlight">72</i>&nbsp;    public void add(final Object data) {
+<b class="nc"><i class="no-highlight">73</i>&nbsp;        inMemoryTable.add(data);</b>
+<i class="no-highlight">74</i>&nbsp;
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        afterAddInMemory(data);</b>
+<i class="no-highlight">76</i>&nbsp;
+<i class="no-highlight">77</i>&nbsp;        // Update the object size estimation.
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        if (objectSizeEstimator.addSizeObservation(data)) {</b>
+<i class="no-highlight">79</i>&nbsp;            // The object size estimation has changed. Recalculate the number of objects that can be
+<i class="no-highlight">80</i>&nbsp;            // buffered in memory before persisting the objects to disk.
+<b class="nc"><i class="no-highlight">81</i>&nbsp;            bufferedObjThreshold = objectSizeEstimator.getDocCountEstimate(maxBufferSize);</b>
+<i class="no-highlight">82</i>&nbsp;        }
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">85</i>&nbsp;            if (++bufferedObjCount &gt; bufferedObjThreshold) {</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;                LOG.info(&quot;Shuffle a chunk and write to temp file, object count: {}&quot;, bufferedObjCount);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                memoryResident = false;</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                chunkPaths.add(storeChunk(chunkId++, inMemoryTable));</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                bufferedObjCount = 0;</b>
+<i class="no-highlight">90</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            throw new SnapDataException(e, ERR_EXTERNAL_STORE).withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;        }</b>
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;    }
+<i class="no-highlight">96</i>&nbsp;
+<i class="no-highlight">97</i>&nbsp;    /**
+<i class="no-highlight">98</i>&nbsp;     * Add action after add to memory and before store to files
+<i class="no-highlight">99</i>&nbsp;     * @param data - object to be added
+<i class="no-highlight">100</i>&nbsp;     */
+<i class="no-highlight">101</i>&nbsp;    protected abstract void afterAddInMemory(final Object data);
+<i class="no-highlight">102</i>&nbsp;
+<i class="no-highlight">103</i>&nbsp;    /**
+<i class="no-highlight">104</i>&nbsp;     * The entire records are inserted and now it begins an external getScanner
+<i class="no-highlight">105</i>&nbsp;     *
+<i class="no-highlight">106</i>&nbsp;     * @return scanner
+<i class="no-highlight">107</i>&nbsp;     */
+<i class="no-highlight">108</i>&nbsp;    public Scanner getScanner(AtomicBoolean stop) {
+<i class="no-highlight">109</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            if (!memoryResident &amp;&amp; !inMemoryTable.isEmpty()) {</b>
+<i class="no-highlight">111</i>&nbsp;                // There are some data left in the memory. Shuffle and write to temporary file.
+<b class="nc"><i class="no-highlight">112</i>&nbsp;                chunkPaths.add(storeChunk(chunkId, inMemoryTable));</b>
+<i class="no-highlight">113</i>&nbsp;            }
+<i class="no-highlight">114</i>&nbsp;
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            scanner = getScannerInternal(stop);</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            return scanner;</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            throw new SnapDataException(e, ERR_EXTERNAL_SCANNER).withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">119</i>&nbsp;        }
+<i class="no-highlight">120</i>&nbsp;
+<i class="no-highlight">121</i>&nbsp;    }
+<i class="no-highlight">122</i>&nbsp;
+<i class="no-highlight">123</i>&nbsp;    /**
+<i class="no-highlight">124</i>&nbsp;     *
+<i class="no-highlight">125</i>&nbsp;     * The method to get Scanner based on subclass behavior
+<i class="no-highlight">126</i>&nbsp;     *
+<i class="no-highlight">127</i>&nbsp;     * @return scanner
+<i class="no-highlight">128</i>&nbsp;     */
+<i class="no-highlight">129</i>&nbsp;    protected abstract Scanner getScannerInternal(AtomicBoolean stop) throws IOException;
+<i class="no-highlight">130</i>&nbsp;
+<i class="no-highlight">131</i>&nbsp;    /**
+<i class="no-highlight">132</i>&nbsp;     * Cleans up temp files and directory.
+<i class="no-highlight">133</i>&nbsp;     */
+<i class="no-highlight">134</i>&nbsp;    public void cleanUp() {
+<i class="no-highlight">135</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            if (tmpDir.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                File[] files = tmpDir.listFiles();</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                for (File file : files) {</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                    if (file.isDirectory()) {</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                        FileUtils.deleteDirectory(file);</b>
+<i class="no-highlight">141</i>&nbsp;                    } else {
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                        file.delete();</b>
+<i class="no-highlight">143</i>&nbsp;                    }
+<i class="no-highlight">144</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                FileUtils.deleteDirectory(tmpDir);</b>
+<i class="no-highlight">146</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            LOG.debug(String.format(&quot;Failed to delete temp files in: %s&quot;, tmpDir), e);</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        }</b>
+<i class="no-highlight">150</i>&nbsp;    }
+<i class="no-highlight">151</i>&nbsp;
+<i class="no-highlight">152</i>&nbsp;    /**
+<i class="no-highlight">153</i>&nbsp;     * Store data into a chunk file
+<i class="no-highlight">154</i>&nbsp;     *
+<i class="no-highlight">155</i>&nbsp;     * @param chunkId - temporary file id to be written
+<i class="no-highlight">156</i>&nbsp;     * @param datas   - objects to be shuffled and store as temporary file
+<i class="no-highlight">157</i>&nbsp;     */
+<i class="no-highlight">158</i>&nbsp;    private BufferedFile storeChunk(int chunkId, List&lt;Object&gt; datas) throws IOException {
+<b class="nc"><i class="no-highlight">159</i>&nbsp;        String outputPath = String.format(&quot;%s/%s&quot;, this.tmpDir, chunkId);</b>
+<i class="no-highlight">160</i>&nbsp;
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        long startTime = System.currentTimeMillis();</b>
+<i class="no-highlight">162</i>&nbsp;
+<i class="no-highlight">163</i>&nbsp;        BufferedFile shuffleFile;
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        try (final FileWriter writer = new FileWriter(outputPath)) {</b>
+<b class="nc"><i class="no-highlight">165</i>&nbsp;            for (Object eachObject : datas) {</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                writer.append(eachObject);</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">168</i>&nbsp;            shuffleFile = new BufferedFile(writer.count(), outputPath);</b>
+<b class="nc"><i class="no-highlight">169</i>&nbsp;        }</b>
+<i class="no-highlight">170</i>&nbsp;
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        datas.clear();</b>
+<i class="no-highlight">172</i>&nbsp;
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        LOG.info(&quot;Finished writing to shuffled chunk: {} to {}, {} ms&quot;,</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                chunkId, outputPath, (System.currentTimeMillis() - startTime));</b>
+<i class="no-highlight">175</i>&nbsp;
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        printMemory();</b>
+<i class="no-highlight">177</i>&nbsp;
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        return shuffleFile;</b>
+<i class="no-highlight">179</i>&nbsp;    }
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;    /**
+<i class="no-highlight">182</i>&nbsp;     * log memory footprint each time after store data to files
+<i class="no-highlight">183</i>&nbsp;     */
+<i class="no-highlight">184</i>&nbsp;    protected static void printMemory() {
+<b class="nc"><i class="no-highlight">185</i>&nbsp;        long maxMemory = RUNTIME.maxMemory();</b>
+<b class="nc"><i class="no-highlight">186</i>&nbsp;        long freeMemory = RUNTIME.freeMemory();</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;        long totalMemory = RUNTIME.totalMemory();</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;        LOG.info(&quot;maxMemory: {}, freeMemory: {}, totalMemory: {}&quot;, maxMemory, freeMemory, totalMemory);</b>
+<i class="no-highlight">189</i>&nbsp;    }
+<i class="no-highlight">190</i>&nbsp;
+<i class="no-highlight">191</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

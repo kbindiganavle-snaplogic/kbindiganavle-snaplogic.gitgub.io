@@ -1,0 +1,474 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > FtpFileAttributes</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snap.api.fs.ftp</a>
+</div>
+
+<h1>Coverage Summary for Class: FtpFileAttributes (com.snaplogic.snap.api.fs.ftp)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FtpFileAttributes</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/27)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/135)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snap.api.fs.ftp;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">14</i>&nbsp;
+<i class="no-highlight">15</i>&nbsp;import org.apache.commons.io.FilenameUtils;
+<i class="no-highlight">16</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">17</i>&nbsp;import org.apache.commons.net.ftp.FTPClient;
+<i class="no-highlight">18</i>&nbsp;import org.apache.commons.net.ftp.FTPFile;
+<i class="no-highlight">19</i>&nbsp;import org.apache.commons.net.ftp.FTPReply;
+<i class="no-highlight">20</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">21</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">24</i>&nbsp;import java.io.InputStream;
+<i class="no-highlight">25</i>&nbsp;import java.nio.file.attribute.BasicFileAttributes;
+<i class="no-highlight">26</i>&nbsp;import java.nio.file.attribute.FileTime;
+<i class="no-highlight">27</i>&nbsp;import java.nio.file.attribute.GroupPrincipal;
+<i class="no-highlight">28</i>&nbsp;import java.nio.file.attribute.PosixFileAttributes;
+<i class="no-highlight">29</i>&nbsp;import java.nio.file.attribute.PosixFilePermission;
+<i class="no-highlight">30</i>&nbsp;import java.nio.file.attribute.UserPrincipal;
+<i class="no-highlight">31</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">32</i>&nbsp;import java.util.HashSet;
+<i class="no-highlight">33</i>&nbsp;import java.util.Map;
+<i class="no-highlight">34</i>&nbsp;import java.util.Set;
+<i class="no-highlight">35</i>&nbsp;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snap.api.fs.JfsUtils.*;
+<i class="no-highlight">37</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_CONNECTION_REASON;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_CONNECTION_RESOLUTION;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_DIRECTORY;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snap.api.fs.ftp.Messages.ERR_REGULAR_FILE;
+<i class="no-highlight">41</i>&nbsp;
+<i class="no-highlight">42</i>&nbsp;/**
+<i class="no-highlight">43</i>&nbsp; * FtpFileAttributes provides attributes associated with a file in a file system.
+<i class="no-highlight">44</i>&nbsp; */
+<i class="no-highlight">45</i>&nbsp;public class FtpFileAttributes implements BasicFileAttributes, PosixFileAttributes {
+<b class="nc"><i class="no-highlight">46</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(FtpFileAttributes.class);</b>
+<i class="no-highlight">47</i>&nbsp;    private FtpFileSystem ftpFileSystem;
+<i class="no-highlight">48</i>&nbsp;    // absolute path of the file object which starts with &#39;/&#39;
+<i class="no-highlight">49</i>&nbsp;    private String strPath;
+<i class="no-highlight">50</i>&nbsp;    private FTPClient client;
+<b class="nc"><i class="no-highlight">51</i>&nbsp;    private FTPFile ftpFile = null;</b>
+<b class="nc"><i class="no-highlight">52</i>&nbsp;    private Boolean isRegularFile = null;</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;    private Boolean isDirectory = null;</b>
+<i class="no-highlight">54</i>&nbsp;    private boolean isRoot;
+<i class="no-highlight">55</i>&nbsp;
+<i class="no-highlight">56</i>&nbsp;    // This constructor is used by FtpFileSystemProvider, which has only a string file path
+<i class="no-highlight">57</i>&nbsp;    // from Snap. FTPFile object is needed to get the file attributes. But, there is no FtpFile
+<i class="no-highlight">58</i>&nbsp;    // constructor to instantiate FTPFile object from its string path. Therefore, we are using
+<i class="no-highlight">59</i>&nbsp;    // FTPClient#listFile(parent) to find the FTPFile object in getFtpFile() method below.
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    public FtpFileAttributes(FtpPath path) {</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;        ftpFileSystem = (FtpFileSystem) path.getFileSystem();</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;        strPath = path.toUri().getPath();</b>
+<b class="nc"><i class="no-highlight">63</i>&nbsp;        client = ftpFileSystem.getFtpUrlConnection().getFTPClient();</b>
+<b class="nc"><i class="no-highlight">64</i>&nbsp;        if (StringUtils.isEmpty(strPath)) {</b>
+<b class="nc"><i class="no-highlight">65</i>&nbsp;            strPath = URL_SEPARATOR;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;            isRoot = true;</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;            isDirectory = true;</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            isRegularFile = false;</b>
+<i class="no-highlight">69</i>&nbsp;        }
+<i class="no-highlight">70</i>&nbsp;    }
+<i class="no-highlight">71</i>&nbsp;
+<i class="no-highlight">72</i>&nbsp;    // This constructor is used by FtpDirectoryStream to construct FileAttributes object for each
+<i class="no-highlight">73</i>&nbsp;    // child file in a given directory. The listFiles() method returns FTPFile objects, which are
+<i class="no-highlight">74</i>&nbsp;    // needed to get their attributes.
+<b class="nc"><i class="no-highlight">75</i>&nbsp;    public FtpFileAttributes(FtpFileSystem ftpFileSystem, FTPFile ftpFile, String strPath) {</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        this.ftpFileSystem = ftpFileSystem;</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        this.ftpFile = ftpFile;</b>
+<b class="nc"><i class="no-highlight">78</i>&nbsp;        this.strPath = strPath;</b>
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        client = ftpFileSystem.getFtpUrlConnection().getFTPClient();</b>
+<i class="no-highlight">80</i>&nbsp;    }
+<i class="no-highlight">81</i>&nbsp;
+<i class="no-highlight">82</i>&nbsp;    @Override
+<i class="no-highlight">83</i>&nbsp;    public boolean isRegularFile() {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        if (isRegularFile != null) {</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;            return isRegularFile;</b>
+<i class="no-highlight">86</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        if (ftpFile == null) {</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;            ftpFile = getFTPFile(strPath);</b>
+<i class="no-highlight">89</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">90</i>&nbsp;        if (ftpFile != null) {</b>
+<b class="nc"><i class="no-highlight">91</i>&nbsp;            isRegularFile = ftpFile.isFile();</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;            isDirectory = ftpFile.isDirectory();</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;            return isRegularFile;</b>
+<i class="no-highlight">94</i>&nbsp;        }
+<i class="no-highlight">95</i>&nbsp;        // If FTPFile information is not available, try to open an input stream. If successful,
+<i class="no-highlight">96</i>&nbsp;        // it is a regular file.
+<b class="nc"><i class="no-highlight">97</i>&nbsp;        try (InputStream inputStream = client.retrieveFileStream(strPath)) {</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            if (inputStream == null || client.getReplyCode() == FTPReply.FILE_UNAVAILABLE) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                isRegularFile = false;</b>
+<b class="nc"><i class="no-highlight">100</i>&nbsp;                return false;</b>
+<i class="no-highlight">101</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">103</i>&nbsp;            throw new SnapDataException(ERR_REGULAR_FILE)</b>
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                    .formatWith(strPath)</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;                    .withReason(ERR_CONNECTION_REASON)</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                    .withResolution(ERR_CONNECTION_RESOLUTION);</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;        isRegularFile = true;</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;        isDirectory = false;</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;        return true;</b>
+<i class="no-highlight">111</i>&nbsp;    }
+<i class="no-highlight">112</i>&nbsp;
+<i class="no-highlight">113</i>&nbsp;    @Override
+<i class="no-highlight">114</i>&nbsp;    public boolean isDirectory() {
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        if (isDirectory != null) {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            return isDirectory;</b>
+<i class="no-highlight">117</i>&nbsp;        }
+<i class="no-highlight">118</i>&nbsp;
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        if (ftpFile == null) {</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            ftpFile = getFTPFile(strPath);</b>
+<i class="no-highlight">121</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        if (ftpFile != null) {</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;            isDirectory = ftpFile.isDirectory();</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            isRegularFile = ftpFile.isFile();</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;            return isDirectory;</b>
+<i class="no-highlight">126</i>&nbsp;        }
+<i class="no-highlight">127</i>&nbsp;        // If FTPFile information is not available, try to change working directory into the given
+<i class="no-highlight">128</i>&nbsp;        // path. If successful, it is a directory.
+<i class="no-highlight">129</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            client.changeWorkingDirectory(strPath);</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;            throw new SnapDataException(ERR_DIRECTORY)</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                    .formatWith(strPath);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;        if (FTPReply.isPositiveCompletion(client.getReplyCode())) {</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;            isDirectory = true;</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;            isRegularFile = false;</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;            return true;</b>
+<i class="no-highlight">139</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">140</i>&nbsp;        isDirectory = false;</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;        return false;</b>
+<i class="no-highlight">142</i>&nbsp;    }
+<i class="no-highlight">143</i>&nbsp;
+<i class="no-highlight">144</i>&nbsp;    private FTPFile getFTPFile(String path) {
+<b class="nc"><i class="no-highlight">145</i>&nbsp;        String name = FilenameUtils.getName(endsWithoutUrlSeparator(path));</b>
+<b class="nc"><i class="no-highlight">146</i>&nbsp;        String parent = FilenameUtils.getFullPathNoEndSeparator(path);</b>
+<i class="no-highlight">147</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">148</i>&nbsp;            FTPFile[] files = client.listFiles(parent);</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;            if (files != null) {</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;                for (FTPFile file : files) {</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                    if (name.equals(file.getName())) {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                        return file;</b>
+<i class="no-highlight">153</i>&nbsp;                    }
+<i class="no-highlight">154</i>&nbsp;                }
+<i class="no-highlight">155</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">156</i>&nbsp;        } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;            LOG.info(String.format(&quot;Failed to list parent directory of {}&quot;, path), e);</b>
+<i class="no-highlight">158</i>&nbsp;            // If it fails to get FTPFile object, the calling method should find an alternative
+<i class="no-highlight">159</i>&nbsp;            // method to get file attributes.
+<b class="nc"><i class="no-highlight">160</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">161</i>&nbsp;        return null;</b>
+<i class="no-highlight">162</i>&nbsp;    }
+<i class="no-highlight">163</i>&nbsp;
+<i class="no-highlight">164</i>&nbsp;    @Override
+<i class="no-highlight">165</i>&nbsp;    public FileTime lastModifiedTime() {
+<b class="nc"><i class="no-highlight">166</i>&nbsp;        return FileTime.fromMillis(ftpFile.getTimestamp().getTimeInMillis());</b>
+<i class="no-highlight">167</i>&nbsp;    }
+<i class="no-highlight">168</i>&nbsp;
+<i class="no-highlight">169</i>&nbsp;    @Override
+<i class="no-highlight">170</i>&nbsp;    public boolean isSymbolicLink() {
+<b class="nc"><i class="no-highlight">171</i>&nbsp;        return ftpFile.isSymbolicLink();</b>
+<i class="no-highlight">172</i>&nbsp;    }
+<i class="no-highlight">173</i>&nbsp;
+<i class="no-highlight">174</i>&nbsp;    @Override
+<i class="no-highlight">175</i>&nbsp;    public long size() {
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        return ftpFile.getSize();</b>
+<i class="no-highlight">177</i>&nbsp;    }
+<i class="no-highlight">178</i>&nbsp;
+<i class="no-highlight">179</i>&nbsp;    @Override
+<i class="no-highlight">180</i>&nbsp;    public Set&lt;PosixFilePermission&gt; permissions() {
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        Set&lt;PosixFilePermission&gt; set = new HashSet&lt;PosixFilePermission&gt;();</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;        for (int i = 0; i &lt; ACCESS_TYPES.length; ++i) {</b>
+<b class="nc"><i class="no-highlight">183</i>&nbsp;            for (int j = 0; j &lt; PERMISSION_TYPES.length; ++j) {</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                if (ftpFile.hasPermission(ACCESS_TYPES[i], PERMISSION_TYPES[j])) {</b>
+<b class="nc"><i class="no-highlight">185</i>&nbsp;                    set.add(POSIX_PERMISSIONS[(i * ACCESS_TYPES.length) + j]);</b>
+<i class="no-highlight">186</i>&nbsp;                }
+<i class="no-highlight">187</i>&nbsp;            }
+<i class="no-highlight">188</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        return set;</b>
+<i class="no-highlight">190</i>&nbsp;    }
+<i class="no-highlight">191</i>&nbsp;
+<i class="no-highlight">192</i>&nbsp;    // TODO - psung: Implement the following methods when necessary
+<i class="no-highlight">193</i>&nbsp;
+<i class="no-highlight">194</i>&nbsp;    @Override
+<i class="no-highlight">195</i>&nbsp;    public FileTime lastAccessTime() {
+<b class="nc"><i class="no-highlight">196</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">197</i>&nbsp;    }
+<i class="no-highlight">198</i>&nbsp;
+<i class="no-highlight">199</i>&nbsp;    @Override
+<i class="no-highlight">200</i>&nbsp;    public FileTime creationTime() {
+<b class="nc"><i class="no-highlight">201</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">202</i>&nbsp;    }
+<i class="no-highlight">203</i>&nbsp;
+<i class="no-highlight">204</i>&nbsp;    @Override
+<i class="no-highlight">205</i>&nbsp;    public boolean isOther() {
+<b class="nc"><i class="no-highlight">206</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">207</i>&nbsp;    }
+<i class="no-highlight">208</i>&nbsp;
+<i class="no-highlight">209</i>&nbsp;    @Override
+<i class="no-highlight">210</i>&nbsp;    public Object fileKey() {
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">212</i>&nbsp;    }
+<i class="no-highlight">213</i>&nbsp;
+<i class="no-highlight">214</i>&nbsp;    @Override
+<i class="no-highlight">215</i>&nbsp;    public GroupPrincipal group() {
+<i class="no-highlight">216</i>&nbsp;        // overriding this method requires writing more classes to implement GroupPrincipal
+<i class="no-highlight">217</i>&nbsp;        // interface
+<b class="nc"><i class="no-highlight">218</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">219</i>&nbsp;    }
+<i class="no-highlight">220</i>&nbsp;
+<i class="no-highlight">221</i>&nbsp;    @Override
+<i class="no-highlight">222</i>&nbsp;    public UserPrincipal owner() {
+<i class="no-highlight">223</i>&nbsp;        // overriding this method requires writing more classes to implement UserPrincipal interface
+<b class="nc"><i class="no-highlight">224</i>&nbsp;        throw new UnsupportedOperationException();</b>
+<i class="no-highlight">225</i>&nbsp;    }
+<i class="no-highlight">226</i>&nbsp;
+<i class="no-highlight">227</i>&nbsp;    /**
+<i class="no-highlight">228</i>&nbsp;     * Custom method to return basic attributes as a map.
+<i class="no-highlight">229</i>&nbsp;     *
+<i class="no-highlight">230</i>&nbsp;     * @return a map containing basic attributes
+<i class="no-highlight">231</i>&nbsp;     */
+<i class="no-highlight">232</i>&nbsp;    protected Map&lt;String, Object&gt; toBasicMap() {
+<b class="nc"><i class="no-highlight">233</i>&nbsp;        Map&lt;String, Object&gt; map = new HashMap&lt;String, Object&gt;();</b>
+<b class="nc"><i class="no-highlight">234</i>&nbsp;        map.put(BASIC_ATTR_NAME, strPath);</b>
+<b class="nc"><i class="no-highlight">235</i>&nbsp;        map.put(BASIC_ATTR_TYPE, isDirectory() ? DIRECTORY : FILE);</b>
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        map.put(BASIC_ATTR_SIZE, String.valueOf(size()));</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;        map.put(BASIC_ATTR_LAST_MOD_DATE, lastModifiedTime().toString());</b>
+<b class="nc"><i class="no-highlight">238</i>&nbsp;        return map;</b>
+<i class="no-highlight">239</i>&nbsp;    }
+<i class="no-highlight">240</i>&nbsp;
+<i class="no-highlight">241</i>&nbsp;    /**
+<i class="no-highlight">242</i>&nbsp;     * Custom method to return posix attributes as a map.
+<i class="no-highlight">243</i>&nbsp;     *
+<i class="no-highlight">244</i>&nbsp;     * @return a map containing posix attributes
+<i class="no-highlight">245</i>&nbsp;     */
+<i class="no-highlight">246</i>&nbsp;    protected Map&lt;String, Object&gt; toPosixMap() {
+<b class="nc"><i class="no-highlight">247</i>&nbsp;        Map&lt;String, Object&gt; map = new HashMap&lt;String, Object&gt;();</b>
+<b class="nc"><i class="no-highlight">248</i>&nbsp;        map.put(POSIX_ATTR_OWNER, getOwner());</b>
+<b class="nc"><i class="no-highlight">249</i>&nbsp;        map.put(POSIX_ATTR_GROUP, getGroup());</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;        map.put(POSIX_ATTR_PERMISSIONS, getPermissions());</b>
+<b class="nc"><i class="no-highlight">251</i>&nbsp;        return map;</b>
+<i class="no-highlight">252</i>&nbsp;    }
+<i class="no-highlight">253</i>&nbsp;
+<i class="no-highlight">254</i>&nbsp;    /**
+<i class="no-highlight">255</i>&nbsp;     * Custom method to change an attribute of ftpFile.
+<i class="no-highlight">256</i>&nbsp;     *
+<i class="no-highlight">257</i>&nbsp;     * @param name  name of the attribute to be set
+<i class="no-highlight">258</i>&nbsp;     * @param value value to be assigned
+<i class="no-highlight">259</i>&nbsp;     */
+<i class="no-highlight">260</i>&nbsp;    protected void setAttribute(String name, Object value) {
+<b class="nc"><i class="no-highlight">261</i>&nbsp;        switch (name.toLowerCase()) {</b>
+<i class="no-highlight">262</i>&nbsp;            case BASIC_ATTR_NAME:
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                ftpFile.setName((String) value);</b>
+<b class="nc"><i class="no-highlight">264</i>&nbsp;                break;</b>
+<i class="no-highlight">265</i>&nbsp;            case BASIC_ATTR_SIZE:
+<b class="nc"><i class="no-highlight">266</i>&nbsp;                ftpFile.setSize((Long) value);</b>
+<b class="nc"><i class="no-highlight">267</i>&nbsp;                break;</b>
+<i class="no-highlight">268</i>&nbsp;            case BASIC_ATTR_TYPE:
+<b class="nc"><i class="no-highlight">269</i>&nbsp;                throw new UnsupportedOperationException();</b>
+<i class="no-highlight">270</i>&nbsp;            case BASIC_ATTR_LAST_MOD_DATE:
+<b class="nc"><i class="no-highlight">271</i>&nbsp;                throw new UnsupportedOperationException();</b>
+<i class="no-highlight">272</i>&nbsp;            case POSIX_ATTR_OWNER:
+<b class="nc"><i class="no-highlight">273</i>&nbsp;                ftpFile.setUser((String) value);</b>
+<b class="nc"><i class="no-highlight">274</i>&nbsp;                break;</b>
+<i class="no-highlight">275</i>&nbsp;            case POSIX_ATTR_GROUP:
+<b class="nc"><i class="no-highlight">276</i>&nbsp;                ftpFile.setGroup((String) value);</b>
+<b class="nc"><i class="no-highlight">277</i>&nbsp;                break;</b>
+<i class="no-highlight">278</i>&nbsp;            case POSIX_ATTR_PERMISSIONS:
+<b class="nc"><i class="no-highlight">279</i>&nbsp;                throw new UnsupportedOperationException();</b>
+<i class="no-highlight">280</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">281</i>&nbsp;                throw new IllegalArgumentException(name);</b>
+<i class="no-highlight">282</i>&nbsp;        }
+<i class="no-highlight">283</i>&nbsp;    }
+<i class="no-highlight">284</i>&nbsp;
+<i class="no-highlight">285</i>&nbsp;    /**
+<i class="no-highlight">286</i>&nbsp;     * checks if file exists
+<i class="no-highlight">287</i>&nbsp;     *
+<i class="no-highlight">288</i>&nbsp;     * @return true if file exists
+<i class="no-highlight">289</i>&nbsp;     */
+<i class="no-highlight">290</i>&nbsp;    protected boolean exists() throws IOException {
+<b class="nc"><i class="no-highlight">291</i>&nbsp;        if (isRoot || (isRegularFile != null &amp;&amp; isRegularFile) ||</b>
+<b class="nc"><i class="no-highlight">292</i>&nbsp;                (isDirectory != null &amp;&amp; isDirectory)) {</b>
+<b class="nc"><i class="no-highlight">293</i>&nbsp;            return true;</b>
+<i class="no-highlight">294</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">295</i>&nbsp;        if (ftpFile == null) {</b>
+<b class="nc"><i class="no-highlight">296</i>&nbsp;            ftpFile = getFTPFile(strPath);</b>
+<i class="no-highlight">297</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">298</i>&nbsp;        if (ftpFile != null) {</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;            isRegularFile = ftpFile.isFile();</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;            isDirectory = ftpFile.isDirectory();</b>
+<b class="nc"><i class="no-highlight">301</i>&nbsp;            return true;</b>
+<i class="no-highlight">302</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        String status = client.getStatus(strPath);</b>
+<i class="no-highlight">304</i>&nbsp;        // If the file exists, its status string contains the file name.
+<i class="no-highlight">305</i>&nbsp;        // See the junit test &#39;testExistsTrue()&#39; for a sample file status.
+<b class="nc"><i class="no-highlight">306</i>&nbsp;        String name = FilenameUtils.getName(endsWithoutUrlSeparator(strPath));</b>
+<b class="nc"><i class="no-highlight">307</i>&nbsp;        return StringUtils.contains(status, name);</b>
+<i class="no-highlight">308</i>&nbsp;    }
+<i class="no-highlight">309</i>&nbsp;
+<i class="no-highlight">310</i>&nbsp;    /**
+<i class="no-highlight">311</i>&nbsp;     * checks if it is an empty directory
+<i class="no-highlight">312</i>&nbsp;     *
+<i class="no-highlight">313</i>&nbsp;     * @return true if it is an empty directory
+<i class="no-highlight">314</i>&nbsp;     */
+<i class="no-highlight">315</i>&nbsp;    protected boolean isEmptyDirectory() throws IOException {
+<b class="nc"><i class="no-highlight">316</i>&nbsp;        FTPFile[] ftpFiles = client.listFiles(strPath);</b>
+<b class="nc"><i class="no-highlight">317</i>&nbsp;        return ftpFiles.length == 0;</b>
+<i class="no-highlight">318</i>&nbsp;    }
+<i class="no-highlight">319</i>&nbsp;
+<i class="no-highlight">320</i>&nbsp;    protected void setIsRegularFile(Boolean value) {
+<b class="nc"><i class="no-highlight">321</i>&nbsp;        isRegularFile = value;</b>
+<i class="no-highlight">322</i>&nbsp;    }
+<i class="no-highlight">323</i>&nbsp;
+<i class="no-highlight">324</i>&nbsp;    protected void setIsDirectory(Boolean value) {
+<b class="nc"><i class="no-highlight">325</i>&nbsp;        isDirectory = value;</b>
+<i class="no-highlight">326</i>&nbsp;    }
+<i class="no-highlight">327</i>&nbsp;
+<i class="no-highlight">328</i>&nbsp;    /**
+<i class="no-highlight">329</i>&nbsp;     * Custom method to get the group name.
+<i class="no-highlight">330</i>&nbsp;     *
+<i class="no-highlight">331</i>&nbsp;     * @return the group to which the file represented by ftpFile belongs to
+<i class="no-highlight">332</i>&nbsp;     */
+<i class="no-highlight">333</i>&nbsp;    private String getGroup() {
+<b class="nc"><i class="no-highlight">334</i>&nbsp;        return ftpFile.getGroup();</b>
+<i class="no-highlight">335</i>&nbsp;    }
+<i class="no-highlight">336</i>&nbsp;
+<i class="no-highlight">337</i>&nbsp;    /**
+<i class="no-highlight">338</i>&nbsp;     * Custom method to get the owner name.
+<i class="no-highlight">339</i>&nbsp;     *
+<i class="no-highlight">340</i>&nbsp;     * @return the owner to which the file represented by ftpFile belongs to
+<i class="no-highlight">341</i>&nbsp;     */
+<i class="no-highlight">342</i>&nbsp;    private String getOwner() {
+<b class="nc"><i class="no-highlight">343</i>&nbsp;        return ftpFile.getUser();</b>
+<i class="no-highlight">344</i>&nbsp;    }
+<i class="no-highlight">345</i>&nbsp;
+<i class="no-highlight">346</i>&nbsp;    /**
+<i class="no-highlight">347</i>&nbsp;     * Custom method to get the user permissions in String format.
+<i class="no-highlight">348</i>&nbsp;     *
+<i class="no-highlight">349</i>&nbsp;     * @return the file permissions on ftpFile
+<i class="no-highlight">350</i>&nbsp;     */
+<i class="no-highlight">351</i>&nbsp;    private String getPermissions() {
+<b class="nc"><i class="no-highlight">352</i>&nbsp;        char[] permissions = DEFAULT_PERMISSIONS_VALUE.toCharArray();</b>
+<i class="no-highlight">353</i>&nbsp;
+<b class="nc"><i class="no-highlight">354</i>&nbsp;        for (int i = 0; i &lt; ACCESS_TYPES.length; ++i) {</b>
+<b class="nc"><i class="no-highlight">355</i>&nbsp;            for (int j = 0; j &lt; PERMISSION_TYPES.length; ++j) {</b>
+<b class="nc"><i class="no-highlight">356</i>&nbsp;                if (ftpFile.hasPermission(ACCESS_TYPES[i], PERMISSION_TYPES[j])) {</b>
+<b class="nc"><i class="no-highlight">357</i>&nbsp;                    permissions[(i * ACCESS_TYPES.length) + j] = PERMISSIONS_SET.asList().get(j);</b>
+<i class="no-highlight">358</i>&nbsp;                }
+<i class="no-highlight">359</i>&nbsp;            }
+<i class="no-highlight">360</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">361</i>&nbsp;        return new String(permissions);</b>
+<i class="no-highlight">362</i>&nbsp;    }
+<i class="no-highlight">363</i>&nbsp;
+<i class="no-highlight">364</i>&nbsp;    void delete() {
+<b class="nc"><i class="no-highlight">365</i>&nbsp;        ftpFile = null;</b>
+<b class="nc"><i class="no-highlight">366</i>&nbsp;        isRegularFile = null;</b>
+<b class="nc"><i class="no-highlight">367</i>&nbsp;        isDirectory = null;</b>
+<i class="no-highlight">368</i>&nbsp;    }
+<i class="no-highlight">369</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

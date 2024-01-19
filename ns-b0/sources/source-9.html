@@ -1,0 +1,347 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > EntityToAPIResourceMapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.dynamics365forsales.common</a>
+</div>
+
+<h1>Coverage Summary for Class: EntityToAPIResourceMapper (com.snaplogic.snaps.dynamics365forsales.common)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EntityToAPIResourceMapper</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/100)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2018, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.dynamics365forsales.common;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.cache.Cache;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.cache.CacheBuilder;
+<i class="no-highlight">16</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">17</i>&nbsp;import com.google.common.util.concurrent.UncheckedExecutionException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.util.SnapObjectMapper;
+<i class="no-highlight">20</i>&nbsp;
+<i class="no-highlight">21</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">22</i>&nbsp;import org.apache.http.HttpEntity;
+<i class="no-highlight">23</i>&nbsp;import org.apache.http.HttpResponse;
+<i class="no-highlight">24</i>&nbsp;import org.apache.http.client.methods.HttpGet;
+<i class="no-highlight">25</i>&nbsp;import org.apache.http.entity.ContentType;
+<i class="no-highlight">26</i>&nbsp;import org.apache.http.util.EntityUtils;
+<i class="no-highlight">27</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">28</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">29</i>&nbsp;
+<i class="no-highlight">30</i>&nbsp;import java.io.IOException;
+<i class="no-highlight">31</i>&nbsp;import java.util.ArrayList;
+<i class="no-highlight">32</i>&nbsp;import java.util.Map;
+<i class="no-highlight">33</i>&nbsp;import java.util.Objects;
+<i class="no-highlight">34</i>&nbsp;import java.util.TreeMap;
+<i class="no-highlight">35</i>&nbsp;import java.util.concurrent.ExecutionException;
+<i class="no-highlight">36</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.Messages.API_NOT_FOUND_REASON;
+<i class="no-highlight">39</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.Messages.ERROR_DERIVING_API;
+<i class="no-highlight">40</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.Messages.ERROR_PROCESSING_GET_ALL_ENTITIETYPES;
+<i class="no-highlight">41</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.Messages.ERR_DERIVING_API_RESOLUTION;
+<i class="no-highlight">42</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.Messages.ERR_REST_API;
+<i class="no-highlight">43</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.Messages.ERR_REST_API_REASON_PHRASE;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.Messages.ERR_REST_API_RESOLUTION;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.Messages.ERR_UNKNOWN;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.common.RestClientUtils.CONTENT_TYPE_HEADER_VALUE;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.dynamics365forsales.common.RestClientUtils.isOAuthTokenRefreshRequired;
+<i class="no-highlight">48</i>&nbsp;
+<i class="no-highlight">49</i>&nbsp;/**
+<i class="no-highlight">50</i>&nbsp; * Maps a MS Dynamics 365 For Sales Entity name to it&#39;s WebAPI Resource.
+<i class="no-highlight">51</i>&nbsp; * This is up to speed for version 9.0, in case we upgrade from version 8.2.
+<i class="no-highlight">52</i>&nbsp; * Version 9.0 is backward compatible.
+<i class="no-highlight">53</i>&nbsp; * https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/entitytypes?view=dynamics-ce-odata-9
+<i class="no-highlight">54</i>&nbsp; *
+<i class="no-highlight">55</i>&nbsp; */
+<b class="nc"><i class="no-highlight">56</i>&nbsp;public class EntityToAPIResourceMapper {</b>
+<b class="nc"><i class="no-highlight">57</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(EntityToAPIResourceMapper.class</b>
+<b class="nc"><i class="no-highlight">58</i>&nbsp;            .getName());</b>
+<b class="nc"><i class="no-highlight">59</i>&nbsp;    private static String VALUE_FIELD = &quot;value&quot;;</b>
+<b class="nc"><i class="no-highlight">60</i>&nbsp;    private static String ENTITYSETNAME_FIELD = &quot;EntitySetName&quot;;</b>
+<b class="nc"><i class="no-highlight">61</i>&nbsp;    private static String LOGICALNAME_FIELD = &quot;LogicalName&quot;;</b>
+<b class="nc"><i class="no-highlight">62</i>&nbsp;    private static String SLASH = &quot;/&quot;;</b>
+<i class="no-highlight">63</i>&nbsp;    // Using Metadata query API documented at:
+<i class="no-highlight">64</i>&nbsp;    // https://docs.microsoft.com/en-us/previous-versions/dynamicscrm-2016/developers-guide/mt607522(v%3dcrm.8)
+<b class="nc"><i class="no-highlight">65</i>&nbsp;    private static String METADATA_QUERY_URI_FMT = &quot;%s/EntityDefinitions?$select=%s&quot;;</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;    private static String QUERY_STRING_FOR_NAME = &quot;EntitySetName,LogicalName&quot;;</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;    private static String EXCEPTION_STATUS_401 = &quot;status code = 401&quot;;</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;    private static SnapObjectMapper OBJECT_MAPPER = new SnapObjectMapper();</b>
+<i class="no-highlight">69</i>&nbsp;    //tenantID Url to EntityList
+<i class="no-highlight">70</i>&nbsp;    final static Cache&lt;String, Map&lt;String, String&gt;&gt; entityTypesCache = CacheBuilder
+<b class="nc"><i class="no-highlight">71</i>&nbsp;            .newBuilder()</b>
+<b class="nc"><i class="no-highlight">72</i>&nbsp;            .expireAfterWrite(5, TimeUnit.MINUTES)</b>
+<b class="nc"><i class="no-highlight">73</i>&nbsp;            .build();</b>
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;    /**
+<i class="no-highlight">76</i>&nbsp;     * Returns the API resource name, associated with the entity.
+<i class="no-highlight">77</i>&nbsp;     * A SnapDataException would be thrown if no API found for the entity.
+<i class="no-highlight">78</i>&nbsp;     *
+<i class="no-highlight">79</i>&nbsp;     * @param entityName
+<i class="no-highlight">80</i>&nbsp;     *
+<i class="no-highlight">81</i>&nbsp;     * @return
+<i class="no-highlight">82</i>&nbsp;     */
+<i class="no-highlight">83</i>&nbsp;    public static String getAPIFromEntity(String entityName, Account&lt;AccountInfo&gt; account) {
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        String api =</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;                getEntityToApiMapForURL(account).get(entityName);</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        if (StringUtils.isBlank(api)) {</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;            throw new SnapDataException(ERROR_DERIVING_API)</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                    .withReason(String.format(API_NOT_FOUND_REASON, entityName))</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;                    .withResolution(ERR_DERIVING_API_RESOLUTION);</b>
+<i class="no-highlight">90</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">91</i>&nbsp;        return api;</b>
+<i class="no-highlight">92</i>&nbsp;    }
+<i class="no-highlight">93</i>&nbsp;
+<i class="no-highlight">94</i>&nbsp;
+<i class="no-highlight">95</i>&nbsp;    /**
+<i class="no-highlight">96</i>&nbsp;     * Get all of the supported Entity Types for suggestion values dynamically through the rest
+<i class="no-highlight">97</i>&nbsp;     * api and update the existing statically loaded values.
+<i class="no-highlight">98</i>&nbsp;     *
+<i class="no-highlight">99</i>&nbsp;     * @param account
+<i class="no-highlight">100</i>&nbsp;     *
+<i class="no-highlight">101</i>&nbsp;     * @return
+<i class="no-highlight">102</i>&nbsp;     */
+<i class="no-highlight">103</i>&nbsp;    public static String[] getAllEntityTypesForSuggestion(
+<i class="no-highlight">104</i>&nbsp;            Account&lt;AccountInfo&gt; account) {
+<b class="nc"><i class="no-highlight">105</i>&nbsp;        Map&lt;String, String&gt; entityTypes = null;</b>
+<i class="no-highlight">106</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">107</i>&nbsp;            LOG.debug(&quot;Start loading entity list from the server&quot;);</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;            entityTypes = getEntityToApiMapForURL(account);</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;            LOG.debug(&quot;End loading entity list from the server&quot;);</b>
+<i class="no-highlight">110</i>&nbsp;
+<b class="nc"><i class="no-highlight">111</i>&nbsp;        } catch (SnapDataException | UncheckedExecutionException ex) {</b>
+<i class="no-highlight">112</i>&nbsp;            // UncheckedExecutionException in the catch block is thrown by the Guava Cache Manager
+<i class="no-highlight">113</i>&nbsp;            // that wraps the expected SnapDataException.
+<i class="no-highlight">114</i>&nbsp;            // Ref: https://guava.dev/releases/19.0/api/docs/com/google/common/util/
+<i class="no-highlight">115</i>&nbsp;            // concurrent/UncheckedExecutionException.html
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            if (ex.getMessage().contains(EXCEPTION_STATUS_401)) {</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;                LOG.info(&quot;Unable to load data into cache, Trying to reload the entityTypes&quot;);</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;                return new String[]{};</b>
+<i class="no-highlight">119</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">120</i>&nbsp;                throw ex;</b>
+<i class="no-highlight">121</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">122</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;        return entityTypes.keySet().toArray(new String[0]);</b>
+<i class="no-highlight">124</i>&nbsp;    }
+<i class="no-highlight">125</i>&nbsp;
+<i class="no-highlight">126</i>&nbsp;    private static Map&lt;String, String&gt; getEntityToApiMapForURL(Account&lt;AccountInfo&gt; account) {
+<b class="nc"><i class="no-highlight">127</i>&nbsp;        AccountInfo info = account.getAccountInfo();</b>
+<b class="nc"><i class="no-highlight">128</i>&nbsp;        String tenantURL = info.getTenantURL();</b>
+<i class="no-highlight">129</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">130</i>&nbsp;            return entityTypesCache.get(tenantURL, () -&gt; fetchAllEntityTypes</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                    (account));</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;        } catch (ExecutionException e) {</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;            LOG.info(&quot;Unable to load data into cache, Trying to reload the entityTypes&quot;);</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;            return fetchAllEntityTypes(account);</b>
+<i class="no-highlight">135</i>&nbsp;        }
+<i class="no-highlight">136</i>&nbsp;    }
+<i class="no-highlight">137</i>&nbsp;
+<i class="no-highlight">138</i>&nbsp;    /**
+<i class="no-highlight">139</i>&nbsp;     * This method invokes the api call to fetch all the entitytypes from the backend available
+<i class="no-highlight">140</i>&nbsp;     * for the give organization
+<i class="no-highlight">141</i>&nbsp;     *
+<i class="no-highlight">142</i>&nbsp;     * @param account
+<i class="no-highlight">143</i>&nbsp;     *
+<i class="no-highlight">144</i>&nbsp;     * @return EntityTypes map data
+<i class="no-highlight">145</i>&nbsp;     */
+<i class="no-highlight">146</i>&nbsp;    public static Map&lt;String, String&gt; fetchAllEntityTypes(Account&lt;AccountInfo&gt; account) {
+<b class="nc"><i class="no-highlight">147</i>&nbsp;        String fetchAllEntityTypesUrl = getQueryMetadataURI(account.getAccountInfo().getTenantURL(),</b>
+<i class="no-highlight">148</i>&nbsp;                QUERY_STRING_FOR_NAME);
+<b class="nc"><i class="no-highlight">149</i>&nbsp;        HttpGet request = new HttpGet(fetchAllEntityTypesUrl);</b>
+<b class="nc"><i class="no-highlight">150</i>&nbsp;        account.loadAuthorizationHeader(request);</b>
+<b class="nc"><i class="no-highlight">151</i>&nbsp;        RestClientUtils.loadCommonHeaders(request, RestMethodType.GET);</b>
+<i class="no-highlight">152</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">153</i>&nbsp;            HttpResponse response = RestClientUtils.executeClientRequest(request, account);</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;            if (isOAuthTokenRefreshRequired(response.getStatusLine().getStatusCode()) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                    (account.reloadSnapAccount(false) ||</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                            account.reloadSnapAccount(true))) {</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                account.connect();</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                account.loadAuthorizationHeader(request);</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                response = RestClientUtils.executeClientRequest(request, account);</b>
+<i class="no-highlight">160</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">161</i>&nbsp;            return parseResponse(response);</b>
+<i class="no-highlight">162</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">163</i>&nbsp;            request.releaseConnection();</b>
+<b class="nc"><i class="no-highlight">164</i>&nbsp;        }</b>
+<i class="no-highlight">165</i>&nbsp;    }
+<i class="no-highlight">166</i>&nbsp;
+<i class="no-highlight">167</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">168</i>&nbsp;    protected static Map&lt;String, String&gt; parseResponse(HttpResponse response) {
+<i class="no-highlight">169</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">170</i>&nbsp;            String statusCode =</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;                    Integer.toString(response.getStatusLine().getStatusCode());</b>
+<b class="nc"><i class="no-highlight">172</i>&nbsp;            if (statusCode</b>
+<b class="nc"><i class="no-highlight">173</i>&nbsp;                    .startsWith(RestClientUtils.SUCCESS_CODE_FIRST_DIGIT)) {</b>
+<b class="nc"><i class="no-highlight">174</i>&nbsp;                Map&lt;String, Object&gt; result =</b>
+<b class="nc"><i class="no-highlight">175</i>&nbsp;                        OBJECT_MAPPER.readValue(response.getEntity().getContent());</b>
+<i class="no-highlight">176</i>&nbsp;                //TreeMap is used get the values sorted
+<b class="nc"><i class="no-highlight">177</i>&nbsp;                Map&lt;String, String&gt; entityTypes = new TreeMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;                Object values = result.get(VALUE_FIELD);</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                if (values instanceof ArrayList) {</b>
+<b class="nc"><i class="no-highlight">180</i>&nbsp;                    for (Map&lt;String, String&gt; entity : (ArrayList&lt;Map&gt;) values) {</b>
+<b class="nc"><i class="no-highlight">181</i>&nbsp;                        entityTypes.put(entity.get(LOGICALNAME_FIELD), entity.get(ENTITYSETNAME_FIELD));</b>
+<b class="nc"><i class="no-highlight">182</i>&nbsp;                    }</b>
+<i class="no-highlight">183</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">184</i>&nbsp;                return entityTypes;</b>
+<i class="no-highlight">185</i>&nbsp;            } else {
+<b class="nc"><i class="no-highlight">186</i>&nbsp;                HttpEntity entity = response.getEntity();</b>
+<b class="nc"><i class="no-highlight">187</i>&nbsp;                String error = EntityUtils.toString(entity);</b>
+<b class="nc"><i class="no-highlight">188</i>&nbsp;                String reason = String.format(ERR_REST_API_REASON_PHRASE, statusCode,</b>
+<b class="nc"><i class="no-highlight">189</i>&nbsp;                        response.getStatusLine().getReasonPhrase());</b>
+<b class="nc"><i class="no-highlight">190</i>&nbsp;                if (error != null) {</b>
+<b class="nc"><i class="no-highlight">191</i>&nbsp;                    reason = reason.concat(error);</b>
+<i class="no-highlight">192</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                throw new SnapDataException(ERR_REST_API)</b>
+<b class="nc"><i class="no-highlight">194</i>&nbsp;                        .formatWith(statusCode)</b>
+<b class="nc"><i class="no-highlight">195</i>&nbsp;                        .withReason(reason)</b>
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                        .withResolution(ERR_REST_API_RESOLUTION);</b>
+<i class="no-highlight">197</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">198</i>&nbsp;        } catch (IOException e) {</b>
+<b class="nc"><i class="no-highlight">199</i>&nbsp;            throw new SnapDataException(e, ERROR_PROCESSING_GET_ALL_ENTITIETYPES)</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                    .withResolution(ERR_REST_API_RESOLUTION);</b>
+<i class="no-highlight">201</i>&nbsp;        }
+<i class="no-highlight">202</i>&nbsp;    }
+<i class="no-highlight">203</i>&nbsp;
+<i class="no-highlight">204</i>&nbsp;    /**
+<i class="no-highlight">205</i>&nbsp;     * Parse HTTP error response to map
+<i class="no-highlight">206</i>&nbsp;     */
+<i class="no-highlight">207</i>&nbsp;    public static Map&lt;String, String&gt; parseErrorResponse(HttpResponse response) throws IOException {
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        ContentType contentType = Objects.requireNonNullElse(ContentType.get(response.getEntity()),</b>
+<i class="no-highlight">209</i>&nbsp;                ContentType.TEXT_PLAIN);
+<b class="nc"><i class="no-highlight">210</i>&nbsp;        String responseType = contentType.getMimeType();</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;        boolean isJson = responseType.equals(CONTENT_TYPE_HEADER_VALUE);</b>
+<i class="no-highlight">212</i>&nbsp;        Map&lt;String, Object&gt; responseMap;
+<b class="nc"><i class="no-highlight">213</i>&nbsp;        String errorKey = &quot;error&quot;;</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;        String messageKey = &quot;message&quot;;</b>
+<i class="no-highlight">215</i>&nbsp;
+<b class="nc"><i class="no-highlight">216</i>&nbsp;        if (isJson) {</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;            responseMap = OBJECT_MAPPER.readValue(response.getEntity().getContent());</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;            Map&lt;String, Object&gt; unknownErrorMap = ImmutableMap.of(messageKey, ERR_UNKNOWN);</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;            if (!responseMap.containsKey(errorKey)) {</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                LOG.debug(&quot;Invalid error response: {}&quot;, responseMap);</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                responseMap = ImmutableMap.of(errorKey, unknownErrorMap);</b>
+<i class="no-highlight">222</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">223</i>&nbsp;        } else {</b>
+<b class="nc"><i class="no-highlight">224</i>&nbsp;            String responseText = EntityUtils.toString(response.getEntity());</b>
+<b class="nc"><i class="no-highlight">225</i>&nbsp;            if (responseText.isBlank()) {</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                responseText = response.getStatusLine().getReasonPhrase();</b>
+<i class="no-highlight">227</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">228</i>&nbsp;            Map&lt;String, String&gt; errorMap = ImmutableMap.of(messageKey, responseText);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;            responseMap = ImmutableMap.of(errorKey, errorMap);</b>
+<i class="no-highlight">230</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">231</i>&nbsp;        return (Map&lt;String, String&gt;) responseMap.get(errorKey);</b>
+<i class="no-highlight">232</i>&nbsp;    }
+<i class="no-highlight">233</i>&nbsp;
+<i class="no-highlight">234</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">235</i>&nbsp;    protected static String getQueryMetadataURI (String tenantURL, String queryString) {
+<b class="nc"><i class="no-highlight">236</i>&nbsp;        if(tenantURL.endsWith(SLASH)) {</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;            tenantURL = tenantURL.substring(0, tenantURL.length() - 1);</b>
+<i class="no-highlight">238</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">239</i>&nbsp;        return String.format(METADATA_QUERY_URI_FMT, tenantURL,</b>
+<i class="no-highlight">240</i>&nbsp;                QUERY_STRING_FOR_NAME);
+<i class="no-highlight">241</i>&nbsp;    }
+<i class="no-highlight">242</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

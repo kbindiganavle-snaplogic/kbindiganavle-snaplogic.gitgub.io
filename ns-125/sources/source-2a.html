@@ -1,0 +1,367 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > Search</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.netsuite</a>
+</div>
+
+<h1>Coverage Summary for Class: Search (com.snaplogic.snaps.netsuite)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Search</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/70)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Search$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/29)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/15)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/99)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;package com.snaplogic.snaps.netsuite;
+<i class="no-highlight">2</i>&nbsp;
+<i class="no-highlight">3</i>&nbsp;import com.google.common.annotations.VisibleForTesting;
+<i class="no-highlight">4</i>&nbsp;import com.google.common.collect.Iterators;
+<i class="no-highlight">5</i>&nbsp;import com.google.inject.Inject;
+<i class="no-highlight">6</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">7</i>&nbsp;import com.snaplogic.snap.api.Document;
+<i class="no-highlight">8</i>&nbsp;import com.snaplogic.snap.api.EditorProperty;
+<i class="no-highlight">9</i>&nbsp;import com.snaplogic.snap.api.PropertyValues;
+<i class="no-highlight">10</i>&nbsp;import com.snaplogic.snap.api.SnapCategory;
+<i class="no-highlight">11</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">12</i>&nbsp;import com.snaplogic.snap.api.capabilities.Category;
+<i class="no-highlight">13</i>&nbsp;import com.snaplogic.snap.api.capabilities.General;
+<i class="no-highlight">14</i>&nbsp;import com.snaplogic.snap.api.capabilities.Inputs;
+<i class="no-highlight">15</i>&nbsp;import com.snaplogic.snap.api.capabilities.Outputs;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.snap.api.capabilities.Version;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.capabilities.ViewType;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.soap.ClientBuilder;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.soap.node.visit.SOAPMessageTemplatizer;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.soap.node.visit.SOAPMessageTemplatizerImpl;
+<i class="no-highlight">21</i>&nbsp;import com.snaplogic.snap.api.xsd.schema.SchemaVisitorImpl;
+<i class="no-highlight">22</i>&nbsp;
+<i class="no-highlight">23</i>&nbsp;import org.w3c.dom.Node;
+<i class="no-highlight">24</i>&nbsp;
+<i class="no-highlight">25</i>&nbsp;import java.io.ByteArrayInputStream;
+<i class="no-highlight">26</i>&nbsp;import java.io.ByteArrayOutputStream;
+<i class="no-highlight">27</i>&nbsp;import java.util.HashMap;
+<i class="no-highlight">28</i>&nbsp;import java.util.Iterator;
+<i class="no-highlight">29</i>&nbsp;import java.util.List;
+<i class="no-highlight">30</i>&nbsp;import java.util.Map;
+<i class="no-highlight">31</i>&nbsp;
+<i class="no-highlight">32</i>&nbsp;import javax.xml.namespace.QName;
+<i class="no-highlight">33</i>&nbsp;import javax.xml.parsers.DocumentBuilder;
+<i class="no-highlight">34</i>&nbsp;import javax.xml.parsers.ParserConfigurationException;
+<i class="no-highlight">35</i>&nbsp;import javax.xml.soap.SOAPBody;
+<i class="no-highlight">36</i>&nbsp;import javax.xml.soap.SOAPElement;
+<i class="no-highlight">37</i>&nbsp;import javax.xml.soap.SOAPException;
+<i class="no-highlight">38</i>&nbsp;import javax.xml.soap.SOAPMessage;
+<i class="no-highlight">39</i>&nbsp;import javax.xml.xpath.XPathConstants;
+<i class="no-highlight">40</i>&nbsp;import javax.xml.xpath.XPathExpression;
+<i class="no-highlight">41</i>&nbsp;import javax.xml.xpath.XPathExpressionException;
+<i class="no-highlight">42</i>&nbsp;
+<i class="no-highlight">43</i>&nbsp;import static com.google.common.base.Preconditions.checkNotNull;
+<i class="no-highlight">44</i>&nbsp;import static com.snaplogic.snaps.netsuite.Messages.COULD_NOT_COMPLETE_SEARCH_REQUEST;
+<i class="no-highlight">45</i>&nbsp;import static com.snaplogic.snaps.netsuite.Messages.ERROR_WHILE_EXECUTING_SOAP_REQUEST;
+<i class="no-highlight">46</i>&nbsp;import static com.snaplogic.snaps.netsuite.Messages.RESOLUTION_ADDRESS_ISSUE;
+<i class="no-highlight">47</i>&nbsp;import static com.snaplogic.snaps.netsuite.Messages.SEARCH_PURPOSE;
+<i class="no-highlight">48</i>&nbsp;import static com.snaplogic.snaps.netsuite.Messages.SEARCH_TITLE;
+<i class="no-highlight">49</i>&nbsp;
+<i class="no-highlight">50</i>&nbsp;/**
+<i class="no-highlight">51</i>&nbsp; * Snap that searches records on NetSuite
+<i class="no-highlight">52</i>&nbsp; */
+<i class="no-highlight">53</i>&nbsp;@General(title = SEARCH_TITLE, purpose = SEARCH_PURPOSE)
+<i class="no-highlight">54</i>&nbsp;@Version(snap = 2)
+<i class="no-highlight">55</i>&nbsp;@Inputs(min = 1, max = 1, accepts = {ViewType.DOCUMENT})
+<i class="no-highlight">56</i>&nbsp;@Outputs(min = 1, max = 1, offers = {ViewType.DOCUMENT})
+<i class="no-highlight">57</i>&nbsp;@Category(snap = SnapCategory.READ)
+<b class="nc"><i class="no-highlight">58</i>&nbsp;public class Search extends SearchCommon {</b>
+<i class="no-highlight">59</i>&nbsp;    static final String OPERATION = &quot;search&quot;;
+<i class="no-highlight">60</i>&nbsp;    private static final String SEARCH_MORE_WITH_ID = &quot;searchMoreWithId&quot;;
+<i class="no-highlight">61</i>&nbsp;    private static final String TOTAL_PAGES = &quot;totalPages&quot;;
+<i class="no-highlight">62</i>&nbsp;    private static final String SEARCH_RESULT = &quot;searchResult&quot;;
+<i class="no-highlight">63</i>&nbsp;    private static final String PLATFORM_MSGS = &quot;platformMsgs&quot;;
+<i class="no-highlight">64</i>&nbsp;    private static final String PAGE_INDEX = &quot;pageIndex&quot;;
+<i class="no-highlight">65</i>&nbsp;    private static final String SEARCH_ID = &quot;searchId&quot;;
+<i class="no-highlight">66</i>&nbsp;
+<i class="no-highlight">67</i>&nbsp;    @VisibleForTesting
+<i class="no-highlight">68</i>&nbsp;    ClientBuilder schMoreClientBuilder;
+<i class="no-highlight">69</i>&nbsp;    @Inject
+<i class="no-highlight">70</i>&nbsp;    private NetSuiteEditorSuggestionsProvider schMoreSuggestionProvider;
+<i class="no-highlight">71</i>&nbsp;    private EditorProperty schMoreEditorProperty;
+<b class="nc"><i class="no-highlight">72</i>&nbsp;    private int totalPages = 1;</b>
+<i class="no-highlight">73</i>&nbsp;    private String searchId;
+<i class="no-highlight">74</i>&nbsp;
+<i class="no-highlight">75</i>&nbsp;    @Override
+<i class="no-highlight">76</i>&nbsp;    protected String getDefaultOperation() {
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        return OPERATION;</b>
+<i class="no-highlight">78</i>&nbsp;    }
+<i class="no-highlight">79</i>&nbsp;
+<i class="no-highlight">80</i>&nbsp;    @Override
+<i class="no-highlight">81</i>&nbsp;    protected void configureAdditionalProperties(PropertyValues propertyValues) {
+<b class="nc"><i class="no-highlight">82</i>&nbsp;        super.configureAdditionalProperties(propertyValues);</b>
+<i class="no-highlight">83</i>&nbsp;
+<b class="nc"><i class="no-highlight">84</i>&nbsp;        QName operationQName = Namespace.MESSAGES_NS.qname(wsdlVersion, Search.SEARCH_MORE_WITH_ID, PLATFORM_MSGS);</b>
+<b class="nc"><i class="no-highlight">85</i>&nbsp;        schMoreClientBuilder = netsuiteUtil.createClientBuilder(operationQName, invocationService, account, null);</b>
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        dispatchHelper.configure(schMoreClientBuilder.getDispatchClient(), timeoutInSecs);</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;        List&lt;SOAPMessageTemplatizer.Input&gt; inputs = netsuiteUtil.createTemplatizerInputs(wsdlUrl, wsdlVersion, operationQName);</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;        SOAPMessageTemplatizer templatizer = new SOAPMessageTemplatizerImpl(types, new SchemaVisitorImpl());</b>
+<b class="nc"><i class="no-highlight">89</i>&nbsp;        schMoreEditorProperty = propertyValues.getEditorProperty(editorContentProvider,</b>
+<i class="no-highlight">90</i>&nbsp;                templateEvaluator, schMoreSuggestionProvider
+<b class="nc"><i class="no-highlight">91</i>&nbsp;                        .withObjectName(objectName)</b>
+<b class="nc"><i class="no-highlight">92</i>&nbsp;                        .withAdvancedSearch(advanced)</b>
+<b class="nc"><i class="no-highlight">93</i>&nbsp;                        .withClientBuilder(schMoreClientBuilder)</b>
+<b class="nc"><i class="no-highlight">94</i>&nbsp;                        .withInputs(inputs)</b>
+<b class="nc"><i class="no-highlight">95</i>&nbsp;                        .withSoapProtocol(SOAPMessageTemplatizer.SoapProtocol.SOAP_11)</b>
+<b class="nc"><i class="no-highlight">96</i>&nbsp;                        .withTemplatizer(templatizer));</b>
+<i class="no-highlight">97</i>&nbsp;    }
+<i class="no-highlight">98</i>&nbsp;
+<i class="no-highlight">99</i>&nbsp;    @Override
+<i class="no-highlight">100</i>&nbsp;    protected void process(Document inputDocument, String inputViewName) {
+<b class="nc"><i class="no-highlight">101</i>&nbsp;        SOAPMessage response = makeRequestWithDocument(inputDocument);</b>
+<b class="nc"><i class="no-highlight">102</i>&nbsp;        if (response != null) {</b>
+<i class="no-highlight">103</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">104</i>&nbsp;                parseMessage(response);</b>
+<b class="nc"><i class="no-highlight">105</i>&nbsp;            } catch (SOAPException | ParserConfigurationException e) {</b>
+<b class="nc"><i class="no-highlight">106</i>&nbsp;                throw new ExecutionException(e, COULD_NOT_COMPLETE_SEARCH_REQUEST)</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                        .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">108</i>&nbsp;                        .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">109</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">110</i>&nbsp;            completeSearch(inputDocument);</b>
+<i class="no-highlight">111</i>&nbsp;        }
+<i class="no-highlight">112</i>&nbsp;    }
+<i class="no-highlight">113</i>&nbsp;
+<i class="no-highlight">114</i>&nbsp;    private void completeSearch(final Document inputDocument) {
+<b class="nc"><i class="no-highlight">115</i>&nbsp;        for (int i = 2; i &lt;= totalPages; i++) {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;            LOGGER.debug(&quot;fetching page {} of {}&quot;, i, totalPages);</b>
+<b class="nc"><i class="no-highlight">117</i>&nbsp;            Map&lt;String, Object&gt; map = new HashMap&lt;&gt;();</b>
+<b class="nc"><i class="no-highlight">118</i>&nbsp;            map.put(PAGE_INDEX, i);</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;            map.put(SEARCH_ID, searchId);</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            final String nextSearchMsg = xmlUtils.stripNodeAndAttributeNodes(schMoreEditorProperty</b>
+<b class="nc"><i class="no-highlight">121</i>&nbsp;                    .suggestAndEval(inputDocument, map), documentBuilderFactory);</b>
+<b class="nc"><i class="no-highlight">122</i>&nbsp;            if (i == 2) {</b>
+<b class="nc"><i class="no-highlight">123</i>&nbsp;                account.withNamespacePrefixContext(getNamespaceToPrefixMap(schMoreSuggestionProvider))</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;                        .withClientBuilder(schMoreClientBuilder);</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                account.connect();</b>
+<i class="no-highlight">126</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">127</i>&nbsp;            doWithRetry(inputDocument, new SnapCallable&lt;Void&gt;() {</b>
+<i class="no-highlight">128</i>&nbsp;                @Override
+<i class="no-highlight">129</i>&nbsp;                public Void call() throws SnapDataException {
+<i class="no-highlight">130</i>&nbsp;                    try {
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                        SOAPMessage response = invocationService.call(schMoreClientBuilder, nextSearchMsg);</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                        XPathExpression statusExpression = XPATH_FACTORY.newXPath().compile(XPATH_IS_SUCCESS);</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                        ByteArrayOutputStream responseContainerStream = new ByteArrayOutputStream();</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                        response.writeTo(responseContainerStream);</b>
+<b class="nc"><i class="no-highlight">135</i>&nbsp;                        Object responseJson = invocationService.serialize(response);</b>
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                        org.w3c.dom.Document w3cDoc = documentBuilder.parse(new ByteArrayInputStream(</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                                responseContainerStream.toByteArray()));</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                        Node node = (Node) statusExpression.evaluate(w3cDoc, XPathConstants.NODE);</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                        if (node != null &amp;&amp; TRUE.equals(node.getNodeValue())) {</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                            fixSearchMoreResponse(responseJson);</b>
+<b class="nc"><i class="no-highlight">142</i>&nbsp;                            Document responseDocument = documentUtility.newDocument(responseJson);</b>
+<b class="nc"><i class="no-highlight">143</i>&nbsp;                            Document processedResponse = postProcessResponse(responseDocument);</b>
+<b class="nc"><i class="no-highlight">144</i>&nbsp;                            outputViews.write(processedResponse, inputDocument);</b>
+<b class="nc"><i class="no-highlight">145</i>&nbsp;                            return null;</b>
+<i class="no-highlight">146</i>&nbsp;                        } else {
+<b class="nc"><i class="no-highlight">147</i>&nbsp;                            throw new SnapDataException(ERROR_WHILE_EXECUTING_SOAP_REQUEST)</b>
+<b class="nc"><i class="no-highlight">148</i>&nbsp;                                    .withReason(responseJson.toString())</b>
+<b class="nc"><i class="no-highlight">149</i>&nbsp;                                    .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">150</i>&nbsp;                        }
+<b class="nc"><i class="no-highlight">151</i>&nbsp;                    } catch (ParserConfigurationException | XPathExpressionException e) {</b>
+<b class="nc"><i class="no-highlight">152</i>&nbsp;                        throw new ExecutionException(e, COULD_NOT_COMPLETE_SEARCH_REQUEST)</b>
+<b class="nc"><i class="no-highlight">153</i>&nbsp;                                .withReason(e.getMessage())</b>
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                                .withResolutionAsDefect();</b>
+<b class="nc"><i class="no-highlight">155</i>&nbsp;                    } catch (SnapDataException e) {</b>
+<b class="nc"><i class="no-highlight">156</i>&nbsp;                        throw e;</b>
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                    } catch (Exception e) {</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;                        throw new SnapDataException(e, COULD_NOT_COMPLETE_SEARCH_REQUEST)</b>
+<b class="nc"><i class="no-highlight">159</i>&nbsp;                                .withReason(e.toString())</b>
+<b class="nc"><i class="no-highlight">160</i>&nbsp;                                .withResolution(RESOLUTION_ADDRESS_ISSUE);</b>
+<i class="no-highlight">161</i>&nbsp;                    }
+<i class="no-highlight">162</i>&nbsp;                }
+<i class="no-highlight">163</i>&nbsp;            });
+<i class="no-highlight">164</i>&nbsp;        }
+<i class="no-highlight">165</i>&nbsp;    }
+<i class="no-highlight">166</i>&nbsp;
+<i class="no-highlight">167</i>&nbsp;    private void fixSearchMoreResponse(Object responseJson) {
+<i class="no-highlight">168</i>&nbsp;        // The first page is retrieved using the &quot;search&quot; operation, and its result set is nested
+<i class="no-highlight">169</i>&nbsp;        // under a &quot;searchResponse&quot; node in the response.
+<i class="no-highlight">170</i>&nbsp;        // Each subsequent page is retrieved using the &quot;searchMoreWithId&quot; operation, with results
+<i class="no-highlight">171</i>&nbsp;        // nested under a &quot;searchMoreWithIdResponse&quot; node.  This inconsistency makes it very
+<i class="no-highlight">172</i>&nbsp;        // difficult for the snaps that follow (typically a JSON Splitter) to deal with the output,
+<i class="no-highlight">173</i>&nbsp;        // since the JSON path for the result list differs between the first page and all the rest.
+<i class="no-highlight">174</i>&nbsp;        // To deal with this, make all of the subsequent pages consistent with the first by simply
+<i class="no-highlight">175</i>&nbsp;        // replacing &quot;searchMoreWithIdResponse&quot; with &quot;searchResponse&quot; in the output document.
+<b class="nc"><i class="no-highlight">176</i>&nbsp;        Map map = (Map&lt;String,Object&gt;) responseJson;</b>
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        map = checkNotNull((Map&lt;String,Object&gt;) map.get(&quot;soapenv:Body&quot;));</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;        map.put(&quot;searchResponse&quot;, checkNotNull(map.remove(&quot;searchMoreWithIdResponse&quot;)));</b>
+<i class="no-highlight">179</i>&nbsp;    }
+<i class="no-highlight">180</i>&nbsp;
+<i class="no-highlight">181</i>&nbsp;    /**
+<i class="no-highlight">182</i>&nbsp;     * Parses the SOAP message
+<i class="no-highlight">183</i>&nbsp;     *
+<i class="no-highlight">184</i>&nbsp;     * @param soapMessage the soap message
+<i class="no-highlight">185</i>&nbsp;     *
+<i class="no-highlight">186</i>&nbsp;     * @throws SOAPException
+<i class="no-highlight">187</i>&nbsp;     * @throws ParserConfigurationException
+<i class="no-highlight">188</i>&nbsp;     */
+<i class="no-highlight">189</i>&nbsp;    private void parseMessage(SOAPMessage soapMessage) throws SOAPException,
+<i class="no-highlight">190</i>&nbsp;            ParserConfigurationException {
+<b class="nc"><i class="no-highlight">191</i>&nbsp;        SOAPBody soapBody = soapMessage.getSOAPBody();</b>
+<b class="nc"><i class="no-highlight">192</i>&nbsp;        if (soapBody != null &amp;&amp; soapBody.getTextContent() != null) {</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;            extractPaginationElements(soapBody);</b>
+<i class="no-highlight">194</i>&nbsp;        }
+<i class="no-highlight">195</i>&nbsp;    }
+<i class="no-highlight">196</i>&nbsp;
+<i class="no-highlight">197</i>&nbsp;    private void extractPaginationElements(SOAPBody soapBody) throws SOAPException {
+<i class="no-highlight">198</i>&nbsp;        /*
+<i class="no-highlight">199</i>&nbsp;        In JDK8, we are using org.w3c.dom.Node thats in-built; whereas in JDK11, its javax.xml.soap.Node.
+<i class="no-highlight">200</i>&nbsp;        We need to intelligently typecast based on the JDK version.  This would be taken care of by
+<i class="no-highlight">201</i>&nbsp;         Iterators.transform() as per this reference.
+<i class="no-highlight">202</i>&nbsp;        https://stackoverflow.com/questions/3888639/converting-iterator-types-in-java
+<i class="no-highlight">203</i>&nbsp;         */
+<b class="nc"><i class="no-highlight">204</i>&nbsp;        QName operationResponseQName = clientBuilder.getResponseMessageBody();</b>
+<b class="nc"><i class="no-highlight">205</i>&nbsp;        Iterator&lt;Node&gt; opElements = Iterators.transform(</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                soapBody.getChildElements(operationResponseQName),</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                node -&gt; node);</b>
+<b class="nc"><i class="no-highlight">208</i>&nbsp;        if (opElements.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">209</i>&nbsp;            SOAPElement operationElement = (SOAPElement) opElements.next();</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;            Iterator&lt;Node&gt; responses = Iterators.transform(</b>
+<b class="nc"><i class="no-highlight">211</i>&nbsp;                    operationElement.getChildElements(</b>
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                            Namespace.CORE_NS.qname(wsdlVersion, SEARCH_RESULT)),</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                    node -&gt; node);</b>
+<b class="nc"><i class="no-highlight">214</i>&nbsp;            if (responses.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                SOAPElement soapElement = (SOAPElement) responses.next();</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                Iterator&lt;Node&gt; pageElements = Iterators.transform(</b>
+<b class="nc"><i class="no-highlight">217</i>&nbsp;                        soapElement.getChildElements(</b>
+<b class="nc"><i class="no-highlight">218</i>&nbsp;                                Namespace.CORE_NS.qname(wsdlVersion, TOTAL_PAGES)),</b>
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                        node -&gt; node);</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                if (pageElements.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">221</i>&nbsp;                    SOAPElement totalPagesEle = (SOAPElement) pageElements.next();</b>
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                    String pages = totalPagesEle.getTextContent();</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                    totalPages = Integer.parseInt(pages);</b>
+<i class="no-highlight">224</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                pageElements = Iterators.transform(</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                        soapElement.getChildElements(</b>
+<b class="nc"><i class="no-highlight">227</i>&nbsp;                                Namespace.CORE_NS.qname(wsdlVersion, SEARCH_ID)),</b>
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                        node -&gt; node);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                if (pageElements.hasNext()) {</b>
+<b class="nc"><i class="no-highlight">230</i>&nbsp;                    SOAPElement searchIdEle = (SOAPElement) pageElements.next();</b>
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                    searchId = searchIdEle.getTextContent();</b>
+<i class="no-highlight">232</i>&nbsp;                }
+<i class="no-highlight">233</i>&nbsp;            }
+<i class="no-highlight">234</i>&nbsp;        }
+<i class="no-highlight">235</i>&nbsp;    }
+<i class="no-highlight">236</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>

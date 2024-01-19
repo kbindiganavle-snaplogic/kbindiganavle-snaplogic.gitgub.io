@@ -1,0 +1,411 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > JdbcUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/highlight-idea.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.pack.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.snaplogic.snaps.jdbc</a>
+</div>
+
+<h1>Coverage Summary for Class: JdbcUtils (com.snaplogic.snaps.jdbc)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JdbcUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/140)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<div class="sourceCode" id="sourceCode"><i class="no-highlight">1</i>&nbsp;/*
+<i class="no-highlight">2</i>&nbsp; * SnapLogic - Data Integration
+<i class="no-highlight">3</i>&nbsp; *
+<i class="no-highlight">4</i>&nbsp; * Copyright (C) 2016 - 2020, SnapLogic, Inc.  All rights reserved.
+<i class="no-highlight">5</i>&nbsp; *
+<i class="no-highlight">6</i>&nbsp; * This program is licensed under the terms of
+<i class="no-highlight">7</i>&nbsp; * the SnapLogic Commercial Subscription agreement.
+<i class="no-highlight">8</i>&nbsp; *
+<i class="no-highlight">9</i>&nbsp; * &quot;SnapLogic&quot; is a trademark of SnapLogic, Inc.
+<i class="no-highlight">10</i>&nbsp; */
+<i class="no-highlight">11</i>&nbsp;package com.snaplogic.snaps.jdbc;
+<i class="no-highlight">12</i>&nbsp;
+<i class="no-highlight">13</i>&nbsp;import com.google.common.cache.Cache;
+<i class="no-highlight">14</i>&nbsp;import com.google.common.cache.CacheBuilder;
+<i class="no-highlight">15</i>&nbsp;import com.google.common.collect.ImmutableMap;
+<i class="no-highlight">16</i>&nbsp;import com.snaplogic.api.ExecutionException;
+<i class="no-highlight">17</i>&nbsp;import com.snaplogic.snap.api.SnapDataException;
+<i class="no-highlight">18</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseAccount;
+<i class="no-highlight">19</i>&nbsp;import com.snaplogic.snap.api.sql.DatabaseConfig;
+<i class="no-highlight">20</i>&nbsp;import com.snaplogic.snap.api.sql.JdbcOperations;
+<i class="no-highlight">21</i>&nbsp;
+<i class="no-highlight">22</i>&nbsp;import org.apache.commons.lang3.StringUtils;
+<i class="no-highlight">23</i>&nbsp;import org.jooq.SQLDialect;
+<i class="no-highlight">24</i>&nbsp;import org.jooq.tools.jdbc.JDBCUtils;
+<i class="no-highlight">25</i>&nbsp;import org.slf4j.Logger;
+<i class="no-highlight">26</i>&nbsp;import org.slf4j.LoggerFactory;
+<i class="no-highlight">27</i>&nbsp;
+<i class="no-highlight">28</i>&nbsp;import java.sql.Connection;
+<i class="no-highlight">29</i>&nbsp;import java.sql.DatabaseMetaData;
+<i class="no-highlight">30</i>&nbsp;import java.sql.SQLException;
+<i class="no-highlight">31</i>&nbsp;import java.sql.Statement;
+<i class="no-highlight">32</i>&nbsp;import java.util.Map;
+<i class="no-highlight">33</i>&nbsp;import java.util.concurrent.TimeUnit;
+<i class="no-highlight">34</i>&nbsp;
+<i class="no-highlight">35</i>&nbsp;import static com.snaplogic.snaps.jdbc.JdbcDatabaseAccount.*;
+<i class="no-highlight">36</i>&nbsp;import static com.snaplogic.snaps.jdbc.Messages.ERR_DB_NAME;
+<i class="no-highlight">37</i>&nbsp;
+<i class="no-highlight">38</i>&nbsp;/**
+<i class="no-highlight">39</i>&nbsp; * Utility class for the jdbc package
+<i class="no-highlight">40</i>&nbsp; */
+<b class="nc"><i class="no-highlight">41</i>&nbsp;public class JdbcUtils {</b>
+<i class="no-highlight">42</i>&nbsp;    private static final int CACHE_SIZE = 100;
+<i class="no-highlight">43</i>&nbsp;    // The DB_NAME_CACHE is to cache the DB NAME that was computed early
+<i class="no-highlight">44</i>&nbsp;    // and not to re-compute in the subsequent request, when choosing Auto-Detect
+<i class="no-highlight">45</i>&nbsp;    protected static final Cache&lt;DatabaseConfig, String&gt; DB_NAME_CACHE = CacheBuilder
+<b class="nc"><i class="no-highlight">46</i>&nbsp;            .newBuilder()</b>
+<b class="nc"><i class="no-highlight">47</i>&nbsp;            .maximumSize(CACHE_SIZE)</b>
+<b class="nc"><i class="no-highlight">48</i>&nbsp;            .expireAfterAccess(30, TimeUnit.MINUTES)</b>
+<b class="nc"><i class="no-highlight">49</i>&nbsp;            .build();</b>
+<b class="nc"><i class="no-highlight">50</i>&nbsp;    private static final Logger LOG = LoggerFactory.getLogger(JdbcUtils.class);</b>
+<i class="no-highlight">51</i>&nbsp;    private static final String HDB = &quot;HDB&quot;;
+<b class="nc"><i class="no-highlight">52</i>&nbsp;    private static final Map&lt;Integer, SQLDialect&gt; ORACLE_DIALECT_MAP = ImmutableMap.of(</b>
+<b class="nc"><i class="no-highlight">53</i>&nbsp;            10, SQLDialect.ORACLE10G,</b>
+<b class="nc"><i class="no-highlight">54</i>&nbsp;            11, SQLDialect.ORACLE11G,</b>
+<b class="nc"><i class="no-highlight">55</i>&nbsp;            12, SQLDialect.ORACLE12C);</b>
+<i class="no-highlight">56</i>&nbsp;    //SWAT-1906 always set dbName as MYSQL as Maria DB is a fork of MYSQL
+<b class="nc"><i class="no-highlight">57</i>&nbsp;    private static final Map&lt;String, String&gt; DRIVER_CLASS_DB_NAME_MAP = ImmutableMap.of(</b>
+<i class="no-highlight">58</i>&nbsp;            DERBY_DRIVER_CLASS_NAME,JdbcOperations.DERBY,
+<i class="no-highlight">59</i>&nbsp;            MARIADB_DRIVER_CLASS_NAME,JdbcOperations.MYSQL
+<i class="no-highlight">60</i>&nbsp;    );
+<i class="no-highlight">61</i>&nbsp;    static final String SELECT_1 = &quot;SELECT 1&quot;;
+<i class="no-highlight">62</i>&nbsp;    private static final String JDBC_SUB_PROTOCOL_AWS_ATHENA = &quot;awsathena&quot;;
+<i class="no-highlight">63</i>&nbsp;
+<i class="no-highlight">64</i>&nbsp;    private static String getDbNameFromCache(DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">65</i>&nbsp;        DatabaseConfig databaseConfig = account.getDatabaseConfig();</b>
+<b class="nc"><i class="no-highlight">66</i>&nbsp;        String dbName = DB_NAME_CACHE.getIfPresent(databaseConfig);</b>
+<b class="nc"><i class="no-highlight">67</i>&nbsp;        if(dbName == null){</b>
+<b class="nc"><i class="no-highlight">68</i>&nbsp;            dbName = loadDBType(account, databaseConfig);</b>
+<b class="nc"><i class="no-highlight">69</i>&nbsp;            DB_NAME_CACHE.put(databaseConfig, dbName);</b>
+<i class="no-highlight">70</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">71</i>&nbsp;        return dbName;</b>
+<i class="no-highlight">72</i>&nbsp;    }
+<i class="no-highlight">73</i>&nbsp;
+<i class="no-highlight">74</i>&nbsp;    static String getDbName(DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">75</i>&nbsp;        DatabaseConfig databaseConfig = account.getDatabaseConfig();</b>
+<b class="nc"><i class="no-highlight">76</i>&nbsp;        String dbName = getDbNameFromCache(account);</b>
+<b class="nc"><i class="no-highlight">77</i>&nbsp;        String operation = getJdbcName(account, databaseConfig, dbName);</b>
+<i class="no-highlight">78</i>&nbsp;        // set the right test query for the OpenAccess target db
+<b class="nc"><i class="no-highlight">79</i>&nbsp;        adjustTestQueryForOpenAccess(operation, databaseConfig, account);</b>
+<b class="nc"><i class="no-highlight">80</i>&nbsp;        databaseConfig.setJdbcOperations(operation);</b>
+<b class="nc"><i class="no-highlight">81</i>&nbsp;        return operation;</b>
+<i class="no-highlight">82</i>&nbsp;    }
+<i class="no-highlight">83</i>&nbsp;
+<i class="no-highlight">84</i>&nbsp;    private static void adjustTestQueryForOpenAccess(String operation,
+<i class="no-highlight">85</i>&nbsp;            DatabaseConfig databaseConfig, DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">86</i>&nbsp;        if (StringUtils.equals(operation, JdbcOperations.OPEN_ACCESS) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">87</i>&nbsp;                databaseConfig.getSQLDialect() == SQLDialect.DEFAULT &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">88</i>&nbsp;                StringUtils.isBlank(databaseConfig.getTestQuery())) {</b>
+<i class="no-highlight">89</i>&nbsp;            // Looks like HikariCP executes isValid() method on the connection obtained
+<i class="no-highlight">90</i>&nbsp;            //  if no test query is provided in the account config.
+<i class="no-highlight">91</i>&nbsp;            // An older version of Netsuite JDBC driver doesn&#39;t implement isValid() method
+<i class="no-highlight">92</i>&nbsp;            //  on the connection there by failing.  The newer driver implemented the same, so it
+<i class="no-highlight">93</i>&nbsp;            //  is working.
+<i class="no-highlight">94</i>&nbsp;            // In order to support both older/newer drivers, we will set the test query
+<i class="no-highlight">95</i>&nbsp;            //  (if not provided by the user) to &quot;Select 1&quot; iff it pre-executes successfully.
+<b class="nc"><i class="no-highlight">96</i>&nbsp;            Connection connection =</b>
+<b class="nc"><i class="no-highlight">97</i>&nbsp;                    ((JdbcDatabaseAccount) account).getUnPooledConnection();</b>
+<b class="nc"><i class="no-highlight">98</i>&nbsp;            if (connection != null &amp;&amp; isSelectOneCompatible(connection)) {</b>
+<b class="nc"><i class="no-highlight">99</i>&nbsp;                databaseConfig.setTestQuery(SELECT_1);</b>
+<i class="no-highlight">100</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">101</i>&nbsp;            JDBCUtils.safeClose(connection);</b>
+<i class="no-highlight">102</i>&nbsp;        }
+<i class="no-highlight">103</i>&nbsp;    }
+<i class="no-highlight">104</i>&nbsp;
+<i class="no-highlight">105</i>&nbsp;    private static String loadDBType(DatabaseAccount account, DatabaseConfig databaseConfig) {
+<b class="nc"><i class="no-highlight">106</i>&nbsp;        String dbType = account instanceof JdbcDatabaseAccount ?</b>
+<b class="nc"><i class="no-highlight">107</i>&nbsp;                ((JdbcDatabaseAccount) account).getDbType() : null;</b>
+<i class="no-highlight">108</i>&nbsp;        //For SWAT-1739 driverClass check is required to make sure that for Derby DB&#39;s
+<i class="no-highlight">109</i>&nbsp;        // account.connect() is not called during initOperations (config phase) which are run in
+<i class="no-highlight">110</i>&nbsp;        // parallel, causing them to access the database simultaneously
+<i class="no-highlight">111</i>&nbsp;        //replaced multiple if statements with map as part of swat-1906
+<b class="nc"><i class="no-highlight">112</i>&nbsp;        String driverClass = databaseConfig.getDriver().toLowerCase();</b>
+<b class="nc"><i class="no-highlight">113</i>&nbsp;        for (Map.Entry&lt;String, String&gt; entry : DRIVER_CLASS_DB_NAME_MAP.entrySet()) {</b>
+<b class="nc"><i class="no-highlight">114</i>&nbsp;            String key = entry.getKey();</b>
+<b class="nc"><i class="no-highlight">115</i>&nbsp;            if (driverClass.startsWith(key)) {</b>
+<b class="nc"><i class="no-highlight">116</i>&nbsp;                dbType = entry.getValue();</b>
+<i class="no-highlight">117</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">118</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">119</i>&nbsp;        if (StringUtils.isBlank(dbType) || AUTO_DETECT.equals(dbType)) {</b>
+<b class="nc"><i class="no-highlight">120</i>&nbsp;            String originalJdbcOperations = databaseConfig.getJdbcOperations();</b>
+<i class="no-highlight">121</i>&nbsp;            //Try testing the connection using just the SQL-Dialect as we don&#39;t have the any info
+<i class="no-highlight">122</i>&nbsp;            // about the JdbcOperations
+<b class="nc"><i class="no-highlight">123</i>&nbsp;            databaseConfig.setJdbcOperations(null);</b>
+<b class="nc"><i class="no-highlight">124</i>&nbsp;            Connection connection =</b>
+<b class="nc"><i class="no-highlight">125</i>&nbsp;                    ((JdbcDatabaseAccount) account).getUnPooledConnection();</b>
+<i class="no-highlight">126</i>&nbsp;
+<i class="no-highlight">127</i>&nbsp;            try {
+<b class="nc"><i class="no-highlight">128</i>&nbsp;                if(connection != null) {</b>
+<b class="nc"><i class="no-highlight">129</i>&nbsp;                    DatabaseMetaData dbMetaData = connection.getMetaData();</b>
+<b class="nc"><i class="no-highlight">130</i>&nbsp;                    dbType = dbMetaData.getDatabaseProductName();</b>
+<b class="nc"><i class="no-highlight">131</i>&nbsp;                    if (StringUtils.containsIgnoreCase(dbType, JdbcOperations.SQLSERVER)) {</b>
+<b class="nc"><i class="no-highlight">132</i>&nbsp;                        int majorVersion = dbMetaData.getDatabaseMajorVersion();</b>
+<b class="nc"><i class="no-highlight">133</i>&nbsp;                        dbType = majorVersion &gt; 10 ? SQLSERVER2012 : SQLSERVER2008;</b>
+<b class="nc"><i class="no-highlight">134</i>&nbsp;                    } else {</b>
+<i class="no-highlight">135</i>&nbsp;                        //Check for Select 1 compatibility for the give db,
+<b class="nc"><i class="no-highlight">136</i>&nbsp;                        String operation =  getJdbcName(account, databaseConfig, dbType);</b>
+<b class="nc"><i class="no-highlight">137</i>&nbsp;                        if (operation.equals(JdbcOperations.GENERIC) &amp;&amp;</b>
+<b class="nc"><i class="no-highlight">138</i>&nbsp;                                databaseConfig.getSQLDialect() == SQLDialect.DEFAULT</b>
+<b class="nc"><i class="no-highlight">139</i>&nbsp;                                &amp;&amp; StringUtils.isBlank(databaseConfig.getTestQuery())){</b>
+<b class="nc"><i class="no-highlight">140</i>&nbsp;                            if (isSelectOneCompatible(connection)) {</b>
+<b class="nc"><i class="no-highlight">141</i>&nbsp;                                dbType = SELECT_1_COMPATIBLE;</b>
+<i class="no-highlight">142</i>&nbsp;                            }
+<i class="no-highlight">143</i>&nbsp;                        }
+<i class="no-highlight">144</i>&nbsp;                    }
+<i class="no-highlight">145</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">146</i>&nbsp;            } catch (SnapDataException | ExecutionException e) {</b>
+<i class="no-highlight">147</i>&nbsp;                // Removed the previous error handling because, not all driver throw SQLException
+<i class="no-highlight">148</i>&nbsp;                // if there is a failure, for example oracle8.jar throws OracleDataBaseException,
+<i class="no-highlight">149</i>&nbsp;                // so ignore all exceptions and set the JDBCOperation to defaultvalue, so the
+<i class="no-highlight">150</i>&nbsp;                // actual connect will throw the exception if there are any.
+<i class="no-highlight">151</i>&nbsp;                // Reset the jdbcOperation as we don&#39;t know if the unable to detect the
+<i class="no-highlight">152</i>&nbsp;                // connection so that we can try using JDBC4 valid(1) feature by setting
+<i class="no-highlight">153</i>&nbsp;                // test query to null.
+<b class="nc"><i class="no-highlight">154</i>&nbsp;                databaseConfig.setJdbcOperations(originalJdbcOperations);</b>
+<i class="no-highlight">155</i>&nbsp;                // Ignore any exception because the snap workflow should not be affected
+<i class="no-highlight">156</i>&nbsp;                // if we are not able to get the exact dialect.
+<b class="nc"><i class="no-highlight">157</i>&nbsp;                LOG.debug(ERR_DB_NAME, e);</b>
+<b class="nc"><i class="no-highlight">158</i>&nbsp;            } catch (SQLException e) {</b>
+<i class="no-highlight">159</i>&nbsp;                // this ideally should never happen as the connect() would handle all the exceptions
+<i class="no-highlight">160</i>&nbsp;                // if that&#39;s not the case we know it happened after getting a valid connection
+<i class="no-highlight">161</i>&nbsp;                // which means that &quot;select 1&quot; worked. so set the jdbc operation to use &quot;Postgres&quot;
+<b class="nc"><i class="no-highlight">162</i>&nbsp;                databaseConfig.setJdbcOperations(JdbcOperations.POSTGRES);</b>
+<b class="nc"><i class="no-highlight">163</i>&nbsp;                LOG.debug(ERR_DB_NAME, e);</b>
+<i class="no-highlight">164</i>&nbsp;            } finally {
+<b class="nc"><i class="no-highlight">165</i>&nbsp;                if (LOG.isDebugEnabled() &amp;&amp; connection != null) {</b>
+<b class="nc"><i class="no-highlight">166</i>&nbsp;                    LOG.debug(&quot;(+) closing un-pooled connection id = @{}&quot;,</b>
+<b class="nc"><i class="no-highlight">167</i>&nbsp;                            Integer.toHexString(connection.hashCode()));</b>
+<i class="no-highlight">168</i>&nbsp;                }
+<b class="nc"><i class="no-highlight">169</i>&nbsp;                JDBCUtils.safeClose(connection);</b>
+<b class="nc"><i class="no-highlight">170</i>&nbsp;            }</b>
+<b class="nc"><i class="no-highlight">171</i>&nbsp;            LOG.debug(&quot;[+] Auto-detected database name: {}&quot;, dbType);</b>
+<i class="no-highlight">172</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">173</i>&nbsp;        return dbType;</b>
+<i class="no-highlight">174</i>&nbsp;    }
+<i class="no-highlight">175</i>&nbsp;
+<i class="no-highlight">176</i>&nbsp;    private static boolean isSelectOneCompatible(Connection connection) {
+<b class="nc"><i class="no-highlight">177</i>&nbsp;        try (Statement st = connection.createStatement()){</b>
+<b class="nc"><i class="no-highlight">178</i>&nbsp;            if (st.execute(SELECT_1)) {</b>
+<b class="nc"><i class="no-highlight">179</i>&nbsp;                return true;</b>
+<i class="no-highlight">180</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">181</i>&nbsp;        } catch (Exception e) {</b>
+<i class="no-highlight">182</i>&nbsp;            // Ignore continue with the code flow
+<b class="nc"><i class="no-highlight">183</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">184</i>&nbsp;        return false;</b>
+<i class="no-highlight">185</i>&nbsp;    }
+<i class="no-highlight">186</i>&nbsp;
+<i class="no-highlight">187</i>&nbsp;    private static String getJdbcName(DatabaseAccount account, DatabaseConfig databaseConfig,
+<i class="no-highlight">188</i>&nbsp;            String dbName) {
+<b class="nc"><i class="no-highlight">189</i>&nbsp;        switch (dbName) {</b>
+<i class="no-highlight">190</i>&nbsp;            case JdbcOperations.OPEN_ACCESS:
+<i class="no-highlight">191</i>&nbsp;            case JdbcOperations.NETSUITE:
+<b class="nc"><i class="no-highlight">192</i>&nbsp;                databaseConfig.setDialect(SQLDialect.DEFAULT);</b>
+<b class="nc"><i class="no-highlight">193</i>&nbsp;                return JdbcOperations.OPEN_ACCESS;</b>
+<i class="no-highlight">194</i>&nbsp;            case JdbcOperations.AWS_ATHENA:
+<i class="no-highlight">195</i>&nbsp;            case JdbcOperations.AWS_DOT_ATHENA:
+<b class="nc"><i class="no-highlight">196</i>&nbsp;                databaseConfig.setDialect(SQLDialect.DEFAULT);</b>
+<b class="nc"><i class="no-highlight">197</i>&nbsp;                return JdbcOperations.AWS_ATHENA;</b>
+<i class="no-highlight">198</i>&nbsp;            case POSTGRESQL:
+<b class="nc"><i class="no-highlight">199</i>&nbsp;                databaseConfig.setDialect(SQLDialect.POSTGRES);</b>
+<b class="nc"><i class="no-highlight">200</i>&nbsp;                return JdbcOperations.POSTGRES;</b>
+<i class="no-highlight">201</i>&nbsp;            case JdbcOperations.MYSQL:
+<b class="nc"><i class="no-highlight">202</i>&nbsp;                databaseConfig.setDialect(SQLDialect.MYSQL);</b>
+<b class="nc"><i class="no-highlight">203</i>&nbsp;                return dbName;</b>
+<i class="no-highlight">204</i>&nbsp;            case JdbcOperations.ORACLE:
+<b class="nc"><i class="no-highlight">205</i>&nbsp;                SQLDialect dialect = getOracleSpecificDialect(account);</b>
+<b class="nc"><i class="no-highlight">206</i>&nbsp;                databaseConfig.setDialect(dialect);</b>
+<b class="nc"><i class="no-highlight">207</i>&nbsp;                return dbName;</b>
+<i class="no-highlight">208</i>&nbsp;            case JdbcOperations.REDSHIFT:
+<b class="nc"><i class="no-highlight">209</i>&nbsp;                databaseConfig.setDialect(SQLDialect.POSTGRES);</b>
+<b class="nc"><i class="no-highlight">210</i>&nbsp;                return dbName;</b>
+<i class="no-highlight">211</i>&nbsp;            case SQLSERVER2008:
+<b class="nc"><i class="no-highlight">212</i>&nbsp;                databaseConfig.setDialect(SQLDialect.SQLSERVER2008);</b>
+<b class="nc"><i class="no-highlight">213</i>&nbsp;                return JdbcOperations.SQLSERVER;</b>
+<i class="no-highlight">214</i>&nbsp;            case SQLSERVER2012:
+<b class="nc"><i class="no-highlight">215</i>&nbsp;                databaseConfig.setDialect(SQLDialect.SQLSERVER2012);</b>
+<b class="nc"><i class="no-highlight">216</i>&nbsp;                return JdbcOperations.SQLSERVER;</b>
+<i class="no-highlight">217</i>&nbsp;            case JdbcOperations.SAPHANA:
+<i class="no-highlight">218</i>&nbsp;            case HDB:
+<b class="nc"><i class="no-highlight">219</i>&nbsp;                databaseConfig.setDialect(SQLDialect.POSTGRES);</b>
+<b class="nc"><i class="no-highlight">220</i>&nbsp;                return JdbcOperations.SAPHANA;</b>
+<i class="no-highlight">221</i>&nbsp;            case JdbcOperations.TERADATA:
+<b class="nc"><i class="no-highlight">222</i>&nbsp;                databaseConfig.setDialect(SQLDialect.POSTGRES);</b>
+<b class="nc"><i class="no-highlight">223</i>&nbsp;                return JdbcOperations.TERADATA;</b>
+<i class="no-highlight">224</i>&nbsp;            case JdbcOperations.HIVE:
+<b class="nc"><i class="no-highlight">225</i>&nbsp;                databaseConfig.setDialect(SQLDialect.DEFAULT);</b>
+<b class="nc"><i class="no-highlight">226</i>&nbsp;                return JdbcOperations.HIVE;</b>
+<i class="no-highlight">227</i>&nbsp;            case JdbcOperations.SNOWFLAKE:
+<b class="nc"><i class="no-highlight">228</i>&nbsp;                databaseConfig.setDialect(SQLDialect.DEFAULT);</b>
+<b class="nc"><i class="no-highlight">229</i>&nbsp;                return JdbcOperations.SNOWFLAKE;</b>
+<i class="no-highlight">230</i>&nbsp;            case JdbcOperations.DERBY:
+<b class="nc"><i class="no-highlight">231</i>&nbsp;                databaseConfig.setDialect(SQLDialect.DERBY);</b>
+<i class="no-highlight">232</i>&nbsp;                // For now we use GENERIC dbName for backward-compatibility, but we can improve
+<i class="no-highlight">233</i>&nbsp;                // Apache Derby support by creating Derby-specific custom classes in the future.
+<b class="nc"><i class="no-highlight">234</i>&nbsp;                return JdbcOperations.GENERIC;</b>
+<i class="no-highlight">235</i>&nbsp;            case JdbcOperations.DB2:
+<b class="nc"><i class="no-highlight">236</i>&nbsp;                databaseConfig.setDialect(SQLDialect.DB2);</b>
+<b class="nc"><i class="no-highlight">237</i>&nbsp;                return JdbcOperations.DB2;</b>
+<i class="no-highlight">238</i>&nbsp;            case JdbcOperations.SQLMX:
+<b class="nc"><i class="no-highlight">239</i>&nbsp;                databaseConfig.setDialect(SQLDialect.POSTGRES);</b>
+<b class="nc"><i class="no-highlight">240</i>&nbsp;                return JdbcOperations.SQLMX;</b>
+<i class="no-highlight">241</i>&nbsp;            case JdbcOperations.SPARKSQL:
+<i class="no-highlight">242</i>&nbsp;            case JdbcOperations.SPARKSQL_NO_SPACE:
+<b class="nc"><i class="no-highlight">243</i>&nbsp;                databaseConfig.setDialect(SQLDialect.DEFAULT);</b>
+<b class="nc"><i class="no-highlight">244</i>&nbsp;                return JdbcOperations.SPARKSQL;</b>
+<i class="no-highlight">245</i>&nbsp;            case SELECT_1_COMPATIBLE:
+<i class="no-highlight">246</i>&nbsp;                // The test query is set here because the select_1_compatible db&#39;s require
+<i class="no-highlight">247</i>&nbsp;                // the same SQL dialect and JdbcOperations that are used for default value&#39;s
+<i class="no-highlight">248</i>&nbsp;                // and we make sure we don&#39;t override if there is a user provided test-query value
+<b class="nc"><i class="no-highlight">249</i>&nbsp;                if(StringUtils.isBlank(databaseConfig.getTestQuery()))</b>
+<b class="nc"><i class="no-highlight">250</i>&nbsp;                    databaseConfig.setTestQuery(&quot;Select 1&quot;);</b>
+<i class="no-highlight">251</i>&nbsp;            default:
+<b class="nc"><i class="no-highlight">252</i>&nbsp;                if (isJdbcSubProtocolAwsAthena(databaseConfig)) {</b>
+<i class="no-highlight">253</i>&nbsp;                    // If we have failed to detect the target database as AWS Athena thru the
+<i class="no-highlight">254</i>&nbsp;                    //  db metadata then lets try again with the JDBC URL
+<b class="nc"><i class="no-highlight">255</i>&nbsp;                    databaseConfig.setDialect(SQLDialect.DEFAULT);</b>
+<b class="nc"><i class="no-highlight">256</i>&nbsp;                    return JdbcOperations.AWS_ATHENA;</b>
+<i class="no-highlight">257</i>&nbsp;                } else {
+<i class="no-highlight">258</i>&nbsp;                    // When using DEFAULT the test query will be set to &#39;null&#39; which invokes the
+<i class="no-highlight">259</i>&nbsp;                    // isValid() method call within the JDBC driver to make a successful test
+<i class="no-highlight">260</i>&nbsp;                    // connection, This will help is AUTO DETECT, the DB&#39;s we have not tested
+<i class="no-highlight">261</i>&nbsp;                    // or no test query for.
+<b class="nc"><i class="no-highlight">262</i>&nbsp;                    databaseConfig.setDialect(SQLDialect.DEFAULT);</b>
+<b class="nc"><i class="no-highlight">263</i>&nbsp;                    return JdbcOperations.GENERIC;</b>
+<i class="no-highlight">264</i>&nbsp;                }
+<i class="no-highlight">265</i>&nbsp;        }
+<i class="no-highlight">266</i>&nbsp;    }
+<i class="no-highlight">267</i>&nbsp;
+<i class="no-highlight">268</i>&nbsp;    private static boolean isJdbcSubProtocolAwsAthena(DatabaseConfig config) {
+<i class="no-highlight">269</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">270</i>&nbsp;            String jdbcUrl = config.getJdbcUrl();</b>
+<b class="nc"><i class="no-highlight">271</i>&nbsp;            String subProtocol = jdbcUrl.split(&quot;:&quot;)[1];</b>
+<b class="nc"><i class="no-highlight">272</i>&nbsp;            return subProtocol.toLowerCase().contains(JDBC_SUB_PROTOCOL_AWS_ATHENA);</b>
+<b class="nc"><i class="no-highlight">273</i>&nbsp;        } catch (NullPointerException | IndexOutOfBoundsException e1) {</b>
+<i class="no-highlight">274</i>&nbsp;            // NO OP
+<i class="no-highlight">275</i>&nbsp;        }
+<b class="nc"><i class="no-highlight">276</i>&nbsp;        return false;</b>
+<i class="no-highlight">277</i>&nbsp;    }
+<i class="no-highlight">278</i>&nbsp;
+<i class="no-highlight">279</i>&nbsp;    private static SQLDialect getOracleSpecificDialect(DatabaseAccount account) {
+<b class="nc"><i class="no-highlight">280</i>&nbsp;        SQLDialect dialect = SQLDialect.ORACLE;</b>
+<b class="nc"><i class="no-highlight">281</i>&nbsp;        Connection connection = null;</b>
+<i class="no-highlight">282</i>&nbsp;        try {
+<b class="nc"><i class="no-highlight">283</i>&nbsp;            connection =</b>
+<b class="nc"><i class="no-highlight">284</i>&nbsp;                    ((JdbcDatabaseAccount) account).getUnPooledConnection();</b>
+<b class="nc"><i class="no-highlight">285</i>&nbsp;            if (connection != null) {</b>
+<b class="nc"><i class="no-highlight">286</i>&nbsp;                DatabaseMetaData dbMetaData = connection.getMetaData();</b>
+<b class="nc"><i class="no-highlight">287</i>&nbsp;                int databaseMajorVersion = dbMetaData.getDatabaseMajorVersion();</b>
+<b class="nc"><i class="no-highlight">288</i>&nbsp;                dialect = ORACLE_DIALECT_MAP.get(databaseMajorVersion);</b>
+<b class="nc"><i class="no-highlight">289</i>&nbsp;                if (dialect == null) {</b>
+<b class="nc"><i class="no-highlight">290</i>&nbsp;                    dialect = SQLDialect.ORACLE;</b>
+<i class="no-highlight">291</i>&nbsp;                }
+<i class="no-highlight">292</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">293</i>&nbsp;        } catch (Exception ex) {</b>
+<i class="no-highlight">294</i>&nbsp;            //Ignore any exception because the snap workflow should not be affected if we are not
+<i class="no-highlight">295</i>&nbsp;            // able to get the exact dialect.
+<b class="nc"><i class="no-highlight">296</i>&nbsp;            LOG.debug(ERR_DB_NAME, ex);</b>
+<i class="no-highlight">297</i>&nbsp;        } finally {
+<b class="nc"><i class="no-highlight">298</i>&nbsp;            if (LOG.isDebugEnabled() &amp;&amp; connection != null) {</b>
+<b class="nc"><i class="no-highlight">299</i>&nbsp;                LOG.debug(&quot;(+) closing un-pooled connection id = @{}&quot;,</b>
+<b class="nc"><i class="no-highlight">300</i>&nbsp;                        Integer.toHexString(connection.hashCode()));</b>
+<i class="no-highlight">301</i>&nbsp;            }
+<b class="nc"><i class="no-highlight">302</i>&nbsp;            JDBCUtils.safeClose(connection);</b>
+<b class="nc"><i class="no-highlight">303</i>&nbsp;        }</b>
+<b class="nc"><i class="no-highlight">304</i>&nbsp;        return dialect;</b>
+<i class="no-highlight">305</i>&nbsp;    }
+<i class="no-highlight">306</i>&nbsp;}
+</div>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+        var codeBlock = document.getElementById('sourceCode');
+
+        if (codeBlock) {
+            hljs.highlightBlock(codeBlock);
+        }
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-01-19 15:49</div>
+</div>
+</body>
+</html>
